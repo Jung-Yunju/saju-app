@@ -40,6 +40,7 @@ export async function POST(
     return NextResponse.json({ readingId: id })
   } catch (err) {
     console.error("[/api/reading/[id]/generate] 오류:", err)
+    await prisma.reading.update({ where: { id }, data: { status: "FAILED" } }).catch(() => {})
     const message = err instanceof Error ? err.message : "알 수 없는 오류"
     return NextResponse.json({ error: message }, { status: 500 })
   }

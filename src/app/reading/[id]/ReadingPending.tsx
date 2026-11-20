@@ -17,6 +17,9 @@ export default function ReadingPending({
   useEffect(() => {
     if (failed) return
 
+    // 클라이언트에서 AI 생성 트리거 (서버는 응답 없이도 60초간 계속 실행)
+    fetch(`/api/reading/${readingId}/generate`, { method: "POST" }).catch(() => {})
+
     const dotTimer = setInterval(() => {
       setDots(d => d.length >= 3 ? "." : d + ".")
     }, 600)
@@ -25,9 +28,7 @@ export default function ReadingPending({
       try {
         const res = await fetch(`/api/reading/${readingId}/status`)
         const data = await res.json()
-        if (data.status === "COMPLETE") {
-          router.refresh()
-        } else if (data.status === "FAILED") {
+        if (data.status === "COMPLETE" || data.status === "FAILED") {
           router.refresh()
         }
       } catch {}
