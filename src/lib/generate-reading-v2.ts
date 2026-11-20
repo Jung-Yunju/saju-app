@@ -134,15 +134,15 @@ ${JSON.stringify(sajuInput, null, 2)}
 }`
 
   const res = await client.messages.create({
-    model: "claude-haiku-5-5",
+    model: "claude-haiku-3-5",
     max_tokens: 4000,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   })
 
-  console.log("[generateClaims] stop_reason:", res.stop_reason, "usage:", res.usage)
+  console.log("[generateClaims] stop_reason:", res.stop_reason, "usage:", res.usage, "content_blocks:", res.content.length)
   const text = res.content.find(b => b.type === "text")?.text ?? ""
-  if (!text) throw new Error("Claude가 빈 응답을 반환했습니다.")
+  if (!text) throw new Error(`Claude 빈 응답 (stop_reason: ${res.stop_reason}, blocks: ${res.content.length})`)
   const stripped = text.replace(/^```json\s*/m, "").replace(/\s*```$/m, "").trim()
   const match = stripped.match(/\{[\s\S]*\}/)
   if (!match) throw new Error("Claude 응답에서 JSON을 찾을 수 없습니다.")
