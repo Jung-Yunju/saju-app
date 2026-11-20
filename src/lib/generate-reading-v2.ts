@@ -122,37 +122,37 @@ export interface ClaimsResult {
 }
 
 export async function generateClaims(sajuInput: SajuInputData): Promise<ClaimsResult> {
-  const userPrompt = `아래 사람의 지나온 길을 가려 볼 단정 여섯 가지를 써라.
+  const userPrompt = `아래 사람의 지나온 길 단정을 써라. 각 필드는 한 문장씩, 짧고 간결하게.
 
 <입력>
 ${JSON.stringify(sajuInput, null, 2)}
 </입력>
 
-다음 형식의 JSON으로만 답하라.
+JSON으로만 답하라. 각 텍스트 필드는 한 문장(30자 이내)으로.
 {
-  "chart_summary": "여덟 글자를 한 장면으로 그린 두 문장",
-  "cover_title": "표지 별칭. 이 사람의 팔자를 꿰뚫는 강렬한 한 장면. 읽는 순간 '아, 나구나' 싶게 직관적이고 강해야 한다. 열 자 안팎. 예: '화염 속 홀로 선 나무', '물 위에 올려진 불꽃', '칼날 위를 맨발로 걷는 사람', '뿌리 없이 꽃 피우는 나무'. '한여름 밭과 샘 하나' 같은 밋밋한 풍경묘사는 쓰지 않는다.",
+  "chart_summary": "두 문장 이내",
+  "cover_title": "열 자 이내. 예: '화염 속 홀로 선 나무'",
   "claims": [
     {
       "id": "p1",
-      "when": "2015년 · 중학교 2학년",
-      "claim": "단정 한두 문장",
-      "basis": "근거 글자 한두 문장",
-      "era": "그때 세상은 한 줄. 모르면 빈 문자열",
+      "when": "2015년",
+      "claim": "단정 한 문장",
+      "basis": "근거 한 문장",
+      "era": "한 줄 또는 빈 문자열",
       "letter": "丑未충",
       "is_hour_test": false,
-      "if_yes": "맞았을 때 한 줄",
-      "if_no": "틀렸을 때 한 줄"
+      "if_yes": "맞을 때 한 줄",
+      "if_no": "틀릴 때 한 줄"
     }
   ],
   "dictionary": [
-    {"letter": "卯", "role": "이 사람에게 이 글자가 하는 일", "years": [2011, 2023], "next": 2035, "question": "그해에 무엇을 물어볼지"}
+    {"letter": "卯", "role": "한 문장", "years": [2011, 2023], "next": 2035, "question": "한 문장"}
   ]
 }`
 
   const res = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 4000,
+    max_tokens: 2500,
     system: CLAIMS_SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   })
