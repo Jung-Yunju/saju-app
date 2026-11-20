@@ -416,12 +416,12 @@ three_faces.letters는 이 사람 팔자에서 제일 큰 글자 여섯에서 �
 daeun_overview는 입력으로 받은 daeun 배열 전체를 모두 써라. 과거 대운은 "이 철에 무엇이 있었을까"를 쓰고, 현재 대운은 지금 어디쯤인지를, 미래 대운은 무엇을 준비할지를 쓴다. 한 사람의 인생 전체 흐름이 보여야 한다.
 life_graph의 periods도 daeun 배열 전체를 써라. 각 대운마다 money(재성 강도), success(관성+식상 강도), health(신강/신약 균형), luck(귀인·화개·천을귀인 등 신살)을 1~10으로 채점한다. 5가 보통, 8 이상이 강한 운, 3 이하가 약한 운이다. 같은 대운에서 네 항목이 모두 같은 점수가 되지 않게 하라. 과거 대운의 note는 "이 철에 이런 일이 많았을 것"으로, 미래 대운은 "이 철이 오면"으로 쓴다.
 element는 wood, fire, earth, metal, water 가운데 하나.
-body의 문단은 장마다 둘이나 셋, 문단 하나는 두세 문장.
-years는 올해부터 여섯 해. review는 올해부터 세 해. forks는 세 개.`
+body의 문단은 장마다 하나, 두 문장으로 짧게.
+years는 올해부터 네 해. review는 두 개. forks는 두 개. three_faces.letters는 네 개.`
 
   const res = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 8000,
+    max_tokens: 4500,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   })
