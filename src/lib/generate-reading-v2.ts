@@ -327,52 +327,6 @@ ${JSON.stringify(answers)}
       "chapters": [지금 10년, 올해와 내년 — 2개만]
     }
   ],
-  "daeun_overview": [
-    {
-      "ganzhi": "庚辰",
-      "start_year": 1992,
-      "start_age": 7,
-      "end_age": 16,
-      "name": "이 대운의 이름. 예: 뿌리 내리는 철",
-      "theme": "이 10년의 주제와 흐름. 두 문장",
-      "best": "이 철에 최고의 나가 고르는 것. 한 문장",
-      "do_this": "이 철에 할 일 하나"
-    }
-  ],
-  "life_graph": {
-    "periods": [
-      {
-        "age_start": 7,
-        "age_end": 16,
-        "ganzhi": "庚辰",
-        "scores": {
-          "money": 4,
-          "success": 6,
-          "health": 8,
-          "luck": 3
-        },
-        "note": "이 대운 시기의 한 줄 설명. 왜 이 점수인지"
-      }
-    ],
-    "guide": "이 그래프를 읽는 법. 2~3문장. 점수가 높다고 무조건 좋은 게 아니라 운을 어떻게 쓰느냐가 중요하다는 말 포함.",
-    "scoring_note": "점수 산출 근거 한 줄. 어떤 십성·신살·합충을 기준으로 뽑았는지"
-  },
-  "three_faces": {
-    "intro": "같은 글자로 세 사람이 산다는 말. 태어난 집은 출발점이고 얼굴은 네가 고른다",
-    "letters": [
-      {
-        "id": "t1",
-        "letter": "火 4",
-        "name": "불 넷",
-        "what": "만들고 말하는 재주",
-        "best": "최고의 나. 행동으로 한두 문장",
-        "half": "절반의 나. 한 문장",
-        "worst": "최악의 나. 내버려 두면 이리 된다"
-      }
-    ],
-    "how": [{"title": "최고의 나가 고르는 것", "text": "한두 문장"}],
-    "rest": "쉬는 날에 대한 문단. 이 사람 글자에서 쉼이 왜 어려운지와 정해서 쉬라는 말"
-  },
   "forks": [
     {
       "title": "갈림길 제목",
@@ -412,17 +366,13 @@ ${JSON.stringify(answers)}
   "ask": "너에게 묻는 말 한 문장"
 }
 
-three_faces.letters는 이 사람 팔자에서 제일 큰 글자 여섯에서 여덟 개. 없는 오행과 공망도 글자로 친다.
-daeun_overview는 입력으로 받은 daeun 배열 전체를 모두 써라. 과거 대운은 "이 철에 무엇이 있었을까"를 쓰고, 현재 대운은 지금 어디쯤인지를, 미래 대운은 무엇을 준비할지를 쓴다. 한 사람의 인생 전체 흐름이 보여야 한다.
-life_graph의 periods도 daeun 배열 전체를 써라. 각 대운마다 money(재성 강도), success(관성+식상 강도), health(신강/신약 균형), luck(귀인·화개·천을귀인 등 신살)을 1~10으로 채점한다. 5가 보통, 8 이상이 강한 운, 3 이하가 약한 운이다. 같은 대운에서 네 항목이 모두 같은 점수가 되지 않게 하라. 과거 대운의 note는 "이 철에 이런 일이 많았을 것"으로, 미래 대운은 "이 철이 오면"으로 쓴다.
 element는 wood, fire, earth, metal, water 가운데 하나.
 body의 문단은 장마다 하나, 한 문장으로 아주 짧게. chips는 하나씩만.
-years는 올해부터 두 해. review는 하나. forks는 하나. three_faces.letters는 두 개. three_faces.how는 하나.
-daeun_overview는 현재 대운 포함 앞뒤로 두 개만. life_graph.periods도 두 개만. closing.points는 두 개.`
+years는 올해부터 두 해. review는 하나. forks는 하나. closing.points는 두 개.`
 
   const res = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 3500,
+    max_tokens: 1800,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   })
