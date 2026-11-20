@@ -3,7 +3,7 @@
 import { useState } from "react"
 import ReactMarkdown from "react-markdown"
 import Link from "next/link"
-import type { FullReading, Part, Chapter, Fork, YearEntry } from "@/lib/generate-reading-v2"
+import type { FullReading, Part, Chapter, Fork, YearEntry, LifeGraph as LifeGraphType } from "@/lib/generate-reading-v2"
 
 const EL_KO: Record<string, string> = {
   wood: "목", fire: "화", earth: "토", metal: "금", water: "수",
@@ -82,6 +82,7 @@ type PartTocItem = { label: string; tag: string; count: number; slideIdx: number
 type NavTab = { label: string; firstIdx: number; lastIdx: number }
 
 function NewReadingViewer({ userName, readingName, readingType, birthInfo, pillars, fiveElements, fullReading, createdAt }: ReadingViewerProps & { fullReading: FullReading }) {
+  const [showGraph, setShowGraph] = useState(false)
   const slides: Slide[] = [{ type: "cover" }, { type: "toc" }]
   const toc: TocItem[] = []
   const partToc: PartTocItem[] = []
@@ -131,12 +132,18 @@ function NewReadingViewer({ userName, readingName, readingType, birthInfo, pilla
   slides.push({ type: "closing" })
   tabs.push({ label: "마무리", firstIdx: closingIdx, lastIdx: closingIdx })
 
+  // 운명 그래프 탭 (슬라이드 아님 — 별도 뷰)
+  const GRAPH_TAB_IDX = tabs.length
+  if (fullReading.life_graph?.periods?.length) {
+    tabs.push({ label: "운명 그래프", firstIdx: -1, lastIdx: -1 })
+  }
+
   const total = slides.length
   const [slide, setSlide] = useState(0)
   const prev = () => setSlide(s => Math.max(0, s - 1))
   const next = () => setSlide(s => Math.min(total - 1, s + 1))
 
-  const activeTabIdx = tabs.findIndex(t => slide >= t.firstIdx && slide <= t.lastIdx)
+  const activeTabIdx = showGraph ? GRAPH_TAB_IDX : tabs.findIndex(t => slide >= t.firstIdx && slide <= t.lastIdx)
   const s = slides[slide]
 
   return (
@@ -158,13 +165,16 @@ function NewReadingViewer({ userName, readingName, readingType, birthInfo, pilla
           {tabs.map((t, i) => (
             <button
               key={i}
-              onClick={() => setSlide(t.firstIdx)}
+              onClick={() => {
+                if (i === GRAPH_TAB_IDX) { setShowGraph(true) }
+                else { setShowGraph(false); setSlide(t.firstIdx) }
+              }}
               className="transition-colors"
               style={{
                 fontSize: "12px",
                 fontWeight: i === activeTabIdx ? 700 : 400,
-                color: i === activeTabIdx ? "#1b2a3a" : "#9ea3ab",
-                borderBottom: i === activeTabIdx ? "2px solid #1b2a3a" : "2px solid transparent",
+                color: i === activeTabIdx ? (i === GRAPH_TAB_IDX ? "#7c3aed" : "#1b2a3a") : "#9ea3ab",
+                borderBottom: i === activeTabIdx ? `2px solid ${i === GRAPH_TAB_IDX ? "#7c3aed" : "#1b2a3a"}` : "2px solid transparent",
                 padding: "8px 12px",
                 whiteSpace: "nowrap",
                 background: "transparent",
@@ -177,40 +187,49 @@ function NewReadingViewer({ userName, readingName, readingType, birthInfo, pilla
         </div>
       </div>
 
-      {/* 카드 영역 */}
-      <div className="flex-1 flex items-center justify-center px-10 py-4 relative">
-        <button onClick={prev} disabled={slide === 0}
-          className="absolute left-2 z-10 w-9 h-9 rounded-full border border-[#e4ddd3] bg-white text-[#1b2a3a] flex items-center justify-center text-xl shadow-sm disabled:opacity-20 hover:border-[#1b2a3a] transition-colors">‹</button>
+      {/* 메인 콘텐츠 영역 */}
+      {showGraph && fullReading.life_graph ? (
+        <div className="flex-1 overflow-y-auto">
+          <LifeGraphView lifeGraph={fullReading.life_graph} />
+        </div>
+      ) : (
+        <>
+          {/* 카드 영역 */}
+          <div className="flex-1 flex items-center justify-center px-10 py-4 relative">
+            <button onClick={prev} disabled={slide === 0}
+              className="absolute left-2 z-10 w-9 h-9 rounded-full border border-[#e4ddd3] bg-white text-[#1b2a3a] flex items-center justify-center text-xl shadow-sm disabled:opacity-20 hover:border-[#1b2a3a] transition-colors">‹</button>
 
-        <div className="relative w-full max-w-sm" style={{ aspectRatio: "14/19" }}>
-          <div
-            key={slide}
-            className="si hide-sb relative w-full h-full rounded-2xl shadow-[0_1px_2px_rgba(0,0,0,0.06),0_12px_40px_rgba(27,42,58,0.14)] overflow-hidden"
-            style={{ containerType: "inline-size" } as React.CSSProperties}
-          >
-            {s.type === "cover" && <CoverSlide {...{ userName, readingName, birthInfo, pillars, fiveElements, createdAt, next, quote: fullReading.quote }} />}
-            {s.type === "toc" && <TocSlide partToc={partToc} goto={setSlide} />}
-            {s.type === "note" && <NoteSlide text={s.text} />}
-            {s.type === "part-index" && <PartIndexSlide part={s.part} chapterSlideIdxs={s.chapterSlideIdxs} goto={setSlide} />}
-            {s.type === "chapter" && <ChapterSlide part={s.part} chapter={s.chapter} />}
-            {s.type === "fork" && <ForkSlide fork={s.fork} />}
-            {s.type === "years" && <YearsSlide years={s.years} />}
-            {s.type === "closing" && <ClosingSlide closing={fullReading.closing} review={fullReading.review} />}
+            <div className="relative w-full max-w-sm" style={{ aspectRatio: "14/19" }}>
+              <div
+                key={slide}
+                className="si hide-sb relative w-full h-full rounded-2xl shadow-[0_1px_2px_rgba(0,0,0,0.06),0_12px_40px_rgba(27,42,58,0.14)] overflow-hidden"
+                style={{ containerType: "inline-size" } as React.CSSProperties}
+              >
+                {s.type === "cover" && <CoverSlide {...{ userName, readingName, birthInfo, pillars, fiveElements, createdAt, next, quote: fullReading.quote }} />}
+                {s.type === "toc" && <TocSlide partToc={partToc} goto={setSlide} />}
+                {s.type === "note" && <NoteSlide text={s.text} />}
+                {s.type === "part-index" && <PartIndexSlide part={s.part} chapterSlideIdxs={s.chapterSlideIdxs} goto={setSlide} />}
+                {s.type === "chapter" && <ChapterSlide part={s.part} chapter={s.chapter} />}
+                {s.type === "fork" && <ForkSlide fork={s.fork} />}
+                {s.type === "years" && <YearsSlide years={s.years} />}
+                {s.type === "closing" && <ClosingSlide closing={fullReading.closing} review={fullReading.review} />}
+              </div>
+            </div>
+
+            <button onClick={next} disabled={slide === total - 1}
+              className="absolute right-2 z-10 w-9 h-9 rounded-full border border-[#e4ddd3] bg-white text-[#1b2a3a] flex items-center justify-center text-xl shadow-sm disabled:opacity-20 hover:border-[#1b2a3a] transition-colors">›</button>
           </div>
-        </div>
 
-        <button onClick={next} disabled={slide === total - 1}
-          className="absolute right-2 z-10 w-9 h-9 rounded-full border border-[#e4ddd3] bg-white text-[#1b2a3a] flex items-center justify-center text-xl shadow-sm disabled:opacity-20 hover:border-[#1b2a3a] transition-colors">›</button>
-      </div>
-
-      {/* 프로그레스 바 */}
-      <div className="flex items-center justify-center gap-3 pb-6 pt-1 flex-none">
-        <div className="w-52 h-1 bg-[#d8d0c3] rounded-full overflow-hidden">
-          <div className="h-full bg-[#1b2a3a] rounded-full transition-all duration-300"
-            style={{ width: `${((slide + 1) / total) * 100}%` }} />
-        </div>
-        <span className="text-xs text-[#9ea3ab] tabular-nums">{slide + 1} / {total}</span>
-      </div>
+          {/* 프로그레스 바 */}
+          <div className="flex items-center justify-center gap-3 pb-6 pt-1 flex-none">
+            <div className="w-52 h-1 bg-[#d8d0c3] rounded-full overflow-hidden">
+              <div className="h-full bg-[#1b2a3a] rounded-full transition-all duration-300"
+                style={{ width: `${((slide + 1) / total) * 100}%` }} />
+            </div>
+            <span className="text-xs text-[#9ea3ab] tabular-nums">{slide + 1} / {total}</span>
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -593,6 +612,175 @@ function ClosingSlide({ closing, review }: { closing: FullReading["closing"]; re
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 운명 그래프 뷰
+// ══════════════════════════════════════════════════════════════════════════════
+const GRAPH_DIMS = [
+  { key: "money", label: "돈·재물", color: "#d4a847" },
+  { key: "success", label: "성공·커리어", color: "#4a9eff" },
+  { key: "health", label: "건강", color: "#4adf86" },
+  { key: "luck", label: "횡재·행운", color: "#c084fc" },
+] as const
+
+function LifeGraphView({ lifeGraph }: { lifeGraph: LifeGraphType }) {
+  const [active, setActive] = useState<Record<string, boolean>>({
+    money: true, success: true, health: false, luck: false,
+  })
+  const [tapped, setTapped] = useState<number | null>(null)
+
+  const { periods } = lifeGraph
+  const n = periods.length
+  if (!n) return null
+
+  const W = 360, H = 210
+  const ML = 28, MR = 10, MT = 14, MB = 58
+  const CW = W - ML - MR, CH = H - MT - MB
+
+  const xOf = (i: number) => ML + (i + 0.5) * (CW / n)
+  const yOf = (s: number) => MT + ((10 - s) / 9) * CH
+
+  const pathFor = (key: string) =>
+    periods.map((p, i) => `${i === 0 ? "M" : "L"} ${xOf(i)},${yOf(p.scores[key as keyof typeof p.scores])}`).join(" ")
+
+  return (
+    <div style={{ padding: "16px 14px 32px", background: "#faf8f4", minHeight: "100%" }}>
+
+      {/* 타이틀 */}
+      <div style={{ marginBottom: 14 }}>
+        <p style={{ fontSize: 10, letterSpacing: "0.3em", color: "#a5603f", fontWeight: 700, marginBottom: 4 }}>LIFE GRAPH</p>
+        <h2 style={{ fontSize: 20, fontFamily: "serif", fontWeight: 900, color: "#1b2a3a", lineHeight: 1.1, marginBottom: 4 }}>운명 그래프</h2>
+        <p style={{ fontSize: 12, color: "#9ea3ab", lineHeight: 1.6 }}>대운별 흐름을 한눈에 · 항목을 선택해 비교해보세요</p>
+      </div>
+
+      {/* 토글 버튼 */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+        {GRAPH_DIMS.map(d => (
+          <button
+            key={d.key}
+            onClick={() => setActive(a => ({ ...a, [d.key]: !a[d.key] }))}
+            style={{
+              padding: "5px 12px",
+              borderRadius: 100,
+              border: `1.5px solid ${active[d.key] ? d.color : "#e4ddd3"}`,
+              background: active[d.key] ? `${d.color}18` : "white",
+              color: active[d.key] ? d.color : "#9ea3ab",
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+            }}
+          >
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: active[d.key] ? d.color : "#e4ddd3", display: "inline-block", flexShrink: 0 }} />
+            {d.label}
+          </button>
+        ))}
+      </div>
+
+      {/* SVG 차트 */}
+      <div style={{ background: "white", borderRadius: 14, border: "1px solid #e4ddd3", padding: "6px 2px 4px", marginBottom: 12, overflow: "hidden" }}>
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", display: "block" }}>
+          {/* Y 그리드 */}
+          {[2, 4, 5, 7, 9].map(v => (
+            <g key={v}>
+              <line x1={ML} y1={yOf(v)} x2={W - MR} y2={yOf(v)} stroke={v === 5 ? "#c8bfb0" : "#f0ebe3"} strokeWidth={v === 5 ? 1 : 0.7} />
+              <text x={ML - 3} y={yOf(v) + 3.5} textAnchor="end" fill="#c8bfb0" fontSize={7.5}>{v}</text>
+            </g>
+          ))}
+          {/* 평균선 레이블 */}
+          <text x={W - MR} y={yOf(5) - 2} textAnchor="end" fill="#c8bfb0" fontSize={7}>평균</text>
+
+          {/* tapped 하이라이트 */}
+          {tapped !== null && (
+            <rect x={ML + tapped * (CW / n)} y={MT} width={CW / n} height={CH} fill="#1b2a3a" opacity={0.07} rx={2} />
+          )}
+
+          {/* 라인 */}
+          {GRAPH_DIMS.map(d => active[d.key] && (
+            <path key={d.key} d={pathFor(d.key)} fill="none" stroke={d.color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+          ))}
+
+          {/* 점 */}
+          {periods.map((p, i) => (
+            <g key={i}>
+              {GRAPH_DIMS.map(d => active[d.key] && (
+                <circle key={d.key} cx={xOf(i)} cy={yOf(p.scores[d.key as keyof typeof p.scores])} r={3.5}
+                  fill={d.color} stroke="white" strokeWidth={1.5} pointerEvents="none" />
+              ))}
+            </g>
+          ))}
+
+          {/* X 탭 영역 + 레이블 */}
+          {periods.map((p, i) => (
+            <g key={i} style={{ cursor: "pointer" }} onClick={() => setTapped(t => t === i ? null : i)}>
+              <rect x={ML + i * (CW / n)} y={MT} width={CW / n} height={CH + MB} fill="transparent" />
+              <text x={xOf(i)} y={H - MB + 11} textAnchor="middle" fill={tapped === i ? "#1b2a3a" : "#9ea3ab"} fontSize={7.5} fontWeight={tapped === i ? 700 : 400}>
+                {p.age_start}~{p.age_end}세
+              </text>
+              <text x={xOf(i)} y={H - MB + 22} textAnchor="middle" fill={tapped === i ? "#a5603f" : "#6b7280"} fontSize={8.5} fontFamily="serif" fontWeight={tapped === i ? 700 : 400}>
+                {p.ganzhi}
+              </text>
+              {/* 탭 선택 인디케이터 */}
+              {tapped === i && (
+                <line x1={xOf(i)} y1={H - MB + 26} x2={xOf(i)} y2={H - MB + 29} stroke="#a5603f" strokeWidth={1.5} />
+              )}
+            </g>
+          ))}
+        </svg>
+      </div>
+
+      {/* 선택된 대운 상세 */}
+      {tapped !== null && periods[tapped] ? (() => {
+        const tp = periods[tapped]
+        const sc = tp.scores as Record<string, number>
+        return (
+          <div className="si" style={{ background: "#1b2a3a", color: "#f3ede4", borderRadius: 14, padding: "14px 16px", marginBottom: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <span style={{ fontSize: 15, fontWeight: 900, fontFamily: "serif" }}>{tp.ganzhi} 대운</span>
+              <span style={{ fontSize: 11, color: "#9ea3ab" }}>{tp.age_start}~{tp.age_end}세</span>
+            </div>
+            <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
+              {GRAPH_DIMS.map(d => (
+                <span key={d.key} style={{ fontSize: 11, padding: "3px 10px", borderRadius: 100, background: `${d.color}22`, color: d.color, fontWeight: 700 }}>
+                  {d.label} {sc[d.key]}
+                </span>
+              ))}
+            </div>
+            <p style={{ fontSize: 13, lineHeight: 1.8, color: "#c8c0b4" }}>{tp.note}</p>
+          </div>
+        )
+      })() : (
+        <div style={{ textAlign: "center", padding: "10px 0 6px", marginBottom: 8 }}>
+          <p style={{ fontSize: 12, color: "#c8bfb0" }}>↑ 그래프의 대운을 눌러 상세 풀이를 보세요</p>
+        </div>
+      )}
+
+      {/* 사용 안내 */}
+      <div style={{ background: "white", border: "1px solid #e4ddd3", borderRadius: 14, padding: "14px 16px", marginBottom: 10 }}>
+        <p style={{ fontSize: 10, fontWeight: 700, color: "#a5603f", marginBottom: 8, letterSpacing: "0.15em" }}>✦ 그래프 보는 방법</p>
+        {lifeGraph.guide ? (
+          <p style={{ fontSize: 13, lineHeight: 1.8, color: "#374151" }}>{lifeGraph.guide}</p>
+        ) : (
+          <ul style={{ fontSize: 12, lineHeight: 2, color: "#374151", paddingLeft: 16, margin: 0 }}>
+            <li>세로축(1~10)은 그 시기의 기운 강도입니다. 5가 평균, 8 이상은 강한 흐름입니다.</li>
+            <li>항목 버튼을 눌러 보고 싶은 운세만 골라서 비교해보세요.</li>
+            <li>꺾이는 부분이 급할수록 운의 변화가 큰 시기입니다.</li>
+            <li>각 대운 구간을 탭하면 그 시기의 풀이가 나옵니다.</li>
+          </ul>
+        )}
+      </div>
+
+      {/* 채점 안내 */}
+      {lifeGraph.scoring_note && (
+        <div style={{ padding: "10px 14px", background: "#f3f0eb", borderRadius: 10, border: "1px solid #e4ddd3" }}>
+          <p style={{ fontSize: 11, color: "#9ea3ab", lineHeight: 1.75 }}>{lifeGraph.scoring_note}</p>
+        </div>
+      )}
     </div>
   )
 }
