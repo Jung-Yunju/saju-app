@@ -1,0 +1,41 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+:root {
+  --paper: #faf8f4;
+  --ink: #1b2a3a;
+  --muted: #6b7280;
+  --accent: #a5603f;
+  --line: #e4ddd3;
+  --bg: #ece7df;
+  --wood: #4e8b5b;
+  --fire: #c9553d;
+  --earth: #b98a4a;
+  --metal: #828a96;
+  --water: #2b4a6f;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans), system-ui, sans-serif;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-serif), serif;
+  }
+}
+
+@layer utilities {
+  .font-serif {
+    font-family: var(--font-serif), serif;
+  }
+  .text-accent {
+    color: var(--accent);
+  }
+  .bg-paper {
+    background-color: var(--paper);
+  }
+  .border-line {
+    border-color: var(--line);
+  }
+}
