@@ -134,7 +134,7 @@ ${JSON.stringify(sajuInput, null, 2)}
 }`
 
   const res = await client.messages.create({
-    model: "claude-sonnet-4-6",
+    model: "claude-haiku-5-5",
     max_tokens: 4000,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
