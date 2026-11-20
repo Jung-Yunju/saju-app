@@ -312,19 +312,19 @@ ${JSON.stringify(answers)}
   "parts": [
     {
       "title": "타고난 나와 마음 모양",
-      "chapters": [타고난 성격, 타고난 재주, 채워야 할 것, 마음 모양, 살과 귀인 — 각 chapter는 아래 꼴]
+      "chapters": [타고난 성격, 마음 모양 — 2개만]
     },
     {
       "title": "적성과 능력",
-      "chapters": [적성, 가장 큰 힘을 키우는 법, 가장 큰 구멍을 메우는 법, 덤으로 가진 힘을 쓰는 법]
+      "chapters": [적성, 가장 큰 힘을 키우는 법 — 2개만]
     },
     {
       "title": "일과 돈, 사랑",
-      "chapters": [재물운, 이성운, 결혼운, 성공운(대운 세 계단으로)]
+      "chapters": [재물운, 이성운 — 2개만]
     },
     {
       "title": "지금과 앞으로",
-      "chapters": [지금 10년, 올해와 내년, 다음 10년, 몸과 생활]
+      "chapters": [지금 10년, 올해와 내년 — 2개만]
     }
   ],
   "daeun_overview": [
@@ -416,24 +416,31 @@ three_faces.letters는 이 사람 팔자에서 제일 큰 글자 여섯에서 �
 daeun_overview는 입력으로 받은 daeun 배열 전체를 모두 써라. 과거 대운은 "이 철에 무엇이 있었을까"를 쓰고, 현재 대운은 지금 어디쯤인지를, 미래 대운은 무엇을 준비할지를 쓴다. 한 사람의 인생 전체 흐름이 보여야 한다.
 life_graph의 periods도 daeun 배열 전체를 써라. 각 대운마다 money(재성 강도), success(관성+식상 강도), health(신강/신약 균형), luck(귀인·화개·천을귀인 등 신살)을 1~10으로 채점한다. 5가 보통, 8 이상이 강한 운, 3 이하가 약한 운이다. 같은 대운에서 네 항목이 모두 같은 점수가 되지 않게 하라. 과거 대운의 note는 "이 철에 이런 일이 많았을 것"으로, 미래 대운은 "이 철이 오면"으로 쓴다.
 element는 wood, fire, earth, metal, water 가운데 하나.
-body의 문단은 장마다 하나, 한두 문장으로 아주 짧게.
-years는 올해부터 세 해. review는 하나. forks는 하나. three_faces.letters는 세 개.
-daeun_overview는 현재 대운 포함 앞뒤로 세 개만. life_graph.periods도 세 개만.`
+body의 문단은 장마다 하나, 한 문장으로 아주 짧게. chips는 하나씩만.
+years는 올해부터 두 해. review는 하나. forks는 하나. three_faces.letters는 두 개. three_faces.how는 하나.
+daeun_overview는 현재 대운 포함 앞뒤로 두 개만. life_graph.periods도 두 개만. closing.points는 두 개.`
 
   const res = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 3000,
+    max_tokens: 3500,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   })
 
-  console.log("[generateFullReading] stop_reason:", res.stop_reason)
+  console.log("[generateFullReading] stop_reason:", res.stop_reason, "output_tokens:", res.usage.output_tokens)
 
   const text = res.content.find(b => b.type === "text")?.text ?? ""
   if (!text) throw new Error("Claude가 빈 응답을 반환했습니다.")
   const stripped = text.replace(/^```json\s*/m, "").replace(/\s*```$/m, "").trim()
   const match = stripped.match(/\{[\s\S]*\}/)
-  if (!match) throw new Error("Claude 응답에서 JSON을 찾을 수 없습니다.")
-  if (res.stop_reason === "max_tokens") throw new Error("응답이 너무 길어 잘렸습니다. 다시 시도해 주세요.")
-  return JSON.parse(match[0]) as FullReading
+  if (!match) {
+    if (res.stop_reason === "max_tokens") throw new Error("응답이 잘렸습니다. 다시 시도해 주세요.")
+    throw new Error("Claude 응답에서 JSON을 찾을 수 없습니다.")
+  }
+  try {
+    return JSON.parse(match[0]) as FullReading
+  } catch {
+    if (res.stop_reason === "max_tokens") throw new Error("응답이 잘렸습니다. 다시 시도해 주세요.")
+    throw new Error("JSON 파싱 실패")
+  }
 }
