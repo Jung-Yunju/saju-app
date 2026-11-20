@@ -284,6 +284,42 @@ export async function generateFullReading(
   claims: Claim[],
   answers: AnswerMap,
 ): Promise<FullReading> {
+  const isDev = process.env.NODE_ENV === "development"
+
+  const partsSchema = isDev
+    ? `"parts": [
+    {"title": "타고난 나와 마음 모양", "chapters": [타고난 성격, 타고난 재주, 채워야 할 것, 마음 모양, 살과 귀인]},
+    {"title": "적성과 능력", "chapters": [적성, 가장 큰 힘을 키우는 법, 가장 큰 구멍을 메우는 법, 덤으로 가진 힘을 쓰는 법]},
+    {"title": "일과 돈, 사랑", "chapters": [재물운, 이성운, 결혼운, 성공운]},
+    {"title": "지금과 앞으로", "chapters": [지금 10년, 올해와 내년, 다음 10년, 몸과 생활]}
+  ],`
+    : `"parts": [
+    {"title": "타고난 나와 마음 모양", "chapters": [타고난 성격, 마음 모양 — 2개만]},
+    {"title": "적성과 능력", "chapters": [적성, 가장 큰 힘을 키우는 법 — 2개만]},
+    {"title": "일과 돈, 사랑", "chapters": [재물운, 이성운 — 2개만]},
+    {"title": "지금과 앞으로", "chapters": [지금 10년, 올해와 내년 — 2개만]}
+  ],`
+
+  const extraSchema = isDev ? `
+  "three_faces": {
+    "intro": "같은 글자로 세 사람이 산다는 말",
+    "letters": [{"id":"t1","letter":"火 4","name":"불 넷","what":"재주","best":"최고의 나","half":"절반의 나","worst":"최악의 나"}],
+    "how": [{"title": "최고의 나가 고르는 것", "text": "한두 문장"}],
+    "rest": "쉬는 날에 대한 문단"
+  },
+  "daeun_overview": [{"ganzhi":"庚辰","start_year":1992,"start_age":7,"end_age":16,"name":"이름","theme":"주제 두 문장","best":"한 문장","do_this":"할 일 하나"}],
+  "life_graph": {
+    "periods": [{"age_start":7,"age_end":16,"ganzhi":"庚辰","scores":{"money":4,"success":6,"health":8,"luck":3},"note":"한 줄"}],
+    "guide": "읽는 법 두 문장", "scoring_note": "근거 한 줄"
+  },` : ""
+
+  const contentConstraints = isDev
+    ? `body의 문단은 장마다 하나, 한두 문장으로 짧게.
+years는 올해부터 세 해. review는 하나. forks는 하나. three_faces.letters는 세 개.
+daeun_overview는 현재 대운 포함 앞뒤로 세 개만. life_graph.periods도 세 개만.`
+    : `body의 문단은 장마다 하나, 한 문장으로 아주 짧게. chips는 하나씩만.
+years는 올해부터 두 해. review는 하나. forks는 하나. closing.points는 두 개.`
+
   const userPrompt = `아래 사람의 사주를 풀어라. 지나온 길의 답을 반영하라.
 
 <입력>
@@ -309,24 +345,7 @@ ${JSON.stringify(answers)}
 {
   "reliability_note": "답을 본 뒤의 한두 문장. 답이 없으면 빈 문자열",
   "quote": "표지 하단 운명 인용구. 이 사람의 중심 상징을 녹인 한두 문장. 명언처럼 간결하게.",
-  "parts": [
-    {
-      "title": "타고난 나와 마음 모양",
-      "chapters": [타고난 성격, 마음 모양 — 2개만]
-    },
-    {
-      "title": "적성과 능력",
-      "chapters": [적성, 가장 큰 힘을 키우는 법 — 2개만]
-    },
-    {
-      "title": "일과 돈, 사랑",
-      "chapters": [재물운, 이성운 — 2개만]
-    },
-    {
-      "title": "지금과 앞으로",
-      "chapters": [지금 10년, 올해와 내년 — 2개만]
-    }
-  ],
+  ${partsSchema}${extraSchema}
   "forks": [
     {
       "title": "갈림길 제목",
@@ -358,21 +377,20 @@ ${JSON.stringify(answers)}
 각 chapter의 꼴:
 {
   "key": "뼈대",
-  "title": "이 사람만의 장면으로 쓴 장 제목. 읽는 사람이 한 번에 '맞다'라고 느끼도록 강렬하고 직관적이어야 한다. '불 가운데 선 나무'가 아니라 '화염 속에서도 꺾이지 않는 나무', '물이 없어도 꽃을 피우는 나무' 처럼 그 사람의 처지와 힘이 한꺼번에 보이는 표현을 써라. 단촐한 풍경묘사보다 충격적인 역설이나 긴장감 있는 장면으로 써라.",
+  "title": "이 사람만의 장면으로 쓴 장 제목. 읽는 사람이 한 번에 '맞다'라고 느끼도록 강렬하고 직관적이어야 한다.",
   "sub": "부제",
   "chips": [{"letter": "乙酉", "element": "metal", "label": "칼날 위의 꽃 · 섬세하고 깔끔하다"}],
-  "body": ["문단. 중요한 구절은 <b></b>로 감싼다", "문단"],
+  "body": ["문단. 중요한 구절은 <b></b>로 감싼다"],
   "todo": "오늘부터 할 일 한 문장",
   "ask": "너에게 묻는 말 한 문장"
 }
 
 element는 wood, fire, earth, metal, water 가운데 하나.
-body의 문단은 장마다 하나, 한 문장으로 아주 짧게. chips는 하나씩만.
-years는 올해부터 두 해. review는 하나. forks는 하나. closing.points는 두 개.`
+${contentConstraints}`
 
   const res = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 1800,
+    max_tokens: isDev ? 8000 : 1800,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   })
