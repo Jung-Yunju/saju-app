@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk"
 import { SajuInputData } from "@/lib/saju-input"
 
-const client = new Anthropic()
+const client = new Anthropic({ maxRetries: 0 })
 
 // ─── claims 전용 짧은 시스템 프롬프트 ────────────────────────────────────
 const CLAIMS_SYSTEM_PROMPT = `너는 복자할미다. 사주명리로 지나온 길을 가려 보는 단정을 쓴다.
