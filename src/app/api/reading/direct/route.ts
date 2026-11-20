@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
+import { after } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma, withRetry } from "@/lib/prisma"
 import { buildSajuInput } from "@/lib/saju-input"
+import { generateFullReading } from "@/lib/generate-reading-v2"
+import type { SajuInputData } from "@/lib/saju-input"
 
-export const maxDuration = 30
+export const maxDuration = 60
 
-// Step 1: DB에 주문+풀이 레코드만 빠르게 생성 (AI 호출 없음)
 export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session?.user?.id) {
@@ -55,6 +57,24 @@ export async function POST(req: NextRequest) {
         content: "",
       },
     }))
+
+    // 응답을 먼저 보내고, AI 생성은 백그라운드에서
+    after(async () => {
+      try {
+        const fullReading = await generateFullReading(sajuInput as SajuInputData, [], {})
+        await prisma.reading.update({
+          where: { id: reading.id },
+          data: { fullReading: fullReading as object, status: "COMPLETE" },
+        })
+        console.log("[after] 풀이 생성 완료:", reading.id)
+      } catch (err) {
+        console.error("[after] 풀이 생성 실패:", err)
+        await prisma.reading.update({
+          where: { id: reading.id },
+          data: { status: "FAILED" },
+        }).catch(() => {})
+      }
+    })
 
     return NextResponse.json({ readingId: reading.id })
   } catch (err) {

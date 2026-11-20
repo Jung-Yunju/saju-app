@@ -6,6 +6,7 @@ export const instant = false
 import { prisma } from "@/lib/prisma"
 import { calculateSaju } from "@/lib/saju"
 import ReadingViewer from "./ReadingViewer"
+import ReadingPending from "./ReadingPending"
 import type { FullReading } from "@/lib/generate-reading-v2"
 
 const READING_LABELS: Record<string, string> = {
@@ -56,9 +57,8 @@ export default async function ReadingPage({ params }: { params: Promise<{ id: st
     year: "numeric", month: "long", day: "numeric",
   })
 
-  // VERIFYING 상태면 검증 페이지로
-  if (reading.status === "VERIFYING") {
-    redirect(`/verify/${id}`)
+  if (reading.status === "PENDING" || reading.status === "FAILED") {
+    return <ReadingPending readingId={id} status={reading.status} />
   }
 
   return (

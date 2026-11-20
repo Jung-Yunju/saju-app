@@ -77,26 +77,15 @@ function InputPageInner() {
         body.otherGender = other.gender
       }
 
-      // Step 1: DB 레코드 생성
-      const res1 = await fetch("/api/reading/direct", {
+      const res = await fetch("/api/reading/direct", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       })
-      const data1 = await res1.json()
-      if (!res1.ok) { setError(data1.error || "오류가 발생했습니다."); return }
+      const data = await res.json()
+      if (!res.ok) { setError(data.error || "오류가 발생했습니다."); return }
 
-      const readingId = data1.readingId
-
-      // Step 2: AI 풀이 생성 (최대 60초)
-      const res2 = await fetch(`/api/reading/${readingId}/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      })
-      const data2 = await res2.json()
-      if (!res2.ok) { setError(data2.error || "풀이 생성 중 오류가 발생했습니다."); return }
-
-      router.push(`/reading/${readingId}`)
+      router.push(`/reading/${data.readingId}`)
     } catch (err) {
       console.error("풀이 요청 오류:", err)
       const msg = err instanceof Error ? err.message : String(err)
@@ -151,7 +140,7 @@ function InputPageInner() {
             type="submit" disabled={loading}
             className="w-full bg-[#1b2a3a] text-[#f3ede4] py-4 rounded-xl font-semibold text-sm hover:bg-[#2a3f55] active:scale-[0.98] transition-all disabled:opacity-40"
           >
-            {loading ? "풀이 생성 중… (1~2분 소요)" : "풀이 받기 →"}
+            {loading ? "잠시만요…" : "풀이 받기 →"}
           </button>
         </form>
 
