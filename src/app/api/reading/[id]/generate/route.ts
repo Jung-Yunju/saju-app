@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { generateFullReading } from "@/lib/generate-reading-v2"
 import type { SajuInputData } from "@/lib/saju-input"
 
-export const maxDuration = 60
+export const maxDuration = 300
 
 export async function POST(
   _req: NextRequest,
