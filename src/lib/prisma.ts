@@ -4,25 +4,32 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-function buildDatasourceUrl(base: string | undefined): string | undefined {
-  if (!base) return undefined
-  try {
-    const url = new URL(base)
-    // Neon 무료 플랜 auto-suspend 해제 대기 시간 확보
-    if (!url.searchParams.has("connect_timeout")) {
-      url.searchParams.set("connect_timeout", "30")
-    }
-    return url.toString()
-  } catch {
-    return base
-  }
-}
-
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
-    datasourceUrl: buildDatasourceUrl(process.env.DATABASE_URL),
   })
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma
+
+// Neon auto-suspend 대응: DB 연결 실패 시 최대 2회 재시도
+export async function withRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 2000): Promise<T> {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await fn()
+    } catch (err) {
+      const isConnErr = err instanceof Error &&
+        (err.message.includes("Can't reach database") ||
+         err.message.includes("Connection refused") ||
+         err.message.includes("ECONNREFUSED") ||
+         err.message.includes("connect timeout"))
+      if (isConnErr && i < retries) {
+        console.warn(`[prisma] DB 연결 실패, ${delayMs}ms 후 재시도 (${i + 1}/${retries})`)
+        await new Promise(r => setTimeout(r, delayMs))
+        continue
+      }
+      throw err
+    }
+  }
+  throw new Error("unreachable")
+}

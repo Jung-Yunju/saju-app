@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
-
-export const maxDuration = 60
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { prisma, withRetry } from "@/lib/prisma"
 import { buildSajuInput } from "@/lib/saju-input"
 import { generateClaims } from "@/lib/generate-reading-v2"
+
+export const maxDuration = 60
 
 export async function POST(req: NextRequest) {
   const session = await auth()
@@ -26,14 +26,14 @@ export async function POST(req: NextRequest) {
   try {
     const orderId = `dev_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
 
-    const order = await prisma.order.create({
+    const order = await withRetry(() => prisma.order.create({
       data: {
         userId: session.user.id,
         orderId,
         amount: 0,
         status: "PAID",
       },
-    })
+    }))
 
     // 사주 입력 JSON 계산
     const sajuInput = buildSajuInput(
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     const claimsResult = await generateClaims(sajuInput)
 
     // DB 저장 (status=VERIFYING — 2차 호출 대기)
-    const reading = await prisma.reading.create({
+    const reading = await withRetry(() => prisma.reading.create({
       data: {
         userId: session.user.id,
         orderId: order.id,
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
         claims: claimsResult as object,
         content: "",
       },
-    })
+    }))
 
     return NextResponse.json({
       readingId: reading.id,

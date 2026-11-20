@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
-
-export const maxDuration = 60
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { generateFullReading, type Claim, type AnswerMap } from "@/lib/generate-reading-v2"
 import type { SajuInputData } from "@/lib/saju-input"
+
+export const maxDuration = 60
 
 export async function POST(
   req: NextRequest,
