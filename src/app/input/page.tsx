@@ -99,7 +99,8 @@ function InputPageInner() {
       router.push(`/verify/${readingId}`)
     } catch (err) {
       console.error("풀이 요청 오류:", err)
-      setError("서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.")
+      const msg = err instanceof Error ? err.message : String(err)
+      setError(`오류: ${msg}`)
     } finally {
       setLoading(false)
     }

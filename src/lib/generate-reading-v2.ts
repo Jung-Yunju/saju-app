@@ -135,12 +135,12 @@ ${JSON.stringify(sajuInput, null, 2)}
 
   const res = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 8000,
+    max_tokens: 2000,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   })
 
-  console.log("[generateClaims] stop_reason:", res.stop_reason)
+  console.log("[generateClaims] stop_reason:", res.stop_reason, "usage:", res.usage)
   const text = res.content.find(b => b.type === "text")?.text ?? ""
   if (!text) throw new Error("Claude가 빈 응답을 반환했습니다.")
   const stripped = text.replace(/^```json\s*/m, "").replace(/\s*```$/m, "").trim()
