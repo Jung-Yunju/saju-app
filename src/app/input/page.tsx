@@ -77,14 +77,26 @@ function InputPageInner() {
         body.otherGender = other.gender
       }
 
-      const res = await fetch("/api/reading/direct", {
+      // Step 1: DB 레코드 생성 (빠름, AI 없음)
+      const res1 = await fetch("/api/reading/direct", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       })
-      const data = await res.json()
-      if (!res.ok) { setError(data.error || "오류가 발생했습니다."); return }
-      router.push(`/verify/${data.readingId}`)
+      const data1 = await res1.json()
+      if (!res1.ok) { setError(data1.error || "오류가 발생했습니다."); return }
+
+      const readingId = data1.readingId
+
+      // Step 2: AI 단정 생성 (최대 60초)
+      const res2 = await fetch(`/api/reading/${readingId}/claims`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      })
+      const data2 = await res2.json()
+      if (!res2.ok) { setError(data2.error || "AI 분석 중 오류가 발생했습니다."); return }
+
+      router.push(`/verify/${readingId}`)
     } catch (err) {
       console.error("풀이 요청 오류:", err)
       setError("서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.")
