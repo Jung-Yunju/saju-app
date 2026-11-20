@@ -77,7 +77,7 @@ function InputPageInner() {
         body.otherGender = other.gender
       }
 
-      // Step 1: DB 레코드 생성 (빠름, AI 없음)
+      // Step 1: DB 레코드 생성
       const res1 = await fetch("/api/reading/direct", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -88,15 +88,15 @@ function InputPageInner() {
 
       const readingId = data1.readingId
 
-      // Step 2: AI 단정 생성 (최대 60초)
-      const res2 = await fetch(`/api/reading/${readingId}/claims`, {
+      // Step 2: AI 풀이 생성 (최대 60초)
+      const res2 = await fetch(`/api/reading/${readingId}/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       })
       const data2 = await res2.json()
-      if (!res2.ok) { setError(data2.error || "AI 분석 중 오류가 발생했습니다."); return }
+      if (!res2.ok) { setError(data2.error || "풀이 생성 중 오류가 발생했습니다."); return }
 
-      router.push(`/verify/${readingId}`)
+      router.push(`/reading/${readingId}`)
     } catch (err) {
       console.error("풀이 요청 오류:", err)
       const msg = err instanceof Error ? err.message : String(err)
