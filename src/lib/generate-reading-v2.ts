@@ -404,7 +404,7 @@ years는 올해부터 여섯 해. review는 올해부터 세 해. forks는 세 �
 
   const res = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: 16000,
+    max_tokens: 8000,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   })
