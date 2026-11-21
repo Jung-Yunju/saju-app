@@ -317,8 +317,7 @@ export async function generateFullReading(
     ? `body의 문단은 장마다 하나, 한두 문장으로 짧게.
 years는 올해부터 세 해. review는 하나. forks는 하나. three_faces.letters는 세 개.
 daeun_overview는 현재 대운 포함 앞뒤로 세 개만. life_graph.periods도 세 개만.`
-    : `body의 문단은 장마다 하나, 한 문장으로 아주 짧게. chips는 하나씩만.
-years는 올해부터 두 해. review는 하나. forks는 하나. closing.points는 두 개.`
+    : `body의 문단은 장마다 하나, 한 문장. chips는 하나씩. years는 올해 하나만. review는 하나. forks는 하나. closing.points는 하나.`
 
   const userPrompt = `아래 사람의 사주를 풀어라. 지나온 길의 답을 반영하라.
 
@@ -390,7 +389,7 @@ ${contentConstraints}`
 
   const res = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: isDev ? 8000 : 1800,
+    max_tokens: isDev ? 8000 : 1000,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   })
