@@ -28,8 +28,15 @@ export default async function ReadingPage({ params }: { params: Promise<{ id: st
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
+  // 로컬 DB ID 불일치 대응: 세션 이메일로 실제 userId 조회
+  let effectiveUserId = session.user.id
+  if (session.user.email) {
+    const dbUser = await prisma.user.findUnique({ where: { email: session.user.email } })
+    if (dbUser) effectiveUserId = dbUser.id
+  }
+
   const reading = await prisma.reading.findUnique({ where: { id } })
-  if (!reading || reading.userId !== session.user.id) notFound()
+  if (!reading || reading.userId !== effectiveUserId) notFound()
 
   const saju = calculateSaju(
     reading.birthYear, reading.birthMonth, reading.birthDay,

@@ -18,8 +18,15 @@ export async function POST(
   const { id } = await params
 
   try {
+    // 로컬 DB ID 불일치 대응
+    let effectiveUserId = session.user.id
+    if (session.user.email) {
+      const dbUser = await prisma.user.findUnique({ where: { email: session.user.email } })
+      if (dbUser) effectiveUserId = dbUser.id
+    }
+
     const reading = await prisma.reading.findUnique({ where: { id } })
-    if (!reading || reading.userId !== session.user.id) {
+    if (!reading || reading.userId !== effectiveUserId) {
       return NextResponse.json({ error: "풀이를 찾을 수 없습니다." }, { status: 404 })
     }
     if (!reading.sajuInput) {
