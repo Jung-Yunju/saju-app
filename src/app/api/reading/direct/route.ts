@@ -23,6 +23,17 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // 로컬 DB에 User 레코드가 없을 때 자동 생성
+    await withRetry(() => prisma.user.upsert({
+      where: { id: session.user.id },
+      update: {},
+      create: {
+        id: session.user.id,
+        email: session.user.email ?? `${session.user.id}@local.dev`,
+        name: session.user.name ?? null,
+      },
+    }))
+
     const orderId = `dev_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
 
     const order = await withRetry(() => prisma.order.create({
