@@ -389,7 +389,7 @@ ${contentConstraints}`
 
   const res = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: isDev ? 8000 : 1000,
+    max_tokens: isDev ? 12000 : 1000,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   })
