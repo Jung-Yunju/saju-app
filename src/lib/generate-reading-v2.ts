@@ -300,23 +300,10 @@ export async function generateFullReading(
     {"title": "지금과 앞으로", "chapters": [지금 10년, 올해와 내년 — 2개만]}
   ],`
 
-  const extraSchema = isDev ? `
-  "three_faces": {
-    "intro": "같은 글자로 세 사람이 산다는 말",
-    "letters": [{"id":"t1","letter":"火 4","name":"불 넷","what":"재주","best":"최고의 나","half":"절반의 나","worst":"최악의 나"}],
-    "how": [{"title": "최고의 나가 고르는 것", "text": "한두 문장"}],
-    "rest": "쉬는 날에 대한 문단"
-  },
-  "daeun_overview": [{"ganzhi":"庚辰","start_year":1992,"start_age":7,"end_age":16,"name":"이름","theme":"주제 두 문장","best":"한 문장","do_this":"할 일 하나"}],
-  "life_graph": {
-    "periods": [{"age_start":7,"age_end":16,"ganzhi":"庚辰","scores":{"money":4,"success":6,"health":8,"luck":3},"note":"한 줄"}],
-    "guide": "읽는 법 두 문장", "scoring_note": "근거 한 줄"
-  },` : ""
+  const extraSchema = ""
 
   const contentConstraints = isDev
-    ? `body의 문단은 장마다 하나, 한두 문장으로 짧게.
-years는 올해부터 세 해. review는 하나. forks는 하나. three_faces.letters는 세 개.
-daeun_overview는 현재 대운 포함 앞뒤로 세 개만. life_graph.periods도 세 개만.`
+    ? `body의 문단은 장마다 하나, 두 문장. chips는 하나씩. years는 올해부터 두 해. review는 하나. forks는 하나. closing.points는 두 개.`
     : `body의 문단은 장마다 하나, 한 문장. chips는 하나씩. years는 올해 하나만. review는 하나. forks는 하나. closing.points는 하나.`
 
   const userPrompt = `아래 사람의 사주를 풀어라. 지나온 길의 답을 반영하라.
@@ -389,7 +376,7 @@ ${contentConstraints}`
 
   const res = await client.messages.create({
     model: "claude-sonnet-4-6",
-    max_tokens: isDev ? 12000 : 1000,
+    max_tokens: isDev ? 9000 : 1000,
     system: SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   })
