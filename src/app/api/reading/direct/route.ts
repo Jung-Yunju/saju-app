@@ -23,21 +23,29 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // 로컬 DB에 User 레코드가 없을 때 자동 생성
-    await withRetry(() => prisma.user.upsert({
-      where: { id: session.user.id },
-      update: {},
-      create: {
-        id: session.user.id,
-        email: session.user.email ?? `${session.user.id}@local.dev`,
-        name: session.user.name ?? null,
-      },
-    }))
+    // 로컬 DB에 User 레코드가 없을 때 자동 생성 (이메일 충돌 시 기존 레코드 사용)
+    let userId = session.user.id
+    try {
+      await prisma.user.upsert({
+        where: { id: session.user.id },
+        update: {},
+        create: {
+          id: session.user.id,
+          email: session.user.email ?? `${session.user.id}@local.dev`,
+          name: session.user.name ?? null,
+        },
+      })
+    } catch {
+      if (session.user.email) {
+        const existing = await prisma.user.findUnique({ where: { email: session.user.email } })
+        if (existing) userId = existing.id
+      }
+    }
 
     const orderId = `dev_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
 
     const order = await withRetry(() => prisma.order.create({
-      data: { userId: session.user.id, orderId, amount: 0, status: "PAID" },
+      data: { userId, orderId, amount: 0, status: "PAID" },
     }))
 
     const sajuInput = buildSajuInput(
@@ -47,7 +55,7 @@ export async function POST(req: NextRequest) {
 
     const reading = await withRetry(() => prisma.reading.create({
       data: {
-        userId: session.user.id,
+        userId,
         orderId: order.id,
         readingType,
         name: name || null,
