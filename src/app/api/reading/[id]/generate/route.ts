@@ -27,6 +27,7 @@ export async function POST(
 
     const reading = await prisma.reading.findUnique({ where: { id } })
     if (!reading || reading.userId !== effectiveUserId) {
+      await prisma.reading.update({ where: { id }, data: { status: "FAILED" } }).catch(() => {})
       return NextResponse.json({ error: "풀이를 찾을 수 없습니다." }, { status: 404 })
     }
     if (!reading.sajuInput) {
