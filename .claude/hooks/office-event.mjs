@@ -39,6 +39,10 @@ export const HOOK_EVENTS = [
 
 export const PRIVATE_FILE = "[비공개 파일]"
 export const OUTSIDE_PATH = "[외부 경로]"
+export const MASKED = "[가림]"
+// agent_type 없는 SubagentStart/Stop(내부 보조 에이전트로 추정, 작업기록 폴더에 기록 없음).
+// 총괄실장(main) 이벤트로 보지 않는다 — 상태 계산(snapshot)은 이 값을 무시한다(결함 D1).
+export const INTERNAL = "internal"
 export const CARD_ID_RE = /\b(?:P\d|U|O)-\d{2}\b/
 
 /** agent_type → staffId (계약서 2절) */
@@ -69,6 +73,31 @@ function clean(s, max) {
   return t.length > max ? t.slice(0, max - 1) + "…" : t
 }
 
+// 개인정보 형태(이메일·주민등록번호·생년월일 같은 날짜·전화번호) → [가림]
+// 날짜는 생년월일과 구분할 수 없으므로 연·월·일이 다 있는 날짜는 모두 가린다.
+const MASK_PATTERNS = [
+  /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g,                       // 이메일
+  /(?<!\d)\d{6}\s*-?\s*[1-8]\d{6}(?!\d)/g,                                                    // 주민등록번호
+  /(?<!\d)(?:19|20)\d{2}\s*[-./년]\s*(?:0?[1-9]|1[0-2])\s*[-./월]\s*(?:0?[1-9]|[12]\d|3[01])(?:\s*일)?(?!\d)/g, // 1987-05-03, 1987년 5월 3일
+  /(?<!\d)(?:19|20)\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01])(?!\d)/g,                       // 19870503
+  /(?<!\d)\d{2}\s*년\s*(?:0?[1-9]|1[0-2])\s*월\s*(?:0?[1-9]|[12]\d|3[01])\s*일/g,              // 87년 5월 3일
+  /(?<!\d)(?:19|20)?\d{2}\s*년생/g,                                                            // 1987년생
+  /(?<![\d+])(?:\+\d{1,3}[-.\s]?)?\(?0?\d{1,3}\)?[-.\s]?\d{3,4}[-.\s]?\d{4}(?!\d)/g,             // 전화번호
+]
+/** 업무 설명 같은 짧은 글에서 개인정보 형태를 가린다(L2). 문자열이 아니면 그대로 돌려준다. */
+export function maskPersonal(s) {
+  if (typeof s !== "string") return s
+  let t = s
+  for (const re of MASK_PATTERNS) t = t.replace(re, MASKED)
+  return t
+}
+
+/** 업무 설명(60자): 공백 정리 → 가림 → 자르기 (자른 뒤 가리면 잘린 이메일이 남을 수 있어 순서가 중요) */
+export function cleanDesc(s, max = DESC_MAX) {
+  const t = clean(s, Number.MAX_SAFE_INTEGER)
+  return t === null ? null : clean(maskPersonal(t), max)
+}
+
 /**
  * 경로 가림 규칙 (계약서 1절 3항)
  * - `.env` 가 들어간 경로 → [비공개 파일]
@@ -81,6 +110,8 @@ export function sanitizePath(p, opts = {}) {
   const raw = p.trim()
   const ENV = /\.env/i
   if (!isAbsolute(raw) && ENV.test(raw)) return PRIVATE_FILE
+  // "~/..."·"~user/..." 는 홈 폴더 = 저장소 밖(L1). cwd 기준 상대경로로 풀면 저장소 안처럼 보이므로 먼저 막는다
+  if (raw.startsWith("~")) return OUTSIDE_PATH
   let abs
   try {
     abs = isAbsolute(raw) ? resolve(raw) : resolve(opts.cwd && isAbsolute(opts.cwd) ? opts.cwd : root, raw)
@@ -179,7 +210,9 @@ export function buildEvent(h, opts = {}) {
   const event = typeof h.hook_event_name === "string" ? h.hook_event_name : null
   if (!event || !HOOK_EVENTS.includes(event)) return null
   const now = opts.now instanceof Date ? opts.now : new Date()
-  const staff = staffFromAgentType(h.agent_type)
+  // 결함 D1: agent_type 없는 SubagentStart/Stop 은 총괄실장이 아니라 내부 보조 에이전트로 표시
+  const noType = h.agent_type === undefined || h.agent_type === null || h.agent_type === ""
+  const staff = (event === "SubagentStart" || event === "SubagentStop") && noType ? INTERNAL : staffFromAgentType(h.agent_type)
   const toolName = typeof h.tool_name === "string" ? clean(h.tool_name, 80) : null
   const isTool = ["PreToolUse", "PostToolUse", "PostToolUseFailure", "PermissionRequest"].includes(event)
   /** @type {Record<string, any>} */
@@ -213,7 +246,7 @@ export function buildEvent(h, opts = {}) {
   if (staff === "main" && (toolName === "Agent" || toolName === "Task") &&
       (event === "PreToolUse" || event === "PostToolUse" || event === "PostToolUseFailure")) {
     const ti = h.tool_input && typeof h.tool_input === "object" ? h.tool_input : {}
-    ev.desc = clean(ti.description, DESC_MAX)
+    ev.desc = cleanDesc(ti.description)
     // 카드 ID는 업무 설명에서, 없으면 지시문에서 "ID 문자열만" 뽑는다(지시문 본문은 저장하지 않음)
     ev.cardId = extractCardId(ti.description, ti.prompt)
     ev.target = staffFromAgentType(typeof ti.subagent_type === "string" && ti.subagent_type ? ti.subagent_type : "general-purpose")

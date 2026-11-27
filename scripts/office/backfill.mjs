@@ -9,7 +9,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs"
 import { basename, dirname, join } from "node:path"
 import {
-  classifyTool, extractCardId, pathFromToolInput, sanitizePath, staffFromAgentType, REPO_ROOT,
+  classifyTool, cleanDesc, extractCardId, pathFromToolInput, sanitizePath, staffFromAgentType, REPO_ROOT,
 } from "../../.claude/hooks/office-event.mjs"
 
 function readJsonl(file) {
@@ -79,13 +79,33 @@ function usageEvents(acc, base) {
   return out
 }
 
+/** 사람이 보낸 새 지시(재개 메시지 포함)인가 — 도구 결과 줄·이미지 같은 딸림 줄(turnCompanion)은 아님 */
+function isPromptRow(o) {
+  if (o.type !== "user" || o.turnCompanion === true) return false
+  const c = o.message && o.message.content
+  if (typeof c === "string") return true
+  if (!Array.isArray(c)) return false
+  return !c.some(b => b && typeof b === "object" && b.type === "tool_result")
+}
+
+const marker = (b, event, extra = {}) => ({ ...b, event, tool: null, kind: null, file: null, desc: null, cardId: null, ok: null, notif: null, tokens: null, ...extra })
+
 /**
  * 한 작업기록(메인 또는 직원)을 이벤트로 바꾼다.
  * staff: 이 기록의 주인 staffId. 메인이면 "main".
- * 반환: { events, lastTs, firstTs, usage, handbackTs, endTurn, agentCalls }
+ * segments: 직원 기록이면 업무 구간(출근~보고)마다 SubagentStart/SubagentStop 을 넣는다(결함 D2).
+ *   - 보고(SubagentHandback 성공) 1건마다 그 시각에 종료
+ *   - 보고 없이 응답이 끝난(end_turn) 뒤 새 지시가 오면 end_turn 시각에 종료
+ *   - 종료 뒤 다음 지시(재개 메시지)가 오면 그 시각에 새 시작
+ *   - 마지막 구간: 보고가 없으면 finished(meta) 또는 end_turn 일 때만 마지막 기록 시각에 종료
+ * 반환: { events, lastTs, firstTs, usage, handbackTs, endTurn, agentCalls, segments }
  */
-function convertTranscript(rows, { staff, agentId, root, isMainTranscript }) {
+function convertTranscript(rows, { staff, agentId, root, isMainTranscript, segments: withSegments = false, startInfo = {}, finished }) {
   const events = []
+  const segments = []             // [{start, stop}]
+  let cur = null                  // 진행 중 구간
+  let closed = false              // 현재 구간이 보고·응답 종료로 끝났는가(다음 지시가 오면 새 구간)
+  let endTurnTs = null
   const uses = new Map()          // tool_use_id → {tool, kind, file, desc, cardId, target}
   const usageByMsg = new Map()    // message.id → {model, usage} (같은 메시지가 여러 줄로 나뉘어 기록됨 → 중복 제거)
   const agentCalls = new Map()    // agentId → {desc, cardId, target, subagentType}
@@ -101,11 +121,22 @@ function convertTranscript(rows, { staff, agentId, root, isMainTranscript }) {
     if (typeof o.sessionId === "string") sessionId = shortText(o.sessionId, 64)
     if (!firstTs) firstTs = ts
     lastTs = ts
+    if (withSegments) {
+      if (!cur) {
+        cur = { start: ts, stop: null }; segments.push(cur); closed = false
+        events.push(marker(base(ts), "SubagentStart", { desc: startInfo.desc ?? null, cardId: startInfo.cardId ?? null }))
+      } else if (closed && isPromptRow(o)) {
+        if (!cur.stop && endTurnTs) { cur.stop = endTurnTs; events.push(marker(base(endTurnTs), "SubagentStop")) }
+        cur = { start: ts, stop: null }; segments.push(cur); closed = false; endTurnTs = null
+        events.push(marker(base(ts), "SubagentStart", { desc: startInfo.desc ?? null, cardId: startInfo.cardId ?? null }))
+      }
+    }
     const msg = o.message
     if (!msg || typeof msg !== "object") continue
     if (o.type === "assistant") {
       if (typeof msg.id === "string" && msg.usage) usageByMsg.set(msg.id, { model: msg.model, usage: msg.usage })
       endTurn = msg.stop_reason === "end_turn"
+      if (endTurn && cur && !cur.stop) { endTurnTs = ts; closed = true }
     }
     if (!Array.isArray(msg.content)) continue
     for (const b of msg.content) {
@@ -119,7 +150,7 @@ function convertTranscript(rows, { staff, agentId, root, isMainTranscript }) {
         const ev = { ...base(ts), event: "PreToolUse", tool, kind, file, desc: null, cardId: null, ok: null, notif: null, tokens: null, toolUseId: shortText(b.id, 80) }
         if (staff === "main" && (tool === "Agent" || tool === "Task")) {
           const ti = b.input && typeof b.input === "object" ? b.input : {}
-          info.desc = shortText(ti.description, 60)
+          info.desc = cleanDesc(ti.description)
           info.cardId = extractCardId(ti.description, ti.prompt)
           info.subagentType = typeof ti.subagent_type === "string" && ti.subagent_type ? ti.subagent_type : "general-purpose"
           info.target = staffFromAgentType(info.subagentType)
@@ -133,7 +164,8 @@ function convertTranscript(rows, { staff, agentId, root, isMainTranscript }) {
         const failed = b.is_error === true
         const ev = { ...base(ts), event: failed ? "PostToolUseFailure" : "PostToolUse", tool: info.tool, kind: info.kind, file: info.file,
           desc: null, cardId: null, ok: !failed, notif: null, tokens: null, toolUseId: shortText(b.tool_use_id, 80) }
-        if (info.tool === "SubagentHandback" && !failed) handbackTs = ts
+        const handback = info.tool === "SubagentHandback" && !failed
+        if (handback) handbackTs = ts
         if (staff === "main" && info.target) {
           ev.desc = info.desc; ev.cardId = info.cardId; ev.target = info.target
           const r = o.toolUseResult && typeof o.toolUseResult === "object" ? o.toolUseResult : null
@@ -144,12 +176,20 @@ function convertTranscript(rows, { staff, agentId, root, isMainTranscript }) {
           }
         }
         events.push(ev)
+        if (withSegments && handback && cur && !cur.stop) {
+          cur.stop = ts; closed = true
+          events.push(marker(base(ts), "SubagentStop"))
+        }
       }
     }
   }
+  if (withSegments && cur && !cur.stop && (finished === true || (finished === undefined && endTurn))) {
+    cur.stop = lastTs
+    events.push(marker(base(lastTs), "SubagentStop"))
+  }
   const usage = {}
   for (const { model, usage: u } of usageByMsg.values()) usageAdd(usage, model, u)
-  return { events, firstTs, lastTs, usage, handbackTs, endTurn, agentCalls, sessionId, base }
+  return { events, firstTs, lastTs, usage, handbackTs, endTurn, agentCalls, sessionId, base, segments }
 }
 
 /**
@@ -184,17 +224,17 @@ export function backfillFromTranscripts(dir, opts = {}) {
       const call = agentCalls.get(agentId)
       const agentType = call?.subagentType ?? (typeof meta.agentType === "string" ? meta.agentType : null)
       const staff = agentType ? staffFromAgentType(agentType) : "guest"
-      const desc = call?.desc ?? shortText(meta.description, 60)
+      const desc = call?.desc ?? cleanDesc(meta.description)
       const cardId = call?.cardId ?? extractCardId(meta.description)
-      const r = convertTranscript(readJsonl(join(subagentsDir, f)), { staff, agentId, root, isMainTranscript: false })
+      const finished = typeof meta.finished === "boolean" ? meta.finished : undefined
+      const r = convertTranscript(readJsonl(join(subagentsDir, f)), {
+        staff, agentId, root, isMainTranscript: false, segments: true, startInfo: { desc, cardId }, finished,
+      })
       if (!r.firstTs) continue
-      events.push({ ...r.base(r.firstTs), event: "SubagentStart", tool: null, kind: null, file: null, desc, cardId, ok: null, notif: null, tokens: null })
       events.push(...r.events)
-      let stopTs = r.handbackTs
-      if (!stopTs && (meta.finished === true || (meta.finished === undefined && r.endTurn))) stopTs = r.lastTs
-      if (stopTs) events.push({ ...r.base(stopTs), event: "SubagentStop", tool: null, kind: null, file: null, desc: null, cardId: null, ok: null, notif: null, tokens: null })
       events.push(...usageEvents(r.usage, r.base(r.lastTs)))
-      agents.push({ agentId, staff, desc, cardId, startedAt: r.firstTs, endedAt: stopTs || null, toolUses: r.events.filter(e => e.event === "PreToolUse").length })
+      const lastSeg = r.segments[r.segments.length - 1]
+      agents.push({ agentId, staff, desc, cardId, startedAt: r.firstTs, endedAt: lastSeg && lastSeg.stop ? lastSeg.stop : null, toolUses: r.events.filter(e => e.event === "PreToolUse").length })
     }
   }
   return { events, agents }

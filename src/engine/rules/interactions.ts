@@ -3,8 +3,9 @@
 //  - 표에 있는 관계만 기록한다. 같은 글자 쌍이 여러 관계에 해당하면 모두 기록한다(寅申 충·형, 寅亥 합·파, 寅巳 형·해).
 //  - 거리와 상관없이 모든 쌍을 기록하고 adjacent를 남긴다(붙어야 작용한다는 설의 필터는 해석 단계 몫).
 //  - 운(대운·세운)이 낀 조합은 scope="luck". 대운은 한 조합에 하나만 넣는다(서로 다른 대운끼리는 비교하지 않는다).
-//  - 포섭 규칙(엔진 개발자 정의): 세 글자 관계(삼합·방합·삼형)가 성립하면, 그 안의 두 글자 기록(반합·두 글자 방합·두 글자 삼형)은
-//    "나머지 한 글자가 원국 글자일 때"만 생략한다. 원국 두 글자 + 운 한 글자로 성립한 삼합이 원국 반합 기록을 지우지 않게 하기 위함.
+//  - 포함 표시(D-019, rules@0.3.0): 세 글자 관계(삼합·방합·삼형)가 성립해도 그 안의 두 글자 기록(반합·두 글자 방합·두 글자 삼형)을
+//    지우지 않는다. 대신 subsumedBy에 포함한 세 글자 관계의 식별자(interactionId)를 적는다. 남은 한 글자가 원국이든 운이든 같다
+//    (rules@0.2.0의 "남은 글자가 원국일 때만 삭제" 비대칭 규칙은 없앴다). 거를지는 해석 단계가 정한다.
 //  - 합화(化) 여부는 판정하지 않는다(transformed: null).
 import type { Branch, Element, Stem } from "../types"
 import {
@@ -94,13 +95,19 @@ function triples<T>(xs: readonly T[]): [T, T, T][] {
   return out
 }
 
-/** 세 글자 관계 T가 두 글자 기록 P(orders)를 포섭하는가: P ⊂ T 이고 나머지 한 글자가 원국 */
-function subsumedBy(pair: readonly Slot[], completes: readonly (readonly Slot[])[]): boolean {
-  return completes.some((t) => {
-    if (!pair.every((p) => t.includes(p))) return false
-    const rest = t.filter((x) => !pair.includes(x))
-    return rest.every((x) => x.natalIndex !== null)
-  })
+const posKey = (p: Position) => `${p.pillar}${p.luckIndex ?? ""}.${p.part}`
+
+/**
+ * 관계 식별자: `${ruleId}@${위치들}` 예: "branch.threeCombine.申子辰@year.branch+month.branch+hour.branch".
+ * 같은 원국·운 입력 안에서 유일하다(같은 ruleId라도 근거 위치가 다르면 다른 관계).
+ */
+export function interactionId(i: Pick<Interaction, "ruleId" | "members">): string {
+  return `${i.ruleId}@${i.members.map(posKey).join("+")}`
+}
+
+/** 두 글자 기록 pair를 포함하는 세 글자 관계들의 식별자(D-019). 운·원국 구분 없이 같다 */
+function containersOf(pair: readonly Slot[], completes: readonly { slots: readonly Slot[]; id: string }[]): string[] {
+  return completes.filter((t) => pair.every((p) => t.slots.includes(p))).map((t) => t.id)
 }
 
 /** 천간 관계 (§6) */
@@ -124,27 +131,32 @@ function branchInteractions(slots: readonly Slot[], o: RuleOpts): Draft[] {
   const allPairs = pairs(slots).filter(allowed)
 
   // 세 글자: 삼합 · 방합 · 삼형 (완성)
-  const completeThree = new Map<string, Slot[][]>()
-  const completeDir = new Map<string, Slot[][]>()
-  const completePun = new Map<string, Slot[][]>()
-  const push = (m: Map<string, Slot[][]>, k: string, v: Slot[]) => m.set(k, [...(m.get(k) ?? []), v])
+  type Complete = { slots: Slot[]; id: string }
+  const completeThree = new Map<string, Complete[]>()
+  const completeDir = new Map<string, Complete[]>()
+  const completePun = new Map<string, Complete[]>()
+  const push = (m: Map<string, Complete[]>, k: string, d: Draft, v: Slot[]) => m.set(k, [...(m.get(k) ?? []), { slots: v, id: interactionId(d) }])
+  const withSub = (ids: string[]): Partial<Interaction> => (ids.length ? { subsumedBy: ids } : {})
 
   for (const t of allTriples) {
     const chars = t.map((s) => s.branch)
     for (const [g, k, r, el] of THREE_COMBINES)
       if (sameSet3(chars, [g, k, r])) {
-        out.push(make("threeCombine", t, "branch", `branch.threeCombine.${g}${k}${r}`, { resultElement: el, complete: true }))
-        push(completeThree, g + k + r, t)
+        const d = make("threeCombine", t, "branch", `branch.threeCombine.${g}${k}${r}`, { resultElement: el, complete: true })
+        out.push(d)
+        push(completeThree, g + k + r, d, t)
       }
     for (const [x, y, z, el] of DIRECTIONAL_COMBINES)
       if (sameSet3(chars, [x, y, z])) {
-        out.push(make("directionalCombine", t, "branch", `branch.directional.${x}${y}${z}`, { resultElement: el, complete: true }))
-        push(completeDir, x + y + z, t)
+        const d = make("directionalCombine", t, "branch", `branch.directional.${x}${y}${z}`, { resultElement: el, complete: true })
+        out.push(d)
+        push(completeDir, x + y + z, d, t)
       }
     for (const [x, y, z] of THREE_PUNISHMENTS)
       if (sameSet3(chars, [x, y, z])) {
-        out.push(make("punishment", t, "branch", `branch.punishment.${x}${y}${z}`, { punishmentKind: "three", complete: true }))
-        push(completePun, x + y + z, t)
+        const d = make("punishment", t, "branch", `branch.punishment.${x}${y}${z}`, { punishmentKind: "three", complete: true })
+        out.push(d)
+        push(completePun, x + y + z, d, t)
       }
   }
 
@@ -165,9 +177,10 @@ function branchInteractions(slots: readonly Slot[], o: RuleOpts): Draft[] {
       const cands: [Branch, Branch][] = [[g, k], [k, r]]
       if (o.halfCombine === "allPairs") cands.push([g, r])
       for (const [x, y] of cands)
-        if (samePair(A, B, x, y) && !subsumedBy(pr, completeThree.get(g + k + r) ?? [])) {
+        if (samePair(A, B, x, y)) {
           const withKing = KING_BRANCHES.includes(x) || KING_BRANCHES.includes(y)
-          out.push(make("halfCombine", pr, "branch", `branch.halfCombine.${x}${y}`, { resultElement: el, withKing }))
+          const sub = withSub(containersOf(pr, completeThree.get(g + k + r) ?? []))
+          out.push(make("halfCombine", pr, "branch", `branch.halfCombine.${x}${y}`, { resultElement: el, withKing, ...sub }))
         }
     }
 
@@ -175,8 +188,10 @@ function branchInteractions(slots: readonly Slot[], o: RuleOpts): Draft[] {
     if (o.partialDirectional)
       for (const [x, y, z, el] of DIRECTIONAL_COMBINES)
         for (const [p, q] of pairs([x, y, z]))
-          if (samePair(A, B, p, q) && !subsumedBy(pr, completeDir.get(x + y + z) ?? []))
-            out.push(make("directionalCombine", pr, "branch", `branch.directional.${p}${q}`, { resultElement: el, complete: false, partial: true }))
+          if (samePair(A, B, p, q))
+            out.push(make("directionalCombine", pr, "branch", `branch.directional.${p}${q}`, {
+              resultElement: el, complete: false, partial: true, ...withSub(containersOf(pr, completeDir.get(x + y + z) ?? [])),
+            }))
 
     for (const [x, y] of BRANCH_CLASHES)
       if (samePair(A, B, x, y)) out.push(make("clash", pr, "branch", `branch.clash.${x}${y}`))
@@ -185,8 +200,10 @@ function branchInteractions(slots: readonly Slot[], o: RuleOpts): Draft[] {
     if (o.partialPunishment)
       for (const [x, y, z] of THREE_PUNISHMENTS)
         for (const [p, q] of pairs([x, y, z]))
-          if (samePair(A, B, p, q) && !subsumedBy(pr, completePun.get(x + y + z) ?? []))
-            out.push(make("punishment", pr, "branch", `branch.punishment.${p}${q}`, { punishmentKind: "three", complete: false, partial: true }))
+          if (samePair(A, B, p, q))
+            out.push(make("punishment", pr, "branch", `branch.punishment.${p}${q}`, {
+              punishmentKind: "three", complete: false, partial: true, ...withSub(containersOf(pr, completePun.get(x + y + z) ?? [])),
+            }))
     for (const [x, y] of MUTUAL_PUNISHMENTS)
       if (samePair(A, B, x, y)) out.push(make("punishment", pr, "branch", `branch.punishment.${x}${y}`, { punishmentKind: "mutual" }))
     if (A === B && SELF_PUNISHMENTS.includes(A))

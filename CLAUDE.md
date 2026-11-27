@@ -52,5 +52,5 @@
 
 ## 6. 기술 메모
 - 스택: Next.js 16(App Router) · React 19 · Prisma 5 · PostgreSQL(Neon) · NextAuth v5(Google) · 토스페이먼츠 · Anthropic SDK · lunar-javascript.
-- 검사 명령: `npx tsc --noEmit`, `npm run lint`, 엔진 감사 `bash scripts/qa/legacy-engine-audit.sh`.
+- 검사 명령: `npx tsc --noEmit`, `npm run lint`, 엔진·화면·AI 입력 일관성 `npx vitest run tests/verify/consistency.test.ts`, 전체 `npm test`.
 - 문서 위치: `docs/` (목록은 `docs/README.md`).

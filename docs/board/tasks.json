@@ -1522,25 +1522,25 @@
       "depends": [
         "P3-05"
       ],
-      "status": "개발 중",
+      "status": "검증 중",
       "subtasks": [
         {
           "t": "근거 글자가 원국에 있는지 검사",
-          "done": false
+          "done": true
         },
         {
           "t": "금지 주제·허위 고전 인용 검사",
-          "done": false
+          "done": true
         },
         {
           "t": "바넘 문장(누구에게나 맞는 말) 검사",
-          "done": false
+          "done": true
         }
       ],
-      "result": "",
+      "result": "verifyReading: 근거 글자·십성·금지 주제·허위 고전 인용·누구에게나 맞는 말·도덕/성별 판정·과학 단정·미리 들은 사실·위험 HTML·위기 대응 등 12개 코드. 테스트 210개. 콘텐츠 엔진 연결 어댑터 포함.",
       "verification": {
         "result": "미검증",
-        "note": ""
+        "note": "작성자가 품질검증 담당이므로 다른 직원의 독립 검증 필요(규칙 9). 실제 AI 출력 대량 표본 오탐·미탐률 미측정"
       },
       "issues": "",
       "approval": {
@@ -1551,7 +1551,8 @@
         "docs/ARCHITECTURE.md#검증기"
       ],
       "code": [
-        "src/engine/verify/"
+        "src/engine/verify/",
+        "tests/verify/"
       ],
       "history": [
         {
@@ -1563,6 +1564,11 @@
           "date": "2026-11-27",
           "status": "개발 중",
           "note": "야근 — 규칙 엔진 완성으로 선행 조건 충족, 품질검증 담당 투입(+옛 감사 스크립트 교체)"
+        },
+        {
+          "date": "2026-11-27",
+          "status": "검증 중",
+          "note": "구현 완료, 독립 검증·실출력 측정 대기"
         }
       ]
     },

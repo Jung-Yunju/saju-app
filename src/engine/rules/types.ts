@@ -1,7 +1,6 @@
-// 명리 규칙 엔진 데이터 구조 (P3-05, rules@0.2.0) — 해석 재료(RuleAnalysis)
+// 명리 규칙 엔진 데이터 구조 (P3-05 rules@0.2.0 + P3-06 rules@0.3.0) — 해석 재료(RuleAnalysis)
 // 역법 객관값(CalendarResult, ../types.ts)과 분리된 모듈이다(D-012). 이 파일은 해석 문장을 담지 않는다.
-// 근거 명세: docs/knowledge/rules-spec.md, 학파 옵션: docs/knowledge/schools.md §0
-// 범위 밖(P3-06): 신강약·격국·용신 — 이 타입에는 그 필드를 두지 않는다.
+// 근거 명세: docs/knowledge/rules-spec.md, docs/knowledge/strength-structure-spec.md(P3-06), 학파 옵션: docs/knowledge/schools.md §0
 import type { Branch, Element, Pillar, Stem } from "../types"
 
 // ─────────────────────────────────────────── 옵션
@@ -39,7 +38,31 @@ export interface RuleOptions {
    * schools.md §0 제안 목록에는 없는 키 — 엔진 개발자가 추가(연구소장 확인 필요).
    */
   partialDirectional: boolean
+
+  // ── P3-06 (rules@0.3.0, strength-structure-spec §6). 기본값은 연구소장 제안 — 전부 잠정
+  /** 신강약 대표 판정 모형. 세 모형은 항상 모두 계산한다 (§1.10) */
+  strengthPrimary: "weighted" | "threeFactor" | "rooted"
+  /** 득령·왕상휴수사 기준. "byDays"(사령)는 예약만 된 값 → EngineInputError (§1.6) */
+  monthCommandBasis: "mainQi" | "byDays"
+  /** ⚑ 득지 범위: 일지 정기 / 일지 지장간 중 하나 (§1.1) */
+  deukjiBasis: "dayBranchMainQi" | "dayBranchAnyRoot"
+  /** 합화·충 보정. 1차는 "none"만 (§1.7) */
+  combineAdjustment: "none"
+  /** ⚑ 격 투출 규칙: 투출 우선(G2) / 정기 고정(G2') (§2.2) */
+  structureTouchul: "transparentFirst" | "mainQiOnly"
+  /** ⚑ 투출 일치: 같은 글자 / 같은 오행 (§2.2 G3) */
+  touchulMatch: "sameStem" | "sameElement"
+  /** 록겁월 대체 후보(G1-alt)를 낼지 (§2.2) */
+  rokgeopAlternative: boolean
+  /** 특수격: 후보만(확신도 low 고정) / 끔 (§2.4) */
+  specialStructures: "candidateOnly" | "off"
+  /** 용신 관점 목록(순서 = views 순서). byeongyak은 기본에서 뺀다 (§3.4) */
+  usefulGodMethods: UsefulGodMethod[]
+  /** ⚑ 희신 정의: 용신을 생하는 오행 / 같은 관점 2순위 후보 (§3.7) */
+  favorableDefinition: "generationCycle" | "secondCandidate"
 }
+
+export type UsefulGodMethod = "eokbu" | "johuClimate" | "tonggwan" | "byeongyak" | "gyeokguk" | "special"
 
 // ─────────────────────────────────────────── 위치(근거)
 
@@ -143,6 +166,12 @@ export interface Interaction {
   punishmentKind?: "three" | "mutual" | "self"
   /** 반합: 왕지(子午卯酉)를 끼었는가. false = 생지+고지 쌍(halfCombine="allPairs"일 때만) */
   withKing?: boolean
+  /**
+   * D-019: 이 두 글자 기록(반합·두 글자 방합·두 글자 삼형)을 포함하는 세 글자 관계(삼합·방합·삼형)의 식별자 목록.
+   * 식별자 형식은 interactionId(): `${ruleId}@${위치들}`. 포함하는 세 글자 관계가 없으면 이 필드가 없다.
+   * 세 글자 관계에 운 글자가 끼어도 같은 규칙으로 붙인다(원국·운 대칭). 기록은 지우지 않는다.
+   */
+  subsumedBy?: string[]
   /** 원국 안에서 붙어 있는 기둥인가(세 글자면 연속된 세 기둥). 운이 끼면 항상 false */
   adjacent: boolean
   /** natal = 원국 내부, luck = 대운·세운 글자가 하나 이상 낌 */
@@ -210,6 +239,17 @@ export interface RuleAnalysis {
   /** gongmangBasis가 both면 [일주 기준, 연주 기준] */
   gongmang: GongmangEntry[]
   elements: ElementDistribution
+  // ── P3-06 (rules@0.3.0). 원국만 판단한다(운은 범위 밖). 해석 문장은 없다.
+  /** 신강·신약 (spec §1) */
+  strength: StrengthResult
+  /** 격국 (spec §2) */
+  structure: StructureResult
+  /** 용신 관점별 (spec §3) */
+  usefulGods: UsefulGodsResult
+  /** 간이 조후 한난조습 climate-v1 (spec §4) — 궁통보감 표 아님 */
+  climate: ClimateResult
+  /** 기세 수치·표지 (spec §5) */
+  qiFlow: QiFlowResult
 }
 
 export interface RuleExtra {
@@ -217,4 +257,229 @@ export interface RuleExtra {
   luck?: Pillar[]
   /** 세운(그해 간지) */
   year?: Pillar
+}
+
+// ─────────────────────────────────────────── P3-06 신강약 (strength-structure-spec §1)
+// 점수·경계값·가중치는 모두 연구소장 설계값이다(고전에 이런 점수표는 없다). 수치는 가중 단위(천간 1.0 = 30u).
+
+export type StrengthModel = "weighted" | "threeFactor" | "rooted"
+export type StrengthVerdict = "신강" | "중화" | "신약"
+/** 십성 묶음(오행 관계만, 음양 무관) */
+export type TenGodGroup = "bigyeop" | "inseong" | "siksang" | "jaeseong" | "gwansal"
+export type SeasonState = "旺" | "相" | "休" | "囚" | "死"
+
+export interface StrengthBasisItem {
+  /** 천간이면 그 천간 위치, 지장간이면 그 지지 위치 + viaHiddenStem */
+  position: Position
+  /** 천간 또는 지장간 천간 */
+  char: Stem
+  viaHiddenStem?: HiddenStemRole
+  element: Element
+  /** 일간 자신은 "self" */
+  group: TenGodGroup | "self"
+  side: "support" | "oppose"
+  /** 1.0 / 3.0 / 1.5 (weighted-v1) */
+  positionWeight: number
+  /** 천간 1, 지장간은 표의 weight */
+  hiddenWeight: number
+  /** rooted 모형의 무근 천간 0.5, 그 외 1 */
+  rootFactor: number
+  /** positionWeight × hiddenWeight × rootFactor (소수 6자리) */
+  points: number
+}
+
+export interface FactorCheck {
+  met: boolean
+  /** 판정에 쓴 위치(득세는 돕는 쪽으로 센 위치) */
+  basis: Position[]
+  ruleId: string
+}
+
+export interface StrengthModelResult {
+  model: StrengthModel
+  /** round6(support / total). threeFactor는 null */
+  ratio: number | null
+  /** ratio × 100, 소수 1자리. threeFactor는 null */
+  score: number | null
+  /** threeFactor는 "중화"를 내지 않는다 */
+  verdict: StrengthVerdict
+  extreme: "strong" | "weak" | null
+  nearBoundary: boolean
+  nearest: { threshold: number; distance: number } | null
+  /** 돕는 쪽 가중 합 S(일간 포함, 6자리). threeFactor는 null — 엔진 개발자 추가 필드(검산용) */
+  support: number | null
+  /** 전체 가중 합 T(6자리). threeFactor는 null — 엔진 개발자 추가 필드(검산용) */
+  total: number | null
+  factors?: { deukryeong: FactorCheck; deukji: FactorCheck; deukse: FactorCheck & { count: number; of: number } }
+  /** weighted·rooted: 글자(지장간) 단위 근거. threeFactor: 빈 배열(근거는 factors) */
+  basis: StrengthBasisItem[]
+  /** "strength.weighted.v1" · "strength.threeFactor.v1" · "strength.rooted.v1" */
+  ruleId: string
+}
+
+export interface StrengthAffected {
+  ruleId: string
+  type: InteractionType
+  members: Position[]
+  /** 월지·일지·일간·돕는 천간이 members에 있으면 true */
+  critical: boolean
+  /** D-019 포함 표시를 그대로 옮김 */
+  subsumedBy?: string[]
+}
+
+export interface StrengthResult {
+  primary: StrengthModel
+  /** 세 모형 모두, 순서 weighted → threeFactor → rooted */
+  models: StrengthModelResult[]
+  /** 세 모형의 verdict가 모두 같은가 */
+  agreement: "all" | "split"
+  seasonState: SeasonState
+  dayMasterRooted: boolean
+  dayMasterRoots: { position: Position; stem: Stem; role: HiddenStemRole }[]
+  /** 일간 제외 묶음 합계(weighted 모형 가중, 6자리) */
+  groupTotals: Record<TenGodGroup, number>
+  /** 선택한 표 외의 두 표로 계산한 모형 A (표 순서 kr-monthly-30 → cn-lunarjs → main-only에서 선택 표 제외) */
+  tableSensitivity: { tableId: HiddenStemTableId; ratio: number; verdict: StrengthVerdict; extreme: "strong" | "weak" | null; nearBoundary: boolean }[]
+  tableSensitive: boolean
+  /** 시주를 알면 null. 모르면 오서둔 12시진(子→亥)마다 모형 A */
+  hourSensitivity: null | {
+    byHour: { hour: Pillar; ratio: number; verdict: StrengthVerdict }[]
+    /** 나온 판정(신강 → 중화 → 신약 순) */
+    verdicts: StrengthVerdict[]
+    hourSensitive: boolean
+  }
+  /** 신강약 근거 글자가 낀 원국 관계(합충형파해) — 반영하지 않고 표시만 (§1.7) */
+  affectedBy: StrengthAffected[]
+  /** 1차 구현은 항상 빈 배열 */
+  adjustmentsApplied: []
+}
+
+// ─────────────────────────────────────────── P3-06 격국 (§2)
+
+export interface StructureGroupRef {
+  group: TenGodGroup
+  element: Element
+  /** 묶음 중 일부 십성만 해당하면 그 십성(예: 정관격의 꺼리는 '상관'). 없으면 묶음 전체 */
+  tenGods?: TenGod[]
+  /** 원국 천간(일간 제외) 중 이 묶음(십성 제한 적용)의 위치 */
+  touchul: Position[]
+  /** 엔진 정의: 원국 지지 중 지장간에 이 오행(십성 제한 적용)이 있는 위치(투출 여부와 별개) */
+  hiddenOnly: Position[]
+  /** 편인격의 인수·효신 구분 등 */
+  note?: string
+}
+
+export interface StructureCandidate {
+  /** "정관격", "칠살격", "건록격", "종살격 후보", "화토격 후보" … */
+  name: string
+  alias?: string[]
+  kind: "regular" | "rokgeop" | "special"
+  school: "자평진전" | "적천수 계열" | "통설"
+  /** 격을 잡은 월지 지장간 */
+  pivot?: { stem: Stem; role: HiddenStemRole; touchul: Position | null; tenGod: TenGod }
+  /** 1차는 high 없음, special은 항상 low */
+  confidence: "medium" | "low"
+  reversesUsefulGod?: boolean
+  /** 특수격 F1~F3, E1~E2, H1~H6 등 */
+  conditions?: { id: string; met: boolean; value?: number }[]
+  obstructions?: { ruleId: string; members: Position[] }[]
+  sangsin?: StructureGroupRef[]
+  avoid?: StructureGroupRef[]
+  /** G2·G2' 결과 비교 */
+  variantAgreement: "same" | "differs"
+  /** 특수격: 따르는 묶음(종격·종왕) 또는 합화 오행(화격)·일행 오행 */
+  follows?: { group: TenGodGroup | null; element: Element }
+  /** 이 후보가 어떤 규칙 변형의 결과인지: primary(선택 옵션) / otherVariant(다른 투출 변형) / rokgeopAlt(G1-alt) / special */
+  role: "primary" | "otherVariant" | "rokgeopAlt" | "special"
+  ruleId: string
+}
+
+export interface StructureResult {
+  /** 순서: 주 후보 → 다른 투출 변형 후보(다를 때) → G1-alt 대체 후보 → 특수격 후보 */
+  candidates: StructureCandidate[]
+  /** 다른 지장간 표로 주 후보 격 이름이 바뀌면 true */
+  tableSensitive: boolean
+  /** 표별 주 후보 이름(검산용, 표 순서 kr → cn → main) — 엔진 개발자 추가 */
+  byTable: { tableId: HiddenStemTableId; name: string }[]
+  /** 예: "극신약이나 종격 조건 미충족" */
+  notes: string[]
+}
+
+// ─────────────────────────────────────────── P3-06 용신 (§3)
+
+export interface UsefulGodCandidate {
+  element: Element
+  /** 일간 기준 묶음 */
+  group: TenGodGroup | null
+  rank: number
+  /** 원국 안 그 오행 가중(elements.weighted) */
+  presentWeight: number
+}
+
+export interface FavorableSet {
+  definition: "generationCycle" | "secondCandidate"
+  xi: Element
+  ji: Element
+  gu: Element
+  han: Element
+}
+
+export interface UsefulGodView {
+  method: UsefulGodMethod
+  label: string
+  school: string
+  status: "ok" | "balanced" | "none" | "notApplicable"
+  candidates: UsefulGodCandidate[]
+  /** rank 1 기준 희기신. 후보가 없거나 secondCandidate인데 2순위가 없으면 없음 */
+  favorable?: FavorableSet
+  /** eokbu만: 모형별 결과 */
+  byModel?: { model: StrengthModel; verdict: StrengthVerdict; status: "ok" | "balanced"; lean?: "weak" | "strong"; candidates: UsefulGodCandidate[]; ruleId: string }[]
+  /** eokbu balanced일 때 r < 0.5면 weak */
+  lean?: "weak" | "strong"
+  confidence: "medium" | "low"
+  /** special만: 억부 대표값과 뒤집히는가 */
+  reversesUsefulGod?: boolean
+  basis: { ruleId: string; positions: Position[]; values?: Record<string, number> }[]
+  source: string
+}
+
+export interface UsefulGodsResult {
+  /** usefulGodMethods 순서 */
+  views: UsefulGodView[]
+  /** rank 1 기준 — 오행마다 그것을 rank 1로 낸 관점(관점 수 많은 순 → 오행 순) */
+  agreement: { element: Element; methods: UsefulGodMethod[] }[]
+  /** 대표 결정 전 기본(관점별 병기) */
+  displayPolicy: "parallel"
+  /**
+   * §3.8 (가) "하나만" 대표값 규칙(제안, 대표 결정 대기 6번). 기본 표시 정책이 아니므로 고객 문장에 쓰지 않는다.
+   * element null = "뚜렷하게 치우친 기운이 없음"
+   */
+  singlePickProposal: { element: Element | null; step: "johuExtreme" | "eokbu" | "johu" | "none"; ruleId: "ug.singlePick.proposal-ga" }
+}
+
+// ─────────────────────────────────────────── P3-06 조후 (§4)
+
+export interface ClimateResult {
+  T: number
+  M: number
+  tClass: "한강" | "한" | "중" | "난" | "열강"
+  mClass: "습강" | "습" | "중" | "조" | "조강"
+  needs: ("warm" | "cool" | "dry" | "moisten")[]
+  basis: { position: Position; char: Stem | Branch; dT: number; dM: number }[]
+  /** 시주 모름이면 3(정규화하지 않음) */
+  pillarsUsed: 3 | 4
+  ruleId: "climate.v1"
+  source: string
+}
+
+// ─────────────────────────────────────────── P3-06 기세 (§5)
+
+export interface QiFlowResult {
+  shares: Record<Element, number>
+  dominant: { element: Element; share: number }
+  concentration: number
+  missing: Element[]
+  flowChain: { elements: Element[]; circular: boolean }
+  dayMasterFlow: { toOutput: boolean; toWealth: boolean; fromResource: boolean }
+  clarityFlags: { flag: string; members: Position[]; ruleId: string }[]
 }
