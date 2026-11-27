@@ -203,8 +203,8 @@ function interactionNote(it: Interaction): string | undefined {
   const parts: string[] = []
   if (it.type === "punishment" && it.punishmentKind) parts.push(PUNISHMENT_KO[it.punishmentKind])
   if (it.resultElement) parts.push(`결과 오행 ${ELEMENT_KO[it.resultElement]}(합화 성립 여부는 판정하지 않음)`)
-  if (it.complete === false) parts.push("세 글자 중 일부")
-  if (it.partial) parts.push("두 글자만(부분)")
+  if (it.partial) parts.push("세 글자 중 두 글자만(부분)")
+  else if (it.complete === false) parts.push("세 글자 중 일부")
   if (it.scope === "luck") parts.push("운에서 들어온 글자 포함")
   return parts.length ? parts.join(", ") : undefined
 }
