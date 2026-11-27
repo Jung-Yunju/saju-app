@@ -9,6 +9,10 @@
 //  - 전체 시간 예산(timeBudgetMs)·외부 중단 신호(signal)·주문당 호출 상한(maxTotalCalls). 예산 초과·중단 시 진행 중 요청도 취소한다.
 //  - 실패한 장만 다시: opts.previous에 이전 결과를 넣으면 ok인 장은 그대로 두고 나머지만 생성(regenerateFailed).
 //  - 호출마다 onEvent로 모델·토큰·비용·결과 코드를 알린다(본문·개인정보는 싣지 않는다) → 운영 연결 시 AiUsage 기록에 쓴다.
+//  - 위기 신호(verify@0.2.0 연결): opts.userText(사용자 고민 글 원문)는 검증용으로만 쓴다 — 사실표·AI 입력(build)에 넣지 않는다.
+//    생성 전에 detectCrisis(userText)로 확인해 걸리면 AI를 한 번도 부르지 않고 상담 안내(crisis.message)만 돌려준다.
+//    검증기에는 verifyContextFromFacts(facts, { userText })로 넘겨 장마다 CRISIS_RESPONSE 검사가 돈다(coverage.crisis = "ran").
+//    고민 입력을 받는 상품(CONCERN·BULLY·CONFLICT)인데 장 검증 보고서의 coverage.crisis가 "not-run:no-userText"면 경고 로그(원문은 남기지 않음).
 //
 // SDK(@anthropic-ai/sdk 1.8.0) 사용 — 타입 정의에서 확인한 필드만 쓴다:
 //  - output_config.format = { type: "json_schema", schema }  (resources/messages/messages.d.ts JSONOutputFormat · OutputConfig)
@@ -21,8 +25,10 @@
 //  - 기본 클라이언트는 new Anthropic({ maxRetries: 0 }) — 키는 환경변수(ANTHROPIC_API_KEY)에서 SDK가 읽는다. 재시도는 이 파일이 맡는다.
 import Anthropic from "@anthropic-ai/sdk"
 import type { Message, MessageCreateParamsNonStreaming, MessageStreamParams, OutputConfig, TextBlockParam } from "@anthropic-ai/sdk/resources/messages/messages"
-import { verifyReading } from "../verify"
-import type { VerifyContext } from "../verify/types"
+import { detectCrisis, verifyReading } from "../verify"
+import type { VerifyContext, VerifyReport } from "../verify/types"
+import { crisisMessage } from "./prompts/persona"
+import { resolveVoice } from "./prompts/system"
 import type { ChapterResult, ChapterSpec, FactSheet } from "./types"
 import { estimateCostUsd, resolveContentModel, type ContentModel, type TokenUsage } from "./cost"
 import { validateJsonSchema } from "./schema"
@@ -63,7 +69,30 @@ function getDefaultClient(): ContentClient {
 export interface ChapterVerifyResult {
   pass: boolean
   findings: unknown[]
+  /** 기본 검증기(verifyReading)가 채운다 — 어떤 검사가 실제로 돌았는지(돌지 않은 검사를 통과로 오해하지 않게) */
+  coverage?: VerifyReport["coverage"]
 }
+
+/**
+ * 사용자 고민 글(자유 서술)을 받는 상품 — 이 상품인데 위기 검사가 돌지 않으면 경고 로그를 남긴다.
+ * CONCERN: 현재 고민(products.ts — 자유 서술 수집은 대표 결정 대기). BULLY·CONFLICT: 상대와의 일을 털어놓는 상품.
+ * 현재(2026-11-27) 세 상품 모두 PRODUCTS[].supported=false이고, 고민 글을 받는 API도 아직 없다.
+ */
+export const USER_TEXT_PRODUCTS: readonly string[] = ["CONCERN", "BULLY", "CONFLICT"]
+
+/** 위기 신호 처리 상태(결과 객체에 항상 실린다) */
+export interface CrisisStatus {
+  /**
+   * 생성 전 사전 검사: "not-run:no-userText"(고민 글 없음) / "clear"(위기 표현 없음 → 생성 진행) /
+   * "detected"(위기 표현 감지 → AI를 부르지 않고 상담 안내만 돌려줌)
+   */
+  precheck: "not-run:no-userText" | "clear" | "detected"
+  /** precheck = "detected"일 때만: 고객에게 보여 줄 상담 안내 문구(prompts/persona.ts CRISIS_MESSAGE 재사용) */
+  message?: string
+}
+
+/** 경고 로그(본문·고민 원문·개인정보를 싣지 않는다). 기본 console.warn */
+export type GenerateLogger = (message: string, meta: Record<string, unknown>) => void
 
 export type ChapterVerifier = (
   output: unknown,
@@ -135,8 +164,17 @@ export interface GenerateOptions {
   effort?: OutputConfig["effort"]
   /** 검증기. 기본 = src/engine/verify의 verifyReading. false면 검증 생략(개발용 — 운영 금지) */
   verify?: ChapterVerifier | false
-  /** 기본 검증기에 더 넘길 문맥(rules·chart·userText 등) */
+  /** 기본 검증기에 더 넘길 문맥(rules·chart 등). userText는 아래 opts.userText를 쓴다(둘 다 있으면 opts.userText 우선) */
   verifyContext?: Partial<VerifyContext>
+  /**
+   * 사용자 고민 글 원문(선택). 검증용으로만 쓴다 — 사실표·AI 입력에 넣지 않고 로그·이벤트에도 싣지 않는다.
+   * 있으면 생성 전 위기 사전 검사(detectCrisis)와 장별 CRISIS_RESPONSE 검사에 쓴다.
+   */
+  userText?: string
+  /** 상품 코드(예: "BASIC", "CONCERN"). 고민 입력 상품인데 위기 검사가 안 돌면 경고 로그를 남기는 데 쓴다 */
+  product?: string
+  /** 경고 로그 함수(테스트 주입용). 기본 console.warn */
+  logger?: GenerateLogger
   /** 검증 block 재생성 시 문제 코드를 user 메시지에 덧붙일지(기본 true) */
   verifyFeedback?: boolean
   /** 이전 실행 결과 — ok인 장은 다시 만들지 않는다 */
@@ -158,8 +196,10 @@ export interface GenerateRunResult {
   failedIds: string[]
   totals: TokenUsage & { costUsdEstimate: number; calls: number }
   elapsedMs: number
-  /** 전체 실행이 도중에 멈춘 이유 */
-  stopped?: "aborted" | "time_budget_exceeded" | "call_limit_exceeded"
+  /** 전체 실행이 도중에 멈춘 이유. "crisis" = 위기 신호 감지로 생성하지 않음(crisis.message를 고객에게 보여 준다) */
+  stopped?: "aborted" | "time_budget_exceeded" | "call_limit_exceeded" | "crisis"
+  /** 위기 신호 처리 상태 — 호출 쪽은 crisis.precheck === "detected"를 먼저 확인하고 풀이 대신 crisis.message를 보여 준다 */
+  crisis: CrisisStatus
 }
 
 // ─────────────────────────────────────────── 실행 제어
@@ -362,7 +402,7 @@ export function wrapChapterForVerify(output: unknown, spec: Pick<ChapterSpec, "i
 function defaultVerifier(extra?: Partial<VerifyContext>): ChapterVerifier {
   return (output, { facts, spec }) => {
     const rep = verifyReading(wrapChapterForVerify(output, spec), verifyContextFromFacts(facts, extra))
-    return { pass: rep.pass, findings: rep.findings }
+    return { pass: rep.pass, findings: rep.findings, coverage: rep.coverage }
   }
 }
 
@@ -391,14 +431,38 @@ export async function generateChapters(facts: FactSheet, chapters: ChapterSpec[]
   const maxDelay = opts.maxDelayMs ?? 20_000
   const ceiling = opts.maxTokensCeiling ?? 32_000
   const concurrency = Math.min(2, Math.max(1, Math.floor(opts.concurrency ?? 1)))
-  const verifier: ChapterVerifier | null = opts.verify === false ? null : (opts.verify ?? defaultVerifier(opts.verifyContext))
+  const userText = typeof opts.userText === "string" && opts.userText.trim() !== "" ? opts.userText : undefined
+  const verifyExtra: Partial<VerifyContext> | undefined = userText ? { ...opts.verifyContext, userText } : opts.verifyContext
+  const verifier: ChapterVerifier | null = opts.verify === false ? null : (opts.verify ?? defaultVerifier(verifyExtra))
   const allowFallback = opts.allowPromptFallback ?? true
+  const logger: GenerateLogger = opts.logger ?? ((m, meta) => console.warn(m, meta))
+  const expectsUserText = !!opts.product && USER_TEXT_PRODUCTS.includes(opts.product)
 
   const ids = new Set<string>()
   for (const c of chapters) {
     if (ids.has(c.id)) throw new Error(`장 id 중복: ${c.id}`)
     ids.add(c.id)
   }
+
+  // 위기 사전 검사 — 걸리면 AI를 부르지 않는다(클라이언트도 만들지 않음). 이전 결과(previous)의 풀이도 돌려주지 않는다.
+  if (userText && detectCrisis(userText)) {
+    const message = crisisMessage(resolveVoice(facts), facts.subject.addressAs)
+    // 원문·감지 구절은 로그에 남기지 않는다(상품·장 수만)
+    logger("[content-gen] 위기 신호 감지 — 생성 중단, 상담 안내로 응답", { product: opts.product ?? null, chapters: chapters.length })
+    return {
+      version: GENERATOR_VERSION,
+      model,
+      chapters: chapters.map((c) => ({ id: c.id, ok: false, error: "crisis", attempts: 0 })),
+      ok: false,
+      failedIds: chapters.map((c) => c.id),
+      totals: { ...ZERO, costUsdEstimate: 0, calls: 0 },
+      elapsedMs: now() - started,
+      stopped: "crisis",
+      crisis: { precheck: "detected", message },
+    }
+  }
+  const crisis: CrisisStatus = { precheck: userText ? "clear" : "not-run:no-userText" }
+  const crisisNotRun: string[] = []
 
   const results: ChapterResult[] = new Array(chapters.length)
   const todo: number[] = []
@@ -567,7 +631,8 @@ export async function generateChapters(facts: FactSheet, chapters: ChapterSpec[]
         emit("verify_error", sr, u, "verify_error")
         return finish({ ok: false, error: `verify_error: ${String((e as Error)?.message ?? e).slice(0, 120)}` })
       }
-      lastVerify = { pass: v.pass, findings: v.findings ?? [] }
+      lastVerify = { pass: v.pass, findings: v.findings ?? [], ...(v.coverage ? { coverage: v.coverage } : {}) }
+      if (expectsUserText && v.coverage?.crisis === "not-run:no-userText" && !crisisNotRun.includes(spec.id)) crisisNotRun.push(spec.id)
       if (v.pass) {
         emit("ok", sr, u)
         return finish({ ok: true, output: parsed.value, verify: lastVerify })
@@ -599,6 +664,12 @@ export async function generateChapters(facts: FactSheet, chapters: ChapterSpec[]
     ctl.dispose()
   }
 
+  if (crisisNotRun.length)
+    logger("[content-gen] 고민 입력 상품인데 위기 검사가 돌지 않음(coverage.crisis=not-run:no-userText) — 호출 쪽이 userText를 넘겨야 함", {
+      product: opts.product,
+      chapterIds: crisisNotRun,
+    })
+
   let totals: TokenUsage = { ...ZERO }
   for (const r of results) {
     // 이번 실행에서 새로 만든 장만 합산(이전 결과에서 가져온 장은 제외)
@@ -617,6 +688,7 @@ export async function generateChapters(facts: FactSheet, chapters: ChapterSpec[]
     totals: { ...totals, costUsdEstimate: estimateCostUsd(model, totals), calls: ctl.calls },
     elapsedMs: now() - started,
     ...(stopped ? { stopped } : {}),
+    crisis,
   }
 }
 

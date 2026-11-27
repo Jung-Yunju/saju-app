@@ -70,10 +70,16 @@ describe("문안 선택", () => {
     }
   })
 
-  it.skipIf(!hasReal)("실제 문안: teaser의 needsConfirm 항목(P3·P8)은 숨기고, 일지 충·합 덧줄은 해당자에게만", () => {
+  // 2026-11-27 QA: 명리 감수 F10으로 P6(궁합 "둘이 한 상에 앉으면" — COMPAT 상품 보류)도 needsConfirm: true → 숨김 3건(P3·P6·P8), 보이는 칸 5건.
+  it.skipIf(!hasReal)("실제 문안: teaser의 needsConfirm 항목(P3·P6·P8)은 숨기고, 일지 충·합 덧줄은 해당자에게만", () => {
     const c = selectCopy(real, facts) // 일지 子 + 2026 午 = 자오충
-    expect(c.teaser.items.map((i) => i.menu).join("|")).not.toMatch(/앞으로 열 해 날씨|한 해 옷 고쳐 입기/)
-    expect(c.teaser.items.length).toBe(6)
+    const menus = c.teaser.items.map((i) => i.menu)
+    expect(menus.join("|")).not.toMatch(/앞으로 열 해 날씨|둘이 한 상에 앉으면|한 해 옷 고쳐 입기/)
+    expect(menus).toEqual(["타고난 옷감", "네 인생 한 두루마리", "곳간 셈", "곁자리 이야기", "갈림길 앞에서"])
+    // 원본 파일과도 맞물리는지: 숨김 = needsConfirm true 인 칸 전부(그 외는 하나도 빠지지 않음)
+    const raw = JSON.parse(fs.readFileSync(path.join(process.cwd(), "content/free/teaser.json"), "utf8")) as { items: { menu: string; needsConfirm?: boolean }[] }
+    expect(raw.items.filter((i) => i.needsConfirm === true).map((i) => i.menu)).toEqual(["앞으로 열 해 날씨", "둘이 한 상에 앉으면", "한 해 옷 고쳐 입기"])
+    expect(menus).toEqual(raw.items.filter((i) => i.needsConfirm !== true).map((i) => i.menu))
     expect(c.thisYear.text).toContain("자오충")
     const other = selectCopy(real, { ...facts, dayBranch: { hanja: "寅", ko: "인" } })
     expect(other.thisYear.text).not.toContain("자오충")
