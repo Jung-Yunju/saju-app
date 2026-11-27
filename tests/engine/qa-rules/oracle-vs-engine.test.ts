@@ -1,4 +1,4 @@
-// 품질검증 P3-05 — 규칙 엔진 rules@0.2.0 vs 독립 오라클 (기본 옵션 2,000건 + 합성 2,000건 + 옵션 변형 각 200건)
+// 품질검증 P3-05/D-019 — 규칙 엔진(rules@0.3.0, 버전은 compare.ts EXPECTED_RULES_VERSION) vs 독립 오라클 (기본 옵션 2,000건 + 합성 2,000건 + 옵션 변형 각 200건)
 import { describe, expect, it } from "vitest"
 import { analyzeRules, computeChart, type RuleOptions } from "@/engine"
 import { SPEC_DEFAULTS, SPEC_STAGE_TABLE, LU_TABLE, STEMS, BRANCHES, stageOf, type OOpts } from "./oracle"
@@ -6,13 +6,13 @@ import { chartSamples, compare, emptyFails, summarize, syntheticSamples, type Co
 
 const TEMPLATE = computeChart({ calendar: "solar", year: 1990, month: 5, day: 5, time: { hour: 10, minute: 0 }, timezone: "Asia/Seoul", gender: "M" })
 
-// subsume=true: 엔진 개발자가 정한 포섭 규칙(명세 공백, 연구소장 확인 대기)을 QA 오라클에 따로 구현해 적용
-function run(samples: Sample[], opts: Partial<RuleOptions> | undefined, expected: OOpts, stats?: CompareStats, subsume = true) {
+// D-019: 오라클은 두 글자 기록을 지우지 않고 subsumedBy를 따로 계산해 엔진과 대조한다
+function run(samples: Sample[], opts: Partial<RuleOptions> | undefined, expected: OOpts, stats?: CompareStats) {
   const fails = emptyFails()
   for (const s of samples) {
     let a
     try { a = analyzeRules(s.chart, opts, s.extra) } catch (e) { fails.meta.push(`${s.label}: THROW ${(e as Error).message}`); continue }
-    compare(s, a, expected, fails, stats, { subsume })
+    compare(s, a, expected, fails, stats)
   }
   return fails
 }
@@ -51,17 +51,20 @@ describe("P3-05 기본 옵션 — 합성 원국 2,000건 (60갑자 임의, 시�
   })
 })
 
-describe("명세 문자 그대로(포섭 없음)와의 차이 — 포섭 규칙 영향 측정", () => {
-  it("차이는 '엔진이 뺀 두 글자 기록'뿐이고, 엔진이 더 만든 기록은 없다", () => {
+describe("D-019 포함 표시 — 두 글자 기록 보존 + subsumedBy (원국·운 대칭)", () => {
+  it("4,000건: 삭제 없음, subsumedBy 목록 일치, 식별자 유일·참조 무결", () => {
     const samples = [...chartSamples(2000, 20261127), ...syntheticSamples(2000, 777, TEMPLATE)]
-    const f = run(samples, undefined, SPEC_DEFAULTS, undefined, false)
-    const others = Object.entries(f).filter(([k, v]) => k !== "interactions" && v.length)
-    expect(others, JSON.stringify(others).slice(0, 2000)).toEqual([])
-    expect(f.interactions.filter((x) => /초과\[[^\]]/.test(x))).toEqual([])
-    const dropped = f.interactions.reduce((n, x) => n + [...x.matchAll(/×(\d+)/g)].reduce((m, g) => m + Number(g[1]), 0), 0)
-    const byType: Record<string, number> = {}
-    for (const x of f.interactions) for (const g of x.matchAll(/ ?([a-zA-Z/]+)\[[^\]]*\]\([^)]*\)×(\d+)/g)) byType[g[1]] = (byType[g[1]] ?? 0) + Number(g[2])
-    console.log(`[literal] 표본 ${samples.length}건 중 ${f.interactions.length}건에서 두 글자 기록 ${dropped}개가 포섭으로 빠짐 ${JSON.stringify(byType)}`)
+    const stats: CompareStats = { interactionTypes: {} }
+    const f = run(samples, undefined, SPEC_DEFAULTS, stats)
+    console.log(`[D-019] 표본 ${samples.length}건, subsumedBy가 붙어야 하는 두 글자 기록 ${stats.subsumedPairs}개, 불일치 ${total(f)}`)
+    expect(stats.subsumedPairs ?? 0).toBeGreaterThan(1000)
+    expect(total(f), summarize(f, samples.length)).toBe(0)
+  })
+  it("partialDirectional·allPairs 켠 상태 400건", () => {
+    const samples = [...chartSamples(200, 4242), ...syntheticSamples(200, 4343, TEMPLATE)]
+    const v = { partialDirectional: true, halfCombine: "allPairs" } as const
+    const f = run(samples, v, { ...SPEC_DEFAULTS, ...v })
+    expect(total(f), summarize(f, samples.length)).toBe(0)
   })
 })
 

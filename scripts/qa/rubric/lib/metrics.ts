@@ -156,7 +156,11 @@ export interface VerifySummary {
 function tally(findings: Finding[], codes: readonly FindingCode[]) {
   let block = 0
   let warn = 0
-  for (const f of findings) if (codes.includes(f.code)) f.severity === "block" ? block++ : f.severity === "warn" ? warn++ : 0
+  for (const f of findings) {
+    if (!codes.includes(f.code)) continue
+    if (f.severity === "block") block++
+    else if (f.severity === "warn") warn++
+  }
   return { block, warn }
 }
 

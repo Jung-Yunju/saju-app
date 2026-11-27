@@ -11,22 +11,23 @@
 :root{--bg:#e9dcc6;--paper:#f3eadb;--surface:#fffaf2;--ink:#221e1b;--muted:#5f564d;--gold:#7a5233;--hl:#f2c14e}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Gowun Batang","Noto Serif KR",serif;-webkit-font-smoothing:antialiased}
-header{max-width:1320px;margin:0 auto;padding:24px 20px 8px}
+header{max-width:1720px;margin:0 auto;padding:24px 20px 8px}
 h1{margin:0 0 6px;font-size:24px;letter-spacing:-.02em}
 .sub{margin:0;color:var(--muted);font-size:14px;line-height:1.6;word-break:keep-all}
-.bar{display:flex;flex-wrap:wrap;gap:8px;max-width:1320px;margin:0 auto;padding:12px 20px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;max-width:1720px;margin:0 auto;padding:12px 20px}
 button,.link{min-height:44px;padding:0 16px;border-radius:999px;border:1.5px solid var(--ink);background:var(--surface);color:var(--ink);font:inherit;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;text-decoration:none}
 button[aria-pressed=true],button[aria-selected=true]{background:var(--ink);color:#fff7e6}
 button:focus-visible,.link:focus-visible{outline:3px solid var(--hl);outline-offset:2px}
 .tabs{display:none}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;max-width:1320px;margin:0 auto;padding:8px 20px 48px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;max-width:1720px;margin:0 auto;padding:8px 20px 48px}
 .card{display:flex;flex-direction:column;align-items:center;gap:12px}
 .card h2{margin:0;font-size:19px;letter-spacing:-.02em}
 .card p{margin:0;max-width:360px;font-size:14px;line-height:1.6;color:var(--muted);text-align:center;word-break:keep-all}
 .phone{--s:.86;position:relative;width:calc(390px * var(--s) + 20px);height:calc(844px * var(--s) + 20px);padding:10px;border-radius:46px;background:var(--ink);box-shadow:0 6px 0 rgba(34,30,27,.35)}
 .phone iframe{display:block;width:390px;height:844px;border:0;border-radius:36px;transform:scale(var(--s));transform-origin:0 0;background:var(--paper)}
 .acts{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
-@media (max-width:1240px){.phone{--s:.74}}
+@media (max-width:1720px){.phone{--s:.74}}
+@media (max-width:1500px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.phone{--s:.86}}
 @media (max-width:1040px){
   .tabs{display:flex}
   .grid{grid-template-columns:1fr}
@@ -39,43 +40,53 @@ button:focus-visible,.link:focus-visible{outline:3px solid var(--hl);outline-off
 <body>
 <header>
   <h1>첫 화면 인트로 시안 3종</h1>
-  <p class="sub">시안 B 「등잔 아래 찻상」 기준 · 휴대폰 390×844 틀 · 한 번 재생 후 끝 장면에서 멈춤 · 소리 없음 · 건너뛰기와 시작 버튼은 0초부터 보임. 평가는 같은 폴더의 REVIEW.md, 영상 제작 안내는 VIDEO_BRIEF.md.</p>
+  <p class="sub">시안 B 「등잔 아래 찻상」 기준 · 휴대폰 390×844 틀 · 기본은 압축본(2.8~3초), 전체판(5.4~6.1초)은 위 단추로 · 한 번 재생 후 끝 장면에서 멈춤 · 소리 없음 · 건너뛰기와 시작 버튼은 0초부터 보임 · 실제 사이트에서는 재방문 시 인트로를 건너뜀(이 비교 페이지는 매번 처음처럼 재생). 평가는 같은 폴더의 REVIEW.md, 영상 제작 안내는 VIDEO_BRIEF.md.</p>
 </header>
 <div class="bar">
   <div class="tabs" role="tablist" aria-label="시안 고르기">
     <button role="tab" aria-selected="true" data-tab="0">① 등잔</button>
     <button role="tab" aria-selected="false" data-tab="1">② 문</button>
-    <button role="tab" aria-selected="false" data-tab="2">③ 여덟 글자</button>
+    <button role="tab" aria-selected="false" data-tab="2">②-b 수선집</button>
+    <button role="tab" aria-selected="false" data-tab="3">③ 여덟 글자</button>
   </div>
   <button type="button" id="all">모두 다시 재생</button>
+  <button type="button" id="full" aria-pressed="false">전체판으로 보기</button>
   <button type="button" id="still" aria-pressed="false">정지 화면 보기(움직임 줄이기)</button>
 </div>
 <main class="grid">
   <section class="card on" data-id="lamp">
     <h2>① 등잔이 켜진다</h2>
-    <p>어둠 속에서 등잔불이 붙고, 빛이 번지며 찻상 앞 할머니와 졸던 복자가 드러난다. 약 5.6초.</p>
-    <div class="phone"><iframe title="① 등잔이 켜진다" src="lamp.html" loading="eager"></iframe></div>
-    <div class="acts"><button type="button" class="re">다시 재생</button><a class="link" href="lamp.html" target="_blank" rel="noopener">새 창(PC 화면)</a></div>
+    <p>어둠 속에서 등잔불이 붙고, 빛이 번지며 찻상 앞 할머니와 졸던 복자가 드러난다. 압축본 2.8초 · 전체판 5.6초.</p>
+    <div class="phone"><iframe title="① 등잔이 켜진다" src="lamp.html?fresh=1" loading="eager"></iframe></div>
+    <div class="acts"><button type="button" class="re">다시 재생</button><a class="link" href="lamp.html?fresh=1" target="_blank" rel="noopener">새 창(PC 화면)</a></div>
   </section>
   <section class="card" data-id="door">
     <h2>② 복자가 문을 연다</h2>
-    <p>등잔빛 비친 한지 미닫이에 고양이 그림자가 지나가고, 복자가 머리로 문을 밀어 열면 방 안의 할머니. 약 5.4초.</p>
-    <div class="phone"><iframe title="② 복자가 문을 연다" src="door.html" loading="eager"></iframe></div>
-    <div class="acts"><button type="button" class="re">다시 재생</button><a class="link" href="door.html" target="_blank" rel="noopener">새 창(PC 화면)</a></div>
+    <p>등잔빛 비친 한지 미닫이를 복자가 머리로 밀어 열면 방 안의 할머니. 압축본 2.8초(0.4초에 복자 머리) · 전체판 5.4초(고양이 그림자 걷기 포함). <b>1위 추천.</b></p>
+    <div class="phone"><iframe title="② 복자가 문을 연다" src="door.html?fresh=1" loading="eager"></iframe></div>
+    <div class="acts"><button type="button" class="re">다시 재생</button><a class="link" href="door.html?fresh=1" target="_blank" rel="noopener">새 창(PC 화면)</a></div>
+  </section>
+  <section class="card" data-id="door-sewing">
+    <h2>②-b 할미의 수선집 (변주)</h2>
+    <p>②와 같은 연출을 「할미의 수선집」 세계로. 간유리 미닫이·간판·줄자·실패·재봉틀, 노란 실을 문 복자. 압축본 2.8초 · 전체판 5.4초.</p>
+    <div class="phone"><iframe title="②-b 할미의 수선집" src="door-sewing.html?fresh=1" loading="eager"></iframe></div>
+    <div class="acts"><button type="button" class="re">다시 재생</button><a class="link" href="door-sewing.html?fresh=1" target="_blank" rel="noopener">새 창(PC 화면)</a></div>
   </section>
   <section class="card" data-id="pillars">
     <h2>③ 여덟 글자가 내려앉는다</h2>
-    <p>별처럼 떠 있던 먹 글자가 태어난 순서(해→달→날→시)대로 네 기둥 여덟 칸에 앉고, 할머니 손이 찻잔을 내려놓고 복자가 종이 위로 빼꼼. 글자는 예시. 약 6.1초.</p>
-    <div class="phone"><iframe title="③ 여덟 글자가 내려앉는다" src="pillars.html" loading="eager"></iframe></div>
-    <div class="acts"><button type="button" class="re">다시 재생</button><a class="link" href="pillars.html" target="_blank" rel="noopener">새 창(PC 화면)</a></div>
+    <p>별처럼 떠 있던 먹 글자가 태어난 순서(해→달→날→시)대로 네 기둥 여덟 칸에 앉고, 할머니 손이 찻잔을 내려놓고 복자가 종이 위로 빼꼼. 글자는 예시. 압축본 3.05초 · 전체판 6.1초.</p>
+    <div class="phone"><iframe title="③ 여덟 글자가 내려앉는다" src="pillars.html?fresh=1" loading="eager"></iframe></div>
+    <div class="acts"><button type="button" class="re">다시 재생</button><a class="link" href="pillars.html?fresh=1" target="_blank" rel="noopener">새 창(PC 화면)</a></div>
   </section>
 </main>
 <script>
 (function(){
-  var cards=[].slice.call(document.querySelectorAll('.card')), still=false, n=0;
-  function load(card){var f=card.querySelector('iframe');f.src=card.dataset.id+'.html?'+(still?'still=1&':'')+'r='+(++n);}
+  var cards=[].slice.call(document.querySelectorAll('.card')), still=false, full=false, n=0;
+  function load(card){var f=card.querySelector('iframe');f.src=card.dataset.id+'.html?fresh=1&'+(still?'still=1&':'')+(full?'cut=full&':'')+'r='+(++n);}
   cards.forEach(function(c){c.querySelector('.re').addEventListener('click',function(){load(c);});});
   document.getElementById('all').addEventListener('click',function(){cards.forEach(load);});
+  var fb=document.getElementById('full');
+  fb.addEventListener('click',function(){full=!full;fb.setAttribute('aria-pressed',String(full));fb.textContent=full?'압축본으로 보기':'전체판으로 보기';cards.forEach(load);});
   var sb=document.getElementById('still');
   sb.addEventListener('click',function(){still=!still;sb.setAttribute('aria-pressed',String(still));cards.forEach(load);});
   [].forEach.call(document.querySelectorAll('[data-tab]'),function(t){

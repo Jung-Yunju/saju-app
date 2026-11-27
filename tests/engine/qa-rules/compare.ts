@@ -67,25 +67,40 @@ export const toOInput = (s: Sample): OInput => ({
   seun: s.extra?.year ?? null,
 })
 
+/** QA가 기대하는 규칙 엔진 버전(엔진 상수를 가져오지 않고 직접 적는다 — 버전을 올리면 QA가 확인 후 갱신) */
+export const EXPECTED_RULES_VERSION = "rules@0.3.0"
+
+/** 엔진 interactionId 형식(SAJU_ENGINE.md): `${ruleId}@${위치들}`, 위치 = `{pillar}{luckIndex}.{part}`를 +로 이음 — QA 독립 계산 */
+export const qaInteractionId = (x: { ruleId: string; members: { pillar: string; part: string; luckIndex?: number }[] }) => `${x.ruleId}@${x.members.map(posKey).join("+")}`
+const RULE_FAMILY: [string, string][] = [["branch.threeCombine.", "threeCombine"], ["branch.directional.", "directionalCombine"], ["branch.punishment.", "punishment"]]
+/** 엔진 식별자 → QA 키(`${type}@${위치들}`). 형식이 다르면 null */
+export function idToQaKey(id: string): string | null {
+  const at = id.indexOf("@")
+  if (at < 0) return null
+  const rule = id.slice(0, at), pos = id.slice(at + 1)
+  const fam = RULE_FAMILY.find(([p]) => rule.startsWith(p))
+  return fam ? `${fam[1]}@${pos}` : null
+}
+
 // ── 대조
-export type Cat = "meta" | "hidden" | "tenGods" | "tenGodsOrder" | "stages" | "interactions" | "interactionAttrs" | "gongmang" | "elements" | "integrity"
+export type Cat = "subsumed" | "meta" | "hidden" | "tenGods" | "tenGodsOrder" | "stages" | "interactions" | "interactionAttrs" | "gongmang" | "elements" | "integrity"
 export type Fails = Record<Cat, string[]>
-export const emptyFails = (): Fails => ({ meta: [], hidden: [], tenGods: [], tenGodsOrder: [], stages: [], interactions: [], interactionAttrs: [], gongmang: [], elements: [], integrity: [] })
+export const emptyFails = (): Fails => ({ subsumed: [], meta: [], hidden: [], tenGods: [], tenGodsOrder: [], stages: [], interactions: [], interactionAttrs: [], gongmang: [], elements: [], integrity: [] })
 
 const ikey = (x: { type: string; members: { pillar: string; part: string; luckIndex?: number }[]; chars: string[]; punishmentKind?: string }) =>
   `${x.type}${x.punishmentKind ? `/${x.punishmentKind}` : ""}[${x.members.map(posKey).join(",")}](${x.chars.join("")})`
 const near = (a: number, b: number, eps = 1e-6) => Math.abs(a - b) <= eps
 
-export interface CompareStats { interactionTypes: Record<string, number>; positions?: number }
+export interface CompareStats { interactionTypes: Record<string, number>; positions?: number; subsumedPairs?: number }
 
-export function compare(s: Sample, a: RuleAnalysis, o: OOpts, fails: Fails, stats?: CompareStats, flags: { subsume?: boolean } = {}): void {
+export function compare(s: Sample, a: RuleAnalysis, o: OOpts, fails: Fails, stats?: CompareStats): void {
   const inp = toOInput(s)
   const L = s.label
   const add = (c: Cat, m: string) => fails[c].push(`${L}: ${m}`)
   const hourKnown = inp.natal.hour !== null
 
   // meta
-  if (a.engineVersion !== "rules@0.2.0") add("meta", `engineVersion=${a.engineVersion}`)
+  if (a.engineVersion !== EXPECTED_RULES_VERSION) add("meta", `engineVersion=${a.engineVersion}`)
   if (a.calendarEngineVersion !== s.chart.engineVersion) add("meta", `calendarEngineVersion=${a.calendarEngineVersion}`)
   if (JSON.stringify(a.omitted) !== JSON.stringify(hourKnown ? [] : ["hour"])) add("meta", `omitted=${JSON.stringify(a.omitted)}`)
   for (const k of Object.keys(o) as (keyof OOpts)[]) if (a.options[k] !== o[k]) add("meta", `options.${k}=${String(a.options[k])} 기대 ${String(o[k])}`)
@@ -142,7 +157,7 @@ export function compare(s: Sample, a: RuleAnalysis, o: OOpts, fails: Fails, stat
   }
 
   // 관계
-  const expI = interactionsOf(inp, o, flags)
+  const expI = interactionsOf(inp, o)
   if (stats) for (const x of expI) stats.interactionTypes[x.type + (x.punishmentKind ? `/${x.punishmentKind}` : "") + (x.partial ? "/partial" : "") + `/${x.scope}`] = (stats.interactionTypes[x.type + (x.punishmentKind ? `/${x.punishmentKind}` : "") + (x.partial ? "/partial" : "") + `/${x.scope}`] ?? 0) + 1
   const gotMap = new Map<string, number>(), expMap = new Map<string, OInteraction[]>()
   for (const x of a.interactions) gotMap.set(ikey(x), (gotMap.get(ikey(x)) ?? 0) + 1)
@@ -169,7 +184,24 @@ export function compare(s: Sample, a: RuleAnalysis, o: OOpts, fails: Fails, stat
     }
     if ((x.type === "stemCombine" || x.type === "sixCombine") && x.transformed !== null) add("interactionAttrs", `${ikey(x)} transformed=${String(x.transformed)}`)
     if (!x.ruleId || typeof x.ruleId !== "string") add("interactionAttrs", `${ikey(x)} ruleId 없음`)
+    // D-019 subsumedBy: 엔진 식별자를 QA 키로 바꿔 오라클과 비교
+    const gotSub = (x.subsumedBy ?? []).map((id) => idToQaKey(id) ?? `?${id}`).sort().join(" ")
+    const expSub = (e.subsumedBy ?? []).join(" ")
+    if (gotSub !== expSub) add("subsumed", `${ikey(x)} subsumedBy 엔진[${gotSub}] 오라클[${expSub}]`)
+    if (x.subsumedBy && x.subsumedBy.length === 0) add("subsumed", `${ikey(x)} subsumedBy 빈 배열(없으면 필드 생략이 계약)`)
   }
+  // 식별자 무결성: 유일성 + subsumedBy가 가리키는 관계가 결과 안에 실제로 있음
+  const ids = a.interactions.map(qaInteractionId)
+  if (new Set(ids).size !== ids.length) add("subsumed", `interactionId 중복 ${ids.length - new Set(ids).size}개`)
+  const idSet = new Set(ids)
+  for (const x of a.interactions) for (const id of x.subsumedBy ?? []) {
+    if (!idSet.has(id)) add("integrity", `subsumedBy ${id}가 결과 관계 목록에 없음`)
+    else {
+      const t = a.interactions[ids.indexOf(id)]
+      if (t.members.length !== 3 || !x.members.every((m) => t.members.some((tm) => posKey(tm) === posKey(m)))) add("integrity", `subsumedBy ${id}가 ${ikey(x)}의 두 위치를 포함하지 않음`)
+    }
+  }
+  if (stats) for (const x of expI) if (x.subsumedBy) stats.subsumedPairs = (stats.subsumedPairs ?? 0) + 1
 
   // 공망
   const gm = gongmangOf(inp, o)

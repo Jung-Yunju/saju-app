@@ -14,29 +14,43 @@ function chartOf(y: string, m: string, d: string, h: string | null): CalendarRes
 const brief = (a: ReturnType<typeof analyzeRules>, types: string[]) =>
   a.interactions.filter((x) => types.includes(x.type)).map((x) => `${x.type}:${x.members.map((m) => m.pillar + (m.luckIndex ?? "")).join("-")}:${x.chars.join("")}:adj=${x.adjacent}`)
 
-describe("포섭 규칙(명세 공백) — 현재 동작", () => {
-  it("붙은 반합(연申·월子)이 떨어진 삼합(연·월·시辰)에 포섭되어 사라진다 → 붙어 있음 정보 손실", () => {
+const sub = (a: ReturnType<typeof analyzeRules>, type: string, pillars: string) =>
+  a.interactions.find((x) => x.type === type && x.members.map((m) => m.pillar + (m.luckIndex ?? "")).join("-") === pillars)
+
+describe("D-019 포함 표시(총괄실장 확정) — 두 글자 기록 보존 + subsumedBy", () => {
+  it("붙은 반합(연申·월子)이 떨어진 삼합(연·월·시辰)과 함께 남고 subsumedBy로 표시된다 → 거리 정보 보존", () => {
     const a = analyzeRules(chartOf("庚申", "丙子", "丁卯", "甲辰"))
     const r = brief(a, ["halfCombine", "threeCombine"])
-    console.log("[포섭/거리]", JSON.stringify(r))
+    console.log("[D-019/거리]", JSON.stringify(r))
     expect(r).toContain("threeCombine:year-month-hour:申子辰:adj=false")
-    expect(r.some((x) => x.startsWith("halfCombine:year-month"))).toBe(false) // adjacent=true 반합 기록 없음
+    expect(r).toContain("halfCombine:year-month:申子:adj=true")
+    expect(r).toContain("halfCombine:month-hour:子辰:adj=false")
+    const three = "branch.threeCombine.申子辰@year.branch+month.branch+hour.branch"
+    expect(sub(a, "halfCombine", "year-month")?.subsumedBy).toEqual([three])
+    expect(sub(a, "halfCombine", "month-hour")?.subsumedBy).toEqual([three])
   })
-  it("원국 두 글자 + 운 한 글자로 완성되면 원국 반합은 남고, 운이 낀 두 글자 기록은 빠진다", () => {
+  it("원국 두 글자 + 운 한 글자로 완성: 원국 반합·운 낀 반합 모두 남고 둘 다 표시(대칭)", () => {
     const a = analyzeRules(chartOf("庚申", "丙子", "丁卯", "乙巳"), undefined, { luck: [P("甲辰")] })
     const r = brief(a, ["halfCombine", "threeCombine"])
-    console.log("[포섭/운]", JSON.stringify(r))
-    expect(r).toContain("halfCombine:year-month:申子:adj=true")
-    expect(r).toContain("threeCombine:year-month-daeun0:申子辰:adj=false")
-    expect(r.some((x) => x.startsWith("halfCombine:month-daeun0"))).toBe(false) // 子辰(운 낌) 빠짐
+    console.log("[D-019/운]", JSON.stringify(r))
+    const three = "branch.threeCombine.申子辰@year.branch+month.branch+daeun0.branch"
+    expect(sub(a, "halfCombine", "year-month")?.subsumedBy).toEqual([three])
+    expect(sub(a, "halfCombine", "month-daeun0")?.subsumedBy).toEqual([three])
+    expect(sub(a, "threeCombine", "year-month-daeun0")?.scope).toBe("luck")
   })
-  it("두 글자 삼형도 같은 규칙: 寅巳申 완성 시 원국 안 두 글자 삼형 없음, 충(寅申)·해(寅巳)는 남음", () => {
+  it("두 글자 삼형도 같은 규칙: 寅巳申 완성 시 두 글자 삼형 3개 보존·표시, 충(寅申)·해(寅巳)·합파(巳申)는 표시 없음", () => {
     const a = analyzeRules(chartOf("甲寅", "己巳", "丙申", "甲午"))
-    const r = brief(a, ["punishment", "clash", "harm", "sixCombine", "break"])
-    console.log("[포섭/삼형]", JSON.stringify(r))
-    expect(r.filter((x) => x.startsWith("punishment"))).toEqual(["punishment:year-month-day:寅巳申:adj=true"])
-    expect(r).toContain("clash:year-day:寅申:adj=false")
-    expect(r).toContain("harm:year-month:寅巳:adj=true")
+    const pun = a.interactions.filter((x) => x.type === "punishment")
+    console.log("[D-019/삼형]", JSON.stringify(pun.map((x) => `${x.members.map((m) => m.pillar).join("-")}:${x.chars.join("")}:${(x.subsumedBy ?? []).join("|")}`)))
+    expect(pun.length).toBe(4)
+    for (const x of pun.filter((y) => y.members.length === 2)) expect(x.subsumedBy).toEqual(["branch.punishment.寅巳申@year.branch+month.branch+day.branch"])
+    for (const x of a.interactions.filter((y) => ["clash", "harm", "sixCombine", "break"].includes(y.type))) expect(x.subsumedBy).toBeUndefined()
+  })
+  it("같은 쌍을 포함하는 세 글자 조합이 여럿이면 전부 적는다 (申 子 辰 辰)", () => {
+    const a = analyzeRules(chartOf("庚申", "丙子", "甲辰", "戊辰"))
+    expect(sub(a, "halfCombine", "month-day")?.subsumedBy).toEqual(["branch.threeCombine.申子辰@year.branch+month.branch+day.branch"]) // 子辰(월·일)은 연申·월子·일辰 하나에만 포함
+    const ym = sub(a, "halfCombine", "year-month")
+    expect(ym?.subsumedBy?.length).toBe(2)
   })
 })
 
