@@ -93,8 +93,12 @@ export function maskPersonal(s) {
 }
 
 /** 업무 설명(60자): 공백 정리 → 가림 → 자르기 (자른 뒤 가리면 잘린 이메일이 남을 수 있어 순서가 중요) */
+const PRE_MASK_MAX = 200
+
 export function cleanDesc(s, max = DESC_MAX) {
-  const t = clean(s, Number.MAX_SAFE_INTEGER)
+  // R1(품질검증 재검증): 긴 입력에 가림 정규식을 통째로 돌리면 되짚기로 느려진다 →
+  // 먼저 넉넉히(200자) 자른 뒤 가리고, 다시 60자로 자른다. 200자 경계에 걸린 개인정보 조각도 가림 정규식이 잘린 형태로 잡도록 여유를 둔다.
+  const t = clean(s, PRE_MASK_MAX)
   return t === null ? null : clean(maskPersonal(t), max)
 }
 

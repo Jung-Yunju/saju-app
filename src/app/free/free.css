@@ -178,5 +178,5 @@
   .fr-result { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: var(--s-8); align-items: start; }
   .fr-result-side { position: sticky; top: var(--s-4); }
   .fr-result-main > .fr-section:first-child, .fr-result-side > .fr-section:first-child { margin-top: 0; }
-  .fr-tl-scroll { margin: 0; padding-left: 0; padding-right: 0; }
+  .fr-tl-scroll { margin: 0 -8px; padding-left: 8px; padding-right: 8px; }
 }

@@ -341,7 +341,7 @@ export function secNoGuess(facts: FactSheet): string {
 
 export function secWarnings(facts: FactSheet): string {
   const ws = [...facts.warnings]
-  if (!facts.subject.hourKnown && !ws.some((w) => /시/.test(w))) ws.push("태어난 시 모름")
+  if (!facts.subject.hourKnown && !ws.some((w) => /시.*모름|모름.*시|hour/i.test(w))) ws.push("태어난 시 모름")
   return section("엔진 경고 — 해당되면 caveat 칸에 쉬운 말로 한 번 밝힌다", ws.map((w) => `- ${w}`))
 }
 

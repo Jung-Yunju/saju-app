@@ -117,7 +117,7 @@ export async function drawShareCard(canvas: HTMLCanvasElement, spec: ShareSpec, 
   ctx.fillRect(0, 0, CARD_W, CARD_H)
 
   // 카드 본체: 먹선 + 아래로 떨어진 그림자(스티커 느낌)
-  const X = 60, Y = 60, W = CARD_W - 120, H = CARD_H - 150
+  const X = 60, Y = 60, W = CARD_W - 120, H = CARD_H - 190
   ctx.fillStyle = c.text
   roundRect(ctx, X, Y + 14, W, H, 44); ctx.fill()
   ctx.fillStyle = c.surface
@@ -146,12 +146,15 @@ export async function drawShareCard(canvas: HTMLCanvasElement, spec: ShareSpec, 
 
   // 복자: 배지 오른쪽 위에 걸터앉기
   const bw = 270, bh = bw / BOKJA_RATIO
-  ctx.drawImage(bokja, cx + 70, cy - R - bh + 52, bw, bh)
+  ctx.drawImage(bokja, cx + 100, cy - R - bh + 78, bw, bh)
 
   // 일간 이름표 + 별명
-  ctx.fillStyle = c.muted
-  ctx.font = `400 38px ${c.body}`
-  ctx.fillText(`${spec.dmKo}${spec.element} 일간`, cx, 770)
+  const dmLabel = `${spec.dmKo}${spec.element} 일간`
+  if (spec.nickname !== dmLabel) {
+    ctx.fillStyle = c.muted
+    ctx.font = `400 38px ${c.body}`
+    ctx.fillText(dmLabel, cx, 770)
+  }
   ctx.fillStyle = c.text
   let nickSize = 92
   ctx.font = `700 ${nickSize}px ${c.display}`
@@ -169,10 +172,10 @@ export async function drawShareCard(canvas: HTMLCanvasElement, spec: ShareSpec, 
 
   // 아래 주소 표시(링크만 — 개인정보 없음)
   ctx.fillStyle = c.highlight
-  ctx.fillRect(cx - 60, 1230, 120, 6)
+  ctx.fillRect(cx - 60, 1160, 120, 6)
   ctx.fillStyle = c.muted
   ctx.font = `700 34px ${c.display}`
-  ctx.fillText(`${spec.site} · 무료로 해 보기`, cx, 1300)
+  ctx.fillText(`${spec.site} · 무료로 해 보기`, cx, 1305)
 }
 
 /** 캔버스에서 쓸 글꼴 조각을 미리 받는다. 실패해도 대체 글꼴로 그려진다 */

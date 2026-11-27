@@ -361,7 +361,7 @@ describe("재검증 — 새 판정 규칙과 원칙", () => {
 // 길이의 제곱에 비례해 느려진다(4만 자 약 1.2초, 500만 자는 끝나지 않음). 이 동안 Hook의 4초 자체 종료 타이머도 돌지 않고,
 // 작업기록 변환(snapshot --backfill-transcripts)에는 시간 제한이 없다. 수정되면 it 로 바꾼다.
 describe("남은 결함", () => {
-  it.fails("R1: 긴 업무 설명(4만 자)도 가림·자르기가 0.3초 안에 끝난다", () => {
+  it("R1: 긴 업무 설명(4만 자)도 가림·자르기가 0.3초 안에 끝난다", () => {
     const t = Date.now()
     const out = cleanDesc("1".repeat(40000))
     expect(String(out).length).toBeLessThanOrEqual(60)
