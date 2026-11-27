@@ -158,7 +158,7 @@
       id: base.id, name: S(raw.name, 40) || base.name, title: S(raw.title, 60) || base.title, room: S(raw.room, 20) || base.room,
       status: st, rawStatus: rawStatus,
       statusLabel: forceUnknown ? STATUS.unknown.label : (S(raw.statusLabel, 30) || STATUS[st].label),
-      rule: raw.rule === true || st === "meeting" && raw.rule !== false,
+      rule: !forceUnknown && (raw.rule === true || st === "meeting" && raw.rule !== false),
       statusSince: S(raw.statusSince, 40) || null, task: task, elapsedSec: N(raw.elapsedSec),
       currentFile: S(raw.currentFile, 200) || null,
       activity: A(raw.activity, 30).map(function (a) { a = O(a); return { at: S(a.at, 40), kind: S(a.kind, 20), tool: S(a.tool, 40), file: S(a.file, 200) || null, ok: typeof a.ok === "boolean" ? a.ok : null }; }),
@@ -426,7 +426,7 @@
           this.bellTxt.setText(model.bell > 1 ? String(model.bell) : "").setPosition(pp.x + 3, pp.y - 14).setVisible(model.bell > 1);
           if (!this.bellTween && !reduce) this.bellTween = this.tweens.add({ targets: this.bell, angle: { from: -14, to: 14 }, duration: 160, yoyo: true, repeat: -1, repeatDelay: 700 });
         } else { this.bell.setVisible(false); this.bellTxt.setVisible(false); }
-        this.first = false;
+        if (model.summary.known) this.first = false;
       }
       place(e, tgt, s) {
         var self = this, sp = e.sp;
@@ -496,7 +496,7 @@
         if (roomId && roomId !== "all") r = map.rooms.filter(function (x) { return x.id === roomId; })[0] || null;
         var reg = r ? { x: (r.x - 1) * TILE, y: (r.y - 1) * TILE, w: (r.w + 2) * TILE, h: (r.h + 2) * TILE } : { x: 0, y: 0, w: map.cols * TILE, h: map.rows * TILE };
         var W = this.scale.width, H = this.scale.height; if (!W || !H) return;
-        var z = Math.min(W / reg.w, H / reg.h); z = z >= 1 ? Math.floor(z * 2) / 2 : z;
+        var z = Math.min(W / reg.w, H / reg.h); z = z >= 1 ? Math.floor(z * 4) / 4 : z;
         var cx = reg.x + reg.w / 2, cy = reg.y + reg.h / 2;
         if (animate && !reduce) { cam.pan(cx, cy, 450, "Sine.easeInOut", true); cam.zoomTo(z, 450, "Sine.easeInOut", true); }
         else { cam.setZoom(z); cam.centerOn(cx, cy); }

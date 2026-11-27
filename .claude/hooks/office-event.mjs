@@ -64,7 +64,6 @@ export function classifyTool(tool) {
 // 제어문자 제거 + 길이 제한(로그 한 줄을 깨지 않게)
 function clean(s, max) {
   if (typeof s !== "string") return null
-  // eslint-disable-next-line no-control-regex
   const t = s.replace(/[\u0000-\u001f\u007f\u2028\u2029]/g, " ").replace(/\s+/g, " ").trim()
   if (!t) return null
   return t.length > max ? t.slice(0, max - 1) + "…" : t
@@ -170,6 +169,11 @@ export function parseTokens(resp) {
  * Hook 입력 → 이벤트 한 줄(객체). 저장 금지 항목은 여기서 걸러진다.
  * opts: { now: Date, root: string }
  */
+/**
+ * @param {any} h
+ * @param {{ now?: Date, root?: string }} [opts]
+ * @returns {Record<string, any> | null}
+ */
 export function buildEvent(h, opts = {}) {
   if (!h || typeof h !== "object") return null
   const event = typeof h.hook_event_name === "string" ? h.hook_event_name : null
@@ -178,6 +182,7 @@ export function buildEvent(h, opts = {}) {
   const staff = staffFromAgentType(h.agent_type)
   const toolName = typeof h.tool_name === "string" ? clean(h.tool_name, 80) : null
   const isTool = ["PreToolUse", "PostToolUse", "PostToolUseFailure", "PermissionRequest"].includes(event)
+  /** @type {Record<string, any>} */
   const ev = {
     v: SCHEMA_VERSION,
     ts: now.toISOString(),

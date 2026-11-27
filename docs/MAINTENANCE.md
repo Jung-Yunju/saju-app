@@ -34,3 +34,44 @@
 | 타입 검사 | `npx tsc --noEmit` (먼저 `npx prisma generate`) |
 | 린트 | `npm run lint` |
 | 개발 서버 | `npm run dev` (포트 3001, DB 환경변수 필요) |
+
+## 가상 사무실 (O-02 수집부)
+대표용 픽셀아트 사무실 화면에 넣을 "직원 상태 문서"를 만드는 부분이다. 규격은 `office/CONTRACT.md`(3절 이벤트 형식, 4절 상태 판정, 5절 문서 형식)가 원본이다.
+
+| 구성 | 파일 | 하는 일 |
+|---|---|---|
+| 수집 Hook | `.claude/hooks/office-event.mjs` | Claude Code Hook이 넘기는 정보 하나를 받아 이벤트 한 줄을 기록한다. 오류가 나도 아무 말 없이 끝난다(업무 방해 금지) |
+| 상태 계산 | `scripts/office/snapshot.mjs` | 이벤트 기록 + 현황판(`docs/board/tasks.json`) → 직원별 상태 문서 |
+| 작업기록 보조 변환 | `scripts/office/backfill.mjs` | Hook을 켜기 전에 끝난 오늘 활동을 Claude Code 작업기록에서 뽑아 이벤트로 바꾼다(선택 기능) |
+| 예시 데이터 | `scripts/office/make-sample.mjs` → `office/fixtures/` | 화면의 "예시 화면"용 가짜 데이터. 실제 업무가 아니다 |
+| 테스트 | `tests/office/*.test.ts` | `npx vitest run tests/office` |
+
+### 기록 위치 (모두 커밋 금지 — `.gitignore`의 `/.claude/office/`)
+- 이벤트: `.claude/office/events.jsonl` (한 줄 = 이벤트 하나). 5MB를 넘으면 `events-<날짜>.jsonl`로 이름을 바꿔 넘기고 새 파일에 이어 쓴다.
+- 상태 문서: `.claude/office/state.json` (200KB 이하)
+- 테스트처럼 다른 폴더에 쓰려면 환경변수 `OFFICE_EVENTS_DIR=<폴더>`.
+
+### 명령
+| 목적 | 명령 |
+|---|---|
+| 상태 문서 만들기 | `node scripts/office/snapshot.mjs` |
+| 직원별 요약도 화면에 출력 | `node scripts/office/snapshot.mjs --summary` |
+| 기준 시각 고정(재현·검증) | `node scripts/office/snapshot.mjs --now 2026-11-27T12:30:00Z --out <파일>` |
+| 다른 이벤트 파일·현황판 사용 | `--events <파일>` `--board <tasks.json>` |
+| 오늘 이미 끝난 활동 합치기 | `node scripts/office/snapshot.mjs --backfill-transcripts ~/.claude/projects/<프로젝트 폴더>` |
+| 예시 데이터 다시 만들기 | `node scripts/office/make-sample.mjs` (판정 규칙을 바꾸면 꼭 다시 실행 — 테스트가 저장본과 비교한다) |
+
+Hook 등록은 `.claude/settings.json`의 `hooks` 항목에서 한다(총괄실장 관리). 모든 Hook은 `async: true`로 등록해 직원 업무를 늦추지 않는다. 명령은 `node "$CLAUDE_PROJECT_DIR/.claude/hooks/office-event.mjs"` 형식이다.
+
+### 개인정보·내용 미기록 원칙
+- 기록하는 것: 시각, 직원, 이벤트 종류, 도구 이름, 도구 분류, 저장소 기준 파일 경로, 총괄실장의 직원 호출 설명(60자까지)과 카드 ID, 성공/실패, 토큰 수, 내부 ID(세션·직원 업무·도구 호출 ID).
+- 기록하지 않는 것: 명령문, 파일 내용, 지시문(프롬프트), 도구 결과, 검색어, 웹 주소, 직원의 마지막 보고문, 오류 메시지 본문, 알림 문구.
+- `.env`가 들어간 경로는 `[비공개 파일]`, 저장소 밖 경로는 파일 이름까지 숨기고 `[외부 경로]`로 기록한다.
+- 작업기록 보조 변환도 같은 규칙을 따른다. 작업기록 형식은 Claude Code 내부 형식이라 버전이 바뀌면 일부가 빠질 수 있다. 주 데이터는 언제나 Hook 기록이다.
+- 비용은 "API 단가 환산 추정"이다. 구독 요금 안에서 쓰므로 실제 청구액이 아니다.
+
+### 기록 삭제
+- 전부 지우기: `rm -rf .claude/office/` (다음 Hook 이벤트 때 폴더가 다시 생긴다). 지운 뒤 상태 문서를 만들면 전원 "상태 확인 불가"가 된다.
+- 지난 기록만 지우기: `rm .claude/office/events-<날짜>*.jsonl`
+- 수집을 멈추기: `.claude/settings.json`에서 `hooks` 항목을 빼면 바로 반영된다(세션 재시작 불필요).
+- 이 기록은 저장소 밖으로 보내지 않는다. 화면용 페이지 DB(`office/state`)에 올라간 문서는 그 페이지에서 따로 지운다.

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>가상 사무실 — 로컬 미리보기</title>
+</head>
+<body>
+<!--
+  로컬 미리보기 전용. 게시용이 아님. 사용법: office/web 폴더를 정적 서버로 열고
+    dev-preview.html?mode=live|stale|empty|null|hang   (db 가짜 구현)
+    &theme=light|dark                                  (data-theme 강제)
+    &libs=/libs                                        (cdnjs 대신 로컬 경로: react.js, react-dom.js, phaser.js)
+  page.html 내용을 불러와 <head>/<body>에 풀어 놓고 스크립트를 순서대로 실행한다.
+-->
+<script>
+(function () {
+  var q = new URLSearchParams(location.search), mode = q.get("mode") || "live", libs = q.get("libs");
+  if (q.get("theme")) document.documentElement.setAttribute("data-theme", q.get("theme"));
+  var NOW = Date.now();
+  function snap(exists, data) { return { id: "state", exists: exists, data: function () { return data; }, metadata: { fromCache: false, hasPendingWrites: false } }; }
+  if (mode === "null") { window.claude = { use: function () { return Promise.resolve(null); } }; }
+  else window.claude = {
+    use: function (name) {
+      if (name !== "db") return Promise.resolve(null);
+      return Promise.resolve({
+        doc: function () { return { onSnapshot: function (next) {
+          if (mode === "hang") return function () {};
+          var t = setTimeout(function () {
+            if (mode === "empty") return next(snap(false));
+            var d = window.OfficeApp.makeSample(NOW); delete d.sample;
+            if (mode === "stale") d = JSON.parse(JSON.stringify(d), function (k, v) { return typeof v === "string" && /^\d{4}-\d\d-\d\dT/.test(v) ? new Date(Date.parse(v) - 45 * 60000).toISOString() : v; });
+            next(snap(true, d));
+          }, 50);
+          return function () { clearTimeout(t); };
+        } }; }
+      });
+    }
+  };
+  fetch("page.html").then(function (r) { return r.text(); }).then(function (txt) {
+    if (libs) txt = txt.replace(/https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/react\/[^"]+/, libs + "/react.js")
+      .replace(/https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/react-dom\/[^"]+/, libs + "/react-dom.js")
+      .replace(/https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/phaser\/[^"]+/, libs + "/phaser.js");
+    var tpl = document.createElement("template"); tpl.innerHTML = txt;
+    var scripts = [];
+    Array.prototype.slice.call(tpl.content.childNodes).forEach(function (n) {
+      if (n.nodeName === "TITLE" || n.nodeName === "META" || n.nodeName === "STYLE") document.head.appendChild(n);
+      else if (n.nodeName === "SCRIPT") scripts.push(n);
+      else document.body.appendChild(n);
+    });
+    scripts.forEach(function (o) {
+      var s = document.createElement("script"); s.async = false;
+      if (o.src) s.src = o.getAttribute("src"); else s.textContent = o.textContent;
+      document.body.appendChild(s);
+    });
+  });
+})();
+</script>
+</body>
+</html>

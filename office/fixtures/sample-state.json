@@ -1,0 +1,868 @@
+{
+  "schemaVersion": 1,
+  "sample": true,
+  "sampleNote": "예시 데이터 — 실제 업무 아님",
+  "generatedAt": "2026-11-27T12:30:00.000Z",
+  "staleAfterSec": 600,
+  "source": {
+    "eventCount": 84,
+    "firstEventAt": "2026-11-26T05:00:00.000Z",
+    "lastEventAt": "2026-11-27T12:29:40.000Z",
+    "sessionActive": true,
+    "period": {
+      "from": "2026-11-26T15:00:00.000Z",
+      "to": "2026-11-27T12:30:00.000Z",
+      "timezone": "Asia/Seoul"
+    }
+  },
+  "ceo": {
+    "pendingApprovals": [
+      {
+        "at": "2026-11-27T12:20:00.000Z",
+        "staff": "personalization-researcher",
+        "tool": "Bash",
+        "message": "명령 실행 승인 요청"
+      }
+    ],
+    "boardApprovals": [
+      {
+        "cardId": "P9-09",
+        "title": "예시 — 말투 문서",
+        "item": "예시: 캐릭터 말투 승인",
+        "status": "대표 승인 대기"
+      },
+      {
+        "cardId": "P9-10",
+        "title": "예시 — 운영 계획",
+        "item": "예시: 일정 승인",
+        "status": "대표 승인 대기"
+      }
+    ]
+  },
+  "staff": [
+    {
+      "id": "ceo",
+      "name": "대표",
+      "title": "대표",
+      "room": "ceo",
+      "tracked": false,
+      "status": "off",
+      "statusLabel": "추적 대상 아님",
+      "statusSince": null,
+      "rule": false,
+      "location": "ceo",
+      "task": null,
+      "elapsedSec": null,
+      "currentFile": null,
+      "activity": [],
+      "toolCounts": {},
+      "filesTouched": 0,
+      "tokens": null,
+      "costUsdEstimate": null,
+      "cards": [],
+      "completed": [],
+      "errors": [],
+      "approvals": [],
+      "sessions": []
+    },
+    {
+      "id": "main",
+      "name": "총괄실장",
+      "title": "프로젝트 매니저",
+      "room": "ceo",
+      "status": "meeting",
+      "statusLabel": "회의(규칙 기반)",
+      "statusSince": "2026-11-27T12:29:00.000Z",
+      "rule": true,
+      "location": "meeting",
+      "task": null,
+      "elapsedSec": null,
+      "currentFile": null,
+      "activity": [
+        {
+          "at": "2026-11-27T11:40:05.000Z",
+          "kind": "research",
+          "tool": "Read",
+          "file": "docs/board/tasks.json",
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T11:50:00.000Z",
+          "kind": "delegating",
+          "tool": "Agent",
+          "file": null,
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T11:55:00.000Z",
+          "kind": "delegating",
+          "tool": "Agent",
+          "file": null,
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:00:00.000Z",
+          "kind": "delegating",
+          "tool": "Agent",
+          "file": null,
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:05:00.000Z",
+          "kind": "delegating",
+          "tool": "Agent",
+          "file": null,
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:10:00.000Z",
+          "kind": "delegating",
+          "tool": "Agent",
+          "file": null,
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:12:00.000Z",
+          "kind": "delegating",
+          "tool": "Agent",
+          "file": null,
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:14:00.000Z",
+          "kind": "delegating",
+          "tool": "Agent",
+          "file": null,
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:15:00.000Z",
+          "kind": "delegating",
+          "tool": "Agent",
+          "file": null,
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:16:00.000Z",
+          "kind": "delegating",
+          "tool": "Agent",
+          "file": null,
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:29:00.000Z",
+          "kind": "delegating",
+          "tool": "Agent",
+          "file": null,
+          "ok": true
+        }
+      ],
+      "toolCounts": {
+        "Read": 1,
+        "Agent": 10
+      },
+      "filesTouched": 0,
+      "tokens": null,
+      "costUsdEstimate": null,
+      "cards": [
+        {
+          "id": "P9-10",
+          "title": "예시 — 운영 계획",
+          "status": "대표 승인 대기",
+          "progress": {
+            "done": 3,
+            "total": 3
+          },
+          "verification": "미검증",
+          "issues": null,
+          "approval": "예시: 일정 승인"
+        }
+      ],
+      "completed": [],
+      "errors": [],
+      "approvals": [
+        "P9-10 예시: 일정 승인"
+      ],
+      "sessions": []
+    },
+    {
+      "id": "business-strategist",
+      "name": "사업기획 담당",
+      "title": "사업기획·마케팅",
+      "room": "ceo",
+      "status": "resting",
+      "statusLabel": "휴식",
+      "statusSince": "2026-11-27T12:15:00.000Z",
+      "rule": false,
+      "location": "lounge",
+      "task": {
+        "description": "예시: 비용 표 정리 P9-08",
+        "cardId": "P9-08",
+        "startedAt": "2026-11-27T11:55:02.000Z",
+        "endedAt": "2026-11-27T12:05:00.000Z"
+      },
+      "elapsedSec": 598,
+      "currentFile": null,
+      "activity": [
+        {
+          "at": "2026-11-27T11:56:00.000Z",
+          "kind": "research",
+          "tool": "Read",
+          "file": "docs/example/cost.md",
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:00:00.000Z",
+          "kind": "typing",
+          "tool": "Write",
+          "file": "docs/example/cost.md",
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:04:30.000Z",
+          "kind": "reporting",
+          "tool": "SubagentHandback",
+          "file": null,
+          "ok": true
+        }
+      ],
+      "toolCounts": {
+        "Read": 1,
+        "Write": 1,
+        "SubagentHandback": 1
+      },
+      "filesTouched": 1,
+      "tokens": null,
+      "costUsdEstimate": null,
+      "cards": [],
+      "completed": [
+        {
+          "id": "P9-08",
+          "title": "예시 — 비용 표 정리"
+        }
+      ],
+      "errors": [],
+      "approvals": [],
+      "sessions": [
+        {
+          "description": "예시: 비용 표 정리 P9-08",
+          "cardId": "P9-08",
+          "startedAt": "2026-11-27T11:55:02.000Z",
+          "endedAt": "2026-11-27T12:05:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "saju-engine-developer",
+      "name": "엔진 개발자",
+      "title": "사주엔진 개발",
+      "room": "dev",
+      "status": "working",
+      "statusLabel": "업무 중",
+      "statusSince": "2026-11-27T12:27:00.000Z",
+      "rule": false,
+      "location": "dev",
+      "task": {
+        "description": "예시: 절기 계산 점검 P9-02",
+        "cardId": "P9-02",
+        "startedAt": "2026-11-27T12:10:02.000Z",
+        "endedAt": null
+      },
+      "elapsedSec": 1198,
+      "currentFile": "src/example/solar-terms.ts",
+      "activity": [
+        {
+          "at": "2026-11-27T12:15:00.000Z",
+          "kind": "typing",
+          "tool": "Edit",
+          "file": "src/example/solar-terms.ts",
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:25:00.000Z",
+          "kind": "running",
+          "tool": "Bash",
+          "file": null,
+          "ok": true
+        }
+      ],
+      "toolCounts": {
+        "Edit": 1,
+        "Bash": 1
+      },
+      "filesTouched": 1,
+      "tokens": null,
+      "costUsdEstimate": null,
+      "cards": [
+        {
+          "id": "P9-02",
+          "title": "예시 — 절기 계산 점검",
+          "status": "개발 중",
+          "progress": {
+            "done": 3,
+            "total": 4
+          },
+          "verification": "미검증",
+          "issues": null,
+          "approval": null
+        }
+      ],
+      "completed": [],
+      "errors": [],
+      "approvals": [],
+      "sessions": [
+        {
+          "description": "예시: 절기 계산 점검 P9-02",
+          "cardId": "P9-02",
+          "startedAt": "2026-11-27T12:10:02.000Z",
+          "endedAt": null
+        }
+      ]
+    },
+    {
+      "id": "frontend-developer",
+      "name": "프론트엔드 개발자",
+      "title": "프론트엔드",
+      "room": "dev",
+      "status": "error",
+      "statusLabel": "오류",
+      "statusSince": "2026-11-27T12:29:20.000Z",
+      "rule": false,
+      "location": "dev",
+      "task": {
+        "description": "예시: 사무실 화면 P9-03",
+        "cardId": "P9-03",
+        "startedAt": "2026-11-27T12:16:02.000Z",
+        "endedAt": null
+      },
+      "elapsedSec": 838,
+      "currentFile": "office/example/app.js",
+      "activity": [
+        {
+          "at": "2026-11-27T12:25:00.000Z",
+          "kind": "typing",
+          "tool": "Write",
+          "file": "office/example/app.js",
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:29:15.000Z",
+          "kind": "running",
+          "tool": "Bash",
+          "file": null,
+          "ok": false
+        }
+      ],
+      "toolCounts": {
+        "Write": 1,
+        "Bash": 1
+      },
+      "filesTouched": 1,
+      "tokens": null,
+      "costUsdEstimate": null,
+      "cards": [
+        {
+          "id": "P9-03",
+          "title": "예시 — 사무실 화면",
+          "status": "수정 필요",
+          "progress": {
+            "done": 4,
+            "total": 6
+          },
+          "verification": "미검증",
+          "issues": "예시 문제: 모바일에서 버튼이 겹침",
+          "approval": null
+        }
+      ],
+      "completed": [],
+      "errors": [
+        {
+          "at": "2026-11-27T12:29:20.000Z",
+          "tool": "Bash",
+          "message": "도구 실행 실패"
+        }
+      ],
+      "approvals": [],
+      "sessions": [
+        {
+          "description": "예시: 사무실 화면 P9-03",
+          "cardId": "P9-03",
+          "startedAt": "2026-11-27T12:16:02.000Z",
+          "endedAt": null
+        }
+      ]
+    },
+    {
+      "id": "backend-developer",
+      "name": "백엔드 개발자",
+      "title": "백엔드·서버",
+      "room": "dev",
+      "status": "typing",
+      "statusLabel": "코드 작성",
+      "statusSince": "2026-11-27T12:29:30.000Z",
+      "rule": false,
+      "location": "dev",
+      "task": {
+        "description": "예시: 결제 API 점검 P9-01",
+        "cardId": "P9-01",
+        "startedAt": "2026-11-27T12:29:02.000Z",
+        "endedAt": null
+      },
+      "elapsedSec": 58,
+      "currentFile": "src/example/payment.ts",
+      "activity": [
+        {
+          "at": "2026-11-27T12:29:10.000Z",
+          "kind": "research",
+          "tool": "Read",
+          "file": "src/example/payment.ts",
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:29:30.000Z",
+          "kind": "typing",
+          "tool": "Edit",
+          "file": "src/example/payment.ts",
+          "ok": true
+        }
+      ],
+      "toolCounts": {
+        "Read": 1,
+        "Edit": 1
+      },
+      "filesTouched": 1,
+      "tokens": null,
+      "costUsdEstimate": null,
+      "cards": [
+        {
+          "id": "P9-01",
+          "title": "예시 — 결제 API 점검",
+          "status": "개발 중",
+          "progress": {
+            "done": 2,
+            "total": 5
+          },
+          "verification": "미검증",
+          "issues": null,
+          "approval": null
+        }
+      ],
+      "completed": [],
+      "errors": [],
+      "approvals": [],
+      "sessions": [
+        {
+          "description": "예시: 결제 API 점검 P9-01",
+          "cardId": "P9-01",
+          "startedAt": "2026-11-27T12:29:02.000Z",
+          "endedAt": null
+        }
+      ]
+    },
+    {
+      "id": "qa-security-lead",
+      "name": "품질검증 담당",
+      "title": "품질검증·보안",
+      "room": "dev",
+      "status": "running",
+      "statusLabel": "실행·테스트",
+      "statusSince": "2026-11-27T12:29:00.000Z",
+      "rule": false,
+      "location": "dev",
+      "task": {
+        "description": "예시: 테스트 실행 P9-07",
+        "cardId": "P9-07",
+        "startedAt": "2026-11-27T12:15:02.000Z",
+        "endedAt": null
+      },
+      "elapsedSec": 898,
+      "currentFile": "[비공개 파일]",
+      "activity": [
+        {
+          "at": "2026-11-27T12:18:00.000Z",
+          "kind": "research",
+          "tool": "Grep",
+          "file": "[비공개 파일]",
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:29:00.000Z",
+          "kind": "running",
+          "tool": "Bash",
+          "file": null,
+          "ok": true
+        }
+      ],
+      "toolCounts": {
+        "Grep": 1,
+        "Bash": 1
+      },
+      "filesTouched": 0,
+      "tokens": null,
+      "costUsdEstimate": null,
+      "cards": [
+        {
+          "id": "P9-07",
+          "title": "예시 — 테스트 실행",
+          "status": "개발 중",
+          "progress": {
+            "done": 1,
+            "total": 5
+          },
+          "verification": "미검증",
+          "issues": null,
+          "approval": null
+        }
+      ],
+      "completed": [],
+      "errors": [],
+      "approvals": [],
+      "sessions": [
+        {
+          "description": "예시: 테스트 실행 P9-07",
+          "cardId": "P9-07",
+          "startedAt": "2026-11-27T12:15:02.000Z",
+          "endedAt": null
+        }
+      ]
+    },
+    {
+      "id": "myeongri-research-director",
+      "name": "명리학 연구소장",
+      "title": "명리학 연구",
+      "room": "research",
+      "status": "research",
+      "statusLabel": "자료 조사",
+      "statusSince": "2026-11-27T12:29:10.000Z",
+      "rule": false,
+      "location": "research",
+      "task": {
+        "description": "예시: 고전 문헌 조사 P9-05",
+        "cardId": "P9-05",
+        "startedAt": "2026-11-27T12:14:02.000Z",
+        "endedAt": null
+      },
+      "elapsedSec": 958,
+      "currentFile": "docs/example/classics.md",
+      "activity": [
+        {
+          "at": "2026-11-27T12:20:00.000Z",
+          "kind": "typing",
+          "tool": "Write",
+          "file": "docs/example/classics.md",
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:29:10.000Z",
+          "kind": "research",
+          "tool": "WebSearch",
+          "file": null,
+          "ok": null
+        }
+      ],
+      "toolCounts": {
+        "Write": 1,
+        "WebSearch": 1
+      },
+      "filesTouched": 1,
+      "tokens": null,
+      "costUsdEstimate": null,
+      "cards": [
+        {
+          "id": "P9-05",
+          "title": "예시 — 고전 문헌 조사",
+          "status": "개발 중",
+          "progress": {
+            "done": 2,
+            "total": 4
+          },
+          "verification": "미검증",
+          "issues": null,
+          "approval": null
+        }
+      ],
+      "completed": [],
+      "errors": [],
+      "approvals": [],
+      "sessions": [
+        {
+          "description": "예시: 고전 문헌 조사 P9-05",
+          "cardId": "P9-05",
+          "startedAt": "2026-11-27T12:14:02.000Z",
+          "endedAt": null
+        }
+      ]
+    },
+    {
+      "id": "personalization-researcher",
+      "name": "개인화 연구원",
+      "title": "개인화 분석",
+      "room": "research",
+      "status": "awaiting_approval",
+      "statusLabel": "승인 대기",
+      "statusSince": "2026-11-27T12:20:00.000Z",
+      "rule": false,
+      "location": "research",
+      "task": {
+        "description": "예시: 질문 분류 P9-04",
+        "cardId": "P9-04",
+        "startedAt": "2026-11-27T12:12:02.000Z",
+        "endedAt": null
+      },
+      "elapsedSec": 1078,
+      "currentFile": "docs/example/questions.md",
+      "activity": [
+        {
+          "at": "2026-11-27T12:15:00.000Z",
+          "kind": "research",
+          "tool": "Read",
+          "file": "docs/example/questions.md",
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:19:59.000Z",
+          "kind": "running",
+          "tool": "Bash",
+          "file": null,
+          "ok": null
+        }
+      ],
+      "toolCounts": {
+        "Read": 1,
+        "Bash": 1
+      },
+      "filesTouched": 0,
+      "tokens": null,
+      "costUsdEstimate": null,
+      "cards": [
+        {
+          "id": "P9-04",
+          "title": "예시 — 질문 분류",
+          "status": "개발 중",
+          "progress": {
+            "done": 1,
+            "total": 3
+          },
+          "verification": "미검증",
+          "issues": null,
+          "approval": null
+        }
+      ],
+      "completed": [],
+      "errors": [],
+      "approvals": [
+        "명령 실행 승인 요청 (Bash)"
+      ],
+      "sessions": [
+        {
+          "description": "예시: 질문 분류 P9-04",
+          "cardId": "P9-04",
+          "startedAt": "2026-11-27T12:12:02.000Z",
+          "endedAt": null
+        }
+      ]
+    },
+    {
+      "id": "design-director",
+      "name": "디자인 실장",
+      "title": "디자인",
+      "room": "design",
+      "status": "done",
+      "statusLabel": "완료",
+      "statusSince": "2026-11-27T12:27:00.000Z",
+      "rule": false,
+      "location": "design",
+      "task": {
+        "description": "예시: 사무실 그림 P9-06",
+        "cardId": "P9-06",
+        "startedAt": "2026-11-27T12:05:02.000Z",
+        "endedAt": "2026-11-27T12:24:00.000Z"
+      },
+      "elapsedSec": 1138,
+      "currentFile": null,
+      "activity": [
+        {
+          "at": "2026-11-27T12:10:00.000Z",
+          "kind": "typing",
+          "tool": "Write",
+          "file": "office/example/art.js",
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:20:00.000Z",
+          "kind": "typing",
+          "tool": "Edit",
+          "file": "office/example/art.js",
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:23:50.000Z",
+          "kind": "reporting",
+          "tool": "SubagentHandback",
+          "file": null,
+          "ok": true
+        }
+      ],
+      "toolCounts": {
+        "Write": 1,
+        "Edit": 1,
+        "SubagentHandback": 1
+      },
+      "filesTouched": 1,
+      "tokens": {
+        "input": 1200,
+        "output": 45000,
+        "cacheRead": 900000,
+        "cacheWrite": 30000,
+        "total": 976200,
+        "source": "hook"
+      },
+      "costUsdEstimate": {
+        "usd": 1.23,
+        "basis": "API 단가 환산 추정(구독 사용 — 실제 청구 아님) · 모델 미확인분은 Opus 단가 적용"
+      },
+      "cards": [
+        {
+          "id": "P9-06",
+          "title": "예시 — 사무실 그림",
+          "status": "검증 중",
+          "progress": {
+            "done": 3,
+            "total": 3
+          },
+          "verification": "조건부 통과",
+          "issues": null,
+          "approval": null
+        }
+      ],
+      "completed": [],
+      "errors": [],
+      "approvals": [],
+      "sessions": [
+        {
+          "description": "예시: 사무실 그림 P9-06",
+          "cardId": "P9-06",
+          "startedAt": "2026-11-27T12:05:02.000Z",
+          "endedAt": "2026-11-27T12:24:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "content-writer",
+      "name": "콘텐츠 작가",
+      "title": "콘텐츠·캐릭터",
+      "room": "design",
+      "status": "off",
+      "statusLabel": "퇴근",
+      "statusSince": null,
+      "rule": false,
+      "location": "design",
+      "task": null,
+      "elapsedSec": null,
+      "currentFile": null,
+      "activity": [],
+      "toolCounts": {},
+      "filesTouched": 0,
+      "tokens": null,
+      "costUsdEstimate": null,
+      "cards": [
+        {
+          "id": "P9-09",
+          "title": "예시 — 말투 문서",
+          "status": "대표 승인 대기",
+          "progress": {
+            "done": 2,
+            "total": 2
+          },
+          "verification": "미검증",
+          "issues": null,
+          "approval": "예시: 캐릭터 말투 승인"
+        }
+      ],
+      "completed": [],
+      "errors": [],
+      "approvals": [
+        "P9-09 예시: 캐릭터 말투 승인"
+      ],
+      "sessions": []
+    },
+    {
+      "id": "guest",
+      "name": "외부 지원 인력",
+      "title": "임시(조사·검토 보조)",
+      "room": "lounge",
+      "status": "unknown",
+      "statusLabel": "상태 확인 불가",
+      "statusSince": "2026-11-27T12:20:00.000Z",
+      "rule": false,
+      "location": "lounge",
+      "task": {
+        "description": "예시: 자료 조사 보조",
+        "cardId": null,
+        "startedAt": "2026-11-27T12:00:02.000Z",
+        "endedAt": null
+      },
+      "elapsedSec": 1798,
+      "currentFile": null,
+      "activity": [
+        {
+          "at": "2026-11-27T11:52:00.000Z",
+          "kind": "research",
+          "tool": "Grep",
+          "file": "src/example",
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T11:57:00.000Z",
+          "kind": "reporting",
+          "tool": "SubagentHandback",
+          "file": null,
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:05:00.000Z",
+          "kind": "research",
+          "tool": "WebSearch",
+          "file": null,
+          "ok": true
+        },
+        {
+          "at": "2026-11-27T12:10:00.000Z",
+          "kind": "research",
+          "tool": "Read",
+          "file": "[외부 경로]",
+          "ok": true
+        }
+      ],
+      "toolCounts": {
+        "Grep": 1,
+        "SubagentHandback": 1,
+        "WebSearch": 1,
+        "Read": 1
+      },
+      "filesTouched": 0,
+      "tokens": null,
+      "costUsdEstimate": null,
+      "cards": [],
+      "completed": [],
+      "errors": [],
+      "approvals": [],
+      "sessions": [
+        {
+          "description": "예시: 외부 검토 보조",
+          "cardId": null,
+          "startedAt": "2026-11-27T11:50:02.000Z",
+          "endedAt": "2026-11-27T11:58:00.000Z"
+        },
+        {
+          "description": "예시: 자료 조사 보조",
+          "cardId": null,
+          "startedAt": "2026-11-27T12:00:02.000Z",
+          "endedAt": null
+        }
+      ],
+      "headcount": 2,
+      "activeCount": 0
+    }
+  ]
+}
