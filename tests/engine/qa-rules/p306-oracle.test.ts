@@ -1,4 +1,5 @@
 // 품질검증 P3-06 — 무작위 원국에서 신강약·격국·억부·조후·통관·청탁 표지를 독립 오라클과 대조 + 근거 위치 무결성
+// rules@0.4.0(D-022): tableSensitive 두 정의 · 상신/꺼림 hiddenPositions·presence · 토 일간 록겁(§7.1-6-3) · 종왕/종강 view(§7.1-6-5) · 통관 옵션
 import { describe, expect, it } from "vitest"
 import { analyzeRules, computeChart, type RuleAnalysis, type RuleOptions } from "@/engine"
 import { scoreOfRatio } from "@/engine/rules/groups"
@@ -57,8 +58,11 @@ export function check306(s: Sample, a: RuleAnalysis, opt: Opts, fails: string[])
   const ots = others.map((t) => { const x = O.modelA(n, t); return `${t}:${x.ratio}:${x.verdict}:${x.extreme}` })
   const gts = a.strength.tableSensitivity.map((t) => `${t.tableId}:${t.ratio}:${t.verdict}:${t.extreme}`)
   if (ots.join() !== gts.join()) f(`tableSensitivity ${gts} 오라클 ${ots}`)
-  const oSens = others.some((t) => { const x = O.modelA(n, t); return x.verdict !== oa.verdict || x.extreme !== oa.extreme })
-  if (a.strength.tableSensitive !== oSens) f(`tableSensitive ${a.strength.tableSensitive} 오라클 ${oSens}`)
+  // §1.9 정의 분리(0.4.0): {선택, kr, cn} / 세 표
+  const oSens = O.strengthTableSensitivity(n, table)
+  if (a.strength.tableSensitive !== oSens.tableSensitive) f(`tableSensitive ${a.strength.tableSensitive} 오라클 ${oSens.tableSensitive}`)
+  if (a.strength.tableSensitiveIncludingMainOnly !== oSens.tableSensitiveIncludingMainOnly) f(`tableSensitiveIncludingMainOnly ${a.strength.tableSensitiveIncludingMainOnly} 오라클 ${oSens.tableSensitiveIncludingMainOnly}`)
+  if (oSens.tableSensitive && !oSens.tableSensitiveIncludingMainOnly) f(`오라클 자체 모순: 부분집합 비교가 true인데 세 표 비교가 false`)
   // 시진 민감도
   if (n.hour) { if (a.strength.hourSensitivity !== null) f(`시주 있는데 hourSensitivity`) }
   else {
@@ -98,11 +102,50 @@ export function check306(s: Sample, a: RuleAnalysis, opt: Opts, fails: string[])
       : O.SANGSIN[op.name] ?? []
     if ([...sg].sort().join() !== [...esg].sort().join()) f(`상신 ${prim.name} 엔진 ${sg} 오라클 ${esg}`)
   }
+  // §2.3 상신·꺼림 참조(0.4.0): 모든 후보(특수격 제외)를 격 이름으로 독립 계산해 touchul·hiddenPositions·presence·tenGods까지 대조
+  const refSig = (r: { group: string; element: string; tenGods?: string[]; touchul: { pillar: string; part: string }[]; hiddenPositions: { pillar: string; part: string }[]; presence: string }) =>
+    `${r.group}/${r.element}/${(r.tenGods ?? []).join("")}/T[${r.touchul.map(posKey).join(",")}]/H[${r.hiddenPositions.map(posKey).join(",")}]/${r.presence}`
+  for (const c of a.structure.candidates) {
+    for (const g of [...(c.sangsin ?? []), ...(c.avoid ?? [])]) if (g.presence !== O.presenceOf(g.touchul, g.hiddenPositions)) f(`§7.1-6-4 presence ${c.name}/${g.group} ${g.presence} ≠ touchul ${g.touchul.length}·hidden ${g.hiddenPositions.length}`)
+    if (c.kind === "special") continue
+    const exp = O.structureRefs(n, table, c.name)
+    if (!exp) { f(`격 이름 ${c.name} 오라클 상신표에 없음`); continue }
+    if (c.kind === "rokgeop" && c.name !== "양인격" && (c.sangsin ?? []).some((g) => g.presence === "hiddenOnly" || g.presence === "absent")) f(`§7.1-6-4 ${c.name} 상신 presence 지장간만/없음`)
+    const byG = (xs: Parameters<typeof refSig>[0][]) => xs.map(refSig).sort().join(" ; ")
+    const gs = byG(c.sangsin ?? []), es = byG(exp.sangsin)
+    if (gs !== es) f(`상신 참조 ${c.role}:${c.name} 엔진[${gs}] 오라클[${es}]`)
+    const ga2 = byG(c.avoid ?? []), ea2 = byG(exp.avoid)
+    if (ga2 !== ea2) f(`꺼림 참조 ${c.role}:${c.name} 엔진[${ga2}] 오라클[${ea2}]`)
+    if ((c.sangsin ?? []).some((g) => "hiddenOnly" in g)) f(`구 필드 hiddenOnly 남아 있음`)
+  }
+  // §7.1-6-3 토 일간 록겁(기본 earthRokgeop=mainQiGate): 건록·양인격 없음, 辰戌丑未월 = 월겁격
+  if ((d === "戊" || d === "己") && (opt.earthRokgeop ?? "mainQiGate") === "mainQiGate") {
+    const pn = prim?.name ?? ""
+    if (pn === "건록격" || pn === "양인격") f(`§7.1-6-3 토 일간 ${pn}`)
+    if ("辰戌丑未".includes(n.month.branch) && pn !== "월겁격") f(`§7.1-6-3 토 일간 ${n.month.branch}월 ${pn}`)
+    if ("巳午".includes(n.month.branch) && prim?.kind === "rokgeop") f(`§7.1-6-3 토 일간 ${n.month.branch}월 록겁 계열`)
+  }
   const byT = (["kr-monthly-30", "cn-lunarjs", "main-only"] as const).map((t) => O.primaryStructure(n, { ...so, table: t }).name)
   if (a.structure.byTable.map((x) => x.name).join() !== byT.join()) f(`structure.byTable ${a.structure.byTable.map((x) => x.name)} 오라클 ${byT}`)
-  if (a.structure.tableSensitive !== new Set(byT).size > 1) f(`structure.tableSensitive`)
+  const oST = O.structureTableSensitivity(n, so)
+  if (oST.byTable.join() !== byT.join()) f(`오라클 byTable 자체 불일치`)
+  if (a.structure.tableSensitive !== oST.tableSensitive) f(`structure.tableSensitive ${a.structure.tableSensitive} 오라클 ${oST.tableSensitive}`)
+  if (a.structure.tableSensitiveIncludingMainOnly !== oST.tableSensitiveIncludingMainOnly) f(`structure.tableSensitiveIncludingMainOnly ${a.structure.tableSensitiveIncludingMainOnly} 오라클 ${oST.tableSensitiveIncludingMainOnly}`)
   for (const c of a.structure.candidates) if (c.confidence === ("high" as never) || (c.kind === "special" && c.confidence !== "low")) f(`확신도 규칙 위반 ${c.name} ${c.confidence}`)
   if (opt.specialStructures === "off" && a.structure.candidates.some((c) => c.kind === "special")) f(`특수격 off인데 후보`)
+  // §2.4·§3.6 종왕·종강(E6): 후보 유무와 반가운 오행
+  const jw = O.jongwangOf(n, table)
+  const specials = a.structure.candidates.filter((c) => c.kind === "special")
+  if (opt.specialStructures !== "off") {
+    const gotJw = specials.filter((c) => /종왕|종강/.test(c.name)).map((c) => (/종강/.test(c.name) ? "종강" : "종왕"))
+    if (gotJw.join() !== (jw ? jw.kind : "")) f(`종왕/종강 후보 엔진[${gotJw}] 오라클[${jw?.kind ?? "없음"}]`)
+    const sv = a.usefulGods.views.find((v) => v.method === "special")
+    if (sv && jw && specials.length === 1) {
+      const gotV = [...sv.candidates].sort((x, y) => x.rank - y.rank).map((c) => c.element).join()
+      if (gotV !== jw.view.join()) f(`§7.1-6-5 ${jw.kind} view 엔진[${gotV}] 오라클[${jw.view}]`)
+    }
+    if (sv && jw?.kind === "종강" && sv.candidates.some((c) => c.element === O.groupEl(d, "gwansal"))) f(`§7.1-6-5 종강 view에 관살`)
+  }
 
   // ── 억부
   const ev = a.usefulGods.views.find((v) => v.method === "eokbu")
@@ -127,9 +170,12 @@ export function check306(s: Sample, a: RuleAnalysis, opt: Opts, fails: string[])
   if (a.climate.T !== cl.T || a.climate.M !== cl.M || a.climate.tClass !== cl.tClass || a.climate.mClass !== cl.mClass || a.climate.needs.join() !== cl.needs.join() || a.climate.pillarsUsed !== cl.pillarsUsed) f(`조후 엔진 ${J([a.climate.T, a.climate.M, a.climate.tClass, a.climate.mClass, a.climate.needs])} 오라클 ${J([cl.T, cl.M, cl.tClass, cl.mClass, cl.needs])}`)
   const tv = a.usefulGods.views.find((v) => v.method === "tonggwan")
   if (tv) {
-    const ot = O.tonggwan(n, table)
+    const minShare = opt.tonggwanMinShare ?? 0.25, minRatio = opt.tonggwanMinRatio ?? 0.5
+    const ot = O.tonggwan(n, table, minShare, minRatio)
     const gt = [...tv.candidates].sort((x, y) => x.rank - y.rank).map((c) => c.element)
-    if (gt.join() !== ot.join() || tv.status !== (ot.length ? "ok" : "none")) f(`통관 엔진 ${tv.status}/${gt} 오라클 ${ot}`)
+    if (gt.join() !== ot.join() || tv.status !== (ot.length ? "ok" : "none")) f(`통관(${minShare}/${minRatio}) 엔진 ${tv.status}/${gt} 오라클 ${ot}`)
+    // E5: basis values에 사용한 기준값 기록
+    for (const b of tv.basis) { const vs = Object.values(b.values ?? {}); if (!vs.includes(minShare) || !vs.includes(minRatio)) f(`통관 basis values에 기준값 ${minShare}/${minRatio} 없음 ${J(b.values)}`) }
   }
   const cf = a.qiFlow.clarityFlags.map((x) => x.flag).sort()
   if (cf.join() !== O.clarityFlags(n).join()) f(`clarityFlags 엔진 ${cf} 오라클 ${O.clarityFlags(n)}`)
@@ -159,7 +205,7 @@ export function check306(s: Sample, a: RuleAnalysis, opt: Opts, fails: string[])
     if (c.pivot?.touchul) { posOk(c.pivot.touchul, "pivot.touchul"); const ch = at(c.pivot.touchul)!; if (so.match === "sameStem" ? ch !== c.pivot.stem : stemEl(ch) !== stemEl(c.pivot.stem)) f(`무결성 pivot 투출 ${ch} ≠ ${c.pivot.stem}`) }
     for (const g of [...(c.sangsin ?? []), ...(c.avoid ?? [])]) {
       for (const p of g.touchul) { posOk(p, "sangsin.touchul"); if (p.part !== "stem" || p.pillar === "day" || stemEl(at(p)!) !== g.element) f(`무결성 상신 투출 ${posKey(p)} ${at(p)} ≠ ${g.element}`) }
-      for (const p of g.hiddenOnly) { posOk(p, "sangsin.hiddenOnly"); if (p.part !== "branch" || !hiddenOf(at(p)!, table).some((h) => stemEl(h.stem) === g.element)) f(`무결성 상신 지장간 ${posKey(p)} ${at(p)} 에 ${g.element} 없음`) }
+      for (const p of g.hiddenPositions) { posOk(p, "sangsin.hiddenPositions"); if (p.part !== "branch" || !hiddenOf(at(p)!, table).some((h) => stemEl(h.stem) === g.element)) f(`무결성 상신 지장간 ${posKey(p)} ${at(p)} 에 ${g.element} 없음`) }
     }
     for (const ob2 of c.obstructions ?? []) for (const p of ob2.members) posOk(p, "obstructions")
   }
@@ -204,6 +250,13 @@ const VARIANTS: Opts[] = [
   { specialStructures: "off" },
   { usefulGodMethods: ["eokbu", "johuClimate", "tonggwan", "byeongyak", "gyeokguk", "special"] },
   { hiddenStemTable: "cn-lunarjs", strengthPrimary: "rooted", deukjiBasis: "dayBranchAnyRoot", structureTouchul: "mainQiOnly", touchulMatch: "sameElement", rokgeopAlternative: false },
+  // rules@0.4.0 신규 옵션
+  { earthRokgeop: "mainQiGate" },
+  { tonggwanMinShare: 0.3, tonggwanMinRatio: 0.5 }, // 후보 ①
+  { tonggwanMinShare: 0.28, tonggwanMinRatio: 0.6 }, // 후보 ②
+  { tonggwanMinShare: 0.5, tonggwanMinRatio: 1 }, // 허용 상한
+  { tonggwanMinShare: 0.1, tonggwanMinRatio: 0.2 },
+  { hiddenStemTable: "main-only", tonggwanMinShare: 0.3 },
 ]
 describe("P3-06 옵션 변형 — 각 200건(실제 100 + 합성 100)", () => {
   VARIANTS.forEach((v, i) => it(J(v), () => {

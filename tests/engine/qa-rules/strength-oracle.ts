@@ -1,5 +1,6 @@
-// 품질검증 독립 오라클 — P3-06 (rules@0.3.0) 신강약·격국·억부·조후·통관·청탁 표지
-// 근거: docs/knowledge/strength-structure-spec.md 본문만. 엔진 코드(src/engine/rules/strength.ts 등)는 보지 않았다.
+// 품질검증 독립 오라클 — P3-06 (rules@0.3.0 → 0.4.0 정정 반영) 신강약·격국·억부·조후·통관·청탁 표지
+// 근거: docs/knowledge/strength-structure-spec.md 본문만(2026-11-28 정정본 §1.9·§2.2·§2.3·§3.3·§3.6·§6 포함).
+// 엔진 코드(src/engine/rules/strength.ts 등)는 보지 않았다.
 // 명세가 비어 있는 곳은 "QA 해석"으로 표시했다.
 import type { Element, Pillar, Stem } from "@/engine"
 import { ELEMENTS, LU_TABLE, STEMS, BRANCHES, bi, hiddenOf, si, stemEl, stemYY, tenGod, type OOpts, type OPos } from "./oracle"
@@ -191,7 +192,7 @@ export function weightedEls(n: Natal, table: Table): Record<Element, number> {
   for (const x of basisOf(n, table, false)) w[x.element] += x.positionWeight * x.hiddenWeight
   return w
 }
-export function tonggwan(n: Natal, table: Table): Element[] {
+export function tonggwan(n: Natal, table: Table, minShare = 0.25, minRatio = 0.5): Element[] {
   // QA 해석: 동점 비교는 6자리 반올림 가중으로(부동소수 잡음 제거), 동점이면 X의 오행 순서(목→수)
   const raw = weightedEls(n, table)
   const w = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, r6(v)])) as Record<Element, number>
@@ -200,7 +201,7 @@ export function tonggwan(n: Natal, table: Table): Element[] {
   for (let x = 0; x < 5; x++) {
     const y = (x + 2) % 5
     const wx = w[ELEMENTS[x]], wy = w[ELEMENTS[y]]
-    if (r6(wx / T) >= 0.25 && wx > 0 && r6(wy / T) >= 0.25 && r6(Math.min(wx, wy) / Math.max(wx, wy)) >= 0.5) hits.push({ z: ELEMENTS[(x + 1) % 5], wx })
+    if (r6(wx / T) >= minShare && wx > 0 && r6(wy / T) >= minShare && r6(Math.min(wx, wy) / Math.max(wx, wy)) >= minRatio) hits.push({ z: ELEMENTS[(x + 1) % 5], wx })
   }
   return hits.sort((a, b) => b.wx - a.wx).map((h) => h.z)
 }
@@ -225,3 +226,73 @@ export function clarityFlags(n: Natal): string[] {
 export const bIdx = bi
 /** 점수 = r × 100 소수 1자리 반올림(사사오입). 부동소수 잡음 없이 10진 반올림 */
 export const scoreOf = (r: number) => Math.round(Number((r * 1000).toFixed(6))) / 10
+
+// ─────────────────────────────── rules@0.4.0 정정(2026-11-28, D-022) — 명세 본문으로만 작성
+const ALL_TABLES = ["kr-monthly-30", "cn-lunarjs", "main-only"] as const
+const vSig = (x: { verdict: Verdict; extreme: string | null }) => `${x.verdict}/${x.extreme}`
+/**
+ * §1.9 정의 분리: tableSensitive = {선택 표, kr, cn} 사이 판정·extreme 차이, IncludingMainOnly = 세 표 모두.
+ * 선택 표가 main-only면 {main-only, kr, cn} 세 표가 되어 두 값이 같아진다(명세 문구 그대로).
+ */
+export function strengthTableSensitivity(n: Natal, selected: Table): { tableSensitive: boolean; tableSensitiveIncludingMainOnly: boolean } {
+  const sig = (t: Table) => vSig(modelA(n, t))
+  const core = [...new Set<Table>([selected, "kr-monthly-30", "cn-lunarjs"])]
+  return { tableSensitive: new Set(core.map(sig)).size > 1, tableSensitiveIncludingMainOnly: new Set(ALL_TABLES.map(sig)).size > 1 }
+}
+/** §1.9·§6 격국 쪽: byTable은 세 표 그대로, tableSensitive는 {선택, kr, cn}의 격 이름 비교 */
+export function structureTableSensitivity(n: Natal, so: StructOpts): { byTable: string[]; tableSensitive: boolean; tableSensitiveIncludingMainOnly: boolean } {
+  const name = (t: Table) => primaryStructure(n, { ...so, table: t }).name
+  const core = [...new Set<Table>([so.table, "kr-monthly-30", "cn-lunarjs"])]
+  const byTable = ALL_TABLES.map(name)
+  return { byTable, tableSensitive: new Set(core.map(name)).size > 1, tableSensitiveIncludingMainOnly: new Set(byTable).size > 1 }
+}
+
+export type Presence = "stemAndHidden" | "stemOnly" | "hiddenOnly" | "absent"
+export interface GroupRef { group: Group; element: Element; tenGods?: string[]; touchul: OPos[]; hiddenPositions: OPos[]; presence: Presence }
+export const presenceOf = (touchul: unknown[], hidden: unknown[]): Presence =>
+  touchul.length && hidden.length ? "stemAndHidden" : touchul.length ? "stemOnly" : hidden.length ? "hiddenOnly" : "absent"
+/**
+ * §2.3 필드 정의: touchul = 일간 제외 천간(연→월→시) 중 이 묶음(tenGods 제한 적용) 글자 위치,
+ * hiddenPositions = 원국 지지(연→월→일→시) 중 선택 표 지장간(역할 무관)에 이 묶음 글자가 있는 위치 — 투출과 별개.
+ */
+export function groupRef(n: Natal, table: Table, group: Group, tenGods?: string[]): GroupRef {
+  const d = n.day.stem
+  const el = groupEl(d, group)
+  const ok = (s: string) => stemEl(s) === el && (!tenGods || tenGods.includes(tenGod(d, stemEl(s), stemYY(s))))
+  const touchul: OPos[] = (["year", "month", "hour"] as const).filter((k) => n[k] && ok(n[k]!.stem)).map((k) => ({ pillar: k, part: "stem" }))
+  const hiddenPositions: OPos[] = KEYS.filter((k) => n[k] && hiddenOf(n[k]!.branch, table).some((h) => ok(h.stem))).map((k) => ({ pillar: k, part: "branch" }))
+  return { group, element: el, ...(tenGods ? { tenGods } : {}), touchul, hiddenPositions, presence: presenceOf(touchul, hiddenPositions) }
+}
+type GSpec = [Group, string[]?]
+/** §2.3 상신 표(십성 제한: 칠살격 식신 — 사례 11 "식신(화, tenGods [식신])") */
+const SANGSIN_SPEC: Record<string, GSpec[]> = {
+  정관격: [["jaeseong"], ["inseong"]], 정재격: [["siksang"], ["gwansal"]], 편재격: [["siksang"], ["gwansal"]], 정인격: [["gwansal"]],
+  편인격: [["gwansal"], ["jaeseong"]], 식신격: [["jaeseong"]], 칠살격: [["siksang", ["식신"]], ["inseong"]], 상관격: [["inseong"], ["jaeseong"]], 양인격: [["gwansal"]],
+}
+/**
+ * §2.3 꺼리는 묶음. QA 해석: 표 칸 "식상 중 상관, 편관" → siksang[상관]·gwansal[편관], "편인" → inseong[편인], "정관" → gwansal[정관].
+ * 편인격 칸("재성(인수 취급) / 식신이 손상됨(효신 취급)")은 묶음으로 옮길 수 있는 것이 재성뿐이라 재성만 둔다(명세 공백 — 대조 결과로 확인).
+ */
+const AVOID_SPEC: Record<string, GSpec[]> = {
+  정관격: [["siksang", ["상관"]], ["gwansal", ["편관"]]], 정재격: [["bigyeop"]], 편재격: [["bigyeop"]], 정인격: [["jaeseong"]],
+  편인격: [["jaeseong"]], 식신격: [["inseong", ["편인"]]], 칠살격: [["jaeseong"]], 상관격: [["gwansal", ["정관"]]], 양인격: [],
+}
+/** 격 이름 → 상신·꺼림 참조. 건록·월겁격은 투출한 재성·관살·식상만 상신, 꺼림 없음 */
+export function structureRefs(n: Natal, table: Table, name: string): { sangsin: GroupRef[]; avoid: GroupRef[] } | null {
+  if (name === "건록격" || name === "월겁격") {
+    const sangsin = (["jaeseong", "gwansal", "siksang"] as Group[]).map((g) => groupRef(n, table, g)).filter((r) => r.touchul.length > 0)
+    return { sangsin, avoid: [] }
+  }
+  const s = SANGSIN_SPEC[name], a = AVOID_SPEC[name]
+  if (!s) return null
+  return { sangsin: s.map(([g, t]) => groupRef(n, table, g, t)), avoid: (a ?? []).map(([g, t]) => groupRef(n, table, g, t)) }
+}
+
+/** §2.4·§3.6 종왕·종강(모형 A, 선택 표): E1 r ≥ 0.80 · E2 관살 ≤ T의 5%. 비겁 ≥ 인성 종왕(비겁→인성), 인성 > 비겁 종강(인성→비겁) */
+export function jongwangOf(n: Natal, table: Table): { kind: "종왕" | "종강"; view: Element[] } | null {
+  const a = modelA(n, table)
+  const g = groupTotals(n, table)
+  if (!(a.ratio >= 0.8) || !(r6(g.gwansal / a.T) <= 0.05)) return null
+  const d = n.day.stem
+  return g.bigyeop >= g.inseong ? { kind: "종왕", view: [groupEl(d, "bigyeop"), groupEl(d, "inseong")] } : { kind: "종강", view: [groupEl(d, "inseong"), groupEl(d, "bigyeop")] }
+}
