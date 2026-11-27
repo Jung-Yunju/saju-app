@@ -64,8 +64,7 @@ function rokgeopOf(n: Natal, table: HiddenStemTableId, match: RuleOptions["touch
   const tg = tenGodOfStem(dayStem, main)
   if (tg !== "비견" && tg !== "겁재") return null
   const mb = n.month.branch
-  const role = hiddenStemsOf(mb, table).find((h) => h.role === "jeonggi") as HiddenStem
-  const pivot = { stem: main, role: role.role, touchul: touchulPositions(n, main, match)[0] ?? null, tenGod: tg }
+  const pivot = { stem: main, role: "jeonggi" as const, touchul: touchulPositions(n, main, match)[0] ?? null, tenGod: tg }
   if (LU[dayStem] === mb) return { name: "건록격", kind: "rokgeop", pivot, ruleId: "structure.zp.G1.geonrok", rokgeopType: "건록" }
   if (stemYinYang(dayStem) === "yang" && YANGIN[dayStem] === mb)
     return { name: "양인격", kind: "rokgeop", pivot, ruleId: "structure.zp.G1.yangin", rokgeopType: "양인" }

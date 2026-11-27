@@ -113,12 +113,12 @@ interface RuleAnalysis {
 ## 규칙 엔진
 지장간·십성·12운성·합충형파해·공망·신살은 코드 표(table)로 구현하고 각 결과에 근거 글자 위치를 남긴다.
 
-### analyzeRules [계산 명세 — rules@0.2.0, `src/engine/rules/`]
-- 근거: `docs/knowledge/rules-spec.md`(표·공식), `docs/knowledge/schools.md`(학파 옵션), D-012(해석 옵션은 `RuleOptions`로 분리).
+### analyzeRules [계산 명세 — rules@0.3.0, `src/engine/rules/`]
+- 근거: `docs/knowledge/rules-spec.md`(표·공식), `docs/knowledge/strength-structure-spec.md`(P3-06 신강약·격국·용신·조후·기세), `docs/knowledge/schools.md`(학파 옵션), D-012(해석 옵션은 `RuleOptions`로 분리), D-019(세 글자 관계에 포함된 두 글자 기록은 지우지 않고 표시).
 - 공개 함수: `analyzeRules(chart: CalendarResult, options?: Partial<RuleOptions>, extra?: { luck?: Pillar[]; year?: Pillar }): RuleAnalysis` (`src/engine/index.ts`에서 export). 순수 함수 — AI·DB·네트워크·현재 시각 없음. `chart.pillars`와 `chart.engineVersion`만 읽고 입력을 바꾸지 않는다.
-- 타입: `src/engine/rules/types.ts`(공통 `types.ts`는 그대로). §2 초안의 `strength`·`structureCandidates`·`usefulGodCandidates`는 P3-06 범위라 **넣지 않았다**.
-- 결과에 남기는 것: `engineVersion`("rules@0.2.0"), `calendarEngineVersion`, 기본값을 채운 `options` 전체, `omitted`(시주 모름이면 `["hour"]`), `source`(분석한 원국·대운·세운 글자), 판정마다 근거 위치 `Position { pillar: year|month|day|hour|daeun|seun, part: stem|branch, luckIndex? }`.
-- 파일: `tables.ts`(표), `basics.ts`(오행·음양·십성), `hidden.ts`(지장간), `twelveStages.ts`, `interactions.ts`, `gongmang.ts`, `elements.ts`, `options.ts`, `version.ts`, `index.ts`.
+- 타입: `src/engine/rules/types.ts`(공통 `types.ts`는 그대로). rules@0.3.0부터 `strength`·`structure`·`usefulGods`·`climate`·`qiFlow`를 같은 `RuleAnalysis`에 담는다(아래 "신강약·격국·용신·조후·기세" 절).
+- 결과에 남기는 것: `engineVersion`("rules@0.3.0"), `calendarEngineVersion`, 기본값을 채운 `options` 전체, `omitted`(시주 모름이면 `["hour"]`), `source`(분석한 원국·대운·세운 글자), 판정마다 근거 위치 `Position { pillar: year|month|day|hour|daeun|seun, part: stem|branch, luckIndex? }`.
+- 파일: `tables.ts`(표), `basics.ts`(오행·음양·십성), `hidden.ts`(지장간), `twelveStages.ts`, `interactions.ts`, `gongmang.ts`, `elements.ts`, `options.ts`, `version.ts`, `index.ts`. P3-06: `groups.ts`(십성 묶음·반올림 공통), `strength.ts`, `structure.ts`, `usefulGod.ts`, `climate.ts`, `qiFlow.ts`.
 
 **옵션(`RuleOptions`) — 기본값은 연구소장 제안이며 전부 잠정(대표·연구소장 확정 대기)**
 
@@ -133,7 +133,19 @@ interface RuleAnalysis {
 | halfCombine | withKingOnly / allPairs | withKingOnly | |
 | partialPunishment | boolean | true | 두 글자 삼형을 `partial: true`로 기록 |
 | wuWeiCombine | fire / earth / none | none | 午未 육합 결과 오행(none = null) |
-| partialDirectional | boolean | false | **엔진 개발자 추가 키**(rules-spec §7 "두 글자 방합 ⚑, 기본 세 글자만") |
+| partialDirectional | boolean | false | **엔진 개발자 추가 키**(rules-spec §7 "두 글자 방합 ⚑, 기본 세 글자만"). 아래 설명 |
+| strengthPrimary | weighted / threeFactor / rooted | weighted | P3-06. 대표 판정 모형(세 모형은 항상 모두 계산) |
+| monthCommandBasis | mainQi (byDays 예약) | mainQi | `byDays`(사령)는 예약 값 → EngineInputError |
+| deukjiBasis | dayBranchMainQi / dayBranchAnyRoot | dayBranchMainQi | 득지: 일지 정기 / 일지 지장간 중 하나 |
+| combineAdjustment | none | none | 합화·충 보정 안 함(1차는 이 값만) |
+| structureTouchul | transparentFirst / mainQiOnly | transparentFirst | 격 투출 우선(G2) / 정기 고정(G2') |
+| touchulMatch | sameStem / sameElement | sameStem | 투출 일치: 같은 글자 / 같은 오행 |
+| rokgeopAlternative | boolean | true | 록겁월 대체 후보(G1-alt) |
+| specialStructures | candidateOnly / off | candidateOnly | 특수격 후보(확신도 low 고정) / 끔 |
+| usefulGodMethods | 배열: eokbu · johuClimate · tonggwan · byeongyak · gyeokguk · special | 병약(byeongyak) 뺀 5개 | 순서 = 결과 views 순서. 모르는 값·중복·배열 아님 → EngineInputError. 빈 배열 허용 |
+| favorableDefinition | generationCycle / secondCandidate | generationCycle | 희신 정의 |
+
+- **`partialDirectional`(두 글자 방합)**: rules-spec §7은 "두 글자 방합 인정 여부 ⚑ — 기본: 세 글자만"이라고만 적었고 `schools.md` §0 옵션 목록에는 키가 없어 엔진 개발자가 이름을 붙였다(연구소장 확인 대기). `true`면 같은 방합 묶음(寅卯辰·巳午未·申酉戌·亥子丑)의 두 글자 쌍을 `type: "directionalCombine"`, `complete: false`, `partial: true`, `resultElement` = 그 방위 오행으로 기록한다. **가운데 글자가 빠진 쌍(寅辰 등)도 기록한다**(연구소장 확인 필요). 세 글자가 다 있으면 세 글자 기록(`complete: true`)과 두 글자 기록이 함께 있고, 두 글자 기록에 `subsumedBy`가 붙는다(D-019). 기본값 `false`에서는 두 글자 방합을 기록하지 않는다.
 
 모르는 키, 지원하지 않는 값, 알 수 없는 간지 글자, 음양이 맞지 않는 간지(甲丑), 배열이 아닌 `extra.luck`은 `EngineInputError`를 던진다. 조용히 기본값으로 바꾸지 않는다. 값이 `undefined`인 키는 생략으로 본다.
 
@@ -150,7 +162,8 @@ interface RuleAnalysis {
 4. **관계**(`interactions`): rules-spec §6·§7 표에 있는 관계만 기록한다. 같은 쌍이 여러 관계에 해당하면 모두 기록한다(寅申 충·형, 寅亥 합·파, 寅巳 형·해, 巳申 합·형·파).
    - 거리와 상관없이 모든 쌍을 기록하고 `adjacent`를 둔다(붙은 기둥 또는 연속 세 기둥이면 true, 운이 끼면 false).
    - 합 계열은 `resultElement`를 둔다. 천간합·육합의 `transformed`는 항상 null이다(합화 판정 안 함).
-   - **포섭 규칙(엔진 개발자 정의 — rules-spec에 없음)**: 세 글자 관계(삼합·방합·삼형)가 성립하면, 그 안의 두 글자 기록(반합·두 글자 방합·두 글자 삼형)은 나머지 한 글자가 원국 글자일 때만 생략한다. 원국 두 글자 + 운 한 글자로 된 삼합은 원국 반합 기록을 지우지 않는다.
+   - **포함 표시(D-019, rules@0.3.0)**: 세 글자 관계(삼합·방합·삼형)가 성립해도 그 안의 두 글자 기록(반합·두 글자 방합·두 글자 삼형)을 **지우지 않는다**. 대신 `subsumedBy: string[]`에 포함한 세 글자 관계의 식별자를 모두 적는다(같은 쌍을 포함하는 세 글자 조합이 여럿이면 전부). 포함 관계가 없으면 필드가 없다. 남은 한 글자가 원국이든 운이든 같은 규칙이다(rules@0.2.0의 "남은 글자가 원국일 때만 삭제" 비대칭 규칙은 폐지). 그래서 운이 완성한 세 글자 관계도 원국 두 글자 기록에 표시를 붙인다. 거를지(예: "붙어야 작용" 설)는 해석 단계가 `subsumedBy`·`adjacent`·`scope`를 보고 정한다.
+   - 관계 식별자 `interactionId(i)` = `` `${ruleId}@${위치들}` ``, 위치 = `{pillar}{luckIndex}.{part}`를 `+`로 이음. 예: `branch.threeCombine.申子辰@year.branch+month.branch+hour.branch`, 운이면 `daeun0.branch`·`seun.branch`. 같은 입력 안에서 유일하다.
    - 운: `extra.luck`의 대운은 각각 원국·세운과만 비교한다(대운끼리는 비교하지 않음). 운이 낀 관계는 `scope: "luck"`이다.
    - 정렬: 관계 종류(천간합, 천간충, 육합, 삼합, 반합, 방합, 충, 형, 파, 해) → 근거 위치 → ruleId.
 5. **공망**(`gongmang`): `xunKongOf`(rules@0.1.0)를 기준 기둥(일주·연주)에 적용한다. `hits`는 기준 기둥을 뺀 원국 지지와 대운·세운 지지 중 공망 두 지지에 든 위치다. `both`면 [일주 기준, 연주 기준] 순서다. 해공은 판정하지 않는다.
@@ -158,11 +171,61 @@ interface RuleAnalysis {
    - `counts`: 천간 + 지지 본래 오행(= 정기 오행) 글자 수. 일간을 포함하고, 시주 모름이면 6글자다.
    - `weighted`: 천간 각 1.0에, 지지는 위치 가중(월지 3.0 · 일지 1.5 · 연지·시지 1.0, schools.md §8 weighted-v1)에 지장간 weight를 곱해 지장간 오행별로 나눠 더한다. 소수 6자리로 반올림한다. 일간도 1.0으로 넣는다(엔진 개발자 판단). 합충 보정은 하지 않는다.
    - `yinYang`: 천간 + 지지(branchYinYang 기준) 음양 개수.
-- 버전: `RULES_ENGINE_VERSION`은 `rules/version.ts`로 옮겼다(`rules/gongmang.ts`는 re-export). 0.2.0으로 올리면서 `src/lib/saju-input.ts`의 `engine_version` 문자열도 `…+rules@0.2.0`이 된다(공망 값 자체는 같다).
-- 테스트: `tests/engine/unit/rules-tables.test.ts`, `rules-tengods-stages.test.ts`, `rules-interactions.test.ts`, `rules-analyze.test.ts`.
+- 버전: `RULES_ENGINE_VERSION`은 `rules/version.ts`로 옮겼다(`rules/gongmang.ts`는 re-export). 0.3.0(P3-06 + D-019)으로 올리면서 `src/lib/saju-input.ts`의 `engine_version` 문자열도 `…+rules@0.3.0`이 된다(공망 값 자체는 같다).
+- 테스트: `tests/engine/unit/rules-tables.test.ts`, `rules-tengods-stages.test.ts`, `rules-interactions.test.ts`, `rules-analyze.test.ts`, P3-06은 `rules-strength.test.ts`, `rules-structure.test.ts`, `rules-usefulgod.test.ts`, `rules-p306-required.test.ts`.
   - 12운성은 120칸 전수 + 변형 3종 + 록 표 검산.
   - 십성은 100칸 + 지지, 관계는 천간 100칸·지지 144칸 전수, 공망 hits는 60갑자 전수다.
   - 손계산 사례는 3건이다. lunar-javascript 대조는 SHI_SHEN·ZHI_HIDE_GAN·12운성 식·HE/CHONG 표로 한다.
+
+### 신강약·격국·용신·조후·기세 [계산 명세 — rules@0.3.0, P3-06]
+- 근거: `docs/knowledge/strength-structure-spec.md`(연구소장 명세). **점수·경계값·가중치·조후 지수는 모두 연구소장 설계값이며 고전 수치가 아니다.** 판정은 "이 명세 규칙의 결과"이지 명리상 정답이나 과학적 예측이 아니다. 해석 문장은 만들지 않는다.
+- 공개 API 결정: 명세 §6 제안대로 `analyzeRules` 결과(`RuleAnalysis`)에 `strength`·`structure`·`usefulGods`·`climate`·`qiFlow`를 추가했다. 별도 함수(`analyzeStructure`)로 나누지 않은 이유: 호출하는 쪽이 원국·옵션을 두 번 맞출 필요가 없고, 풀이 검증기(P4-04)가 결과 하나만 대조하면 되며, 신강약이 쓰는 지장간·오행 가중·관계를 같은 옵션으로 한 번만 계산하기 위해서다.
+- 범위: **원국만** 본다(운은 1차 범위 밖). 관계는 원국 내부(`scope: "natal"`)만 쓴다. 대운·세운을 넣어도 P3-06 결과는 같다.
+- 수치: 가중 단위(천간 1.0 = 명세의 30u). 비율은 경계 비교 전 소수 6자리 반올림(`round6`). 출력 수치도 6자리.
+
+**신강약(`strength`, `strength.ts`)**
+1. 근거 항목(`basis`): 기둥(연→월→일→시)마다 천간 1항목 → 지장간(여기→중기→정기) 항목. `points = positionWeight × hiddenWeight × rootFactor`(6자리). 위치 가중은 weighted-v1(천간 1 · 연지·시지 1 · 월지 3 · 일지 1.5)로 `elements.weighted`와 같고 일간도 1.0으로 들어간다(`group: "self"`). 십성 묶음은 오행으로만 정한다(비겁·인성 = support).
+2. 모형 A `weighted`: `ratio = round6(S/T)`, S = support 합(일간 포함), T = 전체 합(네 기둥 10.5 = 315u, 세 기둥 8.5 = 255u). 신강 r ≥ 0.55, 중화 0.45 ≤ r < 0.55, 신약 r < 0.45. `extreme` strong r ≥ 0.80 / weak r ≤ 0.20. `nearest` = 0.20·0.45·0.55·0.80 중 가장 가까운 경계(거리 6자리, 같으면 작은 경계), `nearBoundary` = 거리 < 0.03. `score` = r×100(1자리).
+   - `support`·`total`(S·T)은 반올림 전 합의 6자리 값이다(명세 타입에 없는 검산용 필드). 항목 `points`는 각각 6자리로 반올림하므로 `Σpoints`와 S·T는 최대 약 1e-5까지 다를 수 있다. r은 반올림 전 합으로 계산한다.
+3. 모형 B `threeFactor`: 득령(월지 정기 오행이 비겁·인성) · 득지(`deukjiBasis`) · 득세(연간·월간·시간·연지·시지 정기 중 3자리 이상, 시주 모름이면 연간·월간·연지 중 2자리 이상). 2개 이상이면 신강, 아니면 신약. 중화 없음(`ratio`·`score`·`extreme`·`nearest` null). `basis`는 빈 배열이고 근거 위치는 `factors`에 있다.
+4. 모형 C `rooted`: A와 같되 일간이 아닌 천간 중 같은 오행이 원국 지장간(여기·중기·정기 무관) 어디에도 없으면 `rootFactor` 0.5. T도 줄어든 값.
+5. `agreement`: 세 모형 verdict가 모두 같으면 "all". `seasonState`: 월지 정기 오행 m과 일간 d의 왕상휴수사. `dayMasterRooted`·`dayMasterRoots`: 일간 오행이 원국 지장간에 있는 위치.
+6. `groupTotals`: 모형 A 가중의 묶음별 합(일간 제외). 용신 유형 판별에 쓴다.
+7. `tableSensitivity`: 선택한 표를 뺀 두 표(순서 kr → cn → main)로 모형 A. verdict나 extreme이 다르면 `tableSensitive`.
+8. `hourSensitivity`: 시주를 알면 null. 모르면 오서둔 12시진(甲己일 甲子 … , 子→亥)마다 모형 A(네 기둥). `verdicts`는 신강→중화→신약 순, 둘 이상이면 `hourSensitive`.
+9. `affectedBy`: 원국 관계 전부(합·충·형·파·해, D-019 포함 표시 그대로). 월지·일지·일간·돕는 천간이 members에 있으면 `critical`. `adjustmentsApplied`는 항상 `[]`(합화·충 보정 안 함).
+
+**격국(`structure`, `structure.ts`) — 자평진전 관점, 성격·파격은 판정 안 함**
+1. G1 록겁: 월지 정기 십성이 비견·겁재면 록(LU 표) = 건록격, 양간이고 양인 자리(甲卯 丙午 戊午 庚酉 壬子) = 양인격, 그 밖 = 월겁격. `rokgeopAlternative`면 월지 지장간 중 비겁이 아닌 글자가 연·월·시간에 투출했을 때 그 십성의 격을 `role: "rokgeopAlt"`, low로 더한다(정기→중기→여기 순).
+   - ⚑ 명세의 G1 조건(월지 정기가 비겁)상 戊·己 일간은 午·巳월(정기 丁·丙 = 인성)에 록겁 계열이 되지 않으므로 양인 표의 戊午, 록 표의 戊巳·己午는 실제로 쓰이지 않는다(연구소장 확인 요청).
+2. G2 투출 우선: 정기 → 중기 → 여기 순으로 처음 투출한 글자(일간 제외 천간, `touchulMatch`), 없으면 정기. 일간과 같은 오행 지장간은 건너뜀. G2' 정기 고정. 두 변형이 같으면 medium, 다르면 주 후보와 `otherVariant` 후보 모두 low. high는 쓰지 않는다.
+3. 이름: 정관격 · 칠살격(alias 편관격) · 정재격 · 편재격 · 정인격·편인격(alias 인수격) · 식신격 · 상관격.
+4. 상신·꺼리는 묶음(`sangsin`·`avoid`): 명세 §2.3 표. 묶음 중 일부 십성만이면 `tenGods`(예: 정관격 꺼림 = 식상 중 상관). `touchul` = 일간 제외 천간 위치, `hiddenOnly` = **그 오행이 지장간에 있는 지지 위치(투출 여부와 별개 — 엔진 정의)**. 건록·월겁격은 투출한 재·관·식상만 상신으로 낸다. 편인격은 인수·효신 두 관점을 모두 표시하고 notes에 남긴다.
+5. `byTable`·`tableSensitive`: 세 표로 주 후보 이름을 구해 다르면 true.
+6. 특수격(`kind: "special"`, 항상 low, `specialStructures="off"`면 없음): 조건 판정에는 `strengthPrimary`와 무관하게 모형 A의 r·T·groupTotals와 `elements.weighted`를 쓴다.
+   - 종격 `special.jong`: F1 r ≤ 0.20 · F2 일간 무근 · F3 인성 ≤ 5%. 빼는 묶음 최대(동점 관살 > 재성 > 식상)가 40% 이상이면 종살·종재·종아, 아니면 종세(F4). F1만 맞으면 후보 없이 notes "극신약이나 종격 조건 미충족".
+   - 종왕·종강 `special.jongwang`: E1 r ≥ 0.80 · E2 관살 ≤ 5%. 비겁 ≥ 인성이면 종왕, 아니면 종강.
+   - 화격 `special.hwa`: H1 월간 또는 시간이 일간의 천간합 짝 · H2 월지 정기 오행 = 합화 오행 또는 그것을 생함 · H3 일간 외 천간에 합화 오행을 극하는 오행 없음 · H4 일간 오행 지장간이 여기에만 · H5 합화 오행 ≥ 40% · H6 일간 외 천간에 짝 글자가 정확히 하나이고 일간과 같은 글자가 없음(쟁합·투합 — 엔진 해석). 일간이 낀 천간충은 `obstructions`.
+   - 일행득기 `special.ilhaeng`: 월지 정기 오행 = 일간 오행 · 원국 그 오행의 삼합·방합 완성(토는 辰戌丑未가 지지 세 자리 이상 — 자리 수로 셈, 엔진 해석) · E1 · E2.
+   - `reversesUsefulGod`: 억부 대표 rank 1 오행이 그 특수격 관점의 반가운 오행에 없으면 true(엔진 정의). 억부 대표값은 바꾸지 않는다.
+
+**용신(`usefulGods`, `usefulGod.ts`) — 관점별 병기(대표 결정 대기 6번), 합친 용신은 만들지 않음**
+1. `views`는 `usefulGodMethods` 순서. 각 view: `candidates`(rank, `presentWeight` = `elements.weighted`, 원국에 없는 오행도 뒤로 미루지 않음), `favorable`(rank 1 기준 희·기·구·한), `basis`(ruleId·위치·값), `source`, `confidence`.
+2. 억부 `eokbu`: 대표 모형 verdict와 groupTotals로 명세 §3.1 표. 신강 인성형(인성 > 비겁) 재성→식상 / 비겁형 관살→식상→재성 · 신약 최대가 관살·식상이면 인성→비겁, 재성이면 비겁→인성 · 중화는 `status: "balanced"`, `lean`(r < 0.5면 weak). `byModel`에 세 모형 결과. confidence = 세 모형 일치면 medium, 아니면 low(엔진 정의).
+3. 간이 조후 `johuClimate`: `climate.needs`를 warm·dry → 화, cool·moisten → 수로 옮기고, |M| > |T|면 습도 축 먼저(같으면 온도 축). 같은 오행은 하나로. `source` = "climate-v1 (연구소장 설계, 궁통보감 표 미적용)". 궁통보감 조후용신 표(johuTable)는 쓰지 않는다(method 값도 없음).
+4. 통관 `tonggwan`: X가 Y(= X+2)를 극하고 둘 다 T의 25% 이상, 작은 쪽÷큰 쪽 ≥ 0.5이면 Z = X+1. 여러 쌍이면 X 가중 큰 순. basis `ug.tonggwan.{X}>{Y}`에 비율 값.
+5. 병약 `byeongyak`(기본 꺼짐): 최대 오행이 40% 이상이면 그것을 극하는 오행.
+6. 격국 상신 `gyeokguk`: 정격 후보(주 → 다른 변형 → G1-alt) 순서로 상신 묶음의 오행. confidence는 rank 1을 낸 격 후보의 확신도.
+7. 특수격 `special`: 종살·종재·종아·화격·일행득기 = 따르는 오행 + 그것을 생하는 오행, 종세 = 빼는 묶음 큰 순, 종왕 = 비겁→인성, 종강 = 인성→비겁(⚑ 엔진 정의 — 명세 문자대로 "생하는 오행"을 붙이면 종강에 관살이 들어감). 후보가 없으면 none, 끄면 notApplicable.
+8. 희기신: generationCycle은 U 기준 희 U−1·기 U−2·구 U−3·한 U+1(오행 번호). secondCandidate는 희 = 2순위 후보, 2순위가 원래 한신이면 한신 자리에 원래 희신을 두고, 기신·구신과 겹치면 `conflicts`에 적는다(⚑ 엔진 해석, 2순위가 없으면 favorable 없음).
+9. `agreement`: 각 view rank 1 오행별 관점 목록(관점 수 많은 순 → 오행 순). 억부 byModel은 넣지 않는다.
+10. `singlePickProposal`: §3.8 (가) "하나만" 규칙의 계산값(제안, 대표 결정 전에는 고객 문장에 쓰지 않음). 특수격 제외 → 조후 극단(한강·열강·습강·조강)이면 조후 오행 → 아니면 억부 rank 1(balanced이거나 split + A nearBoundary면 건너뜀) → 조후 오행 → 없으면 null. 조후는 `usefulGodMethods`와 무관하게 `climate`에서 구한다.
+
+**간이 조후(`climate`, `climate.ts`)** — 명세 §4 지지 표(온도 t, 습도 m). T = t(월지) + 0.5×Σt(그 밖 지지) + 0.5×(丙丁 수 − 壬癸 수), M = m(월지) + 0.5×Σm(그 밖) + 0.5×(壬癸 수 − 丙丁 수). 천간에 일간 포함, 시주 모름이면 세 기둥(정규화 없음, `pillarsUsed: 3`). 분류: T ≤ −2 한강, ≤ −1 한, < 1 중, < 2 난, 그 이상 열강 / M ≥ 2 습강, ≥ 1 습, > −1 중, > −2 조, 그 이하 조강. needs: T ≤ −1 warm, T ≥ 1 cool, M ≥ 1 dry, M ≤ −1 moisten. `basis`는 모든 천간·지지의 dT·dM.
+
+**기세(`qiFlow`, `qiFlow.ts`)** — `shares` = `elements.weighted` ÷ T(6자리), `dominant`(동점은 목→수 순 앞), `concentration` = Σ비율², `missing` = 가중 0, `flowChain` = 비율 ≥ 0.10 오행의 상생 순서 최장 연쇄(다섯 다 있으면 circular, 목부터. 길이 같으면 비율 합 큰 쪽 — 엔진 정의), `dayMasterFlow`(식상 ≥ 0.10 / 식상·재성 ≥ 0.10 / 인성 ≥ 0.10), `clarityFlags`(일간 제외 천간: 관살혼잡·상관견관·효신탈식·비겁쟁재·재성파인. 재성파인의 "이웃한 기둥"은 일간 제외라 연간–월간 쌍만 해당). 청탁·진가·순역의 최종 판정은 내지 않는다.
+
+- 시험: 명세 §7 사례 12건(A·B·C, 표·시진 민감도, 격국, 특수격, 용신, 조후, 기세)과 §7.1 필수 시험(결정성, 반올림 경계, 근거 합계, 옵션 거부, 병약 기본 꺼짐, 조후표 미사용, 통관 음성, 분포 측정 기록)을 위 테스트 파일에 넣었다. 명세 본문과 다르게 판정한 두 곳(사례 7 재성파인 표지, 사례 11 agreement 범위)은 테스트 주석에 손계산 근거를 적었다.
 
 ### 공망 [계산 명세 — rules@0.1.0, `src/engine/rules/gongmang.ts`]
 - 근거: `docs/knowledge/rules-spec.md` §8.
