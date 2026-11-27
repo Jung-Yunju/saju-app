@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useEffect, useState } from "react"
+import { Suspense, useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
 function PaymentSuccessContent() {
@@ -8,8 +8,11 @@ function PaymentSuccessContent() {
   const params = useSearchParams()
   const [status, setStatus] = useState<"loading" | "done" | "error">("loading")
   const [message, setMessage] = useState("사주 풀이를 생성하고 있습니다...")
+  const confirmedRef = useRef(false) // 결제 확인 요청 1번만 (StrictMode 이중 실행 대비)
 
   useEffect(() => {
+    if (confirmedRef.current) return
+    confirmedRef.current = true
     async function confirm() {
       const paymentKey = params.get("paymentKey")!
       const orderId = params.get("orderId")!

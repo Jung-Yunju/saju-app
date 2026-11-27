@@ -1,0 +1,107 @@
+# 궁통보감(窮通寶鑑) 조후(調候) 구조 — 틀만 정의 (P3-08)
+# 작성: 명리학 연구소장 · 2026-11-27
+#
+# 중요:
+# - 이 파일은 "일간 × 출생월" 표의 뼈대와 칸 형식만 정의한다.
+# - 각 칸의 조후 용신(어떤 천간을 쓰라고 했는지)은 판본 본문을 직접 대조(L2)한 뒤에만 채운다.
+#   연구소장이 기억하는 내용이 있어도 지금은 넣지 않는다(지시: "내용은 확인된 것만").
+# - 현재 원문 열람처(ctext.org·위키문헌)는 이 세션 네트워크에서 차단되어 있어 L2 대조가 불가능했다.
+#   서지 정보는 docs/knowledge/sources.md §5 참조.
+
+meta:
+  file_id: johu-outline
+  version: 0.1.0
+  engine_rule: rules.usefulGod.johu
+  status: skeleton            # skeleton → partial → complete
+  filled_cells: 0
+  total_cells: 120
+
+entries:
+  - id: johu.method.overview
+    topic: 용신 / 조후(調候) 방법 개요
+    classic: 궁통보감
+    classical:
+      summary: "일간과 태어난 달(계절)의 조합마다, 그 계절의 춥고 더움·마르고 습함을 맞추는 데 필요한 천간을 정해 둔다. 한 조합 안에서도 주로 쓰는 글자와 보조하는 글자를 나누고, 그 글자가 천간에 드러났는지(투출)·지지에 뿌리가 있는지에 따라 결과를 달리 말한다."
+      basis: paraphrase
+      removed_in_modern:
+        - "각 조합 끝에 붙는 귀천·빈부·수명 등의 판정 문장 (원문 대조 후 칸마다 기록 예정)"
+      original_text: null
+      citation: null
+      source_status: unverified
+    modern:
+      interpretation: "태어난 계절의 온도와 습도를 맞추는 글자를 찾는 방법. 한겨울 물(水) 일간에게 볕(火)이 필요하다는 식의 '기후 균형' 비유로 설명한다. 억부(힘의 강약 조절)와 다른 답을 낼 수 있으므로 서비스에서는 '계절로 보면'이라는 머리말을 붙여 나란히 보여 준다."
+      notes: "조후 결과는 '이 사람에게 필요한 것'의 한 관점이며 단정하지 않는다. 귀천·빈부 판정은 쓰지 않는다."
+    schools:
+      - school: "궁통보감(조후 중심)"
+        view: "계절 기후를 먼저 맞춘다(요지)."
+      - school: "적천수 계열(억부·기세 중심)"
+        view: "전체 강약과 흐름을 먼저 본다(요지). 조후는 그 안의 한 요소."
+      - school: "자평진전 계열(격국 중심)"
+        view: "월령으로 격을 정하고 격을 이루는 글자를 본다(요지). '용신'의 뜻 자체가 다르다."
+    conflicts_with: [eokbu.method.overview]   # 억부 항목은 P3-06에서 작성 예정
+    engine_rule: rules.usefulGod.johu
+    reviewed_by: []
+
+  - id: johu.matrix.structure
+    topic: 조후 / 일간 × 월 표의 구조
+    classic: 궁통보감
+    classical:
+      summary: "책은 열 개 일간(甲~癸)을 한 장씩 다루고, 각 장 안에서 봄·여름·가을·겨울의 석 달을 차례로 다룬다고 알려져 있다. 달은 절기로 나눈 달(寅월을 첫 달)로 본다."
+      basis: paraphrase
+      original_text: null
+      citation: null
+      source_status: unverified
+    modern:
+      interpretation: "엔진 표의 행 = 일간 10개, 열 = 월지 12개(절기 월). 월지는 CalendarResult.pillars.month.branch를 그대로 쓴다(음력 달이 아님)."
+      notes: "'달을 절기 월로 본다'는 점도 원문 대조 전이라 unverified. 음력 달로 읽는 오해를 막기 위해 엔진은 반드시 월지(절기 기준)로 조회한다."
+    schools: []
+    conflicts_with: []
+    engine_rule: rules.usefulGod.johu
+    reviewed_by: []
+
+# ── 표 축 정의 ─────────────────────────────────────────────
+axes:
+  day_stem: [甲, 乙, 丙, 丁, 戊, 己, 庚, 辛, 壬, 癸]
+  month_branch:                       # 절기 월. 계절 묶음은 일반 통용(rules-spec §2)
+    - { branch: 寅, season: spring, order: 1, starts_at_term: 立春 }
+    - { branch: 卯, season: spring, order: 2, starts_at_term: 驚蟄 }
+    - { branch: 辰, season: spring, order: 3, starts_at_term: 清明 }
+    - { branch: 巳, season: summer, order: 4, starts_at_term: 立夏 }
+    - { branch: 午, season: summer, order: 5, starts_at_term: 芒種 }
+    - { branch: 未, season: summer, order: 6, starts_at_term: 小暑 }
+    - { branch: 申, season: autumn, order: 7, starts_at_term: 立秋 }
+    - { branch: 酉, season: autumn, order: 8, starts_at_term: 白露 }
+    - { branch: 戌, season: autumn, order: 9, starts_at_term: 寒露 }
+    - { branch: 亥, season: winter, order: 10, starts_at_term: 立冬 }
+    - { branch: 子, season: winter, order: 11, starts_at_term: 大雪 }
+    - { branch: 丑, season: winter, order: 12, starts_at_term: 小寒 }
+
+# ── 칸(cell) 형식 ──────────────────────────────────────────
+# 120칸 각각을 아래 형식으로 채운다. 확인 전에는 칸을 만들지 않는다(빈 칸 = 미확인).
+cell_schema:
+  id: "johu.{dayStem}.{monthBranch}"   # 예: johu.甲.寅
+  day_stem: Stem
+  month_branch: Branch
+  sub_period: null                     # 원문이 같은 달을 절기 앞뒤로 나눠 말한 경우만 (예: 中氣 전/후). 없으면 null
+  primary: []                          # 주로 쓰는 천간 (원문 순서 유지)
+  auxiliary: []                        # 보조 천간
+  conditions: []                       # 원문이 붙인 조건(투출·통근·특정 글자 유무 등)을 요지로
+  avoid: []                            # 꺼린다고 한 글자
+  classical:
+    summary: null                      # 칸 요지
+    removed_in_modern: []              # 귀천·빈부·수명 등 판정 원문 요지
+    original_text: null                # L2 확인 시에만, 짧은 구절
+    citation: null                     # 판본·권·장(일간)·쪽 또는 URL
+    source_status: unverified
+  modern:
+    interpretation: null
+  edition_diffs: []                    # 원본(난강망 계열)·여춘대본·서락오 평주본(造化元鑰) 사이 글자 차이
+  reviewed_by: []
+
+# ── 엔진 사용 규칙 (P3-06 입력) ────────────────────────────
+engine_usage:
+  lookup: "dayStem + pillars.month.branch 로 칸 조회. 칸이 없으면 조후 후보를 내지 않고 basis에 'johu table cell unverified'를 남긴다."
+  output: "usefulGodCandidates 에 { element, method: '조후', school: '궁통보감', basis: [cell id, 조건 충족 여부] } 추가"
+  forbidden: "칸이 비어 있을 때 LLM이나 추정으로 채우지 않는다."
+
+cells: []   # 아직 L2 확인된 칸 없음

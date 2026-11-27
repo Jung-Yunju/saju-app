@@ -3,6 +3,7 @@
 import { useState } from "react"
 import ReactMarkdown from "react-markdown"
 import Link from "next/link"
+import { sanitizeBoldHtml } from "@/lib/sanitize"
 import type { FullReading, Part, Chapter, Fork, YearEntry, LifeGraph as LifeGraphType } from "@/lib/generate-reading-v2"
 
 const EL_KO: Record<string, string> = {
@@ -440,7 +441,7 @@ function ChapterSlide({ part, chapter }: { part: string; chapter: Chapter }) {
       <div className="flex-1 overflow-y-auto bhl" style={{ padding: "3.5cqw 6cqw" }}>
         {chapter.body.map((para, i) => (
           <p key={i} style={{ fontSize: "3.5cqw", lineHeight: 1.9, marginBottom: "2.5cqw", color: "#374151" }}
-            dangerouslySetInnerHTML={{ __html: para }} />
+            dangerouslySetInnerHTML={{ __html: sanitizeBoldHtml(para) }} />
         ))}
       </div>
 

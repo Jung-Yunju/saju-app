@@ -1,0 +1,226 @@
+# 십성(十星) 기본 의미 — 첫 지식 항목 묶음 (P3-08)
+# 작성: 명리학 연구소장 · 2026-11-27
+#
+# 중요:
+# - classical.summary 는 모두 연구소장의 기억·통설에 따른 "요지(paraphrase)"다. 고전 원문 인용이 아니다.
+#   그래서 original_text 는 전부 null, source_status 는 전부 unverified 이다.
+# - classic 칸은 "이 관점을 대표한다고 알려진 고전"이며, 해당 편·구절을 확인했다는 뜻이 아니다.
+# - modern.interpretation 은 서비스 문장의 재료다. 성별·도덕·길흉 판정을 걷어 냈고,
+#   걷어 낸 내용은 classical.removed_in_modern 에 원래 판정 그대로(요지) 남겨 둔다(원문 왜곡 금지 원칙).
+# - 원칙 출처: src/lib/generate-reading-v2.ts SYSTEM_PROMPT 원칙 4·5·8·11.
+
+meta:
+  file_id: tengods
+  version: 0.1.0
+  engine_rule: rules.tenGods        # 판정 공식은 docs/knowledge/rules-spec.md §4
+  common_schools:
+    - school: "자평진전 계열(요지, unverified)"
+      view: "재·관·인·식신은 순하게 쓰는 '선신(善神)', 칠살·상관·효신(편인)·양인은 제어해서 쓰는 '흉신'으로 나누고, 격국 안에서 돕는 글자(相神)와의 관계로 성패를 본다."
+    - school: "적천수 계열(요지, unverified)"
+      view: "십성의 이름보다 오행의 기세·왕쇠·흐름(순역)을 먼저 보고, 같은 십성도 사주 전체 균형에 따라 득실이 바뀐다고 본다."
+    - school: "현대 한국 서비스 관점(본 서비스 채택안)"
+      view: "십성을 좋고 나쁨이 아니라 '에너지가 흐르는 방향'(나와 같음·내가 냄·내가 다룸·나를 다룸·나를 채움)으로 설명하고, 성별에 따라 의미를 바꾸지 않는다."
+  kinship_policy:
+    classical: "육친(가족 대응)은 성별에 따라 다르게 배정한다(요지): 남자는 정재=아내·편재=아버지(또는 아내 밖의 여성)·관살=자녀, 여자는 정관=남편·편관=남편 밖의 남성(또는 재혼 남편)·식상=자녀, 공통으로 정인=어머니·비겁=형제."
+    modern: "서비스 기본 문장에서는 육친을 성별로 바꾸지 않는다. 배우자 이야기는 일지(배우자 자리)와 '관계를 맺는 방식'으로 쓰고, 십성은 관계의 성격(규율·자원·돌봄 등)으로만 쓴다. 육친 배정은 사용자가 '전통 해석 보기'를 고를 때만 원래 판정으로 보여 주고, 시대적 기준이라는 설명을 붙인다."
+    reason: "같은 글자를 성별에 따라 남편·첩·자녀 등으로 바꾸는 체계는 가부장 가족 구조를 전제로 한다. 동성 배우자·비혼·한부모 등 오늘의 가족 형태에 맞지 않고, 여성에게만 불리한 판정(극부·재가 등)을 낳는다."
+
+entries:
+  - id: tengod.bigyeon.basic
+    topic: 십성 / 비견(比肩)
+    classic: 연해자평
+    classical:
+      summary: "일간과 같은 오행·같은 음양. 형제·벗·동료에 해당하고, 일간을 돕는 힘이 된다. 많으면 재물을 나누게 되어 재성을 약하게 한다고 본다."
+      basis: paraphrase
+      removed_in_modern:
+        - "남자 사주에서 비견이 많으면 아내(재성)를 극한다는 판정"
+      original_text: null
+      citation: null
+      source_status: unverified
+    modern:
+      interpretation: "나와 같은 힘. 스스로 서려는 마음, 대등한 관계, 같이 뛰는 사람. 너무 많으면 몫을 나누거나 자기 방식만 고집하기 쉽고, 적으면 혼자 힘으로 버티는 데 지칠 수 있다."
+      notes: "아내를 극한다는 판정은 재성=아내 배정과 함께 걷어 냈다. '몫을 나눈다'는 재물·자원 이야기로만 남긴다."
+    schools: []
+    conflicts_with: []
+    engine_rule: rules.tenGods
+    reviewed_by: []
+
+  - id: tengod.geopjae.basic
+    topic: 십성 / 겁재(劫財)
+    classic: 자평진전
+    classical:
+      summary: "일간과 같은 오행·다른 음양. 재물을 빼앗는 별이라는 이름 그대로 경쟁·탈재로 본다. 양간 일간의 겁재가 제왕 자리에 있으면 양인(羊刃)이라 하여 칠살과 함께 쓰면 권위가 된다고 본다."
+      basis: paraphrase
+      removed_in_modern:
+        - "남자 사주에서 겁재가 왕하면 아내를 잃는다(극처)는 판정"
+        - "여자 사주의 비겁 태왕을 '드세다'로 보는 판정"
+      original_text: null
+      citation: null
+      source_status: unverified
+    modern:
+      interpretation: "나와 닮았지만 결이 다른 힘. 지기 싫어하는 승부욕, 경쟁 속에서 크는 힘, 빠른 결단. 자원을 두고 다투기 쉬우니 돈을 섞는 동업·보증은 되돌릴 수 있는 크기로 하라는 조언이 맞다."
+      notes: "'드세다'는 SYSTEM_PROMPT 원칙 5에 따라 '제 일을 끝까지 끌고 가는 힘'으로 바꾼다. 극처 판정은 육친 정책에 따라 제거."
+    schools:
+      - school: "양인 구분"
+        view: "겁재와 양인을 같은 것으로 보는 설과, 양인은 양간에만 성립하는 별개의 개념으로 보는 설이 있다(요지). 엔진은 십성(겁재)과 신살(양인)을 따로 기록한다."
+    conflicts_with: []
+    engine_rule: rules.tenGods
+    reviewed_by: []
+
+  - id: tengod.siksin.basic
+    topic: 십성 / 식신(食神)
+    classic: 자평진전
+    classical:
+      summary: "일간이 생하는 같은 음양. 먹을 복·여유·수명의 별로 보고 '선신'에 넣는다. 칠살을 눌러 다스린다(식신제살)고 보며, 편인을 만나면 식신이 꺾인다(효신탈식)고 꺼린다."
+      basis: paraphrase
+      removed_in_modern:
+        - "여자 사주에서 식신을 자녀로 배정하는 판정"
+      original_text: null
+      citation: null
+      source_status: unverified
+    modern:
+      interpretation: "내 안에서 자연스럽게 흘러나오는 힘. 즐기면서 오래 하는 재주, 먹고 쉬고 만드는 감각, 남을 먹이고 돌보는 마음. 넘치면 편한 쪽으로만 흐르기 쉽다."
+      notes: "'수명의 별'이라는 표현은 서비스에서 쓰지 않는다(수명 언급 금지 원칙)."
+    schools: []
+    conflicts_with: [tengod.pyeonin.basic]
+    engine_rule: rules.tenGods
+    reviewed_by: []
+
+  - id: tengod.sanggwan.basic
+    topic: 십성 / 상관(傷官)
+    classic: 자평진전
+    classical:
+      summary: "일간이 생하는 다른 음양. 총명·재주·말솜씨가 뛰어나지만 정관(규범)을 상하게 한다고 하여 '흉신'으로 다룬다. 상관이 정관을 만나면 화가 많다고 보며, 재성으로 흐르거나 인성으로 제어되면 쓸모가 된다고 본다."
+      basis: paraphrase
+      removed_in_modern:
+        - "여자 사주의 상관은 남편성(정관)을 극해 남편 덕이 없거나 남편을 해친다는 판정"
+        - "상관을 오만·불손 등 품행 결함으로 단정하는 판정"
+      original_text: null
+      citation: null
+      source_status: unverified
+    modern:
+      interpretation: "틀을 깨고 새로 표현하는 힘. 날카로운 말과 글, 고칠 점을 먼저 보는 눈, 기존 규칙에 대한 질문. 조직·규범과 부딪히기 쉬우니 말의 날을 어디에 쓸지 고르는 것이 관건이다."
+      notes: "남편을 해친다는 판정은 성차별적 판정이라 제거. 품행 단정 대신 '부딪히는 지점'을 묘사한다(원칙 11)."
+    schools:
+      - school: "상관견관 판정 조건"
+        view: "상관과 정관이 함께 있으면 무조건 흉으로 보는 설과, 재성이 사이를 잇거나 인성이 상관을 제어하면 문제가 없다고 보는 설이 있다(요지). 엔진은 '상관·정관 동주' 사실만 기록하고 길흉 판정은 하지 않는다."
+    conflicts_with: [tengod.jeonggwan.basic]
+    engine_rule: rules.tenGods
+    reviewed_by: []
+
+  - id: tengod.pyeonjae.basic
+    topic: 십성 / 편재(偏財)
+    classic: 연해자평
+    classical:
+      summary: "일간이 극하는 같은 음양. 아버지, 유동적인 재물, 큰돈의 흐름으로 본다. 성품은 시원하고 씀씀이가 크다고 본다."
+      basis: paraphrase
+      removed_in_modern:
+        - "남자 사주에서 편재를 아내 밖의 여성(첩)으로 배정하는 판정"
+      original_text: null
+      citation: null
+      source_status: unverified
+    modern:
+      interpretation: "넓게 굴리는 자원. 사람과 돈을 움직이는 수완, 기회를 보는 눈, 활동 범위가 넓은 생활. 넘치면 벌여 놓은 일이 많아 관리가 새기 쉽다."
+      notes: "첩 배정은 축첩 제도를 전제로 한 판정이라 제거."
+    schools: []
+    conflicts_with: []
+    engine_rule: rules.tenGods
+    reviewed_by: []
+
+  - id: tengod.jeongjae.basic
+    topic: 십성 / 정재(正財)
+    classic: 자평진전
+    classical:
+      summary: "일간이 극하는 다른 음양. 정당하게 버는 재물·봉록, 근검과 신용으로 보고 '선신'에 넣는다. 남자 사주에서는 아내의 별이다."
+      basis: paraphrase
+      removed_in_modern:
+        - "정재=아내 배정(남자 사주 한정)"
+      original_text: null
+      citation: null
+      source_status: unverified
+    modern:
+      interpretation: "차곡차곡 쌓는 자원. 성실하게 관리하는 힘, 약속과 계산이 분명한 태도, 안정된 생활 기반. 넘치면 지키는 데 마음이 묶여 움직임이 줄 수 있다."
+      notes: "배우자 이야기는 성별과 무관하게 일지 중심으로 쓴다(kinship_policy)."
+    schools: []
+    conflicts_with: []
+    engine_rule: rules.tenGods
+    reviewed_by: []
+
+  - id: tengod.pyeongwan.basic
+    topic: 십성 / 편관(偏官·七殺)
+    classic: 자평진전
+    classical:
+      summary: "일간을 극하는 같은 음양. 칠살이라 부르며 '흉신'에 넣는다. 식신으로 누르거나 인성으로 풀면(제화) 권위·무관·결단력이 되고, 제어되지 않으면 재앙과 시비가 따른다고 본다."
+      basis: paraphrase
+      removed_in_modern:
+        - "여자 사주의 편관을 남편 밖의 남성·재혼 남편으로 배정하는 판정"
+        - "편관 배우자를 '사나운 짝'으로 보는 판정"
+      original_text: null
+      citation: null
+      source_status: unverified
+    modern:
+      interpretation: "나를 세게 단련하는 힘. 압박 속에서 버티는 근성, 위기 대응, 강한 책임과 규율. 다룰 장치(기술·체력·쉼)가 있으면 추진력이 되고, 없으면 긴장과 소진으로 온다."
+      notes: "원칙 5: 편관 배우자 = '기준이 높고 나보다 세서 배울 것이 있는 사람'. 재앙 단정은 원칙 8에 따라 '흔들림'과 미리 할 일로 바꾼다. 어린 시절의 관성 해석은 원칙 4(엄한 집·규율)를 따른다."
+    schools: []
+    conflicts_with: []
+    engine_rule: rules.tenGods
+    reviewed_by: []
+
+  - id: tengod.jeonggwan.basic
+    topic: 십성 / 정관(正官)
+    classic: 자평진전
+    classical:
+      summary: "일간을 극하는 다른 음양. 귀함·벼슬·명예·규범의 별로 '선신'에 넣는다. 상관에 상하거나 형충을 받는 것을 꺼린다. 여자 사주에서는 남편의 별이다."
+      basis: paraphrase
+      removed_in_modern:
+        - "정관=남편 배정(여자 사주 한정)"
+        - "여자 사주에 관이 없으면 남편 덕이 없다는 판정"
+      original_text: null
+      citation: null
+      source_status: unverified
+    modern:
+      interpretation: "나를 바르게 세우는 틀. 책임감, 신뢰받는 자리, 제도 안에서 인정받는 길. 넘치면 남의 기준에 맞추느라 자기 목소리가 작아질 수 있다."
+      notes: "원칙 5: 여자의 무관 = '남편에게 기대어 서는 팔자가 아니다'. 관직·벼슬은 오늘의 '조직·제도·자격'으로 옮긴다."
+    schools: []
+    conflicts_with: [tengod.sanggwan.basic]
+    engine_rule: rules.tenGods
+    reviewed_by: []
+
+  - id: tengod.pyeonin.basic
+    topic: 십성 / 편인(偏印·梟神)
+    classic: 자평진전
+    classical:
+      summary: "일간을 생하는 같은 음양. 효신(梟神)이라 하여 식신을 빼앗는다(효신탈식)고 '흉신'에 넣는다. 의술·점술·예술 같은 특수한 학문, 고독, 계모에 대응시키기도 한다."
+      basis: paraphrase
+      removed_in_modern:
+        - "편인이 많으면 성품이 괴팍하고 고독하다는 품행 판정"
+        - "편인=계모 배정"
+      original_text: null
+      citation: null
+      source_status: unverified
+    modern:
+      interpretation: "남다른 방식으로 채우는 힘. 직관, 깊이 파고드는 공부, 비주류 분야의 감각, 혼자 생각할 시간이 필요한 기질. 넘치면 생각이 많아 실행이 늦어질 수 있다."
+      notes: "괴팍·고독 판정은 원칙 11에 따라 '왜 혼자 있으려 하는가'의 묘사로 바꾼다."
+    schools: []
+    conflicts_with: [tengod.siksin.basic]
+    engine_rule: rules.tenGods
+    reviewed_by: []
+
+  - id: tengod.jeongin.basic
+    topic: 십성 / 정인(正印)
+    classic: 자평진전
+    classical:
+      summary: "일간을 생하는 다른 음양. 어머니, 학문·문서·인덕, 보호의 별로 '선신'에 넣는다. 관성의 기운을 일간에 이어 주고(관인상생), 재성에 깨지는 것(재극인)을 꺼린다."
+      basis: paraphrase
+      removed_in_modern:
+        - "인성이 없거나 공망이면 부모(어머니) 덕이 없다는 판정"
+      original_text: null
+      citation: null
+      source_status: unverified
+    modern:
+      interpretation: "나를 채우고 받쳐 주는 힘. 배우고 익히는 힘, 자격과 문서, 돌봄을 받고 주는 관계. 넘치면 받기만 하고 움직이지 않거나 준비만 길어질 수 있다."
+      notes: "원칙 4: 인성 부재·공망을 '부모 덕 없음'으로 쓰지 않고, 어머니가 품을 내줄 틈이 없던 집·혼자 삭이는 아이로 읽을 수 있다."
+    schools: []
+    conflicts_with: []
+    engine_rule: rules.tenGods
+    reviewed_by: []

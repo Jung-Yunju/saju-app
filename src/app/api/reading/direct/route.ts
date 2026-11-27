@@ -1,83 +1,110 @@
+// 결제 없이(0원) 풀이를 신청하는 경로.
+// 운영(NODE_ENV=production)에서는 ALLOW_FREE_READING=true일 때만 열린다.
+// 열려 있어도 사용자당 24시간 FREE_READING_DAILY_LIMIT건(기본 3)까지만 만든다.
+// 이 경로는 레코드만 만들고 AI를 부르지 않는다. AI 생성은 /api/reading/[id]/generate (1회 잠금).
+import { randomUUID } from "node:crypto"
 import { NextRequest, NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
-import { prisma, withRetry } from "@/lib/prisma"
-import { buildSajuInput } from "@/lib/saju-input"
+import { prisma } from "@/lib/prisma"
+import { getSessionUser } from "@/lib/session-user"
+import { buildSajuInput, type SajuInputData } from "@/lib/saju-input"
+import {
+  getFreeReadingDailyLimit, isFreeReadingAllowed, readJsonBody, validateReadingRequest,
+} from "@/lib/validate"
+import { MSG, jsonError, serverError } from "../../_lib/http"
+import { READING_STATUS } from "../_lib/reading-lock"
 
 export const maxDuration = 30
 
+const TAG = "/api/reading/direct"
+const DAY_MS = 24 * 60 * 60 * 1000
+
+class DailyLimitError extends Error {}
+
 export async function POST(req: NextRequest) {
-  const session = await auth()
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 })
+  if (!isFreeReadingAllowed()) return jsonError(MSG.FREE_READING_CLOSED, 403)
+
+  let userId: string
+  try {
+    const user = await getSessionUser({ createIfMissing: true })
+    if (!user) return jsonError(MSG.LOGIN_REQUIRED, 401)
+    userId = user.userId
+  } catch (err) {
+    return serverError(TAG, err)
   }
 
-  const body = await req.json()
-  const {
-    readingType = "BASIC",
-    name, birthYear, birthMonth, birthDay, birthHour, gender, calType = "SOLAR",
-    otherName, otherBirthYear, otherBirthMonth, otherBirthDay, otherBirthHour, otherGender,
-  } = body
+  const body = await readJsonBody(req)
+  if (!body.ok) return jsonError(body.error, 400)
+  const input = validateReadingRequest(body.value)
+  if (!input.ok) return jsonError(input.error, 400)
+  const v = input.value
 
-  if (!birthYear || !birthMonth || !birthDay || !gender) {
-    return NextResponse.json({ error: "생년월일과 성별을 입력해주세요." }, { status: 400 })
+  // 만세력 계산이 실패하는 입력(예: 그 해에 없는 음력 30일)은 레코드를 만들기 전에 거른다
+  let sajuInput: SajuInputData
+  try {
+    sajuInput = buildSajuInput(
+      v.birthYear, v.birthMonth, v.birthDay, v.birthHour, v.gender, v.calType, v.name ?? undefined,
+    )
+  } catch (err) {
+    console.error(`[${TAG}] 사주 계산 실패`, err)
+    return jsonError("입력한 생년월일로 사주를 계산할 수 없습니다. 날짜를 확인해 주세요.", 400)
   }
+
+  const limit = getFreeReadingDailyLimit()
 
   try {
-    // 로컬 DB에 User 레코드가 없을 때 자동 생성 (이메일 충돌 시 기존 레코드 사용)
-    let userId = session.user.id
-    try {
-      await prisma.user.upsert({
-        where: { id: session.user.id },
-        update: {},
-        create: {
-          id: session.user.id,
-          email: session.user.email ?? `${session.user.id}@local.dev`,
-          name: session.user.name ?? null,
+    const readingId = await prisma.$transaction(async tx => {
+      // 같은 사용자의 동시 요청을 줄 세워 한도 검사와 생성 사이 경쟁을 막는다 (트랜잭션 종료 시 자동 해제)
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${`free_reading:${userId}`}))`
+
+      const used = await tx.order.count({
+        where: { userId, amount: 0, createdAt: { gte: new Date(Date.now() - DAY_MS) } },
+      })
+      if (used >= limit) throw new DailyLimitError()
+
+      const order = await tx.order.create({
+        data: {
+          userId,
+          orderId: `free_${randomUUID().replace(/-/g, "")}`,
+          amount: 0,
+          status: "PAID",
         },
       })
-    } catch {
-      if (session.user.email) {
-        const existing = await prisma.user.findUnique({ where: { email: session.user.email } })
-        if (existing) userId = existing.id
-      }
-    }
 
-    const orderId = `dev_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+      const reading = await tx.reading.create({
+        data: {
+          userId,
+          orderId: order.id,
+          readingType: v.readingType,
+          name: v.name,
+          birthYear: v.birthYear,
+          birthMonth: v.birthMonth,
+          birthDay: v.birthDay,
+          birthHour: v.birthHour,
+          gender: v.gender,
+          calType: v.calType,
+          otherName: v.other?.name ?? null,
+          otherBirthYear: v.other?.year ?? null,
+          otherBirthMonth: v.other?.month ?? null,
+          otherBirthDay: v.other?.day ?? null,
+          otherBirthHour: v.other?.hour ?? null,
+          otherGender: v.other?.gender ?? null,
+          status: READING_STATUS.PENDING,
+          sajuInput: sajuInput as object,
+          content: "",
+        },
+        select: { id: true },
+      })
+      return reading.id
+    })
 
-    const order = await withRetry(() => prisma.order.create({
-      data: { userId, orderId, amount: 0, status: "PAID" },
-    }))
-
-    const sajuInput = buildSajuInput(
-      birthYear, birthMonth, birthDay,
-      birthHour ?? null, gender, calType, name || undefined,
-    )
-
-    const reading = await withRetry(() => prisma.reading.create({
-      data: {
-        userId,
-        orderId: order.id,
-        readingType,
-        name: name || null,
-        birthYear, birthMonth, birthDay,
-        birthHour: birthHour ?? null,
-        gender, calType,
-        otherName: otherName || null,
-        otherBirthYear: otherBirthYear ?? null,
-        otherBirthMonth: otherBirthMonth ?? null,
-        otherBirthDay: otherBirthDay ?? null,
-        otherBirthHour: otherBirthHour ?? null,
-        otherGender: otherGender ?? null,
-        status: "PENDING",
-        sajuInput: sajuInput as object,
-        content: "",
-      },
-    }))
-
-    return NextResponse.json({ readingId: reading.id })
+    return NextResponse.json({ readingId })
   } catch (err) {
-    console.error("[/api/reading/direct] 오류:", err)
-    const message = err instanceof Error ? err.message : "알 수 없는 오류"
-    return NextResponse.json({ error: message }, { status: 500 })
+    if (err instanceof DailyLimitError) {
+      return jsonError(
+        `무료 풀이는 하루(24시간)에 ${limit}번까지 신청할 수 있어요. 나중에 다시 시도해 주세요.`,
+        429,
+      )
+    }
+    return serverError(TAG, err)
   }
 }

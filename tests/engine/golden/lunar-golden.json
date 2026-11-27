@@ -1,0 +1,1827 @@
+{
+  "description": "만세력 골든 테스트셋 v1 — 한국 음력→양력 기대값. 생성: scripts/qa/golden-lunar-gen.mjs (수정 금지, 스크립트로 재생성)",
+  "oracle": "astronomy-engine 2.1.19, 합삭·中氣의 UTC+9 날짜, 冬至=11월, 무중치윤(無中置閏)",
+  "sourceLevels": {
+    "official-search": "정부(월력요항 보도자료)·KASI 달력자료 페이지 내용을 웹 검색 인용으로 확인. 원문 직접 열람은 네트워크 차단으로 못 함",
+    "secondary": "언론·위키 등 2차 자료",
+    "none": "웹 확인 없음 — 오라클 계산값만"
+  },
+  "cases": [
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2000,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2000-02-05",
+      "sources": [
+        {
+          "url": "https://namu.wiki/w/%EC%84%A4%EB%82%A0",
+          "level": "secondary",
+          "note": "나무위키 설날: 2000년 연휴 2/4~2/6 → 가운데 날(유도값)",
+          "solar": "2000-02-05"
+        }
+      ]
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2001,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2001-01-24",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2002,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2002-02-12",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2003,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2003-02-01",
+      "sources": [
+        {
+          "url": "https://namu.wiki/w/%EC%84%A4%EB%82%A0",
+          "level": "secondary",
+          "note": "나무위키 설날: 2003년 연휴 1/31~2/2 → 가운데 날(유도값)",
+          "solar": "2003-02-01"
+        }
+      ]
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2004,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2004-01-22",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2005,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2005-02-09",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2006,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2006-01-29",
+      "sources": [
+        {
+          "url": "https://namu.wiki/w/%EC%84%A4%EB%82%A0",
+          "level": "secondary",
+          "note": "나무위키 설날: 2006년 연휴 1/28~1/30 → 가운데 날(유도값)",
+          "solar": "2006-01-29"
+        }
+      ]
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2007,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2007-02-18",
+      "sources": [
+        {
+          "url": "https://namu.wiki/w/%EC%84%A4%EB%82%A0",
+          "level": "secondary",
+          "note": "나무위키 설날: 2007년 연휴 2/17~2/19 → 가운데 날(유도값)",
+          "solar": "2007-02-18"
+        }
+      ]
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2008,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2008-02-07",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2009,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2009-01-26",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2010,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2010-02-14",
+      "sources": [
+        {
+          "url": "https://namu.wiki/w/%EC%84%A4%EB%82%A0",
+          "level": "secondary",
+          "note": "나무위키 설날: 2010년 연휴 2/13~2/15, 설날 당일이 발렌타인데이",
+          "solar": "2010-02-14"
+        }
+      ]
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2011,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2011-02-03",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2012,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2012-01-23",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2013,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2013-02-10",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2014,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2014-01-31",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2015,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2015-02-19",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2016,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2016-02-08",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2017,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2017-01-28",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2018,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2018-02-16",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2019,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2019-02-05",
+      "sources": [
+        {
+          "url": "https://www.kasi.re.kr/kor/publication/post/newsMaterial/10397",
+          "level": "official-search",
+          "note": "2019년 월력요항: 설날(음 1월 1일) 2월 5일(화)",
+          "solar": "2019-02-05"
+        }
+      ]
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2020,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2020-01-25",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2021,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2021-02-12",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2022,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2022-02-01",
+      "sources": [
+        {
+          "url": "https://www.kasi.re.kr/kor/publication/post/newsMaterial/28806",
+          "level": "official-search",
+          "note": "2022년도 월력요항: 설날(음 1월 1일) 2월 1일(화)",
+          "solar": "2022-02-01"
+        }
+      ]
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2023,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2023-01-22",
+      "sources": [
+        {
+          "url": "https://www.kasi.re.kr/kor/publication/post/newsMaterial/29168",
+          "level": "official-search",
+          "note": "2023년도 월력요항: 설날(1.22.) 일요일과 겹침",
+          "solar": "2023-01-22"
+        }
+      ]
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2024,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2024-02-10",
+      "sources": [
+        {
+          "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148916689",
+          "level": "official-search",
+          "note": "2024년도 월력요항(정책브리핑): 설날(음 1월 1일) 2월 10일(토)",
+          "solar": "2024-02-10"
+        }
+      ]
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2025,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2025-01-29",
+      "sources": [
+        {
+          "url": "https://www.kasi.re.kr/kor/publication/post/newsMaterial/30071",
+          "level": "official-search",
+          "note": "2025년도 월력요항: 설날(음 1월 1일) 1월 29일(수)",
+          "solar": "2025-01-29"
+        }
+      ]
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2026,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2026-02-17",
+      "sources": [
+        {
+          "url": "https://astro.kasi.re.kr/life/post/calendarData",
+          "level": "official-search",
+          "note": "KASI 달력자료 2026: 설날 연휴 2/16~2/18 → 가운데 날(유도값)",
+          "solar": "2026-02-17"
+        }
+      ]
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2027,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2027-02-07",
+      "sources": [
+        {
+          "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156768474",
+          "level": "official-search",
+          "note": "2027년 월력요항: 설날 2월 7일(일), 연휴 2/6~2/8",
+          "solar": "2027-02-07"
+        }
+      ]
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2028,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2028-01-27",
+      "sources": [
+        {
+          "url": "https://astro.kasi.re.kr/life/post/calendarData",
+          "level": "official-search",
+          "note": "KASI 달력자료(2년 후 자료=2028): 설날 1/26~1/28 → 가운데 날(유도값)",
+          "solar": "2028-01-27"
+        }
+      ]
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2029,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2029-02-13",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 2030,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "2030-02-03",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2000,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2000-09-12",
+      "sources": [
+        {
+          "url": "https://namu.wiki/w/%EC%B6%94%EC%84%9D",
+          "level": "secondary",
+          "note": "나무위키 추석: 2000년 당일 9/12(화)",
+          "solar": "2000-09-12"
+        }
+      ]
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2001,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2001-10-01",
+      "sources": [
+        {
+          "url": "https://namu.wiki/w/%EC%B6%94%EC%84%9D",
+          "level": "secondary",
+          "note": "나무위키 추석: 2001년 10/1(월), 개천절 연계",
+          "solar": "2001-10-01"
+        }
+      ]
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2002,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2002-09-21",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2003,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2003-09-11",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2004,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2004-09-28",
+      "sources": [
+        {
+          "url": "https://namu.wiki/w/%EC%B6%94%EC%84%9D",
+          "level": "secondary",
+          "note": "나무위키 추석: 2004년 9/28(화)",
+          "solar": "2004-09-28"
+        }
+      ]
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2005,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2005-09-18",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2006,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2006-10-06",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2007,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2007-09-25",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2008,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2008-09-14",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2009,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2009-10-03",
+      "sources": [
+        {
+          "url": "https://namu.wiki/w/%EC%B6%94%EC%84%9D",
+          "level": "secondary",
+          "note": "나무위키 추석: 2009년 연휴 10/2~10/4 → 가운데 날(유도값)",
+          "solar": "2009-10-03"
+        }
+      ]
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2010,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2010-09-22",
+      "sources": [
+        {
+          "url": "https://namu.wiki/w/%EC%B6%94%EC%84%9D",
+          "level": "secondary",
+          "note": "나무위키 추석: 2010년 추석 9/22",
+          "solar": "2010-09-22"
+        }
+      ]
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2011,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2011-09-12",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2012,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2012-09-30",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2013,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2013-09-19",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2014,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2014-09-08",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2015,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2015-09-27",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2016,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2016-09-15",
+      "sources": [
+        {
+          "url": "https://www.kasi.re.kr/kor/publication/post/newsMaterial/2536",
+          "level": "official-search",
+          "note": "2016년 월력요항: 추석 연휴 9/14~9/16 → 가운데 날(유도값)",
+          "solar": "2016-09-15"
+        }
+      ]
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2017,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2017-10-04",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2018,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2018-09-24",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2019,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2019-09-13",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2020,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2020-10-01",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2021,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2021-09-21",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2022,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2022-09-10",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2023,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2023-09-29",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2024,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2024-09-17",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2025,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2025-10-06",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2026,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2026-09-25",
+      "sources": [
+        {
+          "url": "https://astro.kasi.re.kr/life/post/calendarData",
+          "level": "official-search",
+          "note": "KASI 달력자료 2026: 추석 연휴 9/24~9/26 → 가운데 날(유도값)",
+          "solar": "2026-09-25"
+        }
+      ]
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2027,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2027-09-15",
+      "sources": [
+        {
+          "url": "https://www.korea.kr/briefing/pressReleaseView.do?newsId=156768474",
+          "level": "official-search",
+          "note": "2027년 월력요항: 추석 9월 15일(수), 연휴 9/14~9/16",
+          "solar": "2027-09-15"
+        }
+      ]
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2028,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2028-10-03",
+      "sources": [
+        {
+          "url": "https://astro.kasi.re.kr/life/post/calendarData",
+          "level": "official-search",
+          "note": "KASI 달력자료(2028): 추석 10/2~10/4 → 가운데 날(유도값)",
+          "solar": "2028-10-03"
+        }
+      ]
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2029,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2029-09-22",
+      "sources": []
+    },
+    {
+      "kind": "chuseok",
+      "lunar": {
+        "year": 2030,
+        "month": 8,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2030-09-12",
+      "sources": []
+    },
+    {
+      "kind": "seollal",
+      "lunar": {
+        "year": 1997,
+        "month": 1,
+        "day": 1,
+        "isLeapMonth": false
+      },
+      "solar": "1997-02-08",
+      "sources": [
+        {
+          "url": "https://www.hankyung.com/article/1997020303191",
+          "level": "secondary",
+          "note": "한국경제 1997-02-03: 1997년 음력 1월 합삭 한국 2/8 0시6분 → 한국 설날 2/8, 중국 2/7",
+          "solar": "1997-02-08"
+        },
+        {
+          "url": "https://www.imaeil.com/page/view/1997011414413678674",
+          "level": "secondary",
+          "note": "매일신문 1997-01-14: 한·중 올해 설날이 다르다",
+          "solar": "1997-02-08"
+        }
+      ]
+    },
+    {
+      "kind": "other",
+      "lunar": {
+        "year": 2016,
+        "month": 1,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2016-02-22",
+      "sources": [
+        {
+          "url": "https://www.kasi.re.kr/kor/publication/post/newsMaterial/2536",
+          "level": "official-search",
+          "note": "2016년 월력요항: 정월대보름(음 1월 15일) 2월 22일(월)",
+          "solar": "2016-02-22"
+        }
+      ]
+    },
+    {
+      "kind": "other",
+      "lunar": {
+        "year": 2016,
+        "month": 5,
+        "day": 5,
+        "isLeapMonth": false
+      },
+      "solar": "2016-06-09",
+      "sources": [
+        {
+          "url": "https://www.kasi.re.kr/kor/publication/post/newsMaterial/2536",
+          "level": "official-search",
+          "note": "2016년 월력요항: 단오 6월 9일",
+          "solar": "2016-06-09"
+        }
+      ]
+    },
+    {
+      "kind": "other",
+      "lunar": {
+        "year": 2016,
+        "month": 7,
+        "day": 7,
+        "isLeapMonth": false
+      },
+      "solar": "2016-08-09",
+      "sources": [
+        {
+          "url": "https://www.kasi.re.kr/kor/publication/post/newsMaterial/2536",
+          "level": "official-search",
+          "note": "2016년 월력요항: 칠석 8월 9일",
+          "solar": "2016-08-09"
+        }
+      ]
+    },
+    {
+      "kind": "other",
+      "lunar": {
+        "year": 2017,
+        "month": 1,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2017-02-11",
+      "sources": [
+        {
+          "url": "https://www.kasi.re.kr/kor/publication/post/newsMaterial/3660",
+          "level": "official-search",
+          "note": "2017년 월력요항: 정월대보름(음 1월 15일) 2월 11일(토)",
+          "solar": "2017-02-11"
+        }
+      ]
+    },
+    {
+      "kind": "other",
+      "lunar": {
+        "year": 2017,
+        "month": 5,
+        "day": 5,
+        "isLeapMonth": false
+      },
+      "solar": "2017-05-30",
+      "sources": [
+        {
+          "url": "https://www.kasi.re.kr/kor/publication/post/newsMaterial/3660",
+          "level": "official-search",
+          "note": "2017년 월력요항: 단오 5월 30일",
+          "solar": "2017-05-30"
+        }
+      ]
+    },
+    {
+      "kind": "other",
+      "lunar": {
+        "year": 2017,
+        "month": 7,
+        "day": 7,
+        "isLeapMonth": false
+      },
+      "solar": "2017-08-28",
+      "sources": [
+        {
+          "url": "https://www.kasi.re.kr/kor/publication/post/newsMaterial/3660",
+          "level": "official-search",
+          "note": "2017년 월력요항: 칠석 8월 28일 (윤5월 뒤의 7월)",
+          "solar": "2017-08-28"
+        }
+      ]
+    },
+    {
+      "kind": "other",
+      "lunar": {
+        "year": 2019,
+        "month": 1,
+        "day": 15,
+        "isLeapMonth": false
+      },
+      "solar": "2019-02-19",
+      "sources": [
+        {
+          "url": "https://www.kasi.re.kr/kor/publication/post/newsMaterial/10397",
+          "level": "official-search",
+          "note": "2019년 월력요항: 정월대보름 2월 19일(화)",
+          "solar": "2019-02-19"
+        }
+      ]
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2001,
+        "month": 4,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "solar": "2001-05-23",
+      "sources": []
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2001,
+        "month": 4,
+        "day": 29,
+        "isLeapMonth": true
+      },
+      "solar": "2001-06-20",
+      "sources": []
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2004,
+        "month": 2,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "solar": "2004-03-21",
+      "sources": []
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2004,
+        "month": 2,
+        "day": 29,
+        "isLeapMonth": true
+      },
+      "solar": "2004-04-18",
+      "sources": []
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2006,
+        "month": 7,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "solar": "2006-08-24",
+      "sources": []
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2006,
+        "month": 7,
+        "day": 29,
+        "isLeapMonth": true
+      },
+      "solar": "2006-09-21",
+      "sources": []
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2009,
+        "month": 5,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "solar": "2009-06-23",
+      "sources": []
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2009,
+        "month": 5,
+        "day": 29,
+        "isLeapMonth": true
+      },
+      "solar": "2009-07-21",
+      "sources": []
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2012,
+        "month": 3,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "solar": "2012-04-21",
+      "sources": [
+        {
+          "url": "https://namu.moe/w/%EC%9C%A4%EC%9B%94",
+          "level": "secondary",
+          "note": "나무위키 윤월: 2012년 4/21~5/20 (윤3월). 중국은 閏四月",
+          "solar": "2012-04-21"
+        }
+      ]
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2012,
+        "month": 3,
+        "day": 30,
+        "isLeapMonth": true
+      },
+      "solar": "2012-05-20",
+      "sources": []
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2014,
+        "month": 9,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "solar": "2014-10-24",
+      "sources": []
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2014,
+        "month": 9,
+        "day": 29,
+        "isLeapMonth": true
+      },
+      "solar": "2014-11-21",
+      "sources": []
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2017,
+        "month": 5,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "solar": "2017-06-24",
+      "sources": [
+        {
+          "url": "https://namu.moe/w/%EC%9C%A4%EC%9B%94",
+          "level": "secondary",
+          "note": "나무위키 윤월: 2017년 6/24~7/22 (윤5월). 중국은 閏六月",
+          "solar": "2017-06-24"
+        }
+      ]
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2017,
+        "month": 5,
+        "day": 29,
+        "isLeapMonth": true
+      },
+      "solar": "2017-07-22",
+      "sources": []
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2020,
+        "month": 4,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "solar": "2020-05-23",
+      "sources": [
+        {
+          "url": "https://korea.kr/news/pressReleaseView.do?newsId=156334437",
+          "level": "official-search",
+          "note": "2020년도 월력요항: 음력 윤달(윤4월) 포함 — 날짜는 오라클값",
+          "solar": null
+        }
+      ]
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2020,
+        "month": 4,
+        "day": 29,
+        "isLeapMonth": true
+      },
+      "solar": "2020-06-20",
+      "sources": []
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2023,
+        "month": 2,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "solar": "2023-03-22",
+      "sources": [
+        {
+          "url": "https://astro.kasi.re.kr/kor/life/post/calendarData?year=2023",
+          "level": "official-search",
+          "note": "KASI 달력자료 2023: 음력 윤2월 1일 = 양력 3월 22일, 소(29일)달",
+          "solar": "2023-03-22"
+        }
+      ]
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2023,
+        "month": 2,
+        "day": 29,
+        "isLeapMonth": true
+      },
+      "solar": "2023-04-19",
+      "sources": []
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2025,
+        "month": 6,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "solar": "2025-07-25",
+      "sources": [
+        {
+          "url": "https://astro.kasi.re.kr/life/post/calendarData?year=2025",
+          "level": "official-search",
+          "note": "KASI 달력자료 2025: | 윤 | 6 | 1 | 소 | 을미 | 2025 | 7 | 25 |",
+          "solar": "2025-07-25"
+        }
+      ]
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2025,
+        "month": 6,
+        "day": 29,
+        "isLeapMonth": true
+      },
+      "solar": "2025-08-22",
+      "sources": []
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2028,
+        "month": 5,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "solar": "2028-06-23",
+      "sources": []
+    },
+    {
+      "kind": "leap",
+      "lunar": {
+        "year": 2028,
+        "month": 5,
+        "day": 29,
+        "isLeapMonth": true
+      },
+      "solar": "2028-07-21",
+      "sources": []
+    }
+  ],
+  "invalid": [
+    {
+      "lunar": {
+        "year": 2020,
+        "month": 2,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2020,
+        "month": 6,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2020,
+        "month": 7,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2020,
+        "month": 9,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2020,
+        "month": 11,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2021,
+        "month": 1,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2021,
+        "month": 4,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2021,
+        "month": 6,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2021,
+        "month": 8,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2021,
+        "month": 10,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2021,
+        "month": 12,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2022,
+        "month": 2,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2022,
+        "month": 4,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2022,
+        "month": 7,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2022,
+        "month": 9,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2022,
+        "month": 11,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2023,
+        "month": 1,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2023,
+        "month": 4,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2023,
+        "month": 6,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2023,
+        "month": 9,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2023,
+        "month": 11,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2024,
+        "month": 1,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2024,
+        "month": 3,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2024,
+        "month": 4,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2024,
+        "month": 6,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2024,
+        "month": 9,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2024,
+        "month": 12,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2025,
+        "month": 2,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2025,
+        "month": 4,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2025,
+        "month": 5,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2025,
+        "month": 8,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2025,
+        "month": 12,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2026,
+        "month": 2,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2026,
+        "month": 4,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2026,
+        "month": 5,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2026,
+        "month": 7,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2026,
+        "month": 9,
+        "day": 30,
+        "isLeapMonth": false
+      },
+      "reason": "작은달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2021,
+        "month": 5,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "reason": "2021년은 윤달 없음"
+    },
+    {
+      "lunar": {
+        "year": 2022,
+        "month": 5,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "reason": "2022년은 윤달 없음"
+    },
+    {
+      "lunar": {
+        "year": 2024,
+        "month": 5,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "reason": "2024년은 윤달 없음"
+    },
+    {
+      "lunar": {
+        "year": 2026,
+        "month": 5,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "reason": "2026년은 윤달 없음"
+    },
+    {
+      "lunar": {
+        "year": 2027,
+        "month": 5,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "reason": "2027년은 윤달 없음"
+    },
+    {
+      "lunar": {
+        "year": 2020,
+        "month": 5,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "reason": "2020년 윤달은 4월뿐"
+    },
+    {
+      "lunar": {
+        "year": 2023,
+        "month": 3,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "reason": "2023년 윤달은 2월뿐"
+    },
+    {
+      "lunar": {
+        "year": 2025,
+        "month": 7,
+        "day": 1,
+        "isLeapMonth": true
+      },
+      "reason": "2025년 윤달은 6월뿐"
+    },
+    {
+      "lunar": {
+        "year": 2001,
+        "month": 4,
+        "day": 30,
+        "isLeapMonth": true
+      },
+      "reason": "윤달(29일)의 30일"
+    },
+    {
+      "lunar": {
+        "year": 2004,
+        "month": 2,
+        "day": 30,
+        "isLeapMonth": true
+      },
+      "reason": "윤달(29일)의 30일"
+    }
+  ],
+  "koreaChinaDiffs": [
+    {
+      "month": "1997-1",
+      "koreaDay1": "1997-02-08",
+      "chinaDay1": "1997-02-07",
+      "newMoonKst": "1997-02-08 00:06",
+      "minutesAfterKstMidnight": 7
+    },
+    {
+      "month": "1998-12",
+      "koreaDay1": "1999-01-18",
+      "chinaDay1": "1999-01-17",
+      "newMoonKst": "1999-01-18 00:46",
+      "minutesAfterKstMidnight": 47
+    },
+    {
+      "month": "2001-4",
+      "koreaDay1": "2001-04-24",
+      "chinaDay1": "2001-04-23",
+      "newMoonKst": "2001-04-24 00:26",
+      "minutesAfterKstMidnight": 26
+    },
+    {
+      "month": "2005-11",
+      "koreaDay1": "2005-12-02",
+      "chinaDay1": "2005-12-01",
+      "newMoonKst": "2005-12-02 00:01",
+      "minutesAfterKstMidnight": 2
+    },
+    {
+      "month": "2012-L3",
+      "koreaDay1": "2012-04-21",
+      "chinaDay1": null,
+      "newMoonKst": "2012-04-21 16:19",
+      "minutesAfterKstMidnight": 979
+    },
+    {
+      "month": "2012-4",
+      "koreaDay1": "2012-05-21",
+      "chinaDay1": "2012-04-21",
+      "newMoonKst": "2012-05-21 08:47",
+      "minutesAfterKstMidnight": 528
+    },
+    {
+      "month": "2012-5",
+      "koreaDay1": "2012-06-20",
+      "chinaDay1": "2012-06-19",
+      "newMoonKst": "2012-06-20 00:02",
+      "minutesAfterKstMidnight": 3
+    },
+    {
+      "month": "2012-7",
+      "koreaDay1": "2012-08-18",
+      "chinaDay1": "2012-08-17",
+      "newMoonKst": "2012-08-18 00:55",
+      "minutesAfterKstMidnight": 55
+    },
+    {
+      "month": "2013-5",
+      "koreaDay1": "2013-06-09",
+      "chinaDay1": "2013-06-08",
+      "newMoonKst": "2013-06-09 00:57",
+      "minutesAfterKstMidnight": 57
+    },
+    {
+      "month": "2017-L5",
+      "koreaDay1": "2017-06-24",
+      "chinaDay1": null,
+      "newMoonKst": "2017-06-24 11:31",
+      "minutesAfterKstMidnight": 691
+    },
+    {
+      "month": "2017-6",
+      "koreaDay1": "2017-07-23",
+      "chinaDay1": "2017-06-24",
+      "newMoonKst": "2017-07-23 18:46",
+      "minutesAfterKstMidnight": 1126
+    },
+    {
+      "month": "2019-11",
+      "koreaDay1": "2019-11-27",
+      "chinaDay1": "2019-11-26",
+      "newMoonKst": "2019-11-27 00:06",
+      "minutesAfterKstMidnight": 6
+    },
+    {
+      "month": "2020-2",
+      "koreaDay1": "2020-02-24",
+      "chinaDay1": "2020-02-23",
+      "newMoonKst": "2020-02-24 00:32",
+      "minutesAfterKstMidnight": 33
+    },
+    {
+      "month": "2023-4",
+      "koreaDay1": "2023-05-20",
+      "chinaDay1": "2023-05-19",
+      "newMoonKst": "2023-05-20 00:53",
+      "minutesAfterKstMidnight": 54
+    },
+    {
+      "month": "2026-9",
+      "koreaDay1": "2026-10-11",
+      "chinaDay1": "2026-10-10",
+      "newMoonKst": "2026-10-11 00:50",
+      "minutesAfterKstMidnight": 51
+    },
+    {
+      "month": "2027-1",
+      "koreaDay1": "2027-02-07",
+      "chinaDay1": "2027-02-06",
+      "newMoonKst": "2027-02-07 00:56",
+      "minutesAfterKstMidnight": 57
+    },
+    {
+      "month": "2028-1",
+      "koreaDay1": "2028-01-27",
+      "chinaDay1": "2028-01-26",
+      "newMoonKst": "2028-01-27 00:13",
+      "minutesAfterKstMidnight": 13
+    },
+    {
+      "month": "2029-6",
+      "koreaDay1": "2029-07-12",
+      "chinaDay1": "2029-07-11",
+      "newMoonKst": "2029-07-12 00:51",
+      "minutesAfterKstMidnight": 52
+    }
+  ]
+}

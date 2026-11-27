@@ -26,6 +26,41 @@
 - 결과: 긴급 2 · 높음 3 · 중간 4 · 낮음 3
 - 저장소가 공개 상태이므로 세부 재현 절차는 이 문서에 쓰지 않는다. 대표 보고서와 긴급 조치 카드(U-01)에서 관리하고, 저장소 비공개 전환 후 이곳에 옮긴다.
 
+## 2026-11-27 · 만세력 골든 테스트셋 v1 (P3-04)
+- 작성: 품질검증 담당자. 엔진 구현 코드를 보지 않고 공개 계약(`src/engine/types.ts`, `src/engine/index.ts`, `docs/SAJU_ENGINE.md`)만 보고 작성.
+- 실행: `npx vitest run tests/engine/golden` / 음력 데이터 재생성·재현성 점검: `node scripts/qa/golden-lunar-gen.mjs [--check]`
+- 독립 오라클(`tests/engine/golden/oracle.ts`): astronomy-engine 2.1.19(엔진이 쓰는 lunar-javascript와 다른 천문 계산), Node 내장 Intl(IANA tzdb 2026e), JDN 공식, 五虎遁·五鼠遁 표. 표본은 고정 시드 난수(mulberry32)로 만들어 재현됨.
+
+| # | 항목 | 파일 | 건수 | 허용 오차·기준 |
+|---|---|---|---|---|
+| 0 | 오라클 자체 점검(엔진 없이 실행) | oracle-selfcheck.test.ts | 9개 테스트 | 2024 立春 08:27 UTC ±2분 등 |
+| 1 | 절기 시각·이름 `getSolarTermsUtc` | solar-terms.test.ts | 61개 연도(1900~2100 매 5년 41개 + 무작위 20개) × 24 = 1,464건 | ±2분, 한자명은 정자(驚蟄·穀雨·小滿·芒種·處暑) |
+| 2 | 일주 `dayPillarOf` / 세운 `yearPillarOf` / computeChart 일주·시주 | day-hour-pillar.test.ts | 기준일 3 + 무작위 500일, 201개 연도, 150건 | 완전 일치. (JDN+49) mod 60 |
+| 3 | 연주·월주 절입 경계 | year-month-boundary.test.ts | 655건(立春 144, 절입 전 328·후 327), 1948~61·1987~88 전 12節 포함 | 절입 ±3분 이내 제외, utcInstant·solarTerm(±2분)·절입 110분 이내 경고 문구 포함 |
+| 4 | 한국 표준시·서머타임 이력 | timezone-history.test.ts | 16건 + 기본 시간대 1건 | utcOffsetMinutes·dstApplied·utcInstant 완전 일치 |
+| 5 | 한국 음력→양력 | lunar.test.ts | 설날 32(2000~2030+1997), 추석 31, 기타 7, 윤달 22, 한·중 차이 18, 왕복·역방향 각 92 | 날짜 완전 일치 |
+| 6 | 대운 방향·대운수·간지 | luck.test.ts | 200건(1912~2090) | startAgeExact ±0.05년, round/floor 환산, 월주 ±1씩 |
+| 7 | 입력 오류 `EngineInputError` | input-errors.test.ts | 음력 47 + 양력 7 + 범위 4 + 정상 경계 3 | 예외 종류까지 확인 |
+| 8 | 결정성 | determinism.test.ts | 5건 × 2옵션 | 두 번 호출 결과 동일, 입력 객체 불변 |
+| 9 | 진태양시·자시·시각 모름 | true-solar-zi.test.ts | 진태양시 9 + 자시 6 + 기타 3 | 보정량 ±0.1분(균시차 포함은 ±1분) |
+
+**실행 결과 (엔진 `calendar@0.1.0`, 2026-11-27 12:04 기준 작업 폴더 상태)**: 68개 통과 · 3개 미검증(todo) · 실패 0. `npx tsc --noEmit`·`eslint` 오류 0.
+- 같은 날 첫 실행(엔진 파일 수정 전)에서는 음력 7개 테스트가 실패했다: 엔진이 **중국 음력(UTC+8)** 값을 돌려줌 — 1997·2027·2028 설날 하루 빠름, 2012 윤3월·2017 윤5월을 "없음"으로 거부, 2020-2-30 등 한국 작은달 30일을 받아들임. 엔진 파일이 12:03에 수정된 뒤 재실행에서 전부 통과. 엔진 개발자와 작업 폴더를 같이 쓰므로 개발자가 이 테스트 데이터를 볼 수 있었다는 점을 기록한다(독립성 한계).
+- 참고 측정(테스트 외): 1900~2100 전 연도 4,824개 절기의 엔진–오라클 최대 차이 62초(2098 立春).
+
+**한·중 음력 차이 (오라클 계산 18건, 1997~2030)**: 1997 설날(한 2/8·중 2/7, 1997년 언론 보도와 일치), 2027 설날(한 2/7·중 2/6, 2027년 월력요항과 일치), 2028 설날(한 1/27·중 1/26), 2012 윤달(한 윤3월·중 閏四月), 2017 윤달(한 윤5월·중 閏六月) 등. 2005-11·2012-5는 합삭이 한국 자정 2~3분 뒤라 여유가 작음 — 공식 원문 재확인 권장.
+
+**출처**
+- 시간대: IANA tzdb `asia` Korea 절 — https://github.com/eggert/tz/blob/main/asia (2026-11-27 원문 열람, Rule ROK·Zone Asia/Seoul)
+- 공식(정부 월력요항 보도자료·KASI 달력자료, 웹 검색 인용으로 확인): 2016 https://www.kasi.re.kr/kor/publication/post/newsMaterial/2536 · 2017 …/3660 · 2019 …/10397 · 2020 https://korea.kr/news/pressReleaseView.do?newsId=156334437 · 2022 https://www.kasi.re.kr/kor/publication/post/newsMaterial/28806 · 2023 …/29168 · 2024 https://www.korea.kr/news/policyNewsView.do?newsId=148916689 · 2025 https://www.kasi.re.kr/kor/publication/post/newsMaterial/30071 · 2027 https://www.korea.kr/briefing/pressReleaseView.do?newsId=156768474 · KASI 달력자료 https://astro.kasi.re.kr/life/post/calendarData (2023·2025·2026·2028 자료)
+- 2차 자료: 나무위키 설날·추석·윤월(2000~2010 연휴 기간 등), 한국경제 1997-02-03 https://www.hankyung.com/article/1997020303191, 매일신문 1997-01-14
+- 웹에서 확인한 35건(공식 22건, 2000~2030 중 20개 연도)이 오라클과 전부 일치. 나머지 기대값은 오라클 계산값(JSON의 `sources`가 빈 항목).
+- 한계: 이 세션에서 astro.kasi.re.kr·일본 국립천문대 원문 페이지는 네트워크 차단으로 직접 열지 못함. "공식" 값은 검색 결과 인용이며, 연휴 기간의 가운데 날로 유도한 값이 포함됨(JSON `note`에 표시).
+
+**미검증 (todo)**: KASI 원문 절기 시각 고정값 / 서머타임 공백·중복 시각 처리(계약에 규칙 없음) / 시각·지원 연도 범위 밖 입력(계약에 규칙 없음). 1900~1911 지방평균시 시기 연·월주 경계, 1954~1961 한국 음력(당시 기준 자오선 미확인)도 범위 밖.
+
+판정: **조건부 통과** — 현재 작업 폴더 엔진은 골든 테스트셋 v1을 모두 통과. 조건: ① 엔진 커밋 후 같은 명령으로 재실행, ② KASI 원문 접속이 허용되면 공식값 대조, ③ 위 계약 공백 3건 확정.
+
 ## 2026-11-27 · 빌드 상태
 | 항목 | 결과 |
 |---|---|

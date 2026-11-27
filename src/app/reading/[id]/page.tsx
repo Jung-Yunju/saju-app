@@ -64,7 +64,7 @@ export default async function ReadingPage({ params }: { params: Promise<{ id: st
     year: "numeric", month: "long", day: "numeric",
   })
 
-  if (reading.status === "PENDING" || reading.status === "FAILED") {
+  if (reading.status === "PENDING" || reading.status === "GENERATING" || reading.status === "FAILED") {
     return <ReadingPending readingId={id} status={reading.status} />
   }
 
