@@ -1875,30 +1875,30 @@
       "depends": [
         "P4-03"
       ],
-      "status": "개발 대기",
+      "status": "대표 승인 대기",
       "subtasks": [
         {
           "t": "DB 스키마 v2 (제안안 기반)",
-          "done": false
+          "done": true
         },
         {
           "t": "결제·환불·이용권",
           "done": false
         },
         {
-          "t": "AI 호출 비용 기록",
+          "t": "AI 호출 비용 기록(표 준비, 기록 코드 미연결)",
           "done": false
         }
       ],
-      "result": "",
+      "result": "마이그레이션 20261127090000_reading_v3_safety(적용·되돌리기 SQL) + 기능 스위치 DB_SCHEMA_V3(재시도 상한·lockedAt·윤달·분·경도·Order.birthInfo 서버 저장). 테스트 34건.",
       "verification": {
         "result": "미검증",
         "note": ""
       },
-      "issues": "",
+      "issues": "⚠️ 마이그레이션 적용 전 이 코드를 운영 배포하면 풀이 화면 깨짐 · 실 PostgreSQL 미검증 · 미결제 주문 birthInfo 보관 기한 미정",
       "approval": {
         "needed": true,
-        "item": "상품 구성·가격 승인"
+        "item": "운영 DB 마이그레이션 적용(백업·리허설 후), 상품·가격"
       },
       "docs": [
         "docs/DATABASE.md",
@@ -1913,6 +1913,11 @@
           "date": "2026-11-27",
           "status": "개발 대기",
           "note": "계획 수립"
+        },
+        {
+          "date": "2026-11-27",
+          "status": "대표 승인 대기",
+          "note": "DB 구조 개선안 준비 완료(미적용)"
         }
       ]
     },
