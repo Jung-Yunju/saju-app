@@ -1,4 +1,4 @@
-// 격국 — 자평진전 관점 정격 판정(G1~G5) + 상신 후보 표 + 특수격 후보 (strength-structure-spec §2, rules@0.3.0)
+// 격국 — 자평진전 관점 정격 판정(G1~G5) + 상신 후보 표 + 특수격 후보 (strength-structure-spec §2, rules@0.3.0 → 0.4.0)
 // 표는 연구소장 명세의 요지(L0)를 옮긴 것이다. 성격·파격은 판정하지 않는다. 특수격은 항상 confidence "low".
 import type { Element, Pillar, Stem } from "../types"
 import { stemElement, stemYinYang, tenGodOfStem } from "./basics"
@@ -7,14 +7,18 @@ import {
   type Natal,
 } from "./groups"
 import { hiddenStemsOf } from "./hidden"
-import { HIDDEN_TABLE_IDS } from "./strength"
+import { HIDDEN_TABLE_IDS, USED_TABLE_IDS } from "./strength"
 import { LU, STEM_COMBINES } from "./tables"
 import type {
   HiddenStem, HiddenStemTableId, Interaction, Position, RuleOptions, StrengthModelResult, StrengthResult, StructureCandidate,
   StructureGroupRef, StructureResult, TenGod, TenGodGroup,
 } from "./types"
 
-/** 양인 자리(양간만). ⚑ 戊午 포함(연구소장 기본). 음간 양인은 1차에 두지 않는다 (§2.2 G1) */
+/**
+ * 양인 자리(양간만). 음간 양인은 1차에 두지 않는다 (§2.2 G1).
+ * 명세 확정(§2.2 "G1과 戊·己 록·양인 표 정리", 2026-11-28): 戊午(⚑)는 정기 丁이 戊의 인성이라 기본 설정(earthRokgeop="mainQiGate")에서
+ * 격국 G1에 도달하지 않는다(LU 표의 戊巳·己午도 같다). 칸은 예약 옵션 "luTable"·신살·12운성 화토동법 용도로 남긴다.
+ */
 export const YANGIN: Readonly<Partial<Record<Stem, Pillar["branch"]>>> = { 甲: "卯", 丙: "午", 戊: "午", 庚: "酉", 壬: "子" }
 
 const STRUCTURE_NAME: Record<TenGod, { name: string; alias?: string[] }> = {
@@ -57,7 +61,10 @@ function monthHiddenByPriority(n: Natal, table: HiddenStemTableId): HiddenStem[]
   return [...hiddenStemsOf(n.month.branch, table)].sort((a, b) => order[a.role] - order[b.role])
 }
 
-/** G1: 록겁 계열이면 그 결과, 아니면 null */
+/**
+ * G1: 록겁 계열이면 그 결과, 아니면 null. 입구는 "월지 정기 십성이 비견·겁재"(earthRokgeop="mainQiGate", 명세 확정 §2.2).
+ * 그래서 戊·己 일간의 록겁 계열은 辰·戌·丑·未월(정기 戊·己)뿐이고 모두 월겁격이다(건록격·양인격 없음).
+ */
 function rokgeopOf(n: Natal, table: HiddenStemTableId, match: RuleOptions["touchulMatch"]): StructPick | null {
   const dayStem = n.day.stem
   const main = mainQiOf(n.month, table)
@@ -145,12 +152,19 @@ function sangsinTable(c: { name: string; kind: string }): { sangsin: RefSpec[]; 
   }
 }
 
+/** §2.3 존재 상태: touchul·hiddenPositions가 각각 비었는지 */
+export function presenceOf(touchul: readonly Position[], hiddenPositions: readonly Position[]): StructureGroupRef["presence"] {
+  if (touchul.length > 0) return hiddenPositions.length > 0 ? "stemAndHidden" : "stemOnly"
+  return hiddenPositions.length > 0 ? "hiddenOnly" : "absent"
+}
+
 function refOf(n: Natal, table: HiddenStemTableId, spec: RefSpec): StructureGroupRef {
   const dayStem = n.day.stem
   const d = stemElement(dayStem)
   const hit = (s: Stem) => groupOf(d, stemElement(s)) === spec.group && (!spec.tenGods || spec.tenGods.includes(tenGodOfStem(dayStem, s)))
   const touchul = otherStems(n).filter((s) => hit(s.stem)).map((s) => stemPos(s.key))
-  const hiddenOnly = presentKeys(n)
+  // 투출 여부와 별개로, 지장간에 이 묶음 글자가 있는 지지 위치(rules@0.4.0: 구 hiddenOnly → hiddenPositions, 값은 같음)
+  const hiddenPositions = presentKeys(n)
     .filter((k) => hiddenStemsOf((n[k] as Pillar).branch, table).some((h) => hit(h.stem)))
     .map((k) => branchPos(k))
   return {
@@ -158,7 +172,8 @@ function refOf(n: Natal, table: HiddenStemTableId, spec: RefSpec): StructureGrou
     element: elementOfGroup(d, spec.group),
     ...(spec.tenGods ? { tenGods: [...spec.tenGods] } : {}),
     touchul,
-    hiddenOnly,
+    hiddenPositions,
+    presence: presenceOf(touchul, hiddenPositions),
     ...(spec.note ? { note: spec.note } : {}),
   }
 }
@@ -186,6 +201,7 @@ function toCandidate(n: Natal, table: HiddenStemTableId, p: StructPick, extra: P
 export interface RegularResult {
   candidates: StructureCandidate[]
   tableSensitive: boolean
+  tableSensitiveIncludingMainOnly: boolean
   byTable: StructureResult["byTable"]
   notes: string[]
 }
@@ -226,8 +242,11 @@ export function regularStructures(n: Natal, o: RuleOptions): RegularResult {
     if (t.notes.length) notes.push(...t.notes.filter((x) => !notes.includes(x)))
   }
   const byTable = HIDDEN_TABLE_IDS.map((tableId) => ({ tableId, name: primaryPick(n, tableId, o).name }))
-  const tableSensitive = new Set(byTable.map((x) => x.name)).size > 1
-  return { candidates: out, tableSensitive, byTable, notes }
+  // §1.9·§2.2(2026-11-28 확정): tableSensitive = {선택 표, kr, cn}. main-only는 IncludingMainOnly에만
+  const used = byTable.filter((x) => x.tableId === table || USED_TABLE_IDS.includes(x.tableId))
+  const tableSensitive = new Set(used.map((x) => x.name)).size > 1
+  const tableSensitiveIncludingMainOnly = new Set(byTable.map((x) => x.name)).size > 1
+  return { candidates: out, tableSensitive, tableSensitiveIncludingMainOnly, byTable, notes }
 }
 
 // ─────────────────────────────────────────── 특수격 후보 (§2.4)
@@ -374,9 +393,9 @@ export function specialStructures(inp: SpecialInput): { candidates: StructureCan
 }
 
 /**
- * 특수격 관점에서 반가운 오행(순서 = rank). §3.6:
+ * 특수격 관점에서 반가운 오행(순서 = rank). §3.6 표(명세 확정, 2026-11-28):
  *  종살·종재·종아 = 따르는 묶음 + 그것을 생하는 오행 / 종세 = 빼는 묶음 큰 순 /
- *  종왕 = 비겁 → 인성, 종강 = 인성 → 비겁(엔진 개발자 정의 ⚑) / 화격·일행득기 = 그 오행 + 그것을 생하는 오행
+ *  종왕 = 비겁 → 인성, 종강 = 인성 → 비겁(관살 없음 — E2가 관살 ≤ 5%를 요구하므로) / 화격·일행득기 = 그 오행 + 그것을 생하는 오행
  */
 export function specialFavored(c: StructureCandidate, d: Element, g: Record<TenGodGroup, number>): Element[] {
   const f = c.follows as NonNullable<StructureCandidate["follows"]>

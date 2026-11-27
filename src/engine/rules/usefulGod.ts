@@ -1,6 +1,6 @@
-// 용신 — 관점별 결정 절차와 희기신 (strength-structure-spec §3, rules@0.3.0)
+// 용신 — 관점별 결정 절차와 희기신 (strength-structure-spec §3, rules@0.3.0, 통관 기준 옵션 0.4.0)
 // 관점을 합친 하나의 용신은 만들지 않는다(대표 결정 대기 6번 — 기본 "관점별 병기").
-// 후보 순서·기준값(25%, 0.5, 40%)은 연구소장 설계값이다. 궁통보감 조후용신 표는 쓰지 않는다(칸 0/120).
+// 후보 순서·기준값(통관 기본 25%·0.5 = 옵션 tonggwanMinShare·tonggwanMinRatio, 병약 40%)은 연구소장 설계값이다. 궁통보감 조후용신 표는 쓰지 않는다(칸 0/120).
 import type { Element } from "../types"
 import { ELEMENTS } from "./basics"
 import { CLIMATE_SOURCE } from "./climate"
@@ -12,8 +12,8 @@ import type {
   UsefulGodCandidate, UsefulGodMethod, UsefulGodView, UsefulGodsResult,
 } from "./types"
 
-export const TONGGWAN_MIN_SHARE = 0.25
-export const TONGGWAN_MIN_BALANCE = 0.5
+// 통관 기준(구 TONGGWAN_MIN_SHARE 0.25·TONGGWAN_MIN_BALANCE 0.5 상수)은 rules@0.4.0부터 RuleOptions
+// tonggwanMinShare·tonggwanMinRatio(기본값 같음, options.ts)로 받는다 — §3.3 기준 강화 측정용
 export const BYEONGYAK_MIN_SHARE = 0.4
 
 const LABEL: Record<UsefulGodMethod, string> = {
@@ -35,7 +35,7 @@ const SCHOOL: Record<UsefulGodMethod, string> = {
 const SOURCE: Record<UsefulGodMethod, string> = {
   eokbu: "strength-structure-spec §3.1 (후보 순서는 연구소장 설계)",
   johuClimate: CLIMATE_SOURCE,
-  tonggwan: "strength-structure-spec §3.3 (기준 25%·0.5는 연구소장 설계)",
+  tonggwan: "strength-structure-spec §3.3 (기준 tonggwanMinShare·tonggwanMinRatio, 기본 25%·0.5는 연구소장 설계)",
   byeongyak: "strength-structure-spec §3.4 (기준 40%는 연구소장 설계)",
   gyeokguk: "strength-structure-spec §2.3 상신 표 (L0 요지)",
   special: "strength-structure-spec §2.4·§3.6 (특수격 후보, 확신도 low)",
@@ -179,6 +179,8 @@ function elementPositions(A: StrengthModelResult, es: Element[]): Position[] {
 
 function tonggwanView(ctx: Ctx): UsefulGodView {
   const T = ctx.A.total as number
+  const minShare = ctx.o.tonggwanMinShare
+  const minRatio = ctx.o.tonggwanMinRatio
   const pairs: { x: Element; y: Element; z: Element; xw: number; yw: number; xs: number; ys: number; bal: number }[] = []
   for (const x of ELEMENTS) {
     const y = el(ei(x) + 2)
@@ -186,9 +188,9 @@ function tonggwanView(ctx: Ctx): UsefulGodView {
     const yw = ctx.weighted[y]
     const xs = round6(xw / T)
     const ys = round6(yw / T)
-    if (xs < TONGGWAN_MIN_SHARE || ys < TONGGWAN_MIN_SHARE) continue
+    if (xs < minShare || ys < minShare) continue
     const bal = round6(Math.min(xw, yw) / Math.max(xw, yw))
-    if (bal < TONGGWAN_MIN_BALANCE) continue
+    if (bal < minRatio) continue
     pairs.push({ x, y, z: el(ei(x) + 1), xw, yw, xs, ys, bal })
   }
   pairs.sort((a, b) => b.xw - a.xw || ei(a.x) - ei(b.x))
@@ -203,7 +205,10 @@ function tonggwanView(ctx: Ctx): UsefulGodView {
     basis: pairs.map((p) => ({
       ruleId: `ug.tonggwan.${p.x}>${p.y}`,
       positions: elementPositions(ctx.A, [p.x, p.y]),
-      values: { attackerWeight: p.xw, targetWeight: p.yw, attackerShare: p.xs, targetShare: p.ys, balance: p.bal, bridgeWeight: ctx.weighted[p.z] },
+      values: {
+        attackerWeight: p.xw, targetWeight: p.yw, attackerShare: p.xs, targetShare: p.ys, balance: p.bal, bridgeWeight: ctx.weighted[p.z],
+        minShare, minRatio, // rules@0.4.0: 사용한 기준값
+      },
     })),
     source: SOURCE.tonggwan,
   }

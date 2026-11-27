@@ -10,14 +10,14 @@ import { assertSolarDate } from "./calendar/lunar"
 export * from "./types"
 // 명리 규칙(해석 재료) — 역법 객관값과 다른 모듈
 export { xunKongOf, gongmangString, RULES_ENGINE_VERSION, type XunKong } from "./rules/gongmang"
-// 규칙 엔진 rules@0.2.0 (P3-05): 지장간·십성·12운성·합충형파해·공망 hits·오행 분포
+// 규칙 엔진 P3-05(rules@0.2.0에서 도입): 지장간·십성·12운성·합충형파해·공망 hits·오행 분포. 현재 버전은 RULES_ENGINE_VERSION(rules/version.ts)
 export { analyzeRules, resolveRuleOptions, DEFAULT_RULE_OPTIONS } from "./rules"
 export type {
   RuleAnalysis, RuleOptions, RuleExtra, Position, PillarKey, NatalPillarKey, HiddenStem, HiddenStemRole,
   HiddenStemTableId, HiddenStemsResult, TenGod, TenGodHit, TwelveStage, TwelveStageHit, Interaction,
   InteractionType, GongmangEntry, ElementDistribution, ElementRecord, YinYang,
 } from "./rules/types"
-// 규칙 엔진 rules@0.3.0 (P3-06): 신강약·격국·용신·간이 조후·기세 + D-019 포함 표시(interactionId)
+// 규칙 엔진 P3-06(rules@0.3.0에서 도입, rules@0.4.0 명세 정정 D-022): 신강약·격국·용신·간이 조후·기세 + D-019 포함 표시(interactionId)
 export { interactionId, USEFUL_GOD_METHODS, STRENGTH_THRESHOLDS, hourPillarsOf, CLIMATE_BRANCH, CLIMATE_SOURCE } from "./rules"
 export type {
   StrengthModel, StrengthVerdict, TenGodGroup, SeasonState, StrengthBasisItem, FactorCheck, StrengthModelResult,

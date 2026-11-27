@@ -1,4 +1,4 @@
-// 명리 규칙 엔진 공개 함수 (P3-05 rules@0.2.0 → P3-06 rules@0.3.0)
+// 명리 규칙 엔진 공개 함수 (P3-05 rules@0.2.0 → P3-06 rules@0.3.0 → 명세 정정 rules@0.4.0)
 // 입력: 역법 결과(CalendarResult)의 원국 + (선택) 대운·세운 간지. 출력: RuleAnalysis(해석 재료).
 // 순수 함수 — AI·DB·네트워크·현재 시각을 쓰지 않는다. 같은 입력·옵션이면 같은 출력(배열 순서 포함).
 // 명세: docs/knowledge/rules-spec.md · docs/knowledge/strength-structure-spec.md · 옵션: docs/knowledge/schools.md
@@ -165,6 +165,7 @@ export function analyzeRules(chart: CalendarResult, options?: Partial<RuleOption
     structure: {
       candidates: [...regular.candidates, ...special.candidates],
       tableSensitive: regular.tableSensitive,
+      tableSensitiveIncludingMainOnly: regular.tableSensitiveIncludingMainOnly,
       byTable: regular.byTable,
       notes: [...regular.notes, ...special.notes],
     },

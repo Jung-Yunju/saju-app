@@ -1,4 +1,4 @@
-// 명리 규칙 엔진 데이터 구조 (P3-05 rules@0.2.0 + P3-06 rules@0.3.0) — 해석 재료(RuleAnalysis)
+// 명리 규칙 엔진 데이터 구조 (P3-05 rules@0.2.0 + P3-06 rules@0.3.0 + 명세 정정 rules@0.4.0) — 해석 재료(RuleAnalysis)
 // 역법 객관값(CalendarResult, ../types.ts)과 분리된 모듈이다(D-012). 이 파일은 해석 문장을 담지 않는다.
 // 근거 명세: docs/knowledge/rules-spec.md, docs/knowledge/strength-structure-spec.md(P3-06), 학파 옵션: docs/knowledge/schools.md §0
 import type { Branch, Element, Pillar, Stem } from "../types"
@@ -60,6 +60,17 @@ export interface RuleOptions {
   usefulGodMethods: UsefulGodMethod[]
   /** ⚑ 희신 정의: 용신을 생하는 오행 / 같은 관점 2순위 후보 (§3.7) */
   favorableDefinition: "generationCycle" | "secondCandidate"
+
+  // ── rules@0.4.0 (명세 정정 2026-11-28, D-022)
+  /**
+   * 戊·己 일간 록겁 판정 입구(§2.2 "G1과 戊·己 록·양인 표 정리"). 기본 "mainQiGate" = 월지 정기가 비겁일 때만 록겁 계열(명세 확정).
+   * "luTable"(戊巳·己午 록, 戊午 양인을 록겁 계열로 봄)은 예약만 된 값 → EngineInputError
+   */
+  earthRokgeop: "mainQiGate" | "luTable"
+  /** 통관 성립 기준: 두 오행 각각 T 대비 비율 하한(§3.3). 기본 0.25(연구소장 설계), 허용 (0, 0.5] — 밖이면 EngineInputError */
+  tonggwanMinShare: number
+  /** 통관 성립 기준: 작은 쪽 ÷ 큰 쪽 하한(§3.3). 기본 0.5(연구소장 설계), 허용 (0, 1] — 밖이면 EngineInputError */
+  tonggwanMinRatio: number
 }
 
 export type UsefulGodMethod = "eokbu" | "johuClimate" | "tonggwan" | "byeongyak" | "gyeokguk" | "special"
@@ -340,7 +351,13 @@ export interface StrengthResult {
   groupTotals: Record<TenGodGroup, number>
   /** 선택한 표 외의 두 표로 계산한 모형 A (표 순서 kr-monthly-30 → cn-lunarjs → main-only에서 선택 표 제외) */
   tableSensitivity: { tableId: HiddenStemTableId; ratio: number; verdict: StrengthVerdict; extreme: "strong" | "weak" | null; nearBoundary: boolean }[]
+  /**
+   * rules@0.4.0(§1.9 정의 분리): {선택한 표, kr-monthly-30, cn-lunarjs} 사이에서 모형 A의 verdict 또는 extreme이 다르면 true.
+   * 기본 설정(kr 선택)에서는 kr ↔ cn 비교. 고객 안내("보는 방식에 따라 달라질 수 있음") 기준
+   */
   tableSensitive: boolean
+  /** 세 표(kr·cn·main-only) 모두 비교 — rules@0.3.x의 tableSensitive와 같은 값(내부 참고) */
+  tableSensitiveIncludingMainOnly: boolean
   /** 시주를 알면 null. 모르면 오서둔 12시진(子→亥)마다 모형 A */
   hourSensitivity: null | {
     byHour: { hour: Pillar; ratio: number; verdict: StrengthVerdict }[]
@@ -363,8 +380,17 @@ export interface StructureGroupRef {
   tenGods?: TenGod[]
   /** 원국 천간(일간 제외) 중 이 묶음(십성 제한 적용)의 위치 */
   touchul: Position[]
-  /** 엔진 정의: 원국 지지 중 지장간에 이 오행(십성 제한 적용)이 있는 위치(투출 여부와 별개) */
-  hiddenOnly: Position[]
+  /**
+   * 원국 지지 중 지장간(여기·중기·정기 무관, 선택한 표)에 이 묶음(십성 제한 적용)의 글자가 있는 지지 위치.
+   * **투출 여부와 별개**(투출 글자의 뿌리도 여기에 나온다). 순서 연→월→일→시. rules@0.4.0에서 구 `hiddenOnly`의 이름을 바꿨다(값은 같음)
+   */
+  hiddenPositions: Position[]
+  /**
+   * 원국 존재 상태(rules@0.4.0, §2.3): 천간·지장간 둘 다(stemAndHidden) / 천간만(stemOnly) / 지장간만(hiddenOnly) / 둘 다 없음(absent).
+   * touchul·hiddenPositions가 각각 비었는지로 정한다. "지장간에만 있다"는 서술은 "hiddenOnly"일 때만,
+   * "원국에 없다"는 "absent"일 때만 쓴다. 건록·월겁격 상신은 투출한 묶음만 내므로 stemAndHidden·stemOnly뿐이다
+   */
+  presence: "stemAndHidden" | "stemOnly" | "hiddenOnly" | "absent"
   /** 편인격의 인수·효신 구분 등 */
   note?: string
 }
@@ -397,8 +423,13 @@ export interface StructureCandidate {
 export interface StructureResult {
   /** 순서: 주 후보 → 다른 투출 변형 후보(다를 때) → G1-alt 대체 후보 → 특수격 후보 */
   candidates: StructureCandidate[]
-  /** 다른 지장간 표로 주 후보 격 이름이 바뀌면 true */
+  /**
+   * rules@0.4.0(§1.9·§2.2): {선택한 표, kr-monthly-30, cn-lunarjs}의 주 후보 격 이름이 다르면 true.
+   * main-only는 정기 고정 변형(G2')과 겹쳐 variantAgreement로 드러나므로 여기서 뺀다
+   */
   tableSensitive: boolean
+  /** 세 표(kr·cn·main-only) 모두 비교 — rules@0.3.x의 tableSensitive와 같은 값(내부 참고) */
+  tableSensitiveIncludingMainOnly: boolean
   /** 표별 주 후보 이름(검산용, 표 순서 kr → cn → main) — 엔진 개발자 추가 */
   byTable: { tableId: HiddenStemTableId; name: string }[]
   /** 예: "극신약이나 종격 조건 미충족" */

@@ -1,4 +1,4 @@
-// 신강·신약 (strength-structure-spec §1, rules@0.3.0, score 반올림 0.3.1)
+// 신강·신약 (strength-structure-spec §1, rules@0.3.0, score 반올림 0.3.1, tableSensitive 정의 분리 0.4.0)
 //  A weighted : 위치 가중 비율 r = round6(S/T). 경계 0.45/0.55, 극단 0.20/0.80, 근접 폭 0.03 (모두 연구소장 설계값)
 //  B threeFactor: 득령·득지·득세 중 2개 이상이면 신강 (중화 없음)
 //  C rooted   : A와 같되 일간 외 무근 천간 가중 0.5배 (설계값)
@@ -19,6 +19,8 @@ import type {
 export const STRENGTH_THRESHOLDS = Object.freeze({ strong: 0.55, weak: 0.45, extremeStrong: 0.8, extremeWeak: 0.2, nearWidth: 0.03 })
 export const ROOTLESS_FACTOR = 0.5
 export const HIDDEN_TABLE_IDS: readonly HiddenStemTableId[] = ["kr-monthly-30", "cn-lunarjs", "main-only"]
+/** 실제로 쓰이는 날수·라이브러리 표(§1.9). main-only(정기 하나로 줄인 간이 표)는 뺀다 — tableSensitive 비교 대상 */
+export const USED_TABLE_IDS: readonly HiddenStemTableId[] = ["kr-monthly-30", "cn-lunarjs"]
 const BOUNDARIES = [0.2, 0.45, 0.55, 0.8] as const
 
 const BRANCH_WEIGHT: Record<NatalPillarKey, number> = {
@@ -201,7 +203,10 @@ export function analyzeStrength(n: Natal, o: RuleOptions, interactions: readonly
     const ratio = weightedRatio(n, dayStem, tableId)
     return { tableId, ratio, verdict: verdictOf(ratio), extreme: extremeOf(ratio), nearBoundary: nearestOf(ratio).nearBoundary }
   })
-  const tableSensitive = tableSensitivity.some((x) => x.verdict !== A.verdict || x.extreme !== A.extreme)
+  // §1.9(2026-11-28 확정): tableSensitive = {선택 표, kr, cn} 비교. main-only는 간이 판정용이라 IncludingMainOnly에만 넣는다
+  const differs = (x: (typeof tableSensitivity)[number]) => x.verdict !== A.verdict || x.extreme !== A.extreme
+  const tableSensitive = tableSensitivity.filter((x) => USED_TABLE_IDS.includes(x.tableId)).some(differs)
+  const tableSensitiveIncludingMainOnly = tableSensitivity.some(differs)
 
   let hourSensitivity: StrengthResult["hourSensitivity"] = null
   if (n.hour === null) {
@@ -240,6 +245,7 @@ export function analyzeStrength(n: Natal, o: RuleOptions, interactions: readonly
     groupTotals,
     tableSensitivity,
     tableSensitive,
+    tableSensitiveIncludingMainOnly,
     hourSensitivity,
     affectedBy,
     adjustmentsApplied: [],

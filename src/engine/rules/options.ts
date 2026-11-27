@@ -27,11 +27,22 @@ export const DEFAULT_RULE_OPTIONS: Readonly<RuleOptions> = Object.freeze({
   specialStructures: "candidateOnly",
   usefulGodMethods: Object.freeze(["eokbu", "johuClimate", "tonggwan", "gyeokguk", "special"]) as unknown as UsefulGodMethod[],
   favorableDefinition: "generationCycle",
+  // rules@0.4.0 (명세 정정 2026-11-28, D-022)
+  earthRokgeop: "mainQiGate", // 명세 확정(§2.2): 정기 기준 진입. "luTable"은 예약
+  tonggwanMinShare: 0.25, // 연구소장 설계값(§3.3). 기준 강화 방향은 확정, 새 값은 QA 측정 후
+  tonggwanMinRatio: 0.5, // 연구소장 설계값(§3.3)
 } satisfies RuleOptions)
 
 /** 타입에는 있지만 아직 구현하지 않은(예약된) 값 — 지정하면 EngineInputError */
 const RESERVED: Partial<{ [K in keyof RuleOptions]: readonly unknown[] }> = {
   monthCommandBasis: ["byDays"],
+  earthRokgeop: ["luTable"], // §2.2: 자평진전 록겁·양인 조항 원문 대조 후 구현
+}
+
+/** 숫자 옵션의 허용 범위 (하한 미포함, 상한 포함) — strength-structure-spec §6·§3.3 */
+const NUMERIC_RANGE: Partial<Record<keyof RuleOptions, { gt: number; le: number }>> = {
+  tonggwanMinShare: { gt: 0, le: 0.5 },
+  tonggwanMinRatio: { gt: 0, le: 1 },
 }
 
 const ALLOWED: { [K in keyof RuleOptions]: readonly RuleOptions[K][] } = {
@@ -55,6 +66,9 @@ const ALLOWED: { [K in keyof RuleOptions]: readonly RuleOptions[K][] } = {
   specialStructures: ["candidateOnly", "off"],
   usefulGodMethods: [], // 배열 — 아래에서 따로 검사
   favorableDefinition: ["generationCycle", "secondCandidate"],
+  earthRokgeop: ["mainQiGate"],
+  tonggwanMinShare: [], // 숫자 — NUMERIC_RANGE로 따로 검사
+  tonggwanMinRatio: [],
 }
 
 function checkMethods(v: unknown): UsefulGodMethod[] {
@@ -83,6 +97,13 @@ export function resolveRuleOptions(options?: Partial<RuleOptions>): RuleOptions 
     if (v === undefined) continue
     if (k === "usefulGodMethods") {
       o.usefulGodMethods = checkMethods(v)
+      continue
+    }
+    const range = NUMERIC_RANGE[k]
+    if (range) {
+      if (typeof v !== "number" || !Number.isFinite(v) || !(v > range.gt) || !(v <= range.le))
+        throw new EngineInputError(`${k} 옵션 값 오류: ${String(v)} (허용 범위 (${range.gt}, ${range.le}] 숫자)`)
+      ;(o as unknown as Record<string, unknown>)[k] = v
       continue
     }
     if (RESERVED[k]?.includes(v)) throw new EngineInputError(`${k}="${String(v)}"은 예약된 값(아직 구현하지 않음)`)
