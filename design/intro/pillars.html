@@ -58,7 +58,8 @@ body{font-family:"Gowun Batang","Noto Serif KR","Apple SD Gothic Neo",serif;-web
 .cell[data-el=metal]{--soft:var(--el-metal-soft);--c:var(--el-metal)}
 .cell[data-el=water]{--soft:var(--el-water-soft);--c:var(--el-water)}
 .cell.me{border-width:2.5px}
-.cell.me::before{content:"나";position:absolute;top:-9px;left:50%;transform:translateX(-50%);padding:0 7px;border-radius:999px;background:var(--text);color:var(--surface);font-size:12px;font-weight:700;line-height:18px}
+.cell.me::before{content:"나";position:absolute;top:-10px;left:50%;transform:translateX(-50%);padding:0 7px;border-radius:999px;background:var(--text);color:var(--surface);font-size:12px;font-weight:700;line-height:17px}
+.cell.me .ch{margin-top:8px}
 .ch{display:block;font-family:var(--f-hanja);font-weight:700;font-size:36px;line-height:1;color:var(--text)}
 .cap{margin-top:6px;font-size:13px;font-weight:700;color:var(--c);letter-spacing:.02em}
 .cell::after{content:"";position:absolute;inset:-2px;border-radius:16px;border:2px solid var(--text);opacity:0;pointer-events:none}
@@ -107,7 +108,7 @@ svg .fb{transform-box:fill-box}
 #hand{opacity:0;transform:translate(170px,30px)}
 @keyframes handIn{0%{opacity:1;transform:translate(150px,-46px);animation-timing-function:cubic-bezier(.2,.7,.3,1)}72%{opacity:1;transform:translate(0,-9px);animation-timing-function:ease-in}100%{opacity:1;transform:none}}
 @keyframes handOut{0%{opacity:1;transform:none}100%{opacity:1;transform:translate(170px,30px)}}
-.is-play #ripple{animation:ripple .9s 3.95s ease-out both}
+.is-play #ripple{animation:ripple .9s 3.95s ease-out forwards}
 #ripple{opacity:0}
 @keyframes ripple{0%{opacity:.8;transform:scale(.6)}100%{opacity:0;transform:scale(1.2)}}
 .steam path{stroke-dasharray:40;stroke-dashoffset:0}
