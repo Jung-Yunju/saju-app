@@ -11,10 +11,11 @@
 //
 // 모든 판정은 결정론적이다. 같은 이벤트 + 같은 now → 같은 결과.
 // 이벤트가 없거나 오래되면 일하는 모습을 만들지 않고 unknown/off 로 둔다.
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
+import { chmodSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import { basename, dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { backfillFromTranscripts } from "./backfill.mjs"
+import { INTERNAL, maskPersonal } from "../../.claude/hooks/office-event.mjs"
 
 export const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..")
 export const MAX_DOC_BYTES = 200 * 1024
@@ -30,6 +31,13 @@ export const WINDOWS = {
   done: 600,           // 보고 후 10분
   sessionActive: 600,  // 세션 활성: 마지막 이벤트 10분 이내
   approvalMax: 1800,   // 승인 대기 최대 30분
+}
+// 업무 구간 경계의 시각 근접 기준(밀리초) — 결함 D2
+export const SESSION_MS = {
+  startMerge: 5000,    // 암묵 업무가 출근(SubagentStart) 몇 초 앞이면 같은 업무(비동기 Hook 순서 뒤바뀜)
+  reopen: 60000,       // 보고 뒤 1분 안에 출근 기록 없이 도구를 쓰면 같은 업무를 다시 연다(보고 독촉 후 재보고 등)
+  race: 2000,          // 보고 직후 2초 안의 도구 기록은 순서 뒤바뀜으로 보고 새 업무를 만들지 않는다
+  mergeNear: 10000,    // Hook·작업기록의 출근/보고가 같은 직원·10초 안이면 같은 기록(중복)
 }
 
 // ── 직원 목록 — 계약서 2절 ─────────────────────────────────────
@@ -169,15 +177,42 @@ export function loadEvents(paths) {
   return out
 }
 
-/** 후킹 이벤트와 작업기록 변환 이벤트를 합친다(같은 도구 호출·같은 출근은 Hook 쪽을 남김) */
+/**
+ * 후킹 이벤트와 작업기록 변환 이벤트를 합친다(같은 기록은 Hook 쪽을 남김)
+ * - 도구 호출: 같은 이벤트 + 같은 toolUseId
+ * - 출근/보고: 같은 이벤트 + 같은 agentId + 시각 차이 10초 이내(같은 직원이 여러 번 이어서 일하면
+ *   구간마다 따로 남아야 하므로 agentId 만으로 중복 처리하지 않는다 — 결함 D2)
+ */
 export function mergeEvents(primary, extra) {
-  const keys = new Set()
-  const key = e => (e.toolUseId && TOOL_EVENTS.has(e.event)) ? `${e.event}|${e.toolUseId}`
-    : (e.agentId && (e.event === "SubagentStart" || e.event === "SubagentStop")) ? `${e.event}|${e.agentId}` : null
-  for (const e of primary) { const k = key(e); if (k) keys.add(k) }
+  const toolKeys = new Set()
+  const marks = new Map() // "event|agentId" → [ms...]
+  const toolKey = e => (e.toolUseId && TOOL_EVENTS.has(e.event)) ? `${e.event}|${e.toolUseId}` : null
+  const markKey = e => (e.agentId && (e.event === "SubagentStart" || e.event === "SubagentStop")) ? `${e.event}|${e.agentId}` : null
+  for (const e of primary) {
+    const t = toolKey(e); if (t) toolKeys.add(t)
+    const m = markKey(e)
+    if (m && !Number.isNaN(ms(e.ts))) { if (!marks.has(m)) marks.set(m, []); marks.get(m).push(ms(e.ts)) }
+  }
   const out = [...primary]
-  for (const e of extra) { const k = key(e); if (k && keys.has(k)) continue; out.push(e) }
+  for (const e of extra) {
+    const t = toolKey(e)
+    if (t && toolKeys.has(t)) continue
+    const m = markKey(e)
+    if (m && marks.has(m) && marks.get(m).some(x => Math.abs(x - ms(e.ts)) <= SESSION_MS.mergeNear)) continue
+    out.push(e)
+  }
   return out
+}
+
+/**
+ * 상태 계산에서 빼는 이벤트(결함 D1): agent_type 없는 SubagentStart/Stop.
+ * 새 Hook은 staff="internal" 로 남기고, 예전 기록은 staff="main" 으로 남아 있다.
+ * 총괄실장 자신은 SubagentStart/Stop 을 만들지 않으므로 둘 다 내부 보조 에이전트로 본다.
+ */
+export function isIgnoredEvent(e) {
+  if (!e || typeof e !== "object") return true
+  if (e.staff === INTERNAL) return true
+  return e.staff === "main" && (e.event === "SubagentStart" || e.event === "SubagentStop")
 }
 
 // ── 보조 함수 ─────────────────────────────────────────────────
@@ -187,6 +222,7 @@ function kstDayStartMs(nowMs) {
 }
 const iso = m => (m === null || m === undefined || Number.isNaN(m) ? null : new Date(m).toISOString())
 const isPermission = e => e.event === "PermissionRequest" || (e.event === "Notification" && typeof e.notif === "string" && /permission/i.test(e.notif))
+const isIdlePrompt = e => e.event === "Notification" && typeof e.notif === "string" && /idle/i.test(e.notif)
 const PLACEHOLDER = /^\[.*\]$/
 
 function approvalMessage(tool) {
@@ -201,29 +237,66 @@ function kindStatus(kind) {
   return kind === "typing" || kind === "research" || kind === "running" ? kind : "working"
 }
 
-/** 한 직원(또는 외부 지원 인력 1명)의 이벤트로 세션 목록을 만든다 */
+/**
+ * 한 직원(또는 외부 지원 인력 1명)의 이벤트로 세션(업무 구간) 목록을 만든다.
+ * 결함 D2 수정: 같은 agentId 로 이어서 일해도 구간마다 닫히게 한다.
+ *   - SubagentStart: 같은 키의 열린 업무(암묵 업무 포함)를 이 시각에 닫고 새로 연다.
+ *     단, 몇 초 앞 도구 기록으로 막 만든 업무는 순서 뒤바뀜으로 보고 이 출근에 합친다.
+ *   - SubagentStop: 같은 키의 열린 업무를 모두 닫는다.
+ *   - 도구 기록: 열린 업무가 없으면 처음 보는 키는 암묵 업무로 연다. 보고 뒤라면 PreToolUse·승인 요청만
+ *     업무를 다시 연다(보고 2초 안은 무시, 1분 안은 같은 업무 재개, 그 뒤는 새 암묵 업무).
+ */
 function buildSessions(own, sessionEnds) {
   const sessions = []
-  const open = new Map() // agentKey → session
-  const seen = new Set()
+  const open = new Map()       // agentKey → 열린 session
+  const lastStop = new Map()   // agentKey → { s, at }
+  const mk = (k, e, extra = {}) => ({ agentKey: k, startedAt: ms(e.ts), endedAt: null, startIdx: e._i, endIdx: null, desc: null, cardId: null, sessionId: e.sessionId ?? null, ...extra })
+  const close = (s, e, by) => { s.endedAt = ms(e.ts); s.endIdx = e._i; s.endedBy = by }
   for (const e of own) {
     const k = e.agentId || "_"
+    const t = ms(e.ts)
     if (e.event === "SubagentStart") {
-      const s = { agentKey: k, startedAt: ms(e.ts), endedAt: null, startIdx: e._i, endIdx: null, desc: e.desc ?? null, cardId: e.cardId ?? null, sessionId: e.sessionId ?? null }
-      sessions.push(s); open.set(k, s); seen.add(k)
+      const cur = open.get(k)
+      if (cur && t - cur.startedAt <= SESSION_MS.startMerge) {
+        // 같은 출근의 중복·순서 뒤바뀜 → 합친다
+        cur.implicit = false
+        if (!cur.desc && e.desc) { cur.desc = e.desc; cur.cardId = e.cardId ?? null }
+        continue
+      }
+      if (cur) close(cur, e, "restart")
+      const s = mk(k, e, { desc: e.desc ?? null, cardId: e.cardId ?? null })
+      sessions.push(s); open.set(k, s)
     } else if (e.event === "SubagentStop") {
-      let s = open.get(k)
-      if (!s) {
-        s = { agentKey: k, startedAt: ms(e.ts), endedAt: null, startIdx: e._i, endIdx: null, desc: null, cardId: null, sessionId: e.sessionId ?? null }
-        sessions.push(s); seen.add(k)
+      const opened = sessions.filter(s => s.agentKey === k && s.endedAt === null)
+      if (!opened.length) {
+        const prev = lastStop.get(k)
+        // 같은 보고가 두 번 기록됨(Hook·작업기록 중복 등) → 새 업무를 만들지 않는다
+        if (prev && t - prev.at <= SESSION_MS.race) continue
+        const s = mk(k, e); sessions.push(s); opened.push(s)
       }
-      s.endedAt = ms(e.ts); s.endIdx = e._i; s.endedBy = "stop"; open.delete(k)
+      for (const s of opened) close(s, e, "stop")
+      open.delete(k)
+      lastStop.set(k, { s: opened[opened.length - 1], at: t })
     } else if (TOOL_EVENTS.has(e.event) || e.event === "PermissionRequest") {
-      if (!open.has(k) && !seen.has(k)) {
+      if (open.has(k)) continue
+      const prev = lastStop.get(k)
+      if (!prev) {
+        if (sessions.some(s => s.agentKey === k)) continue
         // Hook 등록 전에 시작된 업무 등: 첫 도구 이벤트를 시작으로 본다
-        const s = { agentKey: k, startedAt: ms(e.ts), endedAt: null, startIdx: e._i, endIdx: null, desc: null, cardId: null, sessionId: e.sessionId ?? null, implicit: true }
-        sessions.push(s); open.set(k, s); seen.add(k)
+        const s = mk(k, e, { implicit: true })
+        sessions.push(s); open.set(k, s)
+        continue
       }
+      if (e.event !== "PreToolUse" && e.event !== "PermissionRequest") continue
+      const gap = t - prev.at
+      if (gap <= SESSION_MS.race) continue
+      if (gap <= SESSION_MS.reopen && prev.s && prev.s.endedBy === "stop") {
+        prev.s.endedAt = null; prev.s.endIdx = null; delete prev.s.endedBy
+        open.set(k, prev.s)
+        continue
+      }
+      const s = mk(k, e, { implicit: true })
+      sessions.push(s); open.set(k, s)
     }
   }
   // 세션 종료(SessionEnd)는 그 이후 열려 있는 업무를 모두 닫는다
@@ -280,6 +353,13 @@ export function judge(staffId, own, ctx) {
   if (lastNonNotif.event === "PostToolUseFailure" && age(lastNonNotif) <= WINDOWS.error) return r("error", ms(lastNonNotif.ts))
 
   if (staffId === "main") {
+    // 결함 D1-b: 응답 종료(Stop)·입력 대기 알림(idle_prompt) 이후 다음 도구 이벤트 전까지는 휴식
+    const lastAct = [...own].reverse().find(e => TOOL_EVENTS.has(e.event) || e.event === "PermissionRequest") || null
+    const restFrom = own.find(e => (e.event === "Stop" || isIdlePrompt(e)) && (!lastAct || e._i > lastAct._i)) || null
+    if (restFrom) {
+      if (sessionActive) return r("resting", ms(restFrom.ts))
+      return r("unknown", ms(last.ts) + WINDOWS.working * 1000)
+    }
     // 회의(규칙): Agent 호출 후 2분, 직원 보고 후 3분
     const call = [...own].reverse().find(e => e.event === "PreToolUse" && (e.tool === "Agent" || e.tool === "Task"))
     const callActive = call && age(call) <= WINDOWS.meetingCall
@@ -288,12 +368,12 @@ export function judge(staffId, own, ctx) {
       const t = Math.max(callActive ? ms(call.ts) : -Infinity, reviewActive ? ms(lastSubagentStop.ts) : -Infinity)
       return r("meeting", t, true)
     }
-    // 총괄실장 = 대화 세션. 마지막 이벤트 10분 이내(응답 종료 Stop 제외)면 업무 중
-    if (last.event !== "Stop" && age(last) <= WINDOWS.working) {
+    // 총괄실장 = 대화 세션. 마지막 이벤트 10분 이내면 업무 중(응답 종료·입력 대기는 위에서 휴식 처리)
+    if (age(last) <= WINDOWS.working) {
       if (lastTool && age(lastTool) <= WINDOWS.activeTool && kindStatus(lastTool.kind) !== "working") return r(lastTool.kind, runStart(own, lastTool))
       return r("working", lastTool && age(lastTool) > WINDOWS.activeTool ? ms(lastTool.ts) + WINDOWS.activeTool * 1000 : ms(last.ts))
     }
-    if (sessionActive) return r("resting", last.event === "Stop" ? ms(last.ts) : ms(last.ts) + WINDOWS.working * 1000)
+    if (sessionActive) return r("resting", ms(last.ts) + WINDOWS.working * 1000)
     return r("unknown", ms(last.ts) + WINDOWS.working * 1000)
   }
 
@@ -403,6 +483,8 @@ function cardsFor(staffId, tasks) {
  * @returns {any}
  */
 export function computeState({ events = [], tasks = [], now = new Date(), sample = false, backfill = null } = {}) {
+  // L7: --sample 없이 예시 기록을 넣어도 예시임이 드러나도록, sample:true 이벤트가 하나라도 있으면 예시 문서
+  if (!sample && Array.isArray(events) && events.some(e => e && e.sample === true)) sample = true
   const nowMs = now instanceof Date ? now.getTime() : ms(now)
   if (Number.isNaN(nowMs)) throw new Error("now 값이 올바른 ISO 시각이 아님")
   const dayStart = kstDayStartMs(nowMs)
@@ -412,6 +494,7 @@ export function computeState({ events = [], tasks = [], now = new Date(), sample
     .filter(({ e }) => e && typeof e.ts === "string" && !Number.isNaN(ms(e.ts)) && ms(e.ts) <= nowMs)
     .sort((a, b) => ms(a.e.ts) - ms(b.e.ts) || a.i - b.i)
     .map(({ e }, i) => ({ ...e, _i: i }))
+    .filter(e => !isIgnoredEvent(e))
   const all = valid.filter(e => STATUS_EVENTS.has(e.event))
   const usage = valid.filter(e => e.event === "Usage" && e.tokens && typeof e.tokens === "object")
   const sessionEnds = all.filter(e => e.event === "SessionEnd")
@@ -449,7 +532,8 @@ export function computeState({ events = [], tasks = [], now = new Date(), sample
       const call = [...delegCalls].reverse().find(c => c.target === staffId && !consumed.has(c._i) && ms(c.ts) <= s.startedAt + 5000)
       if (call) { consumed.add(call._i); desc = call.desc ?? null; cardId = call.cardId ?? null }
     }
-    return { description: desc ?? null, cardId: cardId ?? null, startedAt: iso(s.startedAt), endedAt: iso(s.endedAt) }
+    // 예전 기록(가림 규칙 전)에 개인정보 형태가 남아 있어도 문서에는 가려서 낸다(L2)
+    return { description: desc ? maskPersonal(desc) : null, cardId: cardId ?? null, startedAt: iso(s.startedAt), endedAt: iso(s.endedAt) }
   }
 
   const pendingApprovals = []
@@ -661,7 +745,8 @@ function main() {
   const out = resolve(a.out || join(REPO_ROOT, ".claude", "office", "state.json"))
   mkdirSync(dirname(out), { recursive: true })
   const text = JSON.stringify(doc, null, 2) + "\n"
-  writeFileSync(out, text, "utf8")
+  writeFileSync(out, text, { encoding: "utf8", mode: 0o600 })
+  try { chmodSync(out, 0o600) } catch { /* 이미 있던 파일 권한 조정 실패는 무시 */ }
   if (!a.quiet) {
     console.log(`상태 문서 생성: ${out} (${(Buffer.byteLength(text) / 1024).toFixed(1)}KB, 이벤트 ${doc.source.eventCount}건, 기준 ${doc.generatedAt})`)
     const counts = {}
