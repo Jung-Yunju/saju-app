@@ -4,7 +4,8 @@ import { getSessionUser } from "@/lib/session-user"
 import { generateFullReading } from "@/lib/generate-reading-v2"
 import { MSG, jsonError, serverError } from "../../../_lib/http"
 import {
-  READING_STATUS, acquireGenerationLock, finishGeneration, withTimeout,
+  ATTEMPTS_EXHAUSTED_MESSAGE, READING_STATUS, acquireGenerationLock, finishGeneration,
+  getGenerationMaxAttempts, isAttemptsExhausted, isDbSchemaV3, withTimeout,
 } from "../../_lib/reading-lock"
 import { prepareSajuInputForAi } from "../../_lib/ai-input"
 
@@ -57,11 +58,19 @@ export async function POST(
   }
 
   if (!locked) {
-    // 다른 요청이 이미 생성 중이거나 끝났다 → AI 호출 없이 현재 상태만 알려 준다
-    const current = await prisma.reading
-      .findFirst({ where: { id, userId }, select: { status: true } })
+    // 다른 요청이 이미 생성 중이거나 끝났다(또는 v3에서 시도 횟수를 다 썼다) → AI 호출 없이 현재 상태만 알려 준다
+    const v3 = isDbSchemaV3()
+    const current: { status: string; attemptCount?: number } | null = await prisma.reading
+      .findFirst({ where: { id, userId }, select: v3 ? { status: true, attemptCount: true } : { status: true } })
       .catch(() => null)
     const status = current?.status ?? "UNKNOWN"
+    if (v3 && current && isAttemptsExhausted(status, current.attemptCount, getGenerationMaxAttempts())) {
+      console.error(`[${TAG}] 생성 시도 상한 도달`, { id, attemptCount: current.attemptCount })
+      return NextResponse.json(
+        { readingId: id, status, retryExhausted: true, error: ATTEMPTS_EXHAUSTED_MESSAGE },
+        { status: 409 },
+      )
+    }
     if (status === READING_STATUS.COMPLETE) {
       return NextResponse.json({ readingId: id, status, alreadyCompleted: true })
     }

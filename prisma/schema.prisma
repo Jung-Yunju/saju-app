@@ -18,10 +18,10 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts  Account[]
-  sessions  Session[]
-  orders    Order[]
-  readings  Reading[]
+  accounts Account[]
+  sessions Session[]
+  orders   Order[]
+  readings Reading[]
 }
 
 model Account {
@@ -61,60 +61,103 @@ model VerificationToken {
 }
 
 model Order {
-  id            String      @id @default(cuid())
-  userId        String
-  orderId       String      @unique  // 토스페이먼츠 주문ID
-  amount        Int         // 19900
-  status        OrderStatus @default(PENDING)
-  paymentKey    String?     // 토스페이먼츠 paymentKey
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id         String      @id @default(cuid())
+  userId     String
+  orderId    String      @unique // 토스페이먼츠 주문ID
+  amount     Int // 19900
+  status     OrderStatus @default(PENDING)
+  paymentKey String? // 토스페이먼츠 paymentKey
+  // [v3] 결제 준비(prepare) 때 서버가 검증한 생년월일 묶음(validateBirthInfo 결과).
+  // 결제 확인(confirm)은 클라이언트가 다시 보낸 값 대신 이것만 쓴다(DB_SCHEMA_V3=true일 때).
+  // 풀이 레코드를 만든 뒤에는 지운다(중복 보관 최소화). 예전 주문·무료 주문은 NULL.
+  birthInfo  Json?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   reading Reading?
 }
 
 model Reading {
-  id        String      @id @default(cuid())
-  userId    String
-  orderId   String      @unique
-  readingType ReadingType @default(BASIC)
+  id                       String      @id @default(cuid())
+  userId                   String
+  orderId                  String      @unique
+  readingType              ReadingType @default(BASIC)
   // 본인 사주
-  name      String?
-  birthYear Int
-  birthMonth Int
-  birthDay  Int
-  birthHour Int?
-  gender    String
-  calType   String      @default("SOLAR")
+  name                     String?
+  birthYear                Int
+  birthMonth               Int
+  birthDay                 Int
+  birthHour                Int?
+  gender                   String
+  calType                  String      @default("SOLAR")
+  // [v3] 정확도 입력(U-03) — 예전에는 sajuInput JSON에만 있었다. 기존 행은 기본값(윤달 아님·NULL)
+  isLeapMonth              Boolean     @default(false) // 음력 윤달 여부
+  birthMinute              Int? // 분(0~59). 시진 선택·시각 모름·미입력이면 NULL
+  timeMode                 String? // 실제 적용한 시각 입력 방식 "exact" | "sijin". 시각 모름이면 NULL
+  ziNight                  Boolean? // 시진 선택 + 자시일 때만: true=자정 전 밤, false=자정 후
+  birthplaceLongitude      Float? // 진태양시 보정에 쓴 출생지 경도. NULL=서울 기준. 출생지 이름은 저장하지 않음
   // 상대방 사주 (2인 풀이용)
-  otherName       String?
-  otherBirthYear  Int?
-  otherBirthMonth Int?
-  otherBirthDay   Int?
-  otherBirthHour  Int?
-  otherGender     String?
+  otherName                String?
+  otherBirthYear           Int?
+  otherBirthMonth          Int?
+  otherBirthDay            Int?
+  otherBirthHour           Int?
+  otherGender              String?
+  // [v3] 상대방 정확도 입력 — 상대방이 없으면 모두 NULL
+  otherCalType             String? // "SOLAR" | "LUNAR". NULL이면 본인과 같은 구분(예전 요청)
+  otherIsLeapMonth         Boolean?
+  otherBirthMinute         Int?
+  otherTimeMode            String?
+  otherZiNight             Boolean?
+  otherBirthplaceLongitude Float?
+  // [v3] 생성 시도 상한·잠금 시각 (U-01 잔여: 실패 후 재시도 무제한)
+  attemptCount             Int         @default(0) // AI 생성 잠금을 잡은 횟수(= AI 호출 시도 횟수). 상한 GENERATION_MAX_ATTEMPTS
+  lockedAt                 DateTime? // 마지막으로 GENERATING 잠금을 잡은 시각. 예전 행은 NULL(→ Order.updatedAt으로 판정)
   // 2단계 풀이 필드
-  status      String   @default("COMPLETE")  // VERIFYING | COMPLETE
-  sajuInput   Json?    // Claude에 전달하는 사주 JSON
-  claims      Json?    // 1차 호출 결과 (과거 검증 6가지)
-  userAnswers Json?    // 사용자 맞다/아니다 답변
-  fullReading Json?    // 2차 호출 결과 (본 풀이 JSON)
+  // 상태는 enum이 아니라 문자열로 둔다: PENDING | GENERATING | VERIFYING | COMPLETE | FAILED (docs/DATABASE.md 3.4)
+  status                   String      @default("COMPLETE")
+  sajuInput                Json? // Claude에 전달하는 사주 JSON
+  claims                   Json? // 1차 호출 결과 (과거 검증 6가지)
+  userAnswers              Json? // 사용자 맞다/아니다 답변
+  fullReading              Json? // 2차 호출 결과 (본 풀이 JSON)
   // 구버전 호환 (마크다운 풀이)
-  content   String      @default("") @db.Text
-  createdAt DateTime    @default(now())
+  content                  String      @default("") @db.Text
+  createdAt                DateTime    @default(now())
 
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  aiUsages AiUsage[]
+}
+
+// [v3] AI 호출 1건 = 1행. 비용 집계(docs/COST_REPORT.md)용. 개인정보(프롬프트·응답 본문)는 저장하지 않는다.
+// 풀이가 지워져도(탈퇴 등) 비용 기록은 남도록 readingId는 NULL로 바뀐다.
+model AiUsage {
+  id               String   @id @default(cuid())
+  readingId        String?
+  chapterId        String? // 장(章) 단위 생성일 때 장 ID. 한 번에 만들면 NULL
+  model            String // 예: "claude-sonnet-4-6"
+  inputTokens      Int
+  outputTokens     Int
+  cacheReadTokens  Int      @default(0)
+  cacheWriteTokens Int      @default(0)
+  costUsd          Decimal  @db.Decimal(12, 6) // 호출 시점 단가로 계산한 비용(미국 달러)
+  createdAt        DateTime @default(now())
+
+  reading Reading? @relation(fields: [readingId], references: [id], onDelete: SetNull)
+
+  @@index([readingId])
+  @@index([createdAt])
 }
 
 enum ReadingType {
-  BASIC     // 나는 어떤 사람인가
-  MONEY     // 나는 왜 돈이 안 모일까
-  LOVE      // 나는 왜 연애가 안 될까
-  CAREER    // 나는 왜 직장이 안 맞을까
-  BULLY     // 이 사람은 왜 나를 괴롭힐까
-  CONFLICT  // 우리는 왜 맨날 싸울까
+  BASIC // 나는 어떤 사람인가
+  MONEY // 나는 왜 돈이 안 모일까
+  LOVE // 나는 왜 연애가 안 될까
+  CAREER // 나는 왜 직장이 안 맞을까
+  BULLY // 이 사람은 왜 나를 괴롭힐까
+  CONFLICT // 우리는 왜 맨날 싸울까
 }
 
 enum OrderStatus {

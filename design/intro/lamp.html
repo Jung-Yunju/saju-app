@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="ko" class="is-play">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>인트로 ① 등잔이 켜진다 — 할머니가 풀어 주는 사주 (시안)</title>
+<meta name="theme-color" content="#1b1815">
+<script>
+/* 그리기 전에 결정: 움직임 줄이기 설정 또는 ?still=1 이면 처음부터 끝 장면(정지 화면) */
+(function(){var q=location.search;if(/[?&]still=1/.test(q)||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){document.documentElement.className='is-done is-still';}})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- 글꼴은 그리기를 막지 않게 늦게 붙인다(먼저 기본 명조로 그린 뒤 바뀜) -->
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap">
+<style>
+/* ── 토큰: design/tokens.css 시안 B '등잔 밤'(어두운 테마) 값 ── */
+:root{
+  --bg:#1b1815; --text:#f3eadb; --muted:#b8ad9e; --gold:#e0b860;
+  --accent:#f2c14e; --on-accent:#1b1815; --ink:#221e1b; --surface:#fffaf2;
+  --ease:cubic-bezier(.2,.7,.2,1);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text)}
+body{font-family:"Gowun Batang","Noto Serif KR","Apple SD Gothic Neo",serif;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+.intro{position:relative;min-height:100vh;min-height:100svh;display:flex;flex-direction:column;overflow:hidden;isolation:isolate}
+.top{position:relative;z-index:5;display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 12px 0 16px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;letter-spacing:-.02em}
+.brand svg{width:30px;height:30px;flex:none}
+.ctl{min-height:44px;min-width:44px;padding:0 16px;border-radius:999px;font:inherit;font-size:14px;font-weight:700;color:var(--muted);background:rgba(27,24,21,.6);border:1.5px solid #5a5047;cursor:pointer}
+.ctl:focus-visible,.btn:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.is-still .ctl{display:none}
+.main{position:relative;flex:1 1 auto;display:flex;flex-direction:column}
+.scene{position:relative;flex:1 1 auto;min-height:300px}
+.scene svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
+.copy{position:relative;z-index:5;width:100%;max-width:440px;margin:0 auto;padding:4px 20px max(20px,env(safe-area-inset-bottom))}
+.line{margin:0 0 18px;font-size:22px;line-height:1.48;font-weight:700;letter-spacing:-.02em;word-break:keep-all;text-wrap:balance}
+.who{display:block;margin-bottom:6px;font-size:14px;font-weight:700;color:var(--gold);letter-spacing:0}
+.btn{display:flex;align-items:center;justify-content:center;min-height:52px;padding:0 20px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-weight:700;font-size:17px;letter-spacing:-.02em;text-decoration:none;box-shadow:0 4px 0 rgba(0,0,0,.55);transition:transform .12s,box-shadow .12s}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.55)}
+.foot{margin:14px 0 0;font-size:12px;line-height:1.55;color:var(--muted);word-break:keep-all}
+/* 어둠: 등잔 위치(--lx,--ly)를 중심으로 걷힌다 */
+@property --r{syntax:'<length>';inherits:false;initial-value:190px}
+.dark{position:absolute;inset:0;z-index:3;pointer-events:none;--r:190px;
+  background:radial-gradient(circle at var(--lx,80%) var(--ly,42%),rgba(20,16,13,0) 0,rgba(20,16,13,0) var(--r),rgba(20,16,13,.5) calc(var(--r)*1.9),rgba(20,16,13,.84) calc(var(--r)*3))}
+.dark::after{content:"";position:absolute;inset:0;background:#120f0d;opacity:0}
+@media (min-width:960px){
+  .main{flex-direction:row;align-items:center;max-width:1180px;width:100%;margin:0 auto;padding:0 40px 40px;gap:48px}
+  .scene{align-self:stretch;flex:1.3 1 0}
+  .copy{flex:0 0 400px;padding:0}
+  .line{font-size:28px}
+}
+/* ── 움직임: .is-play 일 때만. 정지 화면 = 각 요소의 기본 상태(끝 장면) ── */
+svg .fb{transform-box:fill-box}
+.is-play .dark{animation:dawn 1.9s .45s var(--ease) both}
+.is-play .dark::after{animation:fadeOut 1.1s .35s ease-out both}
+@keyframes dawn{from{--r:0px}}
+@keyframes fadeOut{from{opacity:.94}to{opacity:0}}
+.is-play #spark{animation:spark .5s .15s ease-out both}
+@keyframes spark{0%{opacity:0;transform:scale(.2)}40%{opacity:1;transform:scale(1.4)}100%{opacity:0;transform:scale(.6)}}
+#flame{transform-origin:50% 100%}
+.is-play #flame{animation:ignite .55s .3s cubic-bezier(.3,1.6,.5,1) both,flicker .9s .85s ease-in-out 2}
+@keyframes ignite{from{transform:scale(.05,.1);opacity:0}to{transform:none;opacity:1}}
+@keyframes flicker{0%,100%{transform:none}30%{transform:scale(.92,1.08) skewX(-3deg)}60%{transform:scale(1.05,.95) skewX(2deg)}}
+.is-play #halo{animation:fadeIn 1s .4s ease-out both}
+.is-play #wallglow{animation:fadeIn 1.6s .5s ease-out both}
+@keyframes fadeIn{from{opacity:0}}
+.is-play .copy .line{animation:rise .6s .9s var(--ease) both}
+.is-play .copy .foot{animation:fadeIn .6s 1.2s ease-out both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}}
+/* 할머니: 고개를 살짝 들며 끄덕 */
+#hm-head{transform-origin:50% 92%}
+.is-play #hm-head{animation:nod 1s 2.1s ease-in-out both}
+@keyframes nod{0%{transform:rotate(-4deg) translateY(2px)}45%{transform:rotate(2deg)}100%{transform:none}}
+/* 복자: 졸다가 눈을 뜨고, 귀를 털고, 꼬리를 한 번 치고, 마지막에 천천히 깜빡 */
+.is-play #bk-z{animation:zz 2.4s 0s ease-in-out both}
+@keyframes zz{0%,70%{opacity:1;transform:none}100%{opacity:0;transform:translate(6px,-8px)}}
+#bk-z{opacity:0}
+#bk-closed{opacity:0}
+.is-play #bk-closed{animation:hold1 2.5s both}
+@keyframes hold1{0%,99%{opacity:1}100%{opacity:0}}
+#bk-open{transform-origin:50% 50%}
+.is-play #bk-open{animation:eyesOpen .35s 2.5s ease-out both,slowBlink 1s 4.5s ease-in-out both}
+@keyframes eyesOpen{from{opacity:0;transform:scaleY(.1)}to{opacity:1;transform:none}}
+@keyframes slowBlink{0%,100%{transform:none}35%,55%{transform:scaleY(.12)}}
+#bk-ear{transform-origin:20% 100%}
+.is-play #bk-ear{animation:ear .4s 2.8s ease-in-out both}
+@keyframes ear{0%,100%{transform:none}50%{transform:rotate(-14deg)}}
+#bk-tail{transform-origin:0% 100%}
+.is-play #bk-tail{animation:tail .9s 3.1s ease-in-out both}
+@keyframes tail{0%,100%{transform:none}40%{transform:rotate(-22deg)}70%{transform:rotate(8deg)}}
+/* 찻김 */
+.steam path{stroke-dasharray:40;stroke-dashoffset:0}
+.is-play .steam path{animation:steam 1.8s 1.6s ease-out 2 both}
+.is-play .steam path+path{animation-delay:1.9s}
+@keyframes steam{0%{stroke-dashoffset:40;opacity:0;transform:translateY(4px)}40%{opacity:1}100%{stroke-dashoffset:0;opacity:.9;transform:none}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="intro">
+  <header class="top">
+    <span class="brand">
+      <svg viewBox="0 0 128 128" aria-hidden="true"><circle cx="64" cy="64" r="62" fill="#f3eadb" stroke="#221e1b" stroke-width="3"/><path d="M60 46 L112 22" stroke="#7a5233" stroke-width="4.5" stroke-linecap="round"/><circle cx="111" cy="22.5" r="6" fill="#f2c14e" stroke="#221e1b" stroke-width="2.2"/><g fill="#221e1b" stroke="#221e1b" stroke-width="5" stroke-linejoin="round"><path d="M30 56 L33 20 L58 38 Z"/><path d="M98 56 L95 20 L70 38 Z"/></g><ellipse cx="64" cy="72" rx="39" ry="33" fill="#221e1b"/><path d="M64 45 C62 53 56.5 61 53.5 71 C50.5 82 55 94.5 64 94.5 C73 94.5 77.5 82 74.5 71 C71.5 61 66 53 64 45 Z" fill="#fffaf2"/><g fill="#f2c14e"><ellipse cx="44.5" cy="68" rx="7" ry="7.6"/><ellipse cx="83.5" cy="68" rx="7" ry="7.6"/></g><g fill="#221e1b"><ellipse cx="44.5" cy="68.5" rx="2.2" ry="5.6"/><ellipse cx="83.5" cy="68.5" rx="2.2" ry="5.6"/></g><path d="M60 76.5 L68 76.5 L64 81 Z" fill="#c4877c"/></svg>
+      할머니가 풀어 주는 사주
+    </span>
+    <button class="ctl" id="ctl" type="button">건너뛰기</button>
+  </header>
+
+  <div class="main">
+    <div class="scene" role="img" aria-label="어두운 방에 등잔불이 켜지자 찻상 앞에서 웃는 할머니와, 찻상 끝에서 졸다 눈을 뜨는 턱시도 고양이 복자가 보인다">
+      <svg viewBox="0 0 390 440" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+        <defs>
+          <radialGradient id="g-wall" cx="314" cy="240" r="300" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#f6e2b4"/><stop offset=".5" stop-color="#ead9ba"/><stop offset="1" stop-color="#cdb895"/>
+          </radialGradient>
+          <radialGradient id="g-glow" cx="314" cy="236" r="190" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#ffd76e" stop-opacity=".55"/><stop offset=".5" stop-color="#f2c14e" stop-opacity=".16"/><stop offset="1" stop-color="#f2c14e" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="g-halo"><stop offset="0" stop-color="#fff2c4" stop-opacity=".95"/><stop offset=".35" stop-color="#f2c14e" stop-opacity=".45"/><stop offset="1" stop-color="#f2c14e" stop-opacity="0"/></radialGradient>
+          <linearGradient id="g-floor" x1="0" y1="306" x2="0" y2="440" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#c08c55"/><stop offset=".55" stop-color="#6e4a2c"/><stop offset="1" stop-color="#1b1815"/>
+          </linearGradient>
+          <pattern id="p-ttisal" width="11" height="10" patternUnits="userSpaceOnUse"><rect x="4.6" width="1.8" height="10" fill="#a8784a"/></pattern>
+        </defs>
+
+        <!-- 벽(한지)과 등잔빛 -->
+        <rect x="-700" y="-700" width="1790" height="1006" fill="url(#g-wall)"/>
+        <rect id="wallglow" x="-700" y="-700" width="1790" height="1006" fill="url(#g-glow)"/>
+        <!-- 띠살 창 -->
+        <g>
+          <rect x="34" y="58" width="134" height="176" rx="2" fill="#f7ead0" stroke="#7a5233" stroke-width="5"/>
+          <rect x="37" y="61" width="128" height="170" fill="url(#p-ttisal)" opacity=".75"/>
+          <g fill="#a8784a" opacity=".85"><rect x="37" y="80" width="128" height="1.8"/><rect x="37" y="85" width="128" height="1.8"/><rect x="37" y="90" width="128" height="1.8"/><rect x="37" y="143" width="128" height="1.8"/><rect x="37" y="148" width="128" height="1.8"/><rect x="37" y="153" width="128" height="1.8"/><rect x="37" y="204" width="128" height="1.8"/><rect x="37" y="209" width="128" height="1.8"/><rect x="37" y="214" width="128" height="1.8"/></g>
+        </g>
+        <!-- 걸레받이와 장판 -->
+        <rect x="-700" y="296" width="1790" height="10" fill="#7a5233"/>
+        <rect x="-700" y="306" width="1790" height="700" fill="url(#g-floor)"/>
+
+        <!-- 할머니 치마(찻상 뒤) -->
+        <path d="M86 356 C90 318 134 298 195 298 C256 298 300 318 304 356 Z" fill="#4b5a49"/>
+        <!-- 할머니 상반신(design/illust/halmeoni.svg, 시안 B 색) -->
+        <g transform="translate(107 146) scale(1.4667)">
+          <path d="M16 120 C18 95 37 83 60 83 C83 83 102 95 104 120 Z" fill="#6d8a6a"/>
+          <path d="M52.5 71 L52.5 85 Q60 89.5 67.5 85 L67.5 71 Z" fill="#eecaa6"/>
+          <path d="M43 84 L60 107 L77 84" fill="none" stroke="#fffaf2" stroke-width="6.5" stroke-linejoin="round"/>
+          <g fill="#c8693f"><path d="M66 104 C61 99 56 101 57.5 105 C59 108.5 63.5 107 66 104 Z"/><path d="M66 104 C71 99 76 101 74.5 105 C73 108.5 68.5 107 66 104 Z"/><path d="M64.6 104.5 C64 110 62.5 115 60.5 120 L64.5 120 C66 115 66.6 110 66.8 104.8 Z"/><path d="M66.4 104.6 C68.5 109 71.5 113 75.5 117 L78 114.6 C74.5 111.6 70.8 108.2 67.8 104.2 Z"/><circle cx="66" cy="104.2" r="2.3"/></g>
+          <g id="hm-head" class="fb">
+            <circle cx="60" cy="25" r="12.5" fill="#dcd6ce"/>
+            <path d="M33 22.5 L88 22.5" stroke="#7a5233" stroke-width="3.4" stroke-linecap="round"/>
+            <circle cx="90" cy="22.5" r="4.2" fill="#c8693f" stroke="#3b2d25" stroke-width="1.2"/>
+            <ellipse cx="36.8" cy="58" rx="4.2" ry="6.2" fill="#eecaa6"/><ellipse cx="83.2" cy="58" rx="4.2" ry="6.2" fill="#eecaa6"/>
+            <ellipse cx="60" cy="55" rx="23.5" ry="25.5" fill="#eecaa6"/>
+            <path d="M36.3 53 C34 34 45 27 60 27 C75 27 86 34 83.7 53 C80 42.5 70 38 60 39.2 C50 38 40 42.5 36.3 53 Z" fill="#dcd6ce"/>
+            <path d="M60 28.5 Q58.6 34 60 39" fill="none" stroke="#a59d94" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M42 45 Q48 40.5 55 40.6 M78 45 Q72 40.5 65 40.6" fill="none" stroke="#a59d94" stroke-width="1.1" stroke-linecap="round"/>
+            <g fill="none" stroke="#7a5233" stroke-width="1.6"><circle cx="50.5" cy="57" r="7.2"/><circle cx="69.5" cy="57" r="7.2"/><path d="M57.7 56.5 Q60 54.6 62.3 56.5"/></g>
+            <g fill="none" stroke="#3b2d25" stroke-width="1.9" stroke-linecap="round"><path d="M47 58.4 Q50.5 54.6 54 58.4"/><path d="M66 58.4 Q69.5 54.6 73 58.4"/><path d="M54 70 Q60 75.5 66 70"/></g>
+            <g fill="#e59d86" opacity=".55"><ellipse cx="44" cy="67" rx="4.6" ry="2.7"/><ellipse cx="76" cy="67" rx="4.6" ry="2.7"/></g>
+          </g>
+        </g>
+
+        <!-- 찻상·등잔·찻주전자(design/illust/tea-table-b.svg 바탕) -->
+        <g transform="translate(19 232) scale(1.1)">
+          <path d="M10 62 H310 C310 70 304 74 296 74 H24 C16 74 10 70 10 62 Z" fill="#a8784a" stroke="#221e1b" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M30 74 V110 M290 74 V110" stroke="#221e1b" stroke-width="5" stroke-linecap="round"/>
+          <path d="M40 74 C40 90 60 96 70 96 M280 74 C280 90 260 96 250 96" fill="none" stroke="#7a5233" stroke-width="4" stroke-linecap="round"/>
+          <!-- 찻주전자 -->
+          <path d="M150 62 C138 62 132 52 134 42 C136 32 146 28 160 28 C174 28 184 32 186 42 C188 52 182 62 170 62 Z" fill="#fffaf2" stroke="#221e1b" stroke-width="2.4"/>
+          <path d="M134 44 C124 42 120 34 116 30" fill="none" stroke="#221e1b" stroke-width="5" stroke-linecap="round"/>
+          <path d="M134 44 C124 42 120 34 116 30" fill="none" stroke="#fffaf2" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M186 38 C198 36 198 54 184 52" fill="none" stroke="#221e1b" stroke-width="2.6"/>
+          <path d="M150 28 C150 22 170 22 170 28" fill="#7a5233" stroke="#221e1b" stroke-width="2.2"/>
+          <circle cx="160" cy="20" r="3" fill="#221e1b"/>
+          <path d="M140 46 H180" stroke="#6d8a6a" stroke-width="3"/>
+          <!-- 찻잔 둘: 앞쪽 잔은 손님 몫 -->
+          <g stroke="#221e1b" stroke-width="2.2" stroke-linejoin="round">
+            <path d="M94 50 H122 C121 60.5 115.5 65 108 65 C100.5 65 95 60.5 94 50 Z" fill="#fffaf2"/>
+            <path d="M206 48 H232 C231 58 226 62 219 62 C212 62 207 58 206 48 Z" fill="#fffaf2"/>
+          </g>
+          <path d="M95.6 54 H120.4 M207.5 52 H230.5" stroke="#6d8a6a" stroke-width="2"/>
+          <g class="steam" fill="none" stroke="#7a5233" stroke-opacity=".55" stroke-width="1.8" stroke-linecap="round">
+            <path class="fb" d="M106 44 C102 38 110 34 106 27"/><path class="fb" d="M219 42 C215 36 223 32 219 26"/>
+          </g>
+          <!-- 등잔(조금 크게) -->
+          <g transform="translate(268 60) scale(1.3) translate(-268 -60)">
+            <path d="M256 30 H280 L276 38 H260 Z" fill="#a8784a" stroke="#221e1b" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M268 38 V60 M258 60 H278" stroke="#221e1b" stroke-width="3" stroke-linecap="round"/>
+            <path d="M268 30 V26" stroke="#3b2d25" stroke-width="1.6" stroke-linecap="round"/>
+            <path id="flame" class="fb" d="M268 9 C262.5 17 262.5 25.5 268 28 C273.5 25.5 273.5 17 268 9 Z" fill="#f2c14e" stroke="#221e1b" stroke-width="1.8"/>
+            <path class="fb" d="M268 18 C266.4 21.5 266.6 25 268 26 C269.4 25 269.6 21.5 268 18 Z" fill="#fff4cf"/>
+          </g>
+        </g>
+        <circle id="halo" cx="314" cy="252" r="46" fill="url(#g-halo)"/>
+        <circle id="spark" class="fb" cx="313.8" cy="262" r="4" fill="#fff2c4"/>
+
+        <!-- 복자(식빵 자세, design/illust/bokja-loaf.svg 바탕) -->
+        <g transform="translate(8 224) scale(.95)">
+          <path id="bk-tail" class="fb" d="M104 74 C114 70 116 60 108 56" fill="none" stroke="#1d1a18" stroke-width="6" stroke-linecap="round"/>
+          <g fill="#1d1a18">
+            <path d="M14 80 C10 58 22 44 44 42 L78 42 C100 42 110 58 106 80 Z"/>
+            <path d="M30 34 L31 14 L44 25 Z"/>
+            <path id="bk-ear" class="fb" d="M60 34 L59 14 L46 25 Z"/>
+            <circle cx="45" cy="40" r="17"/>
+          </g>
+          <g fill="#fffaf2">
+            <path d="M45 30 C43.5 35 37.5 38 37.5 44 C37.5 49 41 52 45 52 C49 52 52.5 49 52.5 44 C52.5 38 46.5 35 45 30 Z"/>
+            <path d="M36 56 C40 60 50 60 54 56 L52 76 C50 80 40 80 38 76 Z"/>
+            <ellipse cx="38" cy="80" rx="7" ry="3.6"/><ellipse cx="54" cy="80" rx="7" ry="3.6"/>
+          </g>
+          <g id="bk-closed" fill="none" stroke="#f2c14e" stroke-width="2.2" stroke-linecap="round"><path d="M34.5 39 Q38 42 41.5 39"/><path d="M48.5 39 Q52 42 55.5 39"/></g>
+          <g id="bk-open" class="fb">
+            <ellipse cx="37.2" cy="39" rx="3.9" ry="4.3" fill="#f2c14e"/><ellipse cx="52.8" cy="39" rx="3.9" ry="4.3" fill="#f2c14e"/>
+            <ellipse cx="37.6" cy="39.3" rx="1.2" ry="3.3" fill="#1d1a18"/><ellipse cx="53.2" cy="39.3" rx="1.2" ry="3.3" fill="#1d1a18"/>
+            <circle cx="38.6" cy="37.4" r=".9" fill="#fffaf2"/><circle cx="54.2" cy="37.4" r=".9" fill="#fffaf2"/>
+          </g>
+          <path d="M43 43.6 L47 43.6 L45 46 Z" fill="#c4877c"/>
+          <g id="bk-z" fill="#f2c14e" font-family="serif" font-size="11" font-weight="700"><text x="66" y="22">z</text><text x="76" y="13" font-size="8">z</text></g>
+        </g>
+      </svg>
+    </div>
+
+    <section class="copy">
+      <p class="line"><span class="who">할머니</span>불 켜 놨다. 태어난 날만 알려 주면 할미가 찬찬히 봐 주마.</p>
+      <a class="btn" href="#start">생년월일 넣고 할머니한테 물어보기</a>
+      <p class="foot">사주 풀이는 전통 명리 해석에 따른 이야기이며, 미래를 과학적으로 예측한다는 뜻이 아닙니다.</p>
+    </section>
+  </div>
+  <div class="dark" id="dark" aria-hidden="true"></div>
+</div>
+<script>
+(function(){
+  var TOTAL=5600, h=document.documentElement, btn=document.getElementById('ctl'), timer;
+  var dark=document.getElementById('dark'), flame=document.getElementById('flame');
+  function aim(){ /* 어둠이 걷히는 중심 = 등잔불 화면 위치 */
+    var r=flame.getBoundingClientRect(), b=dark.getBoundingClientRect();
+    dark.style.setProperty('--lx',(r.left+r.width/2-b.left)+'px');
+    dark.style.setProperty('--ly',(r.top+r.height*.6-b.top)+'px');
+  }
+  aim(); addEventListener('resize',aim);
+  function done(){clearTimeout(timer);h.classList.remove('is-play');h.classList.add('is-done');btn.textContent='다시 보기';}
+  function play(){clearTimeout(timer);h.classList.remove('is-done');h.classList.remove('is-play');void h.offsetWidth;h.classList.add('is-play');btn.textContent='건너뛰기';timer=setTimeout(done,TOTAL);}
+  btn.addEventListener('click',function(){h.classList.contains('is-play')?done():play();});
+  window.replay=play; window.finish=done;
+  addEventListener('message',function(e){if(e.data==='replay')play();});
+  if(h.classList.contains('is-done')){btn.textContent='다시 보기';return;}
+  var at=new URLSearchParams(location.search).get('at'); /* 검수용: ?at=1500 그 순간에 멈춤, ?at=end 끝 장면 */
+  if(at==='end'){done();return;}
+  if(at!==null){document.getAnimations().forEach(function(a){a.pause();a.currentTime=+at;});return;}
+  timer=setTimeout(done,TOTAL);
+})();
+</script>
+</body>
+</html>

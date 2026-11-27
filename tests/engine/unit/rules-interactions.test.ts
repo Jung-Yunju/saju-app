@@ -1,12 +1,13 @@
-// 합·충·형·파·해 테스트 — src/engine/rules/interactions.ts (rules@0.2.0)
+// 합·충·형·파·해 테스트 — src/engine/rules/interactions.ts (rules@0.2.0 표 + rules@0.3.0 D-019 포함 표시)
 // 기대값 근거: docs/knowledge/rules-spec.md §6(천간합·충 표 + 검산 공식), §7(지지 관계 표). 아래 문자열은 명세 표를 다시 적은 것.
 // lunar-javascript 대조: HE_GAN_5 · HE_ZHI_6 · CHONG · CHONG_GAN_4(천간충 4쌍, 戊己 빈칸)와 일치하는지 본다.
-// 포섭 규칙(엔진 개발자 정의, rules-spec에 없음): 세 글자 관계가 성립하면 그 안의 두 글자 기록(반합 등)은 나머지 한 글자가 원국일 때 생략.
+// D-019(rules@0.3.0): 세 글자 관계가 성립해도 그 안의 두 글자 기록(반합·두 글자 방합·두 글자 삼형)을 지우지 않고 subsumedBy(세 글자 관계 식별자)를 붙인다.
+// 남은 한 글자가 원국이든 운이든 같다(0.2.0의 원국·운 비대칭 삭제 규칙 폐지).
 import { describe, expect, it } from "vitest"
 // @ts-expect-error lunar-javascript 패키지는 .d.ts를 제공하지 않는다
 import lunarJs from "lunar-javascript"
 import { BRANCHES, STEMS } from "@/engine/calendar/constants"
-import { analyzeRules, type Branch, type CalendarResult, type Interaction, type Pillar, type RuleOptions, type Stem } from "@/engine"
+import { analyzeRules, interactionId, type Branch, type CalendarResult, type Interaction, type Pillar, type RuleOptions, type Stem } from "@/engine"
 
 const lib = lunarJs as unknown as {
   LunarUtil: { HE_GAN_5: string[]; HE_ZHI_6: string[]; CHONG: string[]; CHONG_GAN_4: string[] }
@@ -141,13 +142,19 @@ describe("지지 두 글자 관계(§7) — 144칸 전수", () => {
 })
 
 describe("세 글자 관계와 옵션(§7)", () => {
-  it("삼합 4종: complete, 결과 오행, 그 안의 반합은 생략(포섭)", () => {
+  it("삼합 4종: complete, 결과 오행, 그 안의 반합(왕지 낀 두 쌍)은 남고 subsumedBy = 삼합 식별자", () => {
     const exp: Record<string, string> = { 申子辰: "water", 亥卯未: "wood", 寅午戌: "fire", 巳酉丑: "metal" }
     for (const t of THREE) {
       const r = branchOnly([...t] as Branch[])
       const tc = r.filter((i) => i.type === "threeCombine")
       expect(tc, t).toMatchObject([{ complete: true, resultElement: exp[t], chars: [...t], adjacent: true, ruleId: `branch.threeCombine.${t}` }])
-      expect(r.filter((i) => i.type === "halfCombine"), t).toEqual([])
+      expect(tc[0].subsumedBy, t).toBeUndefined()
+      expect(interactionId(tc[0])).toBe(`branch.threeCombine.${t}@year.branch+month.branch+day.branch`)
+      const halves = r.filter((i) => i.type === "halfCombine")
+      // 생지(연)+왕지(월), 왕지(월)+고지(일). 생지+고지(연-일)는 기본 withKingOnly라 반합 아님
+      expect(halves.map(key), t).toEqual(["year.branch+month.branch", "month.branch+day.branch"])
+      expect(halves.map((h) => h.subsumedBy), t).toEqual([[interactionId(tc[0])], [interactionId(tc[0])]])
+      expect(halves.every((h) => h.withKing && h.resultElement === exp[t]), t).toBe(true)
     }
   })
 
@@ -160,10 +167,19 @@ describe("세 글자 관계와 옵션(§7)", () => {
     expect(branchOnly(["子", "辰", "子"]).find((i) => i.type === "halfCombine")).toMatchObject({ withKing: true, resultElement: "water" })
   })
 
-  it("방합: 세 글자만(기본). partialDirectional이면 두 글자도 partial로, 세 글자가 있으면 두 글자 생략", () => {
+  it("방합: 세 글자만(기본). partialDirectional이면 두 글자도 partial로, 세 글자가 있으면 두 글자도 남기고 subsumedBy", () => {
     for (const [t, el] of [["寅卯辰", "wood"], ["巳午未", "fire"], ["申酉戌", "metal"], ["亥子丑", "water"]]) {
       expect(branchOnly([...t] as Branch[]).filter((i) => i.type === "directionalCombine"), t).toMatchObject([{ complete: true, resultElement: el }])
-      expect(branchOnly([...t] as Branch[], { partialDirectional: true }).filter((i) => i.type === "directionalCombine"), t).toHaveLength(1)
+      const d = branchOnly([...t] as Branch[], { partialDirectional: true }).filter((i) => i.type === "directionalCombine")
+      // 정렬: [연,월] < [연,월,일] < [연,일] < [월,일]
+      expect(d.map((i) => [key(i), i.complete, i.partial ?? false]), t).toEqual([
+        ["year.branch+month.branch", false, true],
+        ["year.branch+month.branch+day.branch", true, false],
+        ["year.branch+day.branch", false, true],
+        ["month.branch+day.branch", false, true],
+      ])
+      const id = `branch.directional.${t}@year.branch+month.branch+day.branch`
+      expect(d.map((i) => i.subsumedBy ?? null), t).toEqual([[id], null, [id], [id]])
     }
     expect(branchOnly(["寅", "卯", "寅"]).filter((i) => i.type === "directionalCombine")).toEqual([])
     expect(branchOnly(["寅", "卯", "寅"], { partialDirectional: true }).filter((i) => i.type === "directionalCombine")).toMatchObject([
@@ -172,14 +188,24 @@ describe("세 글자 관계와 옵션(§7)", () => {
     ])
   })
 
-  it("삼형 寅巳申·丑戌未: 세 글자면 complete 하나, 두 글자 삼형 기록은 생략. 충·파·해·합은 그대로", () => {
+  it("삼형 寅巳申·丑戌未: 세 글자면 complete 하나 + 두 글자 삼형 셋(subsumedBy). 충·파·해·합은 그대로(포함 표시 없음)", () => {
     const r = branchOnly(["寅", "巳", "申"])
-    expect(r.filter((i) => i.type === "punishment")).toMatchObject([{ complete: true, punishmentKind: "three", ruleId: "branch.punishment.寅巳申" }])
+    const pun = r.filter((i) => i.type === "punishment")
+    expect(pun.map((i) => `${i.ruleId}:${key(i)}:${i.complete}`)).toEqual([
+      "branch.punishment.寅巳:year.branch+month.branch:false",
+      "branch.punishment.寅巳申:year.branch+month.branch+day.branch:true",
+      "branch.punishment.寅申:year.branch+day.branch:false",
+      "branch.punishment.巳申:month.branch+day.branch:false",
+    ])
+    const id = "branch.punishment.寅巳申@year.branch+month.branch+day.branch"
+    expect(pun.map((i) => i.subsumedBy ?? null)).toEqual([[id], null, [id], [id]])
     expect(r.filter((i) => i.type !== "punishment").map((i) => `${i.type}:${i.chars.join("")}`)).toEqual([
       "sixCombine:巳申", "clash:寅申", "break:巳申", "harm:寅巳",
     ])
+    expect(r.filter((i) => i.type !== "punishment").every((i) => i.subsumedBy === undefined)).toBe(true)
     const r2 = branchOnly(["丑", "戌", "未"])
-    expect(r2.filter((i) => i.type === "punishment")).toMatchObject([{ complete: true, ruleId: "branch.punishment.丑戌未" }])
+    expect(r2.filter((i) => i.type === "punishment" && i.complete)).toMatchObject([{ complete: true, ruleId: "branch.punishment.丑戌未" }])
+    expect(r2.filter((i) => i.type === "punishment" && i.partial)).toHaveLength(3)
   })
 
   it("partialPunishment=false: 두 글자 삼형은 기록하지 않음(세 글자·상형·자형은 기록)", () => {
@@ -219,12 +245,32 @@ describe("운(대운·세운)과 원국 사이", () => {
     expect(clashes).toEqual(["daeun1.branch+seun.branch"])
   })
 
-  it("원국 두 글자 + 운 한 글자 삼합: 원국 반합 기록은 남고, 운 낀 반합은 생략(나머지 글자가 원국)", () => {
+  it("원국 두 글자 + 운 한 글자 삼합: 원국 반합·운 낀 반합 모두 남고 둘 다 subsumedBy(원국·운 대칭, D-019)", () => {
     const r = analyzeRules(natal, undefined, { year: pb("辰") }).interactions
     expect(r.filter((i) => i.type === "threeCombine").map(key)).toEqual(["year.branch+month.branch+seun.branch"])
-    const halves = r.filter((i) => i.type === "halfCombine").map(key)
-    expect(halves).toEqual(["year.branch+month.branch"]) // 申子(원국)는 남음, 子辰(월-세운)·申辰은 기록 안 함
+    const halves = r.filter((i) => i.type === "halfCombine")
+    // 申子(연-월, 원국) · 子辰(월-세운). 申辰은 생지+고지라 기본 옵션에서 반합 아님
+    expect(halves.map(key)).toEqual(["year.branch+month.branch", "month.branch+seun.branch"])
+    const id = "branch.threeCombine.申子辰@year.branch+month.branch+seun.branch"
+    expect(halves.map((h) => h.subsumedBy)).toEqual([[id], [id]])
+    expect(halves.map((h) => h.scope)).toEqual(["natal", "luck"])
     expect(r.find((i) => i.type === "threeCombine")!.scope).toBe("luck")
+    // 운이 없으면 원국 申子 반합은 포함 표시 없음
+    const plain = analyzeRules(natal).interactions.filter((i) => i.type === "halfCombine")
+    expect(plain.map((h) => [key(h), h.subsumedBy ?? null])).toEqual([["year.branch+month.branch", null]])
+  })
+
+  it("같은 두 글자를 포함하는 세 글자 관계가 여럿이면 식별자를 모두 적는다(申子 + 辰 둘)", () => {
+    const r = analyzeRules(chart(pb("申"), pb("子"), pb("辰"), pb("辰"))).interactions
+    const t = r.filter((i) => i.type === "threeCombine").map(interactionId)
+    expect(t).toEqual([
+      "branch.threeCombine.申子辰@year.branch+month.branch+day.branch",
+      "branch.threeCombine.申子辰@year.branch+month.branch+hour.branch",
+    ])
+    const sz = r.find((i) => i.type === "halfCombine" && key(i) === "year.branch+month.branch")!
+    expect(sz.subsumedBy).toEqual(t)
+    const zc = r.find((i) => i.type === "halfCombine" && key(i) === "month.branch+day.branch")!
+    expect(zc.subsumedBy).toEqual([t[0]])
   })
 
   it("천간도 운과 비교: 원국 庚 ↔ 세운 甲 충, 대운 己 ↔ 세운 甲 합", () => {

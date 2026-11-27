@@ -1,30 +1,11 @@
 // 엔진 결과(SajuInputData) → 화면 응답(FreeResult). 계산은 엔진이 끝냈고 여기서는 표시용으로 옮기기만 한다.
 // 개인정보 차단: 이름·생년월일(birth)·성별·출생지·양력/음력 구분은 응답에 옮기지 않는다.
-import { displaySajuFromStored, parseGanzhi, type DisplayPillar, type SajuInputData } from "@/lib/saju-input"
+import { displaySajuFromStored, type DisplayPillar, type SajuInputData } from "@/lib/saju-input"
+import { ganzhiView } from "@/app/free/_lib/ganzhi"
 import { selectCopy, type RawContent } from "@/app/free/_lib/content"
-import type { DaeunView, ElementKo, FreeResult, GanzhiView, PillarView } from "@/app/free/_lib/types"
+import type { DaeunView, ElementKo, FreeResult, PillarView } from "@/app/free/_lib/types"
 
 const EL = (v: string): ElementKo => v as ElementKo
-
-/** "甲子" → 표시값(한글·오행). 올바른 간지가 아니면 null */
-export function ganzhiView(hanja: string): GanzhiView | null {
-  const p = parseGanzhi(hanja)
-  if (!p) return null
-  // 한글·오행 표는 src/lib/saju-input.ts에만 있으므로 같은 변환(displaySajuFromStored)을 재사용한다
-  const d = displaySajuFromStored({ pillars: { year: hanja, month: hanja, day: hanja }, hour_unknown: true })
-  const row = d?.pillars[0]
-  if (!row) return null
-  return {
-    hanja,
-    ko: row.stem + row.branch,
-    stemHanja: p.stem,
-    branchHanja: p.branch,
-    stemKo: row.stem,
-    branchKo: row.branch,
-    element: EL(row.element),
-    branchEl: EL(row.branchEl),
-  }
-}
 
 const LABELS: Record<PillarView["key"], string> = { year: "연주", month: "월주", day: "일주", hour: "시주" }
 

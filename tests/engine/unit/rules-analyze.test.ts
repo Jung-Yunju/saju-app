@@ -1,4 +1,4 @@
-// analyzeRules 통합 테스트 — src/engine/rules/index.ts (rules@0.2.0)
+// analyzeRules 통합 테스트 — src/engine/rules/index.ts (rules@0.2.0 항목. rules@0.3.0에서 D-019 포함 표시 반영)
 // 손계산 사례 3건: 기대값은 rules-spec §1~§9 표로 손으로 계산해 적었다(구현 결과 복사 아님). 계산 과정은 각 사례 주석.
 // 사례 원국은 규칙 검산용으로 고른 간지 조합이다(실제 생년월일에서 나온 원국인지는 따지지 않는다).
 import { describe, expect, it } from "vitest"
@@ -40,16 +40,23 @@ describe("손계산 사례 1 — 甲子년 丙寅월 戊辰일 庚申시 (일간
     expect(r.twelveStages.every((x) => x.tableId === "twelve-stages:reverse/withFire")).toBe(true)
   })
 
-  it("관계: 甲庚 천간충, 申子辰 삼합(반합 생략), 寅申 충·두 글자 형", () => {
+  it("관계: 甲庚 천간충, 申子辰 삼합 + 그 안의 반합 子辰·子申(D-019: 지우지 않고 subsumedBy), 寅申 충·두 글자 형", () => {
     expect(ia(r.interactions)).toEqual([
       "stemClash:year.stem+hour.stem:甲庚",
       "threeCombine:year.branch+day.branch+hour.branch:子辰申",
+      "halfCombine:year.branch+day.branch:子辰",
+      "halfCombine:year.branch+hour.branch:子申",
       "clash:month.branch+hour.branch:寅申",
       "punishment:month.branch+hour.branch:寅申",
     ])
-    expect(r.interactions.map((i) => i.adjacent)).toEqual([false, false, false, false])
+    expect(r.interactions.map((i) => i.adjacent)).toEqual([false, false, false, false, false, false])
     expect(r.interactions[1]).toMatchObject({ resultElement: "water", complete: true, scope: "natal" })
-    expect(r.interactions[3]).toMatchObject({ partial: true, punishmentKind: "three" })
+    expect(r.interactions[1].subsumedBy).toBeUndefined()
+    const tid = "branch.threeCombine.申子辰@year.branch+day.branch+hour.branch"
+    expect(r.interactions[2].subsumedBy).toEqual([tid])
+    expect(r.interactions[3].subsumedBy).toEqual([tid])
+    expect(r.interactions[5]).toMatchObject({ partial: true, punishmentKind: "three" })
+    expect(r.interactions[5].subsumedBy).toBeUndefined() // 寅巳申 삼형이 완성되지 않음
   })
 
   it("공망: 戊辰은 甲子순 → 戌亥, 원국에 없음", () => {
@@ -145,20 +152,27 @@ describe("손계산 사례 3 — 己丑년 甲戌월 癸未일 戊午시 (일간
   const natal = chart("己丑", "甲戌", "癸未", "戊午")
   const r = analyzeRules(natal)
 
-  it("원국 관계: 甲己·戊癸 천간합, 午未 육합, 午戌 반합, 丑未 충, 丑戌未 삼형(완성), 戌未 파, 丑午 해", () => {
+  it("원국 관계: 甲己·戊癸 천간합, 午未 육합, 午戌 반합, 丑未 충, 丑戌未 삼형(완성) + 두 글자 삼형 셋(D-019 subsumedBy), 戌未 파, 丑午 해", () => {
     expect(ia(r.interactions)).toEqual([
       "stemCombine:year.stem+month.stem:己甲",
       "stemCombine:day.stem+hour.stem:癸戊",
       "sixCombine:day.branch+hour.branch:未午",
       "halfCombine:month.branch+hour.branch:戌午",
       "clash:year.branch+day.branch:丑未",
+      // 정렬: 근거 위치 [연,월] < [연,월,일] < [연,일] < [월,일]
+      "punishment:year.branch+month.branch:丑戌",
       "punishment:year.branch+month.branch+day.branch:丑戌未",
+      "punishment:year.branch+day.branch:丑未",
+      "punishment:month.branch+day.branch:戌未",
       "break:month.branch+day.branch:戌未",
       "harm:year.branch+hour.branch:丑午",
     ])
     expect(r.interactions.find((i) => i.type === "sixCombine")!.resultElement).toBeNull() // wuWeiCombine none
     expect(r.interactions.find((i) => i.type === "halfCombine")).toMatchObject({ resultElement: "fire", withKing: true, adjacent: false })
-    expect(r.interactions.find((i) => i.type === "punishment")).toMatchObject({ complete: true, adjacent: true })
+    expect(r.interactions.find((i) => i.type === "halfCombine")!.subsumedBy).toBeUndefined()
+    expect(r.interactions.find((i) => i.type === "punishment" && i.complete)).toMatchObject({ complete: true, adjacent: true })
+    const pid = "branch.punishment.丑戌未@year.branch+month.branch+day.branch"
+    expect(r.interactions.filter((i) => i.type === "punishment" && i.partial).map((i) => i.subsumedBy)).toEqual([[pid], [pid], [pid]])
     expect(r.interactions.filter((i) => i.type === "stemCombine").map((i) => i.resultElement)).toEqual(["earth", "fire"])
   })
 
@@ -185,22 +199,28 @@ describe("손계산 사례 3 — 己丑년 甲戌월 癸未일 戊午시 (일간
     const L = analyzeRules(natal, undefined, { luck: [P("庚辰")], year: P("甲寅") })
     const luckOnly = L.interactions.filter((i) => i.scope === "luck")
 
-    it("원국 내부 관계는 운이 없을 때와 같다", () => {
-      expect(L.interactions.filter((i) => i.scope === "natal")).toEqual(r.interactions)
+    it("원국 내부 관계는 운이 없을 때와 같다 — 단 운이 완성한 세 글자 관계의 포함 표시(subsumedBy)는 더해진다(D-019, 원국·운 대칭)", () => {
+      const strip = (xs: Interaction[]) => xs.map(({ subsumedBy, ...rest }) => (void subsumedBy, rest))
+      expect(strip(L.interactions.filter((i) => i.scope === "natal"))).toEqual(strip(r.interactions))
+      // 원국 午戌(월-시) 반합은 세운 寅이 완성한 寅午戌 삼합에 포함 → 지우지 않고 표시
+      const half = L.interactions.find((i) => i.type === "halfCombine" && i.scope === "natal")!
+      expect(half.subsumedBy).toEqual(["branch.threeCombine.寅午戌@month.branch+hour.branch+seun.branch"])
     })
 
     it("운 관계(손계산): 甲庚 충 2건, 세운 甲 ↔ 연간 己 합, 寅午戌 삼합(세운 寅), 辰戌 충, 丑辰 파", () => {
       // 천간: 세운 甲-연간 己 합 / 대운 庚-월간 甲 충 / 대운 庚-세운 甲 충
-      // 지지: 세운 寅 + 월지 戌 + 시지 午 = 寅午戌 삼합. 寅午(시-세운) 반합은 나머지 戌이 원국이라 생략.
-      //       대운 辰: 戌과 충, 丑과 파. 그 밖에 辰·寅의 관계 없음(방합 두 글자는 기본 꺼짐).
+      // 지지: 세운 寅 + 월지 戌 + 시지 午 = 寅午戌 삼합. 寅午(시-세운) 반합도 기록하고 subsumedBy 표시(D-019).
+      //       寅戌은 생지+고지라 기본(withKingOnly)에서 반합 아님. 대운 辰: 戌과 충, 丑과 파. 방합 두 글자는 기본 꺼짐.
       expect(ia(luckOnly)).toEqual([
         "stemCombine:year.stem+seun.stem:己甲",
         "stemClash:month.stem+daeun0.stem:甲庚",
         "stemClash:daeun0.stem+seun.stem:庚甲",
         "threeCombine:month.branch+hour.branch+seun.branch:戌午寅",
+        "halfCombine:hour.branch+seun.branch:午寅",
         "clash:month.branch+daeun0.branch:戌辰",
         "break:year.branch+daeun0.branch:丑辰",
       ])
+      expect(luckOnly.find((i) => i.type === "halfCombine")!.subsumedBy).toEqual(["branch.threeCombine.寅午戌@month.branch+hour.branch+seun.branch"])
       expect(luckOnly.every((i) => i.adjacent === false)).toBe(true)
     })
 
@@ -216,10 +236,10 @@ describe("손계산 사례 3 — 己丑년 甲戌월 癸未일 戊午시 (일간
 })
 
 describe("결과 메타·옵션·오류", () => {
-  it("engineVersion rules@0.2.0, 역법 버전, 사용 옵션 전체 기록", () => {
+  it("engineVersion rules@0.3.0, 역법 버전, 사용 옵션 전체 기록", () => {
     const r = analyzeRules(chart("甲子", "丙寅", "戊辰", "庚申"), { hiddenStemTable: "cn-lunarjs" })
-    expect(r.engineVersion).toBe("rules@0.2.0")
-    expect(RULES_ENGINE_VERSION).toBe("rules@0.2.0")
+    expect(r.engineVersion).toBe("rules@0.3.0")
+    expect(RULES_ENGINE_VERSION).toBe("rules@0.3.0")
     expect(r.calendarEngineVersion).toBe("calendar@test")
     expect(r.options).toEqual({ ...DEFAULT_RULE_OPTIONS, hiddenStemTable: "cn-lunarjs" })
     expect(r.hiddenStems.tableId).toBe("cn-lunarjs")
@@ -231,6 +251,10 @@ describe("결과 메타·옵션·오류", () => {
       hiddenStemTable: "kr-monthly-30", branchYinYang: "byMainQi", twelveStagesYin: "reverse", earthStages: "withFire",
       strengthModel: "weighted-v1", gongmangBasis: "day", halfCombine: "withKingOnly", partialPunishment: true,
       wuWeiCombine: "none", partialDirectional: false,
+      // P3-06 (strength-structure-spec §6 기본 제안)
+      strengthPrimary: "weighted", monthCommandBasis: "mainQi", deukjiBasis: "dayBranchMainQi", combineAdjustment: "none",
+      structureTouchul: "transparentFirst", touchulMatch: "sameStem", rokgeopAlternative: true, specialStructures: "candidateOnly",
+      usefulGodMethods: ["eokbu", "johuClimate", "tonggwan", "gyeokguk", "special"], favorableDefinition: "generationCycle",
     })
   })
 

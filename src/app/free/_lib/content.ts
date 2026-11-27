@@ -62,9 +62,10 @@ function unwrap(raw: unknown): unknown {
   let cur = raw
   for (let i = 0; i < 2; i++) {
     if (!isObj(cur)) break
-    const w = WRAPPERS.find((k) => k in cur && (isObj(cur[k]) || Array.isArray(cur[k])))
+    const o: Obj = cur
+    const w = WRAPPERS.find((k) => k in o && (isObj(o[k]) || Array.isArray(o[k])))
     if (!w) break
-    cur = (cur as Obj)[w]
+    cur = o[w]
   }
   return cur
 }

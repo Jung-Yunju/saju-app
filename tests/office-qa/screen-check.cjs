@@ -222,7 +222,9 @@ async function main() {
   }
 
   // 5) 확인 불가 원칙: 문서 없음/null/30분 초과/수신 후 오래됨 → 일하는 동작 없음
-  for (const [label, doc] of [["문서 없음(exists:false)", null], ["30분 초과 문서", shift(fresh, Date.now() - 31 * 60000)], ["형식 불일치", { schemaVersion: 2, staff: fresh.staff }]]) {
+  const noStale = JSON.parse(JSON.stringify(shift(fresh, Date.now() - 11 * 60000))); delete noStale.staleAfterSec
+  for (const [label, doc] of [["문서 없음(exists:false)", null], ["30분 초과 문서", shift(fresh, Date.now() - 31 * 60000)], ["11분 경과 문서(staleAfterSec 600)", shift(fresh, Date.now() - 11 * 60000)],
+    ["11분 경과 + staleAfterSec 없음(기본 10분)", noStale], ["미래 6분 문서", shift(fresh, Date.now() + 6 * 60000)], ["형식 불일치", { schemaVersion: 2, staff: fresh.staff }]]) {
     const { ctx, page, errs } = await open({ vw: 1280, vh: 800, doc })
     await page.waitForTimeout(800)
     const a = await anims(page)
@@ -232,16 +234,27 @@ async function main() {
     rec(`확인 불가: ${label} → 작업·걷기 애니메이션 0, 업무 중 표시 0`, a !== null && working.length === 0 && chips.every(c => !/코드 작성|자료 조사|실행·테스트|업무 중/.test(c)), { working, summary: sum, chips: [...new Set(chips)], errs })
     await ctx.close()
   }
-  // 5b) 신선한 문서 수신 후 화면을 열어 둔 채 30분이 지나는 경우(시계 이동)
+  // 5a) 대조: 9분 경과·미래 4분 문서는 아직 유효(상태 그대로) / staleAfterSec 를 크게(86400) 넣은 문서는 2시간 뒤에도 유효로 취급되는지 기록
+  for (const [label, doc, wantKnown] of [["9분 경과 문서(유효)", shift(fresh, Date.now() - 9 * 60000), true], ["미래 4분 문서(허용 오차)", shift(fresh, Date.now() + 4 * 60000), true],
+    ["2시간 경과 + staleAfterSec 86400(기록용)", Object.assign(shift(fresh, Date.now() - 120 * 60000), { staleAfterSec: 86400 }), null]]) {
+    const { ctx, page } = await open({ vw: 1280, vh: 800, doc })
+    const chips = await page.$$eval(".srow .chip", x => [...new Set(x.map(c => c.textContent))])
+    const known = chips.some(c => !/상태 확인 불가|추적 대상 아님/.test(c))
+    rec(`대조: ${label}`, wantKnown === null ? true : known === wantKnown, { known, chips })
+    await ctx.close()
+  }
+  // 5b) 신선한 문서 수신 후 화면을 열어 둔 채 10분이 지나는 경우(시계 이동)
   {
     const work = JSON.parse(JSON.stringify(fresh))
     const s = work.staff.find(x => x.id === "saju-engine-developer"); s.status = "typing"; s.statusLabel = "코드 작성"
     const r = work.staff.find(x => x.id === "design-director"); r.status = "resting"; r.location = "lounge"
     const { ctx, page, errs } = await open({ vw: 1280, vh: 800, doc: work })
     await page.waitForTimeout(800)
-    const before = (await anims(page)).find(e => e.id === "saju-engine-developer")
+    const all0 = await anims(page)
+    const before = all0.find(e => e.id === "saju-engine-developer")
+    const pos0 = Object.fromEntries(all0.map(e => [e.id, e.visible]))
     // Date.now를 31분 뒤로 옮긴다
-    await page.evaluate(() => { const off = 31 * 60000, n = Date.now; Date.now = () => n() + off })
+    await page.evaluate(() => { const off = 11 * 60000, n = Date.now; Date.now = () => n() + off })
     await page.waitForTimeout(1500)
     const mid = await anims(page)
     await page.waitForTimeout(2500)
@@ -249,7 +262,9 @@ async function main() {
     const banner = await page.evaluate(() => { const b = document.querySelector(".banner"); return b ? b.innerText.split("\n")[0] : null })
     const walkedOnStale = mid.filter(e => e.moving || /:walk/.test(e.anim || "")).map(e => e.id)
     const workingAfter = after.filter(e => e.visible && /:(type|read)$/.test(e.anim || "") && e.playing)
-    rec("열어 둔 화면이 30분 지나 오래됨 → 전원 확인 불가, 작업 애니메이션 정지", before && /:type$/.test(before.anim) && workingAfter.length === 0 && /마지막 갱신/.test(banner || ""), { before, banner, workingAfter, errs })
+    const newlyShown = after.filter(e => e.visible && !pos0[e.id]).map(e => e.id)
+    rec("오래됨 전환 시 숨어 있던(퇴근) 직원이 새로 나타나지 않음", newlyShown.length === 0, { newlyShown })
+    rec("열어 둔 화면이 10분 지나 오래됨 → 전원 확인 불가, 작업 애니메이션 정지", before && /:type$/.test(before.anim) && workingAfter.length === 0 && /마지막 갱신/.test(banner || ""), { before, banner, workingAfter, errs })
     rec("오래됨 전환 시 근거 없는 이동(걷기) 없음", walkedOnStale.length === 0, { walkedOnStale })
     await ctx.close()
   }
@@ -259,7 +274,7 @@ async function main() {
     const { ctx, page } = await open({ vw: 1280, vh: 800, doc: fut })
     const chips = await page.$$eval(".srow .chip", x => x.map(c => c.textContent))
     const banner = await page.evaluate(() => { const b = document.querySelector(".banner"); return b ? b.innerText.split("\n")[0] : null })
-    rec("미래 generatedAt(1년 뒤) 문서 → 확인 불가로 처리", chips.every(c => !/코드 작성|자료 조사|실행·테스트|업무 중|휴식/.test(c)), { chips: [...new Set(chips)], banner })
+    rec("미래 generatedAt(1년 뒤) 문서 → 확인 불가 + 시각 오류 배너", chips.every(c => /상태 확인 불가|추적 대상 아님/.test(c)) && /시각 오류/.test(banner || ""), { chips: [...new Set(chips)], banner })
     await ctx.close()
   }
   // 5d) 수집 연결 없음(claude 없음)·10초 무응답은 dev-preview mode=null/hang 으로 확인

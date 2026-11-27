@@ -422,6 +422,8 @@ export interface FavorableSet {
   ji: Element
   gu: Element
   han: Element
+  /** secondCandidate에서 2순위(희신)가 기신·구신과 같은 오행일 때 그 자리 */
+  conflicts?: ("ji" | "gu")[]
 }
 
 export interface UsefulGodView {

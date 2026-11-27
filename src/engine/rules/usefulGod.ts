@@ -68,7 +68,14 @@ function favorableOf(def: RuleOptions["favorableDefinition"], cs: UsefulGodCandi
   const cycle = { xi: el(u + 4), ji: el(u + 3), gu: el(u + 2), han: el(u + 1) }
   if (def === "generationCycle") return { definition: def, ...cycle }
   if (cs.length < 2) return undefined
-  return { definition: def, ...cycle, xi: cs[1].element }
+  // secondCandidate(엔진 개발자 해석 ⚑): 희신 = 2순위. 2순위가 원래 한신이면 한신 자리에 원래 희신을 둔다(맞바꿈).
+  // 2순위가 기신·구신과 같으면 그대로 두고 conflicts에 적는다(예: 신강 비겁형 관살 → 식상 = 기신).
+  const xi = cs[1].element
+  const conflicts = (["ji", "gu"] as const).filter((k) => cycle[k] === xi)
+  return {
+    definition: def, xi, ji: cycle.ji, gu: cycle.gu, han: xi === cycle.han ? cycle.xi : cycle.han,
+    ...(conflicts.length ? { conflicts: [...conflicts] } : {}),
+  }
 }
 
 /** 모형 A 근거 항목 중 그 묶음의 위치(중복 제거, 근거 순서) */
@@ -227,10 +234,12 @@ function byeongyakView(ctx: Ctx): UsefulGodView {
 
 function gyeokgukView(ctx: Ctx): UsefulGodView {
   const els: Element[] = []
+  const from: StructureCandidate[] = []
   const basis: UsefulGodView["basis"] = []
   for (const c of ctx.regular)
     for (const s of c.sangsin ?? []) {
       els.push(s.element)
+      from.push(c)
       basis.push({ ruleId: `${c.ruleId}.sangsin.${s.group}`, positions: s.touchul.map((p) => ({ ...p })) })
     }
   const candidates = cands(ctx, els)
@@ -240,7 +249,8 @@ function gyeokgukView(ctx: Ctx): UsefulGodView {
     status: candidates.length ? "ok" : "none",
     candidates,
     ...(fav ? { favorable: fav } : {}),
-    confidence: ctx.regular[0]?.confidence ?? "low",
+    // rank 1을 낸 격 후보의 확신도(주 후보에 상신이 없어 대체 후보가 rank 1이면 low)
+    confidence: from[0]?.confidence ?? ctx.regular[0]?.confidence ?? "low",
     basis,
     source: SOURCE.gyeokguk,
   }
