@@ -10,6 +10,7 @@
 //       세운   "seun.branch"
 //  3) 사용자가 말한 사실(personal.userFacts)과 사주 사실(chart)을 섞지 않는다.
 //  4) 규칙 판단은 하지 않는다 — 규칙 엔진 결과를 옮겨 적기만 한다. 신강약·용신(rules@0.3.0)은 있으면 옮기고 없으면 생략.
+//     용신은 관점별 고정 머리말(USEFUL_GOD_HEADER)로 나란히 두고, 특수격(special) 관점은 대표 결정(D4) 전까지 넣지 않는다.
 import type { CalendarResult, Element, Pillar } from "../types"
 import type { Interaction, InteractionType, Position, RuleAnalysis } from "../rules/types"
 import type { PersonalContext } from "../personalize/types"
@@ -18,7 +19,7 @@ import { koreanDateOf, lifeStageOfAge, locateDaeun, manAge } from "../personaliz
 import { yearPillarOfGanzhiYear } from "../calendar/pillars"
 import type { FactSheet } from "./types"
 
-export const FACTS_VERSION = "facts@0.1.0"
+export const FACTS_VERSION = "facts@0.2.0" // 0.2.0: P10 용신 관점 머리말 고정·특수격 관점 제외
 
 /** 호칭 기본값 */
 export const DEFAULT_ADDRESS_AS = "손주"
@@ -155,27 +156,52 @@ const elementLabel = (v: unknown): string | undefined => {
 }
 
 /**
- * usefulGod: 명세 UsefulGodsResult { views[{method, status, candidates[{element, rank}]}] } 또는
+ * 용신 관점별 고정 머리말(P10, 명세 strength-structure-spec §3.5·§3.8 "힘의 균형으로 보면 ○, 계절로 보면 ○, 격국으로 보면 ○").
+ * 엔진 label 문구가 바뀌어도 사실표 줄 머리는 여기 값으로 고정한다. 격국 view는 상신이므로 억부 용신과 이름을 섞지 않는다.
+ */
+export const USEFUL_GOD_HEADER: Readonly<Record<string, string>> = {
+  eokbu: "힘의 균형으로 보면(억부)",
+  johuClimate: "계절로 보면(조후·간이)",
+  tonggwan: "맞선 기운을 이어 주는 쪽으로 보면(통관)",
+  byeongyak: "지나친 기운을 덜어 내는 쪽으로 보면(병약)",
+  gyeokguk: "격국으로 보면(상신)",
+}
+
+/**
+ * 사실표에서 빼는 관점. special(종격·화격 등 특수격 후보)은 억부와 용신이 정반대가 되는 low 후보라
+ * 대표 결정(D4) 전까지 고객 문장에 쓰지 않는다(명세 §2.4·§3.8) — AI 입력에도 넣지 않는다.
+ */
+export const USEFUL_GOD_EXCLUDED: readonly string[] = ["special"]
+
+const isExcludedView = (code: string | undefined, label: string | undefined): boolean =>
+  (code !== undefined && USEFUL_GOD_EXCLUDED.includes(code)) || (label !== undefined && /특수격|종격|화격|special/i.test(label))
+
+/**
+ * usefulGod: 명세 UsefulGodsResult { views[{method, label, status, candidates[{element, rank}]}] } 또는
  * 초안 usefulGodCandidates[{element, method}]. 관점별 1순위만 옮긴다(관점 병기 — 대표값을 정하지 않는다).
+ * method 칸에는 관점 코드 대신 고정 머리말(USEFUL_GOD_HEADER)을 넣는다. 특수격 관점은 뺀다.
  */
 export function readUsefulGods(rules: RuleAnalysis): FactSheet["chart"]["usefulGod"] {
   const r = rules as unknown as Loose
   const out: { method: string; element: string }[] = []
+  const push = (code: string | undefined, label: string | undefined, element: string | undefined) => {
+    if (!element || isExcludedView(code, label)) return
+    const header = (code !== undefined ? USEFUL_GOD_HEADER[code] : undefined) ?? label ?? code
+    if (header) out.push({ method: header, element })
+  }
   const ug = r.usefulGods
   if (isObj(ug) && Array.isArray(ug.views)) {
     for (const v of ug.views.filter(isObj)) {
       if (v.status !== undefined && v.status !== "ok") continue
       const cands = Array.isArray(v.candidates) ? v.candidates.filter(isObj) : []
       const first = cands.find((c) => c.rank === 1) ?? cands[0]
-      const method = str(v.label) ?? str(v.method)
-      const element = first ? elementLabel(first.element) : undefined
-      if (method && element) out.push({ method, element })
+      push(str(v.method), str(v.label), first ? elementLabel(first.element) : undefined)
     }
   } else if (Array.isArray(r.usefulGodCandidates)) {
     for (const c of r.usefulGodCandidates.filter(isObj)) {
-      const method = str(c.method)
-      const element = elementLabel(c.element)
-      if (method && element) out.push({ method, element })
+      const m = str(c.method)
+      const known = m !== undefined && (m in USEFUL_GOD_HEADER || USEFUL_GOD_EXCLUDED.includes(m))
+      push(known ? m : undefined, known ? undefined : m, elementLabel(c.element))
     }
   }
   return out.length ? out : undefined

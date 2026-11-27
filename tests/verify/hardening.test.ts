@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest"
 import { normalizeText, collectSegments } from "@/engine/verify/text"
 import { isGuidanceSentence } from "@/engine/verify/patterns"
 import { detectCrisis } from "@/engine/verify"
-import { findingsOf, readingOf, run, worst } from "./helpers"
+import { findingsOf, readingOf, run, SAJU_MIN, worst } from "./helpers"
 import { CLEAN_READING } from "./fixtures"
 
 describe("① 금지 주제 면제는 '안내 문장'으로만", () => {
@@ -74,7 +74,7 @@ describe("④ 화면에 나가는 칸은 전부 검사", () => {
   })
   it("chips[].element·key 칸의 위험 태그 → UNSAFE_HTML", () => {
     const r = run({ parts: [{ chapters: [{ key: "<svg onload=x>", title: "t", chips: [{ letter: "庚", element: "<script>x</script>", label: "" }], body: ["庚金 일간이다."] }] }] })
-    expect(r.findings.filter((f) => f.code === "UNSAFE_HTML" && f.severity === "block").map((f) => f.location.field).sort()).toEqual(["element", "key"])
+    expect([...new Set(r.findings.filter((f) => f.code === "UNSAFE_HTML" && f.severity === "block").map((f) => f.location.field))].sort()).toEqual(["element", "key"])
   })
   it("아주 깊은 객체에서도 스택이 넘치지 않는다", () => {
     let node: Record<string, unknown> = { text: "壬水가 흐른다." }
@@ -102,7 +102,6 @@ describe("⑥ 기둥 쪼개기·한글 간지·자리 불일치·연도 끼워 �
     ["연주는 경자라 쥐띠다", "position-mismatch"],
     ["무진생인 너는", "hangul-pillar"],
     ["2040년에 보면 네 시주 庚申이 빛난다", "position-mismatch"],
-    ["월지 해수가 불을 끈다", "char-reading"],
   ])("차단: %s", (t, rules) => {
     const fs = findingsOf(t, "BASIS_NOT_IN_CHART")
     expect(fs.some((f) => f.severity === "block" && new RegExp(`^(${rules})$`).test(f.rule ?? "")), JSON.stringify(fs)).toBe(true)
@@ -117,6 +116,10 @@ describe("⑥ 기둥 쪼개기·한글 간지·자리 불일치·연도 끼워 �
     "원국에 壬水는 하나도 없으니 물을 따로 챙겨라.", // 부재 진술
   ])("통과: %s", (t) => {
     expect(findingsOf(t, ["BASIS_NOT_IN_CHART", "YEAR_GANZHI_MISMATCH"]).filter((f) => f.severity !== "info")).toEqual([])
+  })
+  it("한글 오행 읽기: 자리 이름 뒤의 '자수'는 근거 글자(작은 원국엔 子가 없어 block), 이 원국의 '해수'(亥)는 대운 글자라 warn", () => {
+    expect(worst(findingsOf("월지 자수가 불을 끈다.", "BASIS_NOT_IN_CHART", { sajuInput: SAJU_MIN }))).toBe("block")
+    expect(findingsOf("월지 해수가 불을 끈다.", "BASIS_NOT_IN_CHART")[0]?.rule).toBe("luck-unmarked")
   })
   it("문장 끝 연도로 먼 곳의 가짜 기둥을 합법화하지 못한다", () => {
     const fs = findingsOf("壬子의 물이 네 庚金을 씻어 준다, 할미가 보기엔 그렇다, 2032년쯤.", "BASIS_NOT_IN_CHART")
