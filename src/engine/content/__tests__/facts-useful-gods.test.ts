@@ -6,7 +6,7 @@ import type { RuleAnalysis } from "../../rules/types"
 import { buildFactSheet, readUsefulGods, USEFUL_GOD_HEADER } from "../facts"
 
 const AS_OF = new Date("2026-11-27T03:00:00Z")
-// 실제 엔진 출력에서 특수격 view가 status "ok"인 사례(rules@0.3.0 기본 옵션):
+// 실제 엔진 출력에서 특수격 view가 status "ok"인 사례(rules@0.3.0에서 확인, rules@0.4.0에서도 이 테스트로 재확인):
 // 특수격 1순위 wood · 억부 1순위 fire · 격국(상신) 1순위 water — 셋이 모두 다르다
 const SPECIAL_BIRTH: BirthInput = { calendar: "solar", year: 1951, month: 3, day: 10, time: { hour: 1, minute: 30 }, gender: "M" }
 

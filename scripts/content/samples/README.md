@@ -6,7 +6,7 @@
 > 현재 상태(2026-11-27): 준비만 끝났고 **실제 호출은 한 번도 하지 않았습니다.** 대표가 견본 생성을 보류했으니, 다시 승인이 날 때까지 아래 3·4단계를 실행하지 않습니다.
 
 ## 흐름
-인물마다 `computeChart` → `analyzeRules`(rules@0.3.x, 대운·올해 세운 포함, 신강약·용신 포함) → `buildPersonalContext`(설문 예시) → `buildFactSheet`(호칭 "손주", 이름·생년월일·출생지는 넣지 않음) → `chaptersForProduct("BASIC")`(콘텐츠 작가 `src/engine/content/prompts/index.ts`) → `generateChapters`(백엔드 파이프라인: 구조화 출력, 재시도, 검증기 block이 나오면 1회 재생성).
+인물마다 `computeChart` → `analyzeRules`(rules@0.3.0 이상 — 현재 0.4.0, 대운·올해 세운 포함, 신강약·용신 포함) → `buildPersonalContext`(설문 예시) → `buildFactSheet`(호칭 "손주", 이름·생년월일·출생지는 넣지 않음) → `chaptersForProduct("BASIC")`(콘텐츠 작가 `src/engine/content/prompts/index.ts`) → `generateChapters`(백엔드 파이프라인: 구조화 출력, 재시도, 검증기 block이 나오면 1회 재생성).
 
 | 파일 | 하는 일 |
 |---|---|

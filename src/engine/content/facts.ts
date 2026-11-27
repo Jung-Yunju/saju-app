@@ -9,7 +9,7 @@
 //       대운   "daeun[3].stem"  ← [ ] 안은 FactSheet.luck.daeun[].index(1부터)와 같은 번호
 //       세운   "seun.branch"
 //  3) 사용자가 말한 사실(personal.userFacts)과 사주 사실(chart)을 섞지 않는다.
-//  4) 규칙 판단은 하지 않는다 — 규칙 엔진 결과를 옮겨 적기만 한다. 신강약·용신(rules@0.3.0)은 있으면 옮기고 없으면 생략.
+//  4) 규칙 판단은 하지 않는다 — 규칙 엔진 결과를 옮겨 적기만 한다. 신강약·용신(rules@0.3.0부터 제공, 현재 0.4.0)은 있으면 옮기고 없으면 생략.
 //     용신은 관점별 고정 머리말(USEFUL_GOD_HEADER)로 나란히 두고, 특수격(special) 관점은 대표 결정(D4) 전까지 넣지 않는다.
 import type { CalendarResult, Element, Pillar } from "../types"
 import type { Interaction, InteractionType, Position, RuleAnalysis } from "../rules/types"
@@ -115,7 +115,7 @@ export function sanitizeAddressAs(s: string | undefined): string {
   return t || DEFAULT_ADDRESS_AS
 }
 
-// ─────────────────────────────────────────── 신강약·용신(rules@0.3.0 방어적 읽기)
+// ─────────────────────────────────────────── 신강약·용신(rules@0.3.0 이상 방어적 읽기)
 
 type Loose = Record<string, unknown>
 const isObj = (v: unknown): v is Loose => !!v && typeof v === "object" && !Array.isArray(v)

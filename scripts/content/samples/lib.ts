@@ -364,7 +364,10 @@ export function preparePersona(p: SamplePersona, asOf: Date): Prepared {
   const personal = buildPersonalContext(chart, p.answers ?? [], asOf, rules)
   const facts = buildFactSheet({ chart, rules, personal, asOf, addressAs: p.addressAs })
   const notes: string[] = []
-  if (!/^rules@0\.3\./.test(rules.engineVersion)) notes.push(`규칙 엔진 버전이 0.3.x가 아님(${rules.engineVersion}) — 신강약·용신이 빠질 수 있음`)
+  // 버전 문자열 대신 신강약·용신 결과가 실제로 있는지 본다(rules@0.3.0부터 제공, 0.4.0 등 이후 버전도 그대로 통과).
+  const raw = rules as unknown as { strength?: unknown; usefulGods?: { views?: unknown } }
+  if (!raw.strength || typeof raw.strength !== "object") notes.push(`규칙 엔진 결과에 신강약(strength)이 없음(${rules.engineVersion})`)
+  if (!raw.usefulGods || !Array.isArray(raw.usefulGods.views)) notes.push(`규칙 엔진 결과에 용신 관점(usefulGods.views)이 없음(${rules.engineVersion})`)
   if (!facts.chart.strength) notes.push("사실표에 신강약이 없음(규칙 엔진 결과 모양 확인 필요)")
   if (!facts.chart.usefulGod?.length) notes.push("사실표에 용신 관점이 없음")
   if (personal.rejectedAnswers.length) notes.push(`설문 예시 응답 중 ${personal.rejectedAnswers.length}건이 검증에 걸려 빠짐: ${personal.rejectedAnswers.map((x) => `${x.questionId}/${x.code}`).join(", ")}`)
