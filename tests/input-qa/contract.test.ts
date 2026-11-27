@@ -92,10 +92,14 @@ describe("U-03 계약: 1인 풀이 — 날짜 4종 × 시각 111종 × 출생지
       const p: PersonInput = { ...r.value, year: r.value.birthYear, month: r.value.birthMonth, day: r.value.birthDay, hour: r.value.birthHour }
       checkPerson(p, f, t, d.calType!)
       // 결제 준비(prepare) 경로도 같은 본문을 받는다
-      const { readingType: _rt, name: _nm, ...birthOnly } = body
+      const birthOnly = { ...body }
+      delete birthOnly.readingType
+      delete birthOnly.name
       const b = validateBirthInfo(birthOnly)
       if (!b.ok) throw new Error(`prepare 거부 ${JSON.stringify(birthOnly)}: ${b.error}`)
-      expect(b.value).toEqual((({ readingType: _a, name: _b, other: _c, ...rest }) => rest)(r.value))
+      const expected: Record<string, unknown> = { ...r.value }
+      for (const k of ["readingType", "name", "other"]) delete expected[k]
+      expect(b.value).toEqual(expected)
       n++
     }
     expect(n).toBe(DATES.length * TIMES.length * PLACE_NAMES.length)

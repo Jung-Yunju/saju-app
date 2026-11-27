@@ -136,9 +136,8 @@ describe("direct: 숫자·문자열 혼동, 거대한 이름, 본문 형식", ()
     const big = new NextRequest("http://localhost/api", {
       method: "POST",
       body: new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode(JSON.stringify({ ...base, name: "x".repeat(20000) }))); c.close() } }),
-      // @ts-expect-error Node fetch 스트림 본문
       duplex: "half",
-    })
+    } as ConstructorParameters<typeof NextRequest>[1])
     expect(await expect400(await directPOST(big), "stream")).toBe("요청이 너무 큽니다.")
     noPiiLogs()
   })
