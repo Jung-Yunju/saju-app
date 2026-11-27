@@ -141,9 +141,9 @@ export function ResultView({ result: r, onReset }: { result: FreeResult; onReset
             <div className="fr-card fr-year">
               <div className="fr-year-gz">
                 <Gz g={r.thisYear.ganzhi} className="h fr-hanja" />
-                <span className="k">{r.thisYear.ganzhi.ko}년 · {stemShort(r.thisYear.ganzhi.stemHanja)}과 {branchShort(r.thisYear.ganzhi.branchHanja)}</span>
+                <span className="k">{r.thisYear.ganzhi.ko}년</span>
               </div>
-              <div><Text block={r.copy.thisYear} />{r.copy.thisYearNote && <p className="fr-ph fr-fine-left">{r.copy.thisYearNote}</p>}</div>
+              <div><p className="fr-sub fr-year-pic">위 {stemShort(r.thisYear.ganzhi.stemHanja)} / 아래 {branchShort(r.thisYear.ganzhi.branchHanja)}</p><Text block={r.copy.thisYear} />{r.copy.thisYearNote && <p className="fr-ph fr-fine-left">{r.copy.thisYearNote}</p>}</div>
             </div>
           </section>
 

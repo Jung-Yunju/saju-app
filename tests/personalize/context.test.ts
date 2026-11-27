@@ -67,7 +67,9 @@ describe("건너뛴 문항·잘못된 응답", () => {
     const ctx = buildPersonalContext(chart, undefined, NOW)
     expect(ctx.userFacts).toEqual([])
     expect(ctx.noGuessYears).toEqual([])
-    expect(ctx.skippedQuestionIds.length).toBe(12)
+    // 전체 17문항(기존 12 + D-023 ① 살아온 모습 5) — survey.ts·lived-life.md §1 독립 대조(QA 2026-11-28)
+    expect(ctx.skippedQuestionIds.length).toBe(17)
+    for (const id of ["workStyle", "recentChanges", "selfStrength", "selfWeakness", "changeWish"]) expect(ctx.skippedQuestionIds).toContain(id)
     expect(ctx.chartTendencies.length).toBeGreaterThan(0)
   })
   it("건너뜀 표시 응답은 사실이 되지 않는다", () => {

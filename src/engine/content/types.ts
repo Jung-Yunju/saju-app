@@ -30,21 +30,119 @@ export interface FactSheet {
     strength?: { verdict: string; views?: { method: string; verdict: string }[] }
     usefulGod?: { method: string; element: string }[]
     climate?: { summary: string }
+    /** (facts@0.3.0, D-023 ②) 개운 선택에 쓴 규칙 엔진 값. 판정이 아니라 옮겨 적은 값이다 */
+    gaeunBasis?: GaeunBasis
+    /** (facts@0.3.0, D-023 ②) 코드가 고른 개운(바꿔 사는 법) 범주. AI는 이 범주를 말로 옮기기만 한다 */
+    gaeun?: GaeunPick[]
   }
   luck: {
     direction: "forward" | "backward"
     daeun: { index: number; startAge: number; startYear: number; ganzhi: string; current: boolean }[]
     thisYear: { year: number; ganzhi: string }
+    /** (facts@0.3.0) 지금 대운·올해 세운 글자의 십성과 원국 관계(규칙 엔진 결과). 규칙 엔진에 그 운을 넘기지 않았으면 그 슬롯이 없다 */
+    glyphs?: LuckGlyphFacts[]
+    /** (facts@0.3.0) shaking = 올해 세운 지지가 원국 일지·월지와 충 또는 형(gaeun.md §3.2). "흔들리는 해"는 이 값이 true일 때만 쓴다 */
+    seunFlags?: { shaking: boolean }
   }
   personal: {
-    /** 사용자가 직접 말한 사실 — 배경으로만, 맞히기 금지 */
-    userFacts: { topic: string; value: string; period?: string }[]
+    /**
+     * 사용자가 직접 말한 사실 — 배경으로만, 맞히기 금지.
+     * link(facts@0.3.0): 사주 글자와의 연결(personalize/lived-link.ts). match = 글자에도 있음, mismatch = 글자엔 약한데 살아 냄,
+     * unlinked = 사주로 설명하지 않음. group은 십성 묶음 코드
+     */
+    userFacts: { topic: string; value: string; period?: string; link?: { kind: "match" | "mismatch" | "unlinked"; group?: GaeunGroup } }[]
     /** 이 해들은 "맞히는" 문장을 쓰지 않는다 */
     noGuessYears: number[]
     guards: string[]
   }
   /** 엔진 경고(절입 경계, 시각 모름 등) — 풀이에서 불확실성을 밝힐 때 사용 */
   warnings: string[]
+}
+
+// ─────────────────────────────────────────── 개운(D-023 ②, docs/knowledge/gaeun.md §3) — facts@0.3.0 추가분
+
+/** 십성 묶음 코드(규칙 엔진 rules/types.ts TenGodGroup과 같은 이름) */
+export type GaeunGroup = "bigyeop" | "siksang" | "jaeseong" | "gwansal" | "inseong"
+
+/** 개운 선택 근거값(규칙 엔진 결과를 옮긴 것) */
+export interface GaeunBasis {
+  /** 드러난 글자(원국 천간 + 지지 정기, 일간 제외) 묶음별 개수 */
+  groupCounts: Record<GaeunGroup, number>
+  /** 일간 제외 묶음 가중 합계(strength.groupTotals) */
+  groupTotals: Record<GaeunGroup, number>
+  strength: {
+    /** 대표 모형 판정 */
+    verdict: string
+    /** 세 모형 판정이 모두 같으면 all */
+    agreement: "all" | "split"
+    /** 모형 A(weighted) 경계 근처 */
+    nearBoundary: boolean
+    tableSensitive: boolean
+    /** 시주 모름일 때만 true/false, 시주를 알면 null */
+    hourSensitive: boolean | null
+    /** 모형 A 전체 가중 합 T */
+    total: number | null
+    /** 억부 덜 대상 묶음 h(N2). 중화면 null */
+    easeGroup: GaeunGroup | null
+    /** 특수격 후보가 억부 방향을 뒤집는가(C5). 특수격 내용 자체는 사실표에 넣지 않는다 */
+    specialReversesEokbu: boolean
+  }
+  /** 개운에 쓰는 용신 관점(억부·조후·통관)만. 격국·특수격·병약은 넣지 않는다(N7) */
+  views: {
+    method: "eokbu" | "johuClimate" | "tonggwan"
+    status: "ok" | "balanced" | "none" | "notApplicable"
+    /** rank 1 오행(목·화·토·금·수) */
+    element?: string
+    group?: GaeunGroup
+    presentWeight?: number
+    /** 희신(favorable.xi) — 운 분류 보조로만 */
+    xi?: string
+    /** 통관: 첫 쌍(공격 → 대상) */
+    bridge?: { from: string; to: string }
+  }[]
+  climateNeeds: ("warm" | "cool" | "dry" | "moisten")[]
+}
+
+export type GaeunRelationId = "chungDay" | "chungMonth" | "hyeong" | "hap" | "chungOther"
+
+/** 운 한 슬롯(지금 대운 또는 올해 세운)의 글자 사실 */
+export interface LuckGlyphFacts {
+  slot: "daeun" | "seun"
+  ganzhi: string
+  /** slot=daeun: FactSheet.luck.daeun[].index */
+  daeunIndex?: number
+  /** slot=seun: 양력 연도 */
+  year?: number
+  /** 천간 → 지지 순. 지지의 오행·묶음은 정기 기준 */
+  glyphs: { part: "stem" | "branch"; char: string; tenGod: string; group: GaeunGroup; element: string; pos: string }[]
+  /** 원국과의 관계(gaeun.md L6 분류, 우선순위 순). 파·해·원진은 넣지 않는다 */
+  relations: { id: GaeunRelationId; kind: string; chars: string; positions: string[] }[]
+}
+
+/** 코드가 고른 개운 범주 하나(gaeun.md §3.5). 문장은 콘텐츠 프롬프트가 만든다 */
+export interface GaeunPick {
+  /** "GA.fill.inseong", "GT.build", "GI.chungDay" … (30개 범주 중 하나, GAEUN_CATEGORY_IDS) */
+  id: string
+  slot: "natal" | "daeun" | "seun" | "nextSeun"
+  view: "eokbu" | "johuClimate" | "tonggwan" | "luck"
+  /** 목·화·토·금·수 */
+  element?: string
+  group?: GaeunGroup
+  /** L7: 운 글자(천간→지지)의 십성 묶음 */
+  luckGroups?: GaeunGroup[]
+  framing?: "missingSurface" | "thin" | "use"
+  hiddenPresent?: boolean
+  tone: "firm" | "soft"
+  /** soft로 만든 문(門) — C2면 "태어난 시를 몰라 갈릴 수 있다" 안내 */
+  softBy?: ("C1" | "C2" | "C3" | "C5" | "L3")[]
+  tier: "practice" | "reference"
+  /** L3: 억부·조후 운 판정이 갈림 */
+  split?: { eokbu: string; johuClimate: string }
+  /** §4.1 관점 충돌 수준(조후 쪽 pick에 붙음) */
+  conflict?: "compatible" | "tension" | "opposed"
+  /** luckHalves 옵션일 때 대운 앞 5년(천간)·뒤 5년(지지) */
+  half?: "early" | "late"
+  basis: { ruleId: string; positions: string[]; values?: Record<string, number> }[]
 }
 
 /** 장(chapter) 하나를 만드는 프롬프트 명세 — 콘텐츠 작가가 prompts/에 정의 */

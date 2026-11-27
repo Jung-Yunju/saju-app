@@ -190,3 +190,5 @@
 .fr-detail b { color: var(--c-gold-text); font-family: var(--f-ui); margin-right: var(--s-1); }
 .fr-fine-left { font-size: var(--t-sm); margin-top: var(--s-3); }
 .fr-lock li { align-items: flex-start; }
+.fr-year > div:last-child { min-width: 0; flex: 1; }
+.fr-year-pic { margin-bottom: var(--s-2); }
