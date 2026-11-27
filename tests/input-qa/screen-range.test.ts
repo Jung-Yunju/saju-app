@@ -19,10 +19,20 @@ describe("화면 생년 상한", () => {
   })
 
   // 브라우저는 <input type=number max>를 넘는 값이 있으면 form 제출 자체를 막는다(Chromium 실측: "Value must be less than or equal to 2024.")
-  // page.tsx의 <form>에 noValidate가 없으므로 birth-card.tsx의 max="2024"가 남아 있으면 2025년 이후 출생은 여전히 제출되지 않는다.
-  it.fails("[결함 D2 잔여] birth-card.tsx 생년 입력칸 max 속성이 올해 이상이다", () => {
+  // page.tsx의 <form>에 noValidate가 없으므로 입력칸 max가 올해보다 작으면 그 뒤 출생은 제출되지 않는다.
+  // [결함 D2 종결 2026-11-27 QA] birth-card.tsx가 max={currentMaxBirthYear()}(build-request.ts, min(2100, 올해))로 바뀜 — 검증과 같은 값 사용.
+  it("[결함 D2 종결] birth-card.tsx 생년 입력칸 max가 올해 이상이고 검증과 같은 상한 함수를 쓴다", async () => {
     const src = readFileSync(join(__dirname, "..", "..", "src/app/input/birth-card.tsx"), "utf8")
-    const m = /placeholder="예\) 1990"[^>]*max="(\d{4})"/.exec(src)
-    if (m) expect(Number(m[1])).toBeGreaterThanOrEqual(thisYear)
+    const tag = /<input[^>]*placeholder="예\) 1990"[^>]*>/.exec(src)
+    expect(tag, "생년 입력칸을 찾지 못함").not.toBeNull()
+    const lit = /max="(\d{4})"/.exec(tag![0])
+    if (lit) {
+      expect(Number(lit[1])).toBeGreaterThanOrEqual(thisYear)
+    } else {
+      expect(tag![0]).toMatch(/max=\{currentMaxBirthYear\(\)\}/)
+      const { currentMaxBirthYear, MAX_BIRTH_YEAR } = await import("@/app/input/build-request")
+      expect(currentMaxBirthYear()).toBe(Math.min(MAX_BIRTH_YEAR, thisYear))
+      expect(currentMaxBirthYear()).toBeGreaterThanOrEqual(thisYear)
+    }
   })
 })

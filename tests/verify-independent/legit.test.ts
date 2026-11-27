@@ -8,8 +8,10 @@ interface Legit {
   id: string
   chart: ChartId
   text: string
-  /** 현재 오탐으로 확인된 결함 설명(있으면 it.fails) */
+  /** 지난 검토에서 오탐으로 확인된 결함 설명(있고 fixed가 없으면 it.fails) */
   fp?: string
+  /** 결함이 고쳐진 버전(2차 검토에서 실제 실행으로 확인) */
+  fixed?: string
   /** 정상 여부가 사람마다 갈릴 수 있는 경계 사례 */
   borderline?: boolean
 }
@@ -24,6 +26,7 @@ export const LEGIT: Legit[] = [
     id: "L02 월간 辛 겁재 — 씀씀이(헤프게)",
     chart: "A",
     text: "월간에 辛金이 하나 더 떠 있어서 겁재가 되는데, 이건 네 옆에 어깨를 나란히 하는 동무 같은 글자란다. 그래서 동업이나 돈을 함께 쓰는 자리에서는 네 몫을 분명히 적어 두는 게 좋겠다. 辛이 겁재로 서 있으면 돈이 헤프게 나가기 쉬우니, 통장을 하나 따로 떼어 두거라.",
+    fixed: "verify@0.2.0",
     fp: "moral.ts:216 lust 규칙의 '헤프'가 돈 씀씀이(헤프게)까지 음란 판정으로 block",
   },
   {
@@ -35,12 +38,14 @@ export const LEGIT: Legit[] = [
     id: "L04 丁丑 대운 — 죽을 만큼 애썼다·시험 기간 체력",
     chart: "A",
     text: "2023년부터 들어온 丁丑 대운은 丁火가 정관이고 丑土가 정인이라, 위에서 맡기는 일과 자격을 갖추는 일이 함께 들어오는 십 년이란다. 그동안 죽을 만큼 애썼다고 했지, 그 애쓴 것이 이 대운에 문서나 직함으로 남기 쉽다. 그래도 시험 기간에는 체력이 떨어질 수 있으니 끼니를 거르지 말거라.",
+    fixed: "verify@0.2.0",
     fp: "forbidden.ts:71 exam 규칙 — '시험 … 떨어질'을 불합격 단정으로 block(체력이 떨어질)",
   },
   {
     id: "L05 올해 丙午 — 실망할 것 없다",
     chart: "A",
     text: "올해 丙午년은 丙火가 편관, 午火가 정관이라 바깥에서 너를 시험하는 일이 잦단다. 원국에도 午가 연지에 있으니 같은 글자가 하나 더 겹쳐 불기운이 한층 짙어지는 해지. 그렇다고 실망할 것 없다, 불이 쇠를 단련해야 그릇이 되니까.",
+    fixed: "verify@0.2.0",
     fp: "forbidden.ts:59 divorce-bankruptcy '망할'이 '실망할'에 걸리고 '할 것'(FUTURE_RE)으로 block",
   },
   {
@@ -67,6 +72,7 @@ export const LEGIT: Legit[] = [
     id: "L10 로또 같은 한 방을 바라지 말라(권유가 아니라 만류)",
     chart: "A",
     text: "庚金은 한 번에 크게 버는 쇠가 아니라 두드려서 모양을 만드는 쇠란다. 그러니 로또 같은 한 방을 바라기보다는 다달이 조금씩 모아 가는 쪽이 네 글자와 맞는다.",
+    fixed: "verify@0.2.0",
     fp: "forbidden.ts:65 investment 'always' — 복권을 말리는 문장도 block",
     borderline: true,
   },
@@ -79,24 +85,28 @@ export const LEGIT: Legit[] = [
     id: "L12 丙辛합 — 귀신같이",
     chart: "B",
     text: "시주의 辛은 정재라, 네 손에 들어오는 돈은 꼼꼼히 세어 보는 돈이란다. 일간 丙과 시간 辛이 만나 丙辛합이 되니 돈과 약속이 묶이는 일이 많고, 계약서 글자 하나하나를 귀신같이 챙기는 버릇이 생기는 거지.",
+    fixed: "verify@0.2.0",
     fp: "forbidden.ts:35 afterlife '귀신'이 관용구 '귀신같이'에 걸려 block",
   },
   {
     id: "L13 壬午 대운 — 밝게 전망한다",
     chart: "B",
     text: "2024년부터 壬午 대운이 들어왔으니 壬水 편관이 네 丙火를 비추는 시절이란다. 위에서 내려오는 압박이 세지만, 午火가 함께 와서 네 뿌리를 받쳐 주니 꺾이지는 않는다. 할미는 이 대운 십 년을 밝게 전망한다.",
+    fixed: "verify@0.2.0",
     fp: "forbidden.ts:59 '망한다'가 '전망한다'에 걸리고 '대운'(시기 표지)으로 block",
   },
   {
     id: "L14 연주 乙丑 — 부모님이 돌아가실 때(귀가)",
     chart: "B",
     text: "연주 乙丑에서 乙木은 정인, 丑土는 상관이라, 어려서는 배움의 덕을 보고 자라서는 그 배움을 말로 풀어 쓰는 사람이란다. 부모님이 다니러 오셨다가 댁으로 돌아가실 때는 작은 것이라도 손에 들려 보내 드리거라.",
+    fixed: "verify@0.2.0",
     fp: "forbidden.ts:29 death '돌아가실'이 '댁으로 돌아가실 때'(귀가)에 걸려 block",
   },
   {
     id: "L15 시지 卯 정인 — 설명이 짧았으면",
     chart: "B",
     text: "卯木은 정인이라 시지에서 네 해를 받쳐 주는 나무 땔감이란다. 일을 벌이기 전에 공부를 먼저 하고 서류를 갖추는 게 네 방식이지. 이 대목은 설명이 짧았으니 다음 장에서 더 풀어 주마.",
+    fixed: "verify@0.2.0",
     fp: "forbidden.ts:29 death '명이 짧'이 '설명이 짧았으니'에 걸려 block",
   },
   {
@@ -108,6 +118,7 @@ export const LEGIT: Legit[] = [
     id: "L17 고전(苦戰)하다 — 사용자 말 인용",
     chart: "A",
     text: "\"요즘 회사 일이 너무 버겁다\"는 네 말처럼, 올해 고전이 길어진 건 丙午 세운의 丙火가 네 庚金 일간을 세게 누르기 때문이란다.",
+    fixed: "verify@0.2.0",
     fp: "classic.ts:154 GENERIC_SOURCE_RE '고전이'(苦戰)를 '고전(古典)'으로 보고 따옴표 글과 묶어 FAKE_CLASSIC_QUOTE block",
   },
   {
@@ -119,12 +130,14 @@ export const LEGIT: Legit[] = [
     id: "L19 올해 丙午 — 무엇을 소망할지",
     chart: "B",
     text: "올해 丙午년은 네 일주와 똑같은 글자가 돌아오는 해라, 무엇을 소망할지 하나만 분명히 정해 두거라.",
+    fixed: "verify@0.2.0",
     fp: "forbidden.ts:59 '망할'이 '소망할'에 걸리고 '올해'로 block",
   },
   {
     id: "L20 할미 말을 100% 믿지 말라(정확성 부정)",
     chart: "A",
     text: "할미 말을 100% 믿지는 말고, 네 일간 庚金이 하루하루 어떻게 움직이는지 네 삶과 맞대어 보거라.",
+    fixed: "verify@0.2.0",
     fp: "science.ts:256 '100%' 단독 패턴 + NEGATED_AFTER_RE(:258)에 '말고' 없음 → 정확성을 낮추는 문장까지 block",
     borderline: true,
   },
@@ -152,6 +165,7 @@ export const LEGIT: Legit[] = [
     id: "L25 '壬水가 한 글자도 없다'(없는 글자를 없다고 말함)",
     chart: "A",
     text: "네 여덟 글자에는 壬水가 한 글자도 없어서, 庚金이 물을 만나 맑게 씻기는 길이 더디게 열린단다. 그러니 생각을 글로 흘려보내는 습관을 따로 들여 두거라.",
+    fixed: "verify@0.2.0",
     fp: "basis.ts:339 — 원국·운에 없는 글자를 '없다'고 정확히 말한 문장도 BASIS_NOT_IN_CHART block(부재 진술 구분 없음)",
   },
   {
@@ -193,8 +207,9 @@ export const LEGIT: Legit[] = [
 
 describe("독립 검증 — 정상 문단 오탐(legit)", () => {
   for (const c of LEGIT) {
-    const t = c.fp ? it.fails : it
-    t(`${c.id}${c.fp ? " [오탐 결함]" : ""}`, () => {
+    const open = !!c.fp && !c.fixed
+    const t = open ? it.fails : it
+    t(`${c.id}${open ? " [오탐 결함]" : c.fixed ? ` [수정 확인 ${c.fixed}]` : ""}`, () => {
       const rep = run(oneChapter([c.text]), c.chart)
       expect(rep.pass, brief(rep)).toBe(true)
     })

@@ -194,7 +194,8 @@ describe("신강약·용신·조후(rules@0.3.0) 방어 읽기", () => {
         { method: "뿌리 반영 점수(rooted)", verdict: "신약" },
       ],
     })
-    expect(readUsefulGods(fake)).toEqual([{ method: "힘의 균형(억부)", element: "토" }])
+    // facts@0.2.0(P10): 줄 머리는 엔진 label("힘의 균형(억부)")이 아니라 고정 머리말 USEFUL_GOD_HEADER — 명세 strength-structure-spec §3.8
+    expect(readUsefulGods(fake)).toEqual([{ method: "힘의 균형으로 보면(억부)", element: "토" }])
     expect(readClimate(fake)!.summary).toMatch(/궁통보감 조후표가 아닌 간이 판단/)
     const f = buildFactSheet({ chart, rules: fake, asOf: AS_OF })
     expect(f.chart.strength!.verdict).toBe("신약")
@@ -204,6 +205,23 @@ describe("신강약·용신·조후(rules@0.3.0) 방어 읽기", () => {
     expect(readStrength(odd)).toBeUndefined()
     expect(readUsefulGods(odd)).toBeUndefined()
     expect(readClimate(odd)).toBeUndefined()
+  })
+  // QA 독립 확인(2026-11-27): 특수격 view 제외가 명세(§2.4 "억부와 용신이 정반대", §3.8 "특수격 view는 대표 결정 전까지 고객 문장에 쓰지 않는다")와 맞는지,
+  // 실제 엔진 출력으로 확인한다. 예시 입력은 전수 탐색으로 찾은 가상 사주(특수격 후보 ok, 억부 1순위 토 vs 특수격 1순위 수 — 정반대).
+  it("[P10 독립 확인] 실제 엔진이 특수격 후보를 낸 사주에서도 사실표 용신 줄에 특수격 관점이 없다", () => {
+    const c2 = computeChart({ calendar: "solar", year: 1952, month: 3, day: 19, time: { hour: 1, minute: 0 }, gender: "M" })
+    const r2 = analyzeRules(c2)
+    const sp = r2.usefulGods.views.find((v) => v.method === "special")!
+    expect(sp.status, "시험 전제: 특수격 후보가 있어야 함").toBe("ok")
+    const eok = r2.usefulGods.views.find((v) => v.method === "eokbu")!
+    expect(sp.candidates[0].element, "시험 전제: 억부와 정반대").not.toBe(eok.candidates[0].element)
+    const ug = readUsefulGods(r2)!
+    const okNonSpecial = r2.usefulGods.views.filter((v) => v.method !== "special" && v.status === "ok" && v.candidates.length > 0)
+    expect(ug.length).toBe(okNonSpecial.length)
+    for (const u of ug) expect(u.method).not.toMatch(/특수격|special|종격|화격|종왕|종강/)
+    expect(ug.find((u) => u.method === "힘의 균형으로 보면(억부)")?.element).toBe("토")
+    const f2 = buildFactSheet({ chart: c2, rules: r2, asOf: AS_OF })
+    expect(JSON.stringify(f2)).not.toMatch(/특수격|"special"/)
   })
   it("현재 규칙 엔진 출력 그대로도 오류 없이 만든다", () => {
     expect(() => buildFactSheet({ chart, rules: base, asOf: AS_OF })).not.toThrow()

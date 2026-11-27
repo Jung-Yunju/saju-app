@@ -59,8 +59,8 @@ describe("독립 검증 — 구조 경계", () => {
     expect(rep.findings.some((f) => f.code === "MALFORMED_READING")).toBe(true)
   })
 
-  // 결함 후보: 글이 하나도 없는 풀이({}·parts:[]·빈 장)도 pass=true로 고객에게 나갈 수 있다.
-  it.fails("[결함] 내용이 비어 있는 풀이는 통과시키면 안 된다", () => {
+  // 지난 검토 결함: 글이 하나도 없는 풀이도 pass=true였음 → verify@0.2.0에서 수정 확인(2차 검토)
+  it("[수정 확인 verify@0.2.0] 내용이 비어 있는 풀이는 통과시키면 안 된다", () => {
     for (const empty of [{}, { parts: [] }, { parts: [{ chapters: [{ body: [] }] }] }]) {
       const rep = run(empty)
       expect(rep.pass, brief(rep)).toBe(false)
