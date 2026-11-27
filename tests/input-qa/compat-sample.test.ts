@@ -88,7 +88,13 @@ describe("예전 요청 호환성", () => {
       if (ch.y) year++
       if (ch.m) { month++; monthCases.push(`${key} ${old.pillars.month}→${neu.pillars.month}`) }
       if (ch.d) day++
-      if (ch.h) { hour++; hourCases.push(`${key} ${old.pillars.hour}→${neu.pillars.hour}`) }
+      if (ch.h) {
+        hour++
+        hourCases.push(`${key} ${old.pillars.hour}→${neu.pillars.hour}`)
+        // 바뀐 시주는 모두 "고른 시진"으로 바로잡힌 경우여야 한다(예전 정각 계산이 한 칸 앞 시지였던 것)
+        expect(neu.pillars.hour![1]).toBe("子丑寅卯辰巳午未申酉戌亥"[r.birthHour! / 2])
+        expect(old.pillars.hour![1]).not.toBe("子丑寅卯辰巳午未申酉戌亥"[r.birthHour! / 2])
+      }
       if (ch.a) { age++; ageCases.push(`${key} ${old.daeun[0].start_age}→${neu.daeun[0].start_age}`) }
       if (ch.s) startYear++
       if (ch.y || ch.m || ch.d || ch.h || ch.a) any++
@@ -101,6 +107,6 @@ describe("예전 요청 호환성", () => {
     // 의도된 변경의 범위: 일주는 바뀌지 않아야 한다(30분 이동으로 23시 경계를 넘지 않음)
     expect(day).toBe(0)
     // 측정 기준선(seed 고정) — 값이 바뀌면 계산 규칙이 바뀐 것이므로 원인을 확인한다
-    expect({ year, month, day, hour, age }).toMatchSnapshot()
+    expect({ year, month, day, hour, age }).toEqual({ year: 0, month: 0, day: 0, hour: 17, age: 5 })
   })
 })
