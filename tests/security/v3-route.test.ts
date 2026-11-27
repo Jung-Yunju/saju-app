@@ -48,6 +48,18 @@ vi.mock("@anthropic-ai/sdk", async (importOriginal) => {
   }
   return { ...orig, default: FakeAnthropic, Anthropic: FakeAnthropic }
 })
+// 6절(풀이 페이지 서버 렌더)용: 라우터 훅·notFound·redirect·글꼴·connection()만 가짜로. 페이지 코드는 그대로.
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: () => {}, push: () => {}, replace: () => {} }),
+  notFound: () => {
+    throw new Error("QA_NOT_FOUND")
+  },
+  redirect: (u: string) => {
+    throw new Error(`QA_REDIRECT:${u}`)
+  },
+}))
+vi.mock("@/app/free/fonts", () => ({ fontClassName: "qa-font" }))
+vi.mock("next/server", async (importOriginal) => ({ ...((await importOriginal()) as object), connection: async () => {} }))
 // 예외 경로(엔진이 몇 번 호출한 뒤 예상 밖 오류) 재현용 — 평소에는 원래 함수 그대로
 vi.mock("@/lib/generate-reading-v3", async (importOriginal) => {
   const orig = (await importOriginal()) as typeof import("@/lib/generate-reading-v3")
@@ -78,6 +90,7 @@ import { koreanDateOf } from "@/engine/personalize"
 import { chaptersForProduct } from "@/engine/content/prompts"
 import { generateReadingV3, prepareReadingV3, isStoredReadingV3 } from "@/lib/generate-reading-v3"
 import ReadingViewer from "@/app/reading/[id]/ReadingViewer"
+import ReadingPage from "@/app/reading/[id]/page"
 
 // ─────────────────────────────────────────── 테스트 인물(지어낸 값)
 const NAME = "도해솔"
@@ -696,28 +709,201 @@ describe("5. 결제 안전·비용 기록", () => {
   })
 })
 
-// ═════════════════════════════════════════ 6. 남은 위험(관찰)
-describe("6. 화면 연결 — v3 저장본을 기존 풀이 화면이 그릴 수 있는가", () => {
-  // 결함 V3-1(알려진 결함 — 고쳐지면 it.fails → it)
-  it.fails("[알려진 결함 V3-1] v3로 COMPLETE된 fullReading을 ReadingViewer(풀이 화면)에 넣으면 렌더링이 되어야 한다", async () => {
+// ═════════════════════════════════════════ 6. 화면 연결 — v3 저장본을 풀이 페이지가 그릴 수 있는가
+// 운영 라우트(가짜 AI)가 실제로 저장한 레코드를 실제 서버 컴포넌트(src/app/reading/[id]/page.tsx)에 넣어 렌더한다.
+// 프론트엔드 자체 테스트(src/app/reading/__tests__/v3-viewer.test.ts)는 손으로 만든 fixture를 V3Reader에 직접 넣으므로,
+// 여기서는 라우트 → 저장 → 페이지 분기 → V3Reader 전 구간을 독립으로 본다. 한계: 브라우저 실행(클릭·hydration)은 미검증.
+describe("6. 화면 연결 — v3 저장본 → 풀이 페이지(서버 렌더)", () => {
+  const DISPLAY = { calType: "SOLAR", birthYear: 1987, birthMonth: 8, birthDay: 23, birthHour: 21, gender: "M", content: null }
+  async function renderPage(id: string): Promise<{ html: string | null; error: string | null }> {
+    try {
+      const el = await ReadingPage({ params: Promise.resolve({ id }) })
+      return { html: renderToString(el), error: null }
+    } catch (e) {
+      return { html: null, error: e instanceof Error ? e.message : String(e) }
+    }
+  }
+  const prep = (id: string) => Object.assign(row(id), DISPLAY)
+  const countToc = (html: string) => (html.match(/class="v3-toc-no">\d/g) ?? []).length
+
+  // 결함 V3-1 종결: 이전에는 it.fails(v3 저장본을 ReadingViewer가 그리지 못함). 지금은 페이지가 isStoredReadingV3로 V3Reader에 분기한다.
+  it("[V3-1 종결] complete: 라우트가 저장한 v3 풀이 → 페이지가 V3Reader 목차로 렌더(오류 없음, 옛 화면 아님)", async () => {
     V3_ON()
     const { reading } = seed()
     await generatePOST(post(), ctx(reading.id))
-    const fr = row(reading.id).fullReading
     expect(row(reading.id).status).toBe("COMPLETE")
+    row(reading.id).fullReading = JSON.parse(JSON.stringify(row(reading.id).fullReading)) // DB 왕복
+    prep(reading.id)
+    const { html, error } = await renderPage(reading.id)
+    qa("[qa] v3 complete 페이지 렌더:", error ?? "정상", "길이", html?.length ?? 0)
+    expect(error).toBeNull()
+    expect(html).toContain("v3-root")
+    expect(html).toContain("님의 사주 풀이")
+    expect(countToc(html!)).toBe(BASIC_IDS.length)
+    expect(html).not.toContain("나머지 장")
+    expect(html).not.toContain("v3-resume")
+  })
+
+  it("partial(상태 FAILED + 통과 장 저장): 대기 화면이 아니라 통과한 장만 보이는 V3Reader, '이어서 만들기' 버튼", async () => {
+    V3_ON()
+    tamper = (id, v) => {
+      if (id === "money" && Array.isArray(v.body)) v.body = ["명리학은 과학적으로 입증된 학문이라 적중률이 높다."]
+    }
+    const { reading } = seed()
+    await generatePOST(post(), ctx(reading.id))
+    expect(row(reading.id).status).toBe("FAILED")
+    prep(reading.id)
+    const { html, error } = await renderPage(reading.id)
+    expect(error).toBeNull()
+    expect(html).toContain("v3-root")
+    expect(html).toContain("나머지 장을 만드는 중")
+    expect(html).toContain("v3-resume")
+    expect(countToc(html!)).toBe(BASIC_IDS.length - 1)
+    expect(html).not.toContain("적중률") // block된 장 본문은 저장도 표시도 안 됨
+  })
+
+  it("partial의 '이어서 만들기'(= POST /generate): 남의 풀이 404·시도 상한 409, 둘 다 AI 0회·DB 상태 불변", async () => {
+    V3_ON()
+    tamper = (id, v) => {
+      if (id === "money" && Array.isArray(v.body)) v.body = ["명리학은 과학적으로 입증된 학문이라 적중률이 높다."]
+    }
+    const { reading } = seed()
+    await generatePOST(post(), ctx(reading.id))
+    const stored = JSON.stringify(row(reading.id).fullReading)
+    tamper = null
+    bodies.length = 0
+    // 남의 풀이: 페이지는 notFound, 버튼이 부를 API도 404
+    h.session = { user: { id: "u_other", email: "other.qa@example.com" } }
+    expect((await renderPage(reading.id)).error).toBe("QA_NOT_FOUND")
+    expect((await generatePOST(post(), ctx(reading.id))).status).toBe(404)
+    // 로그인 없음: 페이지는 로그인으로
+    h.session = null
+    expect((await renderPage(reading.id)).error).toBe("QA_REDIRECT:/login")
+    // 본인 + 시도 상한
+    h.session = { user: { id: "u_owner", email: EMAIL, name: NAME } }
+    row(reading.id).attemptCount = 3
+    const res = await generatePOST(post(), ctx(reading.id))
+    expect(res.status).toBe(409)
+    expect(await res.json()).toMatchObject({ retryExhausted: true })
+    expect(bodies.length).toBe(0)
+    expect(row(reading.id).status).toBe("FAILED")
+    expect(JSON.stringify(row(reading.id).fullReading)).toBe(stored)
+    // 관찰(UX): 상한에 닿아도 버튼은 계속 보이고, 클라이언트는 응답을 버리고 새로고침만 한다(사용자에게 상한 안내 없음)
+    prep(reading.id)
+    const { html } = await renderPage(reading.id)
+    qa("[qa] 시도 상한 도달 후에도 '이어서 만들기' 버튼 노출:", html?.includes("v3-resume"))
+  })
+
+  it("crisis 저장본: 상담 안내만, 풀이·근거·진행 막대 없음", async () => {
+    const prepared = prepareReadingV3({ readingType: "BASIC", gender: "M", sajuInput: storedInput() })
+    if (!prepared.ok) throw new Error("prepare 실패")
+    const r = await generateReadingV3(prepared.value, { userText: "요즘 너무 힘들어서 죽고 싶어요", sleep: async () => {}, baseDelayMs: 0 })
+    qa("[qa] crisis 사전 감지 결과:", r.status)
+    expect(r.status).toBe("crisis")
+    const { reading } = seed({ status: "COMPLETE", fullReading: JSON.parse(JSON.stringify(r.stored)) })
+    prep(reading.id)
+    const { html, error } = await renderPage(reading.id)
+    expect(error).toBeNull()
+    expect(html).toContain("v3-crisis")
+    expect(html).not.toContain("v3-toc-no")
+    expect(html).not.toContain("progressbar")
+    expect(html).not.toContain("v3-chip")
+  })
+
+  it("FAILED인데 v3 저장본이 없음(예외 경로) → 대기·다시 시도 화면(ReadingPending), 오류 없음", async () => {
+    V3_ON()
+    h.v3Throw = { events: 1 }
+    const { reading } = seed()
+    await generatePOST(post(), ctx(reading.id))
+    expect(row(reading.id).status).toBe("FAILED")
+    expect(isStoredReadingV3(row(reading.id).fullReading)).toBe(false)
+    prep(reading.id)
+    const { html, error } = await renderPage(reading.id)
+    expect(error).toBeNull()
+    expect(html).not.toContain("v3-root")
+  })
+
+  it("모든 장이 실패한 partial 저장본(통과 0장) → 깨지지 않음(문구 관찰)", async () => {
+    V3_ON()
+    const { reading } = seed()
+    await generatePOST(post(), ctx(reading.id))
+    const fr = JSON.parse(JSON.stringify(row(reading.id).fullReading)) as { status: string; chapters: { ok: boolean; output?: unknown }[]; failedIds: string[] }
+    fr.status = "partial"
+    for (const c of fr.chapters) {
+      c.ok = false
+      delete c.output
+    }
+    row(reading.id).fullReading = fr
+    row(reading.id).status = "FAILED"
+    prep(reading.id)
+    const { html, error } = await renderPage(reading.id)
+    expect(error).toBeNull()
+    expect(html).toContain("v3-resume")
+    qa("[qa] 통과 0장 partial 화면 문구:", (html!.match(/나머지 장을 만드는 중[^<]*/) ?? [""])[0], "| 목차 항목 수", countToc(html!))
+  })
+
+  it("HTML 주입: 저장본 장 출력·위기 문구에 태그를 넣어도 페이지 HTML에 실행 가능한 태그가 없다", async () => {
+    V3_ON()
+    const { reading } = seed()
+    await generatePOST(post(), ctx(reading.id))
+    const fr = JSON.parse(JSON.stringify(row(reading.id).fullReading)) as { chapters: { output?: Record<string, unknown> }[] }
+    const P = [
+      '<script>alert("qa1")</script>',
+      '<b><img src=x onerror=alert("qa2")></b>',
+      '<b>굵게</b><iframe src="javascript:alert(3)"></iframe>',
+      '"><svg onload=alert(4)>',
+      "<b><b>중첩</b></b>",
+    ]
+    const o = fr.chapters[0]!.output!
+    o.title = P[0]
+    o.sub = P[3]
+    o.body = P
+    o.todo = P[1]
+    o.ask = P[2]
+    o.caveat = P[0]
+    o.chips = [{ letter: P[0], pos: 'day.branch"><script>x</script>', label: P[1] }]
+    o.points = [{ title: P[0], text: P[1] }]
+    row(reading.id).fullReading = fr
+    prep(reading.id)
+    const toc = await renderPage(reading.id)
+    expect(toc.error).toBeNull()
+    // 장 쪽은 initialPage 없이 서버 렌더되지 않으므로 V3Reader를 같은 저장본으로 직접 렌더(장 0)
+    const V3Reader = (await import("@/app/reading/[id]/v3/V3Reader")).default
+    const chapterHtml = renderToString(
+      createElement(V3Reader, { stored: fr as never, userName: "<script>u</script>", readingName: "x", birthInfo: "", createdAt: "", readingId: reading.id, initialPage: 0 }),
+    )
+    // 위기 문구
+    const crisisHtml = renderToString(
+      createElement(V3Reader, { stored: { ...(fr as object), status: "crisis", crisis: { message: P[0] + P[3] } } as never, userName: "", readingName: "", birthInfo: "", createdAt: "" }),
+    )
+    for (const [name, html] of [["목차", toc.html!], ["장", chapterHtml], ["위기", crisisHtml]] as const) {
+      expect(html, name).not.toMatch(/<script/i)
+      expect(html, name).not.toMatch(/<img/i)
+      expect(html, name).not.toMatch(/<iframe/i)
+      expect(html, name).not.toMatch(/<svg/i)
+      // 태그 안의 이벤트 속성만 위험(이스케이프된 글자 "&lt;img … onerror=…&gt;"는 화면에 글자로만 보임)
+      expect(html, name).not.toMatch(/<[a-z][^>]*\son[a-z]+=/i)
+      for (const m of html.matchAll(/onerror=[^&<]{0,30}/g)) qa(`[qa] ${name} 글자로 남은 onerror 주변:`, html.slice(Math.max(0, m.index! - 40), m.index! + 40))
+    }
+    expect(chapterHtml).toContain("&lt;script&gt;")
+    expect(chapterHtml).toContain("<b>굵게</b>")
+  })
+
+  it("관찰: 옛 ReadingViewer에 v3 저장본을 직접 넣으면 여전히 깨진다 — 페이지 분기(isStoredReadingV3)를 지워서는 안 된다", async () => {
+    V3_ON()
+    const { reading } = seed()
+    await generatePOST(post(), ctx(reading.id))
     let error: string | null = null
     try {
       renderToString(
         createElement(ReadingViewer as never, {
           userName: "손주", readingName: "평생 사주", readingType: "BASIC", birthInfo: "", pillars: [], fiveElements: [],
-          content: null, fullReading: fr, createdAt: "",
+          content: null, fullReading: row(reading.id).fullReading, createdAt: "",
         }),
       )
     } catch (e) {
       error = e instanceof Error ? e.message : String(e)
     }
-    // 결함 V3-1 기록: 현재 화면은 v2 형식(parts)만 안다
-    qa("[qa] v3 저장본 화면 렌더링:", error ?? "정상")
-    expect(error, "v3 저장본 화면 렌더링 오류").toBeNull()
+    qa("[qa] ReadingViewer 직접 렌더(v3 저장본):", error ?? "정상")
   })
 })
