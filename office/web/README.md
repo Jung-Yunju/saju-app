@@ -9,7 +9,7 @@ claude.ai 비공개 아티팩트로 게시하는 대표 전용 화면. 계약: `
 - `dev-preview.html` 로컬 미리보기 전용(게시하지 않음).
 
 ## 로컬 미리보기
-office/web을 정적 서버로 열고 `dev-preview.html?mode=live|stale|empty|null|hang&theme=light|dark`.
+office/web을 정적 서버로 열고 `dev-preview.html?mode=live|real|stale|empty|null|hang&theme=light|dark`.
 cdnjs가 막혀 있으면 `&libs=/libs` 로 로컬 react.js/react-dom.js/phaser.js 경로를 지정(저장소엔 설치하지 않음).
 
 ## 동작 요약

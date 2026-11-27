@@ -1187,7 +1187,8 @@
         map.rooms.forEach(function (r) {
           /* 방 이름은 방 바로 위(아래 방은 위쪽 벽 줄) 벽 띠 한가운데에 둔다 — 가구와 겹치지 않는 줄 */
           var ly = r.y <= 1 ? 0 : (r.y - 1) * TILE;
-          self.add.text((r.x + r.w / 2) * TILE, ly + 8, r.name, { fontFamily: "system-ui,sans-serif", fontSize: "11px", fontStyle: "bold", color: "#f5e2a6", stroke: "#0f1430", strokeThickness: 3, resolution: 3 }).setOrigin(.5, .5).setDepth(9000);
+          var lx = r.y <= 1 ? (r.x + r.w / 2) * TILE : r.x * TILE + 8;
+          self.add.text(lx, ly + 8, r.name, { fontFamily: "system-ui,sans-serif", fontSize: "11px", fontStyle: "bold", color: "#f5e2a6", stroke: "#0f1430", strokeThickness: 3, resolution: 3 }).setOrigin(r.y <= 1 ? .5 : 0, .5).setDepth(9000);
         });
         /* 캐릭터 */
         this.ring = this.add.ellipse(0, 0, 20, 8, 0xffd54a, .55).setStrokeStyle(1, 0xffffff, .9).setVisible(false);
@@ -1495,7 +1496,8 @@
     var stale = !active || docAt == null || now - docAt > STALE_MS;
     var model = useMemo(function () { return derive(active, stale); }, [active, stale]);
     var sel = selId ? model.staff.filter(function (s) { return s.id === selId; })[0] : null;
-    var isSample = !!sampleDoc;
+    // 예시 버튼을 눌렀거나, 들어온 문서 자체에 sample 표시가 있으면 반드시 예시 배너를 띄운다
+    var isSample = !!sampleDoc || !!(doc && doc.sample === true);
     var noReal = conn.kind !== "ok";
 
     function pickRoom(id) { setRoom(id); try { localStorage.setItem("office.roomTab", id); } catch (e) { } }
@@ -1544,12 +1546,16 @@
               h("ul", { className: "slist" }, model.staff.map(function (s) {
                 return h("li", { key: s.id }, h("button", { className: "srow", "aria-current": selId === s.id ? "true" : undefined, onClick: function () { select(s.id); } },
                   h("span", null, h("span", { className: "nm" }, s.name + (s.headcount ? " (오늘 " + s.headcount + "명)" : "")), h("span", { className: "tt" }, s.title)),
-                  h(Chip, { status: s.status, label: s.statusLabel + (s.rule ? " (규칙 기반)" : "") })));
+                  h(Chip, { status: s.status, label: s.statusLabel + (s.rule && s.statusLabel.indexOf("규칙") < 0 ? " (규칙 기반)" : "") })));
               })),
               h("p", { className: "note" }, "직원을 누르면 상세 정보가 열립니다. 캔버스 안의 캐릭터를 눌러도 같습니다.")),
             !stale && model.board.length ? h("section", { className: "panel", "aria-label": "대표 승인 대기" },
               h("h2", null, "현황판 승인 대기 " + model.board.length + "건"),
-              h("ul", { style: { margin: 0, paddingLeft: 18 } }, model.board.map(function (x, i) { return h("li", { key: i }, x.cardId + " " + x.title + (x.item ? " — " + x.item : "") + (x.status ? " (" + x.status + ")" : "")); }))) : null,
+              (function () {
+                function li(x, i) { return h("li", { key: i }, x.cardId + " " + x.title + (x.item ? " — " + x.item : "") + (x.status ? " (" + x.status + ")" : "")); }
+                return [h("ul", { key: "a", style: { margin: 0, paddingLeft: 18 } }, model.board.slice(0, 5).map(li)),
+                  model.board.length > 5 ? h("details", { key: "b", style: { marginTop: 6 } }, h("summary", { style: { cursor: "pointer", minHeight: 32 } }, "나머지 " + (model.board.length - 5) + "건 보기"), h("ul", { style: { margin: "6px 0 0", paddingLeft: 18 } }, model.board.slice(5).map(function (x, i) { return li(x, i + 5); }))) : null];
+              })()) : null,
             h("section", { className: "panel", "aria-label": "도움말" },
               h("h2", null, "범례·도움말"),
               h("ul", { className: "legend" },
