@@ -1,4 +1,5 @@
 // 골든 ① 절기 시각 — getSolarTermsUtc(year) vs 독립 오라클(astronomy-engine SearchSunLongitude)
+// [확정 규칙 2026-11-27 총괄실장] 절기명은 한국 정자(번체) 표기.
 // 표본: 1900~2100 매 5년(41개 연도) + 고정 시드 무작위 20개 연도, 연도마다 24절기 전부.
 // 허용 오차: 2분. 이름은 한국 정자 표기(驚蟄·穀雨·小滿·芒種·處暑).
 import { describe, expect, it } from "vitest"

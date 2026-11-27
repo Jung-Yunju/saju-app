@@ -47,6 +47,15 @@ function assertLongitude(v: unknown, name: string): void {
   }
 }
 
+/**
+ * 입력 검증(calendar@0.1.1 확정 규칙). 어기면 EngineInputError.
+ * - calendar "solar"|"lunar", gender "M"|"F"
+ * - time: null 또는 { hour 0~23 정수, minute 0~59 정수 } (24:00·60분 불가)
+ * - 연도 1900~2100(양력·음력 모두, 음력은 변환된 양력 날짜도 이 범위), 존재하지 않는 양력 날짜 거부 — assertSolarDate·lunarToSolar
+ * - isLeapMonth: 생략 또는 boolean(양력 입력에 true면 오류)
+ * - longitude −180~180, timezone Intl 유효 IANA 이름
+ * 서머타임 겹침·공백 시각은 오류가 아니라 "compatible" 규칙으로 해석하고 경고한다(time.ts localToUtc).
+ */
 function validateInput(input: BirthInput): void {
   if (!input || typeof input !== "object") throw new EngineInputError("입력이 없음")
   if (input.calendar !== "solar" && input.calendar !== "lunar") throw new EngineInputError(`calendar 값 오류: ${String(input.calendar)}`)
@@ -56,6 +65,9 @@ function validateInput(input: BirthInput): void {
     const { hour, minute } = input.time
     if (!Number.isInteger(hour) || hour < 0 || hour > 23) throw new EngineInputError(`시(hour)는 0~23 정수: ${String(hour)}`)
     if (!Number.isInteger(minute) || minute < 0 || minute > 59) throw new EngineInputError(`분(minute)은 0~59 정수: ${String(minute)}`)
+  }
+  if (input.isLeapMonth !== undefined && typeof input.isLeapMonth !== "boolean") {
+    throw new EngineInputError(`isLeapMonth는 boolean: ${String(input.isLeapMonth)}`)
   }
   if (input.longitude !== undefined) assertLongitude(input.longitude, "longitude")
   if (input.timezone !== undefined && typeof input.timezone !== "string") throw new EngineInputError("timezone은 IANA 문자열")

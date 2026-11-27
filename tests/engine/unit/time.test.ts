@@ -120,7 +120,7 @@ describe("입력 검증", () => {
 
   it("결과에 engineVersion과 사용 옵션 전체를 기록한다", () => {
     const r = computeChart(base, { ziHour: "yajasi" })
-    expect(r.engineVersion).toBe("calendar@0.1.0")
+    expect(r.engineVersion).toBe("calendar@0.1.1")
     expect(r.options).toEqual({ ziHour: "yajasi", trueSolarTime: true, defaultLongitude: 126.978, equationOfTime: false, luckRounding: "round" })
     expect(r.input.timezone).toBe("Asia/Seoul")
   })

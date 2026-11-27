@@ -4,11 +4,12 @@
 //   - 대운수(정밀) = 출생 순간(UTC)에서 순행이면 다음 節까지, 역행이면 직전 節까지의 일수 ÷ 3  (허용 오차 0.05년)
 //   - luckRounding "round" → startAge = 반올림, "floor" → 버림 (.5·정수 경계 ±0.06년 표본은 판정 제외)
 //   - 대운 간지: 월주에서 순행이면 +1, +2 …, 역행이면 −1, −2 … (60갑자)
+//   - 대운 시작 연도: 출생 양력 연도 + 시작 만 나이 (docs/SAJU_ENGINE.md 운 절, 2026-11-27 확정 — 오차 허용 없음)
 // 표본: 1912~2090 무작위 출생 200건(고정 시드), 성별 무작위. 節 10분 이내 출생과 서머타임 공백·중복 시각은 제외.
 import { describe, expect, it } from "vitest"
 import { computeChart, type CalendarResult } from "@/engine"
 import {
-  dateToDayNumber, dayNumberToDate, randInt, rng, sexagenary, sexagenaryIndex, YANG_STEMS, yearMonthPillarsOracle,
+  dateToDayNumber, dayNumberToDate, lunarToSolarOracle, randInt, rng, sexagenary, sexagenaryIndex, YANG_STEMS, yearMonthPillarsOracle,
 } from "./oracle"
 import { assertNoFailures, collect, fmtP, lbl, samePillar, seoulMinuteOf, solarInput } from "./helpers"
 
@@ -100,7 +101,7 @@ describe("골든 ⑥ 대운", () => {
     assertNoFailures(fails, total.n, "대운수(환산)")
   })
 
-  it("대운 간지 = 월주 ±1씩, index 1부터, 시작 나이 10년 간격, 시작 연도 ≈ 출생 연도 + 나이", () => {
+  it("대운 간지 = 월주 ±1씩, index 1부터, 시작 나이 10년 간격, 시작 연도 = 출생 양력 연도 + 시작 만 나이(정확히)", () => {
     const fails = collect(samples, label, (s) => {
       const e = expected(s)
       const c = chartOf(s)
@@ -113,11 +114,38 @@ describe("골든 ⑥ 대운", () => {
         if (d.index !== i + 1) errs.push(`#${i} index ${d.index}`)
         if (!samePillar(d.pillar, exp)) errs.push(`#${i + 1} ${fmtP(d.pillar)}≠${fmtP(exp)}`)
         if (d.startAge !== c.luck.startAge + 10 * i) errs.push(`#${i + 1} startAge ${d.startAge}`)
-        const dy = d.startYear - s.local.year - d.startAge
-        if (dy < -1 || dy > 1) errs.push(`#${i + 1} startYear ${d.startYear}`)
+        // 확정 규칙(2026-11-27): 시작 연도 = 출생 양력 연도(현지 법정시) + 시작 만 나이 — 정확히 일치
+        const expYear = s.local.year + d.startAge
+        if (d.startYear !== expYear) errs.push(`#${i + 1} startYear ${d.startYear}≠${expYear}`)
       })
       return errs.length ? errs.slice(0, 4).join(", ") : null
     })
     assertNoFailures(fails, samples.length, "대운 간지")
+  })
+
+  // 음력 입력: '출생 양력 연도'는 음력 연도가 아니라 변환된 양력 날짜의 연도다.
+  // 양력 날짜 기대값은 독립 오라클(lunarToSolarOracle, 2000~2030 검증 범위)과 설날 골든(2001-01-24, 2013-02-10, 2024-02-10)로 검산했다.
+  const lunarCases: { lunar: [number, number, number]; solar: [number, number, number] }[] = [
+    { lunar: [2000, 12, 20], solar: [2001, 1, 14] },
+    { lunar: [2012, 12, 25], solar: [2013, 2, 5] },
+    { lunar: [2023, 12, 1], solar: [2024, 1, 11] },
+  ]
+  it(`음력 12월 출생(양력은 다음 해): startYear = 양력 연도 + 시작 만 나이 (${lunarCases.length}건 × 남녀)`, () => {
+    const all = lunarCases.flatMap((c) => (["M", "F"] as const).map((gender) => ({ ...c, gender })))
+    const fails = collect(all, (c) => `음력 ${c.lunar.join("-")} ${c.gender}`, (c) => {
+      const o = lunarToSolarOracle(c.lunar[0], c.lunar[1], c.lunar[2], false)
+      expect(o).toEqual({ year: c.solar[0], month: c.solar[1], day: c.solar[2] })
+      const chart = computeChart({
+        calendar: "lunar", year: c.lunar[0], month: c.lunar[1], day: c.lunar[2], isLeapMonth: false,
+        time: { hour: 12, minute: 0 }, timezone: "Asia/Seoul", gender: c.gender,
+      })
+      const errs: string[] = []
+      if (chart.solarDate.year !== c.solar[0]) errs.push(`solarDate.year ${chart.solarDate.year}`)
+      chart.luck.daeun.forEach((d) => {
+        if (d.startYear !== c.solar[0] + d.startAge) errs.push(`#${d.index} startYear ${d.startYear}≠${c.solar[0] + d.startAge}`)
+      })
+      return errs.length ? errs.slice(0, 4).join(", ") : null
+    })
+    assertNoFailures(fails, all.length, "음력 입력 대운 시작 연도")
   })
 })

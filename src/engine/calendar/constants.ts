@@ -3,7 +3,7 @@
 import type { Branch, Pillar, Stem } from "../types"
 
 /** 역법 엔진 버전. 계산 결과가 바뀌는 수정이면 올리고 CHANGELOG에 기록한다. */
-export const CALENDAR_ENGINE_VERSION = "calendar@0.1.0"
+export const CALENDAR_ENGINE_VERSION = "calendar@0.1.1"
 
 export const STEMS: readonly Stem[] = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
 export const BRANCHES: readonly Branch[] = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]

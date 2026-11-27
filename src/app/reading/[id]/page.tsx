@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth"
 
 export const instant = false
 import { prisma } from "@/lib/prisma"
-import { calculateSaju } from "@/lib/saju"
+import { resolveDisplaySaju } from "@/lib/saju-input"
 import ReadingViewer from "./ReadingViewer"
 import ReadingPending from "./ReadingPending"
 import type { FullReading } from "@/lib/generate-reading-v2"
@@ -38,22 +38,8 @@ export default async function ReadingPage({ params }: { params: Promise<{ id: st
   const reading = await prisma.reading.findUnique({ where: { id } })
   if (!reading || reading.userId !== effectiveUserId) notFound()
 
-  const saju = calculateSaju(
-    reading.birthYear, reading.birthMonth, reading.birthDay,
-    reading.birthHour, reading.gender, reading.calType
-  )
-
-  const pillars = [
-    { label: "연주", stem: saju.year.stem, branch: saju.year.branch, element: saju.year.element, branchEl: saju.year.branchElement },
-    { label: "월주", stem: saju.month.stem, branch: saju.month.branch, element: saju.month.element, branchEl: saju.month.branchElement },
-    { label: "일주", stem: saju.day.stem, branch: saju.day.branch, element: saju.day.element, branchEl: saju.day.branchElement, me: true },
-    ...(saju.hour ? [{ label: "시주", stem: saju.hour.stem, branch: saju.hour.branch, element: saju.hour.element, branchEl: saju.hour.branchElement }] : []),
-  ]
-
-  const fiveElements = ["목", "화", "토", "금", "수"].map(el => ({
-    el,
-    count: pillars.reduce((n, p) => n + (p.element === el ? 1 : 0) + (p.branchEl === el ? 1 : 0), 0),
-  }))
+  // 원국 표시: 저장된 sajuInput.pillars(=AI가 실제로 본 글자)가 있으면 그대로, 없으면(예전 마크다운 풀이) 새 엔진 계산
+  const { pillars, fiveElements } = resolveDisplaySaju(reading)
 
   const calStr = reading.calType === "SOLAR" ? "양력" : "음력"
   const genderStr = reading.gender === "M" ? "남성" : "여성"
