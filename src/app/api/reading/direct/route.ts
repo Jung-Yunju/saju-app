@@ -6,7 +6,8 @@ import { randomUUID } from "node:crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getSessionUser } from "@/lib/session-user"
-import { buildSajuInput, type SajuInputData } from "@/lib/saju-input"
+import { EngineInputError } from "@/engine"
+import { buildSajuInputFromRequest, SAJU_INPUT_ERROR_MESSAGE, type SajuInputData } from "@/lib/saju-input"
 import {
   getFreeReadingDailyLimit, isFreeReadingAllowed, readJsonBody, validateReadingRequest,
 } from "@/lib/validate"
@@ -38,15 +39,27 @@ export async function POST(req: NextRequest) {
   if (!input.ok) return jsonError(input.error, 400)
   const v = input.value
 
-  // 만세력 계산이 실패하는 입력(예: 그 해에 없는 음력 30일)은 레코드를 만들기 전에 거른다
+  // 만세력 계산이 실패하는 입력(예: 그 해에 없는 음력 30일·윤달)은 레코드를 만들기 전에 거른다.
+  // 입력 오류(EngineInputError)만 400, 그 밖의 예외는 엔진 결함이므로 500.
+  // 윤달·분·시각 입력 방식·출생지는 DB 열이 없어 sajuInput(JSON)에만 남는다(결과 화면은 저장된 pillars를 표시).
   let sajuInput: SajuInputData
   try {
-    sajuInput = buildSajuInput(
-      v.birthYear, v.birthMonth, v.birthDay, v.birthHour, v.gender, v.calType, v.name ?? undefined,
+    sajuInput = buildSajuInputFromRequest(
+      { ...v, year: v.birthYear, month: v.birthMonth, day: v.birthDay, hour: v.birthHour },
+      v.name ?? undefined,
     )
   } catch (err) {
-    console.error(`[${TAG}] 사주 계산 실패`, err)
-    return jsonError("입력한 생년월일로 사주를 계산할 수 없습니다. 날짜를 확인해 주세요.", 400)
+    if (!(err instanceof EngineInputError)) return serverError(TAG, err)
+    return jsonError(SAJU_INPUT_ERROR_MESSAGE, 400)
+  }
+  // 상대방: 계산 가능 여부만 확인한다(현재 풀이 생성은 상대방 원국을 쓰지 않고, 상대방 양력·음력 구분·윤달·분·출생지를 둘 DB 열이 없다)
+  if (v.other) {
+    try {
+      buildSajuInputFromRequest({ ...v.other, calType: v.other.calType ?? v.calType })
+    } catch (err) {
+      if (!(err instanceof EngineInputError)) return serverError(TAG, err)
+      return jsonError(`상대방 ${SAJU_INPUT_ERROR_MESSAGE}`, 400)
+    }
   }
 
   const limit = getFreeReadingDailyLimit()

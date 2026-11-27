@@ -1,0 +1,239 @@
+/* ==========================================================================
+   「할머니가 풀어 주는 사주」 디자인 토큰 — 시안 단계 (P5-01, 대표 승인 전)
+   --------------------------------------------------------------------------
+   - 시안 A 「달밤 서재」: [data-brand="a"]
+   - 시안 B 「등잔 아래 찻상」: [data-brand="b"]
+   - 테마: 기본은 밝은 테마. 어두운 테마는 [data-theme="dark"] (같은 요소 또는 하위 요소)
+           하위 영역만 바꿀 때는 그 요소에 data-theme="light|dark"를 붙인다.
+   - 승인되면 채택안만 src/styles/tokens.css로 옮기고 이 파일은 기록으로 남긴다.
+   - 값을 바꾸면 docs/DESIGN_SYSTEM.md 3절 표와 대비 검사 결과도 같이 고친다.
+   - 대비(WCAG 2.1): 본문·라벨 글자 4.5:1 이상, 입력칸 테두리·그래프 막대 3:1 이상.
+     --c-highlight는 장식(별·선·채움) 전용. 그 위의 글자는 --c-on-highlight만 쓴다.
+   ========================================================================== */
+
+/* ── 1. 브랜드 공통(간격·크기·글자 크기·움직임) ─────────────────────────── */
+:root {
+  /* 간격: 4px 배수 */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 20px;
+  --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px; --s-16: 64px;
+
+  /* 화면 */
+  --screen-pad: 20px;          /* 모바일 좌우 여백 */
+  --content-max: 440px;        /* 모바일 본문 최대 폭(PC에서도 읽는 칼럼은 이 폭) */
+  --wide-max: 1120px;          /* PC 바깥 틀 */
+  --touch-min: 44px;           /* 모든 터치 대상 최소 높이·폭 */
+  --btn-h: 52px;               /* 주 버튼 높이 */
+  --field-h: 52px;             /* 입력칸 높이 */
+
+  /* 글자 크기(모바일 기준, PC는 display만 키운다) */
+  --t-xs: 12px;   /* 각주·법적 고지(최소). 정보성 글자는 13px 이상 권장 */
+  --t-sm: 14px;
+  --t-md: 16px;   /* 본문 기본 — 입력칸도 16px(아이폰 자동 확대 방지) */
+  --t-lg: 18px;
+  --t-xl: 22px;
+  --t-2xl: 28px;
+  --t-3xl: 34px;
+  --t-hanja-lg: 34px; /* 원국표 한자 */
+  --lh-tight: 1.25;
+  --lh-body: 1.7;     /* 한글 본문 */
+
+  /* 움직임: 줄이기 설정을 존중(아래 미디어 쿼리) */
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --dur-fast: 120ms;
+  --dur: 220ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0ms; --dur: 0ms; }
+}
+
+/* ── 2. 시안 A 「달밤 서재」 ─────────────────────────────────────────────── */
+[data-brand="a"] {
+  --f-display: "Hahmlet", "Noto Serif KR", serif;
+  --f-body: "IBM Plex Sans KR", "Noto Sans KR", system-ui, sans-serif;
+  --f-ui: "IBM Plex Sans KR", "Noto Sans KR", system-ui, sans-serif;
+  --f-hanja: "Noto Serif KR", serif;          /* Hahmlet·Plex에는 한자 글리프가 없다 */
+  --fw-display: 700;
+  --fw-ui: 600;
+  --ls-display: -0.01em;
+
+  --r-xs: 4px; --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-pill: 999px;
+  --border-w: 1px;
+}
+/* A 밝은 테마(한지 위 남색 글씨) — 입력·결과 읽기 화면 기본 */
+[data-brand="a"], [data-brand="a"] [data-theme="light"] {
+  color-scheme: light;
+  --c-bg: #f6efdf;          /* 한지 */
+  --c-bg-deep: #ece1c7;
+  --c-surface: #fffaf0;
+  --c-surface-2: #ece1c7;   /* 이 위에는 오행색 글자를 쓰지 않는다(대비 부족) */
+  --c-line: #dccdab;        /* 장식 구분선 */
+  --c-line-strong: #8a7d63; /* 입력칸 테두리 3.89:1 */
+  --c-text: #1b2340;        /* 13.47:1 */
+  --c-text-muted: #545a70;  /* 5.96:1 */
+  --c-accent: #24305e;      /* 주 버튼 배경(남색) */
+  --c-on-accent: #f6efdf;   /* 11.05:1 */
+  --c-accent-text: #24305e; /* 링크·강조 글자 */
+  --c-highlight: #b48a32;   /* 금색 선·별(장식 전용 2.77:1) */
+  --c-on-highlight: #0c1129;
+  --c-gold-text: #86621f;   /* 금색 글자 4.85:1 */
+  --c-focus: #86621f;
+  --c-danger: #a3352b;
+  --c-success: #2f6e50;
+  --c-note-bg: #ece1c7;
+  --c-note-text: #1b2340;
+  --c-scrim: rgba(12, 17, 41, .55);
+
+  --el-wood: #2f6e50;  --el-wood-soft: #e6e9dd;
+  --el-fire: #a84a35;  --el-fire-soft: #f5e5da;
+  --el-earth: #80621f; --el-earth-soft: #f0e8d7;
+  --el-metal: #5d6575; --el-metal-soft: #ece8e1;
+  --el-water: #2c4a8a; --el-water-soft: #e6e5e4;
+
+  --sh-1: 0 1px 2px rgba(27, 35, 64, .08), 0 1px 0 rgba(27, 35, 64, .04);
+  --sh-2: 0 6px 20px -8px rgba(27, 35, 64, .25);
+  --sh-focus: 0 0 0 3px var(--c-focus);
+  --edge-card: var(--c-line);           /* 카드 테두리 색 */
+  --edge-control: var(--c-line-strong); /* 입력칸·보조 버튼 테두리 */
+
+  /* 로고: 심볼은 고정색 배지, 워드마크만 아래 변수를 따른다 */
+  --logo-ink: #1b2340; --logo-gold: #86621f;
+  --ill-skin: #eccaa9; --ill-hair: #dad5cf; --ill-hair-shade: #aaa39b; --ill-line: #3b2d25;
+  --ill-hanbok: #2b3a6e; --ill-collar: #fffaf0; --ill-goreum: #d4a847; --ill-blush: #e3a08a;
+  --ill-frame: #8f6a22; --ill-wood: #5a3a22; --ill-wood-2: #8a5c34;
+}
+/* A 어두운 테마(밤하늘 남색 + 금 선) — 첫 화면·결제·공유 카드 기본 */
+[data-brand="a"][data-theme="dark"], [data-brand="a"] [data-theme="dark"] {
+  color-scheme: dark;
+  --c-bg: #0c1129;
+  --c-bg-deep: #060818;
+  --c-surface: #161d3d;
+  --c-surface-2: #1f2a52;
+  --c-line: #2b3a6e;
+  --c-line-strong: #6d7bb0;  /* 4.00:1 */
+  --c-text: #f3ecdc;         /* 15.82:1 */
+  --c-text-muted: #aab0cc;   /* 8.68:1 */
+  --c-accent: #d4a847;       /* 주 버튼 배경(금) */
+  --c-on-accent: #0c1129;    /* 8.42:1 */
+  --c-accent-text: #e8c66e;
+  --c-highlight: #d4a847;
+  --c-on-highlight: #0c1129;
+  --c-gold-text: #e8c66e;
+  --c-focus: #e8c66e;
+  --c-danger: #f08f80;
+  --c-success: #74b894;
+  --c-note-bg: #1f2a52;
+  --c-note-text: #f3ecdc;
+  --c-scrim: rgba(6, 8, 24, .7);
+
+  --el-wood: #74b894;  --el-wood-soft: #25364b;
+  --el-fire: #e48a70;  --el-fire-soft: #372e45;
+  --el-earth: #d9b46a; --el-earth-soft: #353544;
+  --el-metal: #c9ced8; --el-metal-soft: #333956;
+  --el-water: #8ba6e6; --el-water-soft: #293358;
+
+  --sh-1: 0 1px 0 rgba(243, 236, 220, .04) inset, 0 1px 2px rgba(0, 0, 0, .4);
+  --sh-2: 0 12px 32px -12px rgba(0, 0, 0, .6), 0 0 0 1px rgba(212, 168, 71, .12);
+  --sh-focus: 0 0 0 3px var(--c-focus); /* var()는 선언한 요소에서 계산되므로 테마마다 다시 적는다 */
+  --edge-card: rgba(212, 168, 71, .28);
+  --edge-control: var(--c-line-strong);
+
+  --logo-ink: #f3ecdc; --logo-gold: #d4a847;
+  --ill-hanbok: #3e5190; --ill-collar: #f3ecdc; --ill-line: #2a1f19;
+}
+
+/* ── 3. 시안 B 「등잔 아래 찻상」 ────────────────────────────────────────── */
+[data-brand="b"] {
+  --f-display: "Gowun Batang", "Noto Serif KR", serif;
+  --f-body: "Gowun Dodum", "Noto Sans KR", system-ui, sans-serif; /* 굵기 400 하나뿐 */
+  --f-ui: "Gowun Batang", "Noto Serif KR", serif;                  /* 버튼·라벨(700) */
+  --f-hanja: "Noto Serif KR", serif;          /* 고운 바탕·돋움에는 한자 글리프가 없다 */
+  --fw-display: 700;
+  --fw-ui: 700;
+  --ls-display: -0.02em;
+
+  --r-xs: 6px; --r-sm: 10px; --r-md: 16px; --r-lg: 24px; --r-pill: 999px;
+  --border-w: 1.5px;
+}
+/* B 밝은 테마(한지 + 먹 + 복자 노랑) — 모든 화면 기본 */
+[data-brand="b"], [data-brand="b"] [data-theme="light"] {
+  color-scheme: light;
+  --c-bg: #f3eadb;
+  --c-bg-deep: #e9dcc6;
+  --c-surface: #fffaf2;
+  --c-surface-2: #e9dcc6;   /* 이 위에는 오행색 글자를 쓰지 않는다 */
+  --c-line: #d6c5a8;
+  --c-line-strong: #8b7d6b; /* 3.85:1 */
+  --c-text: #221e1b;        /* 먹 13.87:1 */
+  --c-text-muted: #5f564d;  /* 6.02:1 */
+  --c-accent: #221e1b;      /* 주 버튼 배경(먹 — 복자 털) */
+  --c-on-accent: #fff7e6;   /* 15.52:1 */
+  --c-accent-text: #221e1b;
+  --c-highlight: #f2c14e;   /* 복자 눈 노랑 — 채움 전용(배경 대비 1.41:1) */
+  --c-on-highlight: #221e1b;/* 9.86:1 */
+  --c-gold-text: #7a5233;   /* 나무색 글자 5.71:1 */
+  --c-focus: #221e1b;
+  --c-danger: #a03a2a;
+  --c-success: #41693b;
+  --c-note-bg: #f7e7b8;
+  --c-note-text: #221e1b;
+  --c-scrim: rgba(34, 30, 27, .5);
+
+  --el-wood: #41693b;  --el-wood-soft: #e8e9dc;
+  --el-fire: #9e4a2b;  --el-fire-soft: #f3e5da;
+  --el-earth: #7d5e1c; --el-earth-soft: #efe7d8;
+  --el-metal: #5e6269; --el-metal-soft: #ece8e2;
+  --el-water: #2e4a6b; --el-water-soft: #e6e5e2;
+
+  /* 스티커처럼 먹선 + 아래로 떨어진 그림자 */
+  --sh-1: 0 2px 0 rgba(34, 30, 27, .9);
+  --sh-2: 0 4px 0 rgba(34, 30, 27, .9);
+  --sh-focus: 0 0 0 3px var(--c-highlight), 0 0 0 5px var(--c-focus);
+  --edge-card: var(--c-text);   /* B는 먹선 테두리가 기본 */
+  --edge-control: var(--c-text);
+
+  /* 로고: 심볼은 고정색 배지, 워드마크(글자·빼꼼 복자)만 아래 변수를 따른다 */
+  --logo-ink: #221e1b; --logo-cat: #221e1b; --logo-rim: #221e1b;
+  --logo-white: #fffaf2; --logo-eye: #f2c14e;
+  --ill-skin: #eecaa6; --ill-hair: #dcd6ce; --ill-hair-shade: #a59d94; --ill-line: #3b2d25;
+  --ill-hanbok: #6d8a6a; --ill-collar: #fffaf2; --ill-goreum: #c8693f; --ill-blush: #e59d86;
+  --ill-frame: #7a5233; --ill-wood: #7a5233; --ill-wood-2: #a8784a;
+}
+/* B 어두운 테마(등잔 밤) — 사용자가 어두운 모드를 쓸 때 */
+[data-brand="b"][data-theme="dark"], [data-brand="b"] [data-theme="dark"] {
+  color-scheme: dark;
+  --c-bg: #1b1815;
+  --c-bg-deep: #141210;
+  --c-surface: #26221e;
+  --c-surface-2: #322d27;
+  --c-line: #4a4239;
+  --c-line-strong: #8c8073;  /* 4.10:1 */
+  --c-text: #f3eadb;         /* 14.82:1 */
+  --c-text-muted: #b8ad9e;   /* 8.00:1 */
+  --c-accent: #f2c14e;
+  --c-on-accent: #1b1815;    /* 10.53:1 */
+  --c-accent-text: #f2c14e;
+  --c-highlight: #f2c14e;
+  --c-on-highlight: #1b1815;
+  --c-gold-text: #e0b860;
+  --c-focus: #f2c14e;
+  --c-danger: #f0957f;
+  --c-success: #93c283;
+  --c-note-bg: #3a3122;
+  --c-note-text: #f3eadb;
+  --c-scrim: rgba(0, 0, 0, .6);
+
+  --el-wood: #93c283;  --el-wood-soft: #373c2e;
+  --el-fire: #ec9a72;  --el-fire-soft: #46352b;
+  --el-earth: #e0b860; --el-earth-soft: #443a29;
+  --el-metal: #cfd1d6; --el-metal-soft: #413e3b;
+  --el-water: #8fb0d8; --el-water-soft: #37393c;
+
+  --sh-1: 0 2px 0 rgba(0, 0, 0, .55);
+  --sh-2: 0 4px 0 rgba(0, 0, 0, .55);
+  --sh-focus: 0 0 0 3px var(--c-focus);
+  --edge-card: #5a5047;
+  --edge-control: var(--c-line-strong);
+
+  --logo-ink: #f3eadb; --logo-cat: #0f0d0b; --logo-rim: #f3eadb;
+  --ill-line: #2a1f19; --ill-collar: #fffaf2;
+}

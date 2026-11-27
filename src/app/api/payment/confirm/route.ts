@@ -10,7 +10,8 @@ import { NextResponse } from "next/server"
 import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { getSessionUser } from "@/lib/session-user"
-import { buildSajuInput, type SajuInputData } from "@/lib/saju-input"
+import { EngineInputError } from "@/engine"
+import { buildSajuInputFromRequest, SAJU_INPUT_ERROR_MESSAGE, type SajuInputData } from "@/lib/saju-input"
 import { readJsonBody, validateBirthInfo, type BirthInput } from "@/lib/validate"
 import { MSG, jsonError, serverError } from "../../_lib/http"
 import { READING_STATUS } from "../../reading/_lib/reading-lock"
@@ -145,16 +146,18 @@ export async function POST(req: Request) {
     return jsonError("결제 정보가 올바르지 않습니다.", 400)
   }
 
-  // 결제 승인 전에 생년월일을 검증한다 (승인 후 풀이를 못 만드는 상황 방지)
+  // 결제 승인 전에 생년월일을 검증한다 (승인 후 풀이를 못 만드는 상황 방지).
+  // 입력 오류(EngineInputError)만 400, 그 밖의 예외는 엔진 결함이므로 500 — 어느 쪽이든 토스 승인 전에 멈춘다.
+  // 윤달·분·시각 입력 방식·출생지는 DB 열이 없어 sajuInput(JSON)에만 남는다.
   const birth = validateBirthInfo(birthInfo)
   if (!birth.ok) return jsonError(birth.error, 400)
   let sajuInput: SajuInputData
   try {
     const b = birth.value
-    sajuInput = buildSajuInput(b.birthYear, b.birthMonth, b.birthDay, b.birthHour, b.gender, b.calType)
+    sajuInput = buildSajuInputFromRequest({ ...b, year: b.birthYear, month: b.birthMonth, day: b.birthDay, hour: b.birthHour })
   } catch (err) {
-    console.error(`[${TAG}] 사주 계산 실패`, err)
-    return jsonError("입력한 생년월일로 사주를 계산할 수 없습니다. 날짜를 확인해 주세요.", 400)
+    if (!(err instanceof EngineInputError)) return serverError(TAG, err)
+    return jsonError(SAJU_INPUT_ERROR_MESSAGE, 400)
   }
 
   const secret = process.env.TOSS_SECRET_KEY

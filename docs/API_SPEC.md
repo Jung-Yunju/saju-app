@@ -12,9 +12,27 @@
 | `GET /api/reading/[id]/status` | 상태 조회(폴링): PENDING · GENERATING · VERIFYING · COMPLETE · FAILED | 10분 넘게 남은 GENERATING(서버 중단 등)은 FAILED로 알려 "다시 시도"를 띄움(조회는 DB를 바꾸지 않음) |
 | `POST /api/reading/[id]/claims` | (구) 1차 "지나온 길 단정" 생성 → VERIFYING | 개발용·현재 미사용. **운영에서는 direct와 같은 조건이 아니면 404.** generate와 같은 1회 잠금. 이미 단정이 있으면 AI 없이 그대로 반환 |
 | `POST /api/reading/[id]/verify` | (구) 맞다/아니다 답변 반영 후 본 풀이 → COMPLETE | 개발용·현재 미사용. 운영 조건 claims와 같음. 답변 키는 저장된 claim id만, 값은 `맞다`·`아니다`·`모름`만, 본문 4KB 이하. VERIFYING·FAILED에서만 잠금. 실패 시 VERIFYING으로 되돌려 다시 제출 가능 |
-| `POST /api/payment/prepare` | 주문 생성. 금액(19,900원)은 서버가 정함 | 생년월일 검증 후 주문 생성. 호출하는 화면 없음 |
+| `POST /api/payment/prepare` | 주문 생성. 금액(19,900원)은 서버가 정함 | 생년월일 검증·만세력 계산 가능 여부 확인 후 주문 생성(입력 오류 400, 엔진 결함 500). 호출하는 화면 없음 |
 | `POST /api/payment/confirm` | 토스 결제 승인 → 주문 PAID → PENDING 풀이 생성 후 `{ readingId }` 반환 | 같은 요청에서 AI를 부르지 않음(풀이 화면이 generate 호출). 생년월일은 승인 전에 검증. 금액은 서버 주문 금액 기준, 0원 주문 거부. 승인 성공 확인 시에만 PAID, 명확한 거절일 때 PENDING인 경우에만 FAILED, 결과를 알 수 없으면 PENDING 유지(재요청 시 재확인). 이미 PAID면 기존 풀이 id 반환(없으면 지금 생성) |
 | `GET/POST /api/auth/[...nextauth]` | 로그인 | Google |
+
+### 생년월일 입력 필드 (direct 본문 · prepare 본문 · confirm `birthInfo` 공통, U-03 입력 정확도)
+기존 필드(`birthYear`·`birthMonth`·`birthDay`·`birthHour`(0~23 또는 null)·`gender`(M/F)·`calType`(SOLAR/LUNAR, 기본 SOLAR))는 그대로다. 아래는 모두 **선택** 필드이며, 보내지 않으면 예전처럼 동작한다.
+
+| 필드 | 형식 | 규칙 |
+|---|---|---|
+| `isLeapMonth` | boolean | 음력 윤달이면 true. `calType: "SOLAR"`에서 true는 400. 그 해에 없는 윤달은 만세력 계산에서 400 |
+| `birthMinute` | 0~59 정수 또는 null | `birthHour`가 null이면 반드시 null(아니면 400). `timeMode: "sijin"`이면 무시(null로 정리) |
+| `timeMode` | `"exact"` \| `"sijin"` | exact = `birthHour:birthMinute`가 실제 시각(분 없으면 :00). sijin = 시진 선택, `birthHour`는 짝수(자시 0, 축시 2 … 해시 22, 홀수면 400). **생략 시**: 짝수 시이고 분이 없으면 sijin, 홀수 시이거나 분이 있으면 exact |
+| `ziNight` | boolean | sijin + 자시(`birthHour: 0`)일 때만 의미, 그 밖에는 버림. true = 자정 전 밤, false = 자정 후 |
+| `birthplace` | `{ name, longitude }` 또는 null | 진태양시(경도) 보정용. `name`은 이름과 같은 정리 규칙·20자 이내·빈 값 불가. `longitude`는 숫자, 동경 124~132도(한반도) 밖이면 400. 소수 셋째 자리로 반올림. null·생략 = 서울 경도(126.978) |
+
+- **상대방**(BULLY·CONFLICT): 같은 규칙으로 `otherIsLeapMonth`·`otherBirthMinute`·`otherTimeMode`·`otherZiNight`·`otherBirthplace`, 그리고 `otherCalType`(생략 시 본인 calType — 예전 동작). 오류 문구는 "상대방 …"으로 시작한다.
+- **시진 대표 시각**(서버가 정함): 시진 구간은 한국 표준시 기준 30분 늦춘 표(자시 23:30~01:29, 축시 01:30~03:29 … 해시 21:30~23:29)이고, 그 **가운데** 시각으로 계산한다. 축시~해시 = 짝수 시 + 30분(축시 → 02:30). 자시는 자정에서 날짜가 갈리므로 `ziNight: true` → 그 날짜 23:45, `false` → 00:45, 생략 → 예전대로 00:00 + 경고 "자시 날짜 경계 불확실". (23:30을 쓰지 않는 이유: 서울 보정 −32분 후 22:58 → 亥시가 됨.)
+- 시진으로 계산했으면 `sajuInput.warnings`에 "시진 선택(○시) — … 가운데 HH:MM로 계산"이, 계산된 시지가 고른 시진과 다르면(서머타임 시기 등) "선택한 시진(…)과 계산된 시지(…)가 다름 …"이 붙는다.
+- **저장**: DB 열은 바꾸지 않았다. 윤달·분·입력 방식·출생지는 `Reading.sajuInput`(JSON)에만 `calendar: "음력(윤달)"`, `birth`("YYYY-MM-DD HH:MM", 시진이면 대표 시각), `time_mode`, `birth_minute`, `birthplace`로 남는다. 결과 화면은 저장된 `sajuInput.pillars`를 그대로 표시한다. 상대방의 양력·음력 구분·윤달·분·출생지는 계산 가능 여부만 확인하고 저장하지 않는다(열 없음, 현재 풀이 생성은 상대방 원국을 쓰지 않음).
+- `prepare`는 결제창 전에 만세력 계산 가능 여부를 확인하고, 응답 `birthInfo`에 정리된 값을 돌려준다(새 필드는 요청에 있었을 때만 키가 생김 — 예전 클라이언트가 받는 형태 그대로). 클라이언트는 이 `birthInfo`를 confirm에 그대로 보낸다.
+- **오류 구분**: 입력 때문에 계산할 수 없으면(`EngineInputError`) 400, 그 밖의 계산 예외(엔진 결함)는 500(내부 내용은 서버 로그에만). confirm은 어느 쪽이든 토스 승인 요청 전에 멈춘다.
 
 ### 풀이 상태값 (`Reading.status`, 문자열 — 마이그레이션 없음)
 `PENDING`(생성 전) → `GENERATING`(AI 생성 중, 잠금) → `COMPLETE` / 실패 시 `FAILED`(다시 시도 가능).

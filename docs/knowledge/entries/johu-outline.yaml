@@ -38,7 +38,7 @@ entries:
         view: "전체 강약과 흐름을 먼저 본다(요지). 조후는 그 안의 한 요소."
       - school: "자평진전 계열(격국 중심)"
         view: "월령으로 격을 정하고 격을 이루는 글자를 본다(요지). '용신'의 뜻 자체가 다르다."
-    conflicts_with: [eokbu.method.overview]   # 억부 항목은 P3-06에서 작성 예정
+    conflicts_with: [eokbu.method.overview]   # 억부 규칙: strength-structure-spec.md §3.1 (ug.eokbu)
     engine_rule: rules.usefulGod.johu
     reviewed_by: []
 

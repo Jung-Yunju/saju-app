@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 시안 B 첫 화면 그림의 앞쪽: 찻상(나무), 찻주전자, 찻잔 두 개, 등잔. 할머니·복자는 화면에서 따로 겹친다. 고정색. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" role="img" aria-label="찻상 위의 찻주전자와 찻잔, 등잔">
+  <!-- 등잔 불빛 -->
+  <circle cx="268" cy="22" r="26" fill="#f2c14e" opacity=".22"/>
+  <path d="M268 10 C263 18 263 26 268 28 C273 26 273 18 268 10 Z" fill="#f2c14e" stroke="#221e1b" stroke-width="2"/>
+  <path d="M256 30 H280 L276 38 H260 Z" fill="#a8784a" stroke="#221e1b" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M268 38 V60 M258 60 H278" stroke="#221e1b" stroke-width="3" stroke-linecap="round"/>
+  <!-- 찻상 -->
+  <path d="M10 62 H310 C310 70 304 74 296 74 H24 C16 74 10 70 10 62 Z" fill="#a8784a" stroke="#221e1b" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M30 74 V110 M290 74 V110" stroke="#221e1b" stroke-width="5" stroke-linecap="round"/>
+  <path d="M40 74 C40 90 60 96 70 96 M280 74 C280 90 260 96 250 96" fill="none" stroke="#7a5233" stroke-width="4" stroke-linecap="round"/>
+  <!-- 찻주전자 -->
+  <path d="M150 62 C138 62 132 52 134 42 C136 32 146 28 160 28 C174 28 184 32 186 42 C188 52 182 62 170 62 Z" fill="#fffaf2" stroke="#221e1b" stroke-width="2.4"/>
+  <path d="M134 44 C124 42 120 34 116 30" fill="none" stroke="#221e1b" stroke-width="5" stroke-linecap="round"/>
+  <path d="M134 44 C124 42 120 34 116 30" fill="none" stroke="#fffaf2" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M186 38 C198 36 198 54 184 52" fill="none" stroke="#221e1b" stroke-width="2.6"/>
+  <path d="M150 28 C150 22 170 22 170 28" fill="#7a5233" stroke="#221e1b" stroke-width="2.2"/>
+  <circle cx="160" cy="20" r="3" fill="#221e1b"/>
+  <path d="M140 46 H180" stroke="#6d8a6a" stroke-width="3"/>
+  <!-- 찻잔 -->
+  <g stroke="#221e1b" stroke-width="2.2" stroke-linejoin="round">
+    <path d="M70 48 H96 C95 58 90 62 83 62 C76 62 71 58 70 48 Z" fill="#fffaf2"/>
+    <path d="M206 48 H232 C231 58 226 62 219 62 C212 62 207 58 206 48 Z" fill="#fffaf2"/>
+  </g>
+  <path d="M71.5 52 H94.5 M207.5 52 H230.5" stroke="#6d8a6a" stroke-width="2"/>
+  <g fill="none" stroke="#7a5233" stroke-opacity=".55" stroke-width="1.8" stroke-linecap="round">
+    <path d="M80 42 C76 36 84 32 80 26"/><path d="M219 42 C215 36 223 32 219 26"/>
+  </g>
+</svg>

@@ -6,6 +6,7 @@ import {
   isFreeReadingAllowed,
   isValidSolarDate,
   readJsonBody,
+  resolveTimeMode,
   toIntInRange,
   validateAnswers,
   validateBirthInfo,
@@ -188,5 +189,140 @@ describe("무료 풀이 정책", () => {
     expect(getFreeReadingDailyLimit({ FREE_READING_DAILY_LIMIT: "0" })).toBe(0)
     expect(getFreeReadingDailyLimit({ FREE_READING_DAILY_LIMIT: "-1" })).toBe(3)
     expect(getFreeReadingDailyLimit({ FREE_READING_DAILY_LIMIT: "abc" })).toBe(3)
+  })
+})
+
+describe("정확도 선택 필드(U-03): 윤달·분·시각 입력 방식·자시 전후·출생지", () => {
+  const lunar = { ...base, calType: "LUNAR" }
+  const get = (raw: unknown) => {
+    const r = validateBirthInfo(raw)
+    if (!r.ok) throw new Error(r.error)
+    return r.value
+  }
+
+  it("새 필드를 안 보내면 결과에 키가 없다(예전 요청·응답 형태 그대로)", () => {
+    const v = get(base)
+    for (const k of ["isLeapMonth", "birthMinute", "timeMode", "ziNight", "birthplace"]) expect(k in v, k).toBe(false)
+  })
+
+  it("isLeapMonth: 음력에서 true/false 허용, 양력 true 거부, boolean 아닌 값 거부", () => {
+    expect(get({ ...lunar, isLeapMonth: true }).isLeapMonth).toBe(true)
+    expect(get({ ...lunar, isLeapMonth: false }).isLeapMonth).toBe(false)
+    expect(get({ ...base, isLeapMonth: false }).isLeapMonth).toBe(false)
+    expect("isLeapMonth" in get({ ...base, isLeapMonth: null })).toBe(false)
+    expect(validateBirthInfo({ ...base, isLeapMonth: true })).toEqual({ ok: false, error: "양력 날짜에는 윤달을 고를 수 없습니다." })
+    for (const bad of ["true", 1, 0, {}]) expect(validateBirthInfo({ ...lunar, isLeapMonth: bad }).ok, String(bad)).toBe(false)
+  })
+
+  it("birthMinute: 0~59 정수(숫자 문자열 포함), 범위 밖·소수 거부", () => {
+    expect(get({ ...base, timeMode: "exact", birthMinute: 0 }).birthMinute).toBe(0)
+    expect(get({ ...base, timeMode: "exact", birthMinute: "59" }).birthMinute).toBe(59)
+    expect(get({ ...base, timeMode: "exact", birthMinute: null }).birthMinute).toBeNull()
+    for (const bad of [60, -1, 1.5, "1e1", true]) {
+      expect(validateBirthInfo({ ...base, timeMode: "exact", birthMinute: bad }).ok, String(bad)).toBe(false)
+    }
+  })
+
+  it("birthHour가 null이면 birthMinute도 null이어야 한다", () => {
+    expect(validateBirthInfo({ ...base, birthHour: null, birthMinute: 30 })).toEqual({
+      ok: false, error: "태어난 시를 모르면 분도 비워 주세요.",
+    })
+    expect(validateBirthInfo({ ...base, birthHour: null, birthMinute: 0 }).ok).toBe(false)
+    expect(get({ ...base, birthHour: null, birthMinute: null }).birthMinute).toBeNull()
+  })
+
+  it("timeMode: exact·sijin만, 시진은 짝수 시만, 시진이면 분은 null로 정리", () => {
+    expect(validateBirthInfo({ ...base, timeMode: "EXACT" }).ok).toBe(false)
+    expect(validateBirthInfo({ ...base, timeMode: 1 }).ok).toBe(false)
+    expect(validateBirthInfo({ ...base, timeMode: "sijin", birthHour: 9 })).toEqual({ ok: false, error: "시진 선택 값이 올바르지 않습니다." })
+    expect(get({ ...base, timeMode: "sijin", birthHour: 22 }).timeMode).toBe("sijin")
+    expect(get({ ...base, timeMode: "sijin", birthHour: 2, birthMinute: 15 }).birthMinute).toBeNull()
+    expect(get({ ...base, timeMode: "exact", birthHour: 23, birthMinute: 40 })).toMatchObject({ birthHour: 23, birthMinute: 40, timeMode: "exact" })
+  })
+
+  it("ziNight: 시진 방식의 자시(시 0)일 때만 남기고, 그 밖에는 버린다. boolean 아니면 거부", () => {
+    expect(get({ ...base, birthHour: 0, timeMode: "sijin", ziNight: true }).ziNight).toBe(true)
+    expect(get({ ...base, birthHour: 0, ziNight: false }).ziNight).toBe(false) // timeMode 생략 + 짝수 시 = 시진
+    expect("ziNight" in get({ ...base, birthHour: 2, timeMode: "sijin", ziNight: true })).toBe(false)
+    expect("ziNight" in get({ ...base, birthHour: 0, timeMode: "exact", ziNight: true })).toBe(false)
+    expect("ziNight" in get({ ...base, birthHour: null, ziNight: true })).toBe(false)
+    expect(validateBirthInfo({ ...base, birthHour: 0, ziNight: "true" }).ok).toBe(false)
+  })
+
+  it("birthplace: 이름 정리(20자), 경도 124~132, 소수 셋째 자리 반올림, null 허용", () => {
+    expect(get({ ...base, birthplace: { name: " <부산> ", longitude: 129.07561 } }).birthplace).toEqual({ name: "부산", longitude: 129.076 })
+    expect(get({ ...base, birthplace: { name: "서울", longitude: 126.978 } }).birthplace).toEqual({ name: "서울", longitude: 126.978 })
+    expect(get({ ...base, birthplace: { name: "마라도", longitude: 124 } }).birthplace?.longitude).toBe(124)
+    expect(get({ ...base, birthplace: { name: "독도", longitude: 132 } }).birthplace?.longitude).toBe(132)
+    expect(get({ ...base, birthplace: null }).birthplace).toBeNull()
+    const bad: unknown[] = [
+      { name: "도쿄", longitude: 139.69 },
+      { name: "베이징", longitude: 116.4 },
+      { name: "x", longitude: 123.99 },
+      { name: "x", longitude: 132.01 },
+      { name: "x", longitude: "127" },
+      { name: "x", longitude: Number.NaN },
+      { name: "x" },
+      { name: "", longitude: 127 },
+      { name: "<>", longitude: 127 },
+      { name: 1, longitude: 127 },
+      { name: "가".repeat(21), longitude: 127 },
+      "서울",
+      [127],
+    ]
+    for (const b of bad) expect(validateBirthInfo({ ...base, birthplace: b }).ok, JSON.stringify(b)).toBe(false)
+    expect(get({ ...base, birthplace: { name: "가".repeat(20), longitude: 127 } }).birthplace?.name).toBe("가".repeat(20))
+  })
+
+  it("resolveTimeMode: 명시값 우선, 생략 시 짝수 시 = 시진 / 홀수 시·분 있음 = 그 시각 / 시 모름 = null", () => {
+    expect(resolveTimeMode(null, { timeMode: "exact" })).toBeNull()
+    expect(resolveTimeMode(2, {})).toBe("sijin")
+    expect(resolveTimeMode(0, {})).toBe("sijin")
+    expect(resolveTimeMode(17, {})).toBe("exact")
+    expect(resolveTimeMode(2, { birthMinute: 10 })).toBe("exact")
+    expect(resolveTimeMode(2, { birthMinute: null })).toBe("sijin")
+    expect(resolveTimeMode(2, { timeMode: "exact" })).toBe("exact")
+  })
+
+  it("상대방(other*)도 같은 규칙, 오류 문구에 '상대방'", () => {
+    const two = {
+      ...base, readingType: "BULLY",
+      otherBirthYear: 1975, otherBirthMonth: 1, otherBirthDay: 2, otherBirthHour: 0, otherGender: "M",
+    }
+    const r = validateReadingRequest({
+      ...two, calType: "LUNAR", otherIsLeapMonth: true, otherTimeMode: "sijin", otherZiNight: true,
+      otherBirthplace: { name: "광주", longitude: 126.85 },
+    })
+    expect(r.ok).toBe(true)
+    if (r.ok) {
+      expect(r.value.other).toEqual({
+        year: 1975, month: 1, day: 2, hour: 0, gender: "M", name: null,
+        isLeapMonth: true, timeMode: "sijin", ziNight: true, birthplace: { name: "광주", longitude: 126.85 },
+      })
+      expect("isLeapMonth" in r.value).toBe(false) // 본인 필드와 섞이지 않음
+    }
+    const leap = validateReadingRequest({ ...two, otherIsLeapMonth: true })
+    expect(leap).toEqual({ ok: false, error: "상대방 양력 날짜에는 윤달을 고를 수 없습니다." })
+    const minute = validateReadingRequest({ ...two, otherBirthHour: null, otherBirthMinute: 5 })
+    expect(minute.ok === false && minute.error.startsWith("상대방 ")).toBe(true)
+    const place = validateReadingRequest({ ...two, otherBirthplace: { name: "도쿄", longitude: 139.7 } })
+    expect(place.ok === false && place.error.startsWith("상대방 ")).toBe(true)
+  })
+
+  it("상대방 양력·음력 구분(otherCalType): 보내면 그것으로 검증, 없으면 본인 구분(예전 동작)", () => {
+    const two = {
+      ...base, readingType: "CONFLICT",
+      otherBirthYear: 2023, otherBirthMonth: 2, otherBirthDay: 30, otherBirthHour: null, otherGender: "M",
+    }
+    // 본인 양력 + 상대방 음력 윤달: otherCalType이 있어야 허용
+    expect(validateReadingRequest({ ...two, otherIsLeapMonth: true }).ok).toBe(false)
+    const r = validateReadingRequest({ ...two, otherCalType: "LUNAR", otherIsLeapMonth: true })
+    expect(r.ok && r.value.other?.calType).toBe("LUNAR")
+    expect(r.ok && r.value.calType).toBe("SOLAR")
+    // 없으면 calType 키 없음(본인과 같은 구분) — 양력 2월 30일은 거부
+    const legacy = validateReadingRequest({ ...two, otherBirthDay: 28 })
+    expect(legacy.ok && "calType" in (legacy.value.other ?? {})).toBe(false)
+    expect(validateReadingRequest(two).ok).toBe(false)
+    expect(validateReadingRequest({ ...two, otherCalType: "MOON" }).ok).toBe(false)
   })
 })

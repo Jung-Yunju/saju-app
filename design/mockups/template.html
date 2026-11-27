@@ -1,0 +1,679 @@
+<!doctype html>
+<!-- 이 파일은 template.html이다. 고친 뒤 `node design/mockups/build.mjs`로 index.html을 다시 만든다. index.html을 직접 고치지 않는다. -->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>브랜드 시안 A·B — 할머니가 풀어 주는 사주 (P5-01, 승인 전)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- 시안 비교용으로 두 시안의 글꼴을 모두 불러온다. 실제 서비스는 채택안의 글꼴만 불러온다. -->
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Hahmlet:wght@400..800&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Noto+Serif+KR:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+/* ===== 디자인 토큰(design/tokens.css를 빌드 때 그대로 넣음) ===== */
+/*@tokens*/
+
+/* ===== 공통 컴포넌트 시안(채택 후 src/components/ui 로 옮길 규칙) ===== */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; }
+.sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+.art { display: block; max-width: 100%; }
+button, input, select { font: inherit; color: inherit; }
+:where(a, button, input, select, [tabindex]):focus-visible { outline: none; box-shadow: var(--sh-focus); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.screen {
+  background: var(--c-bg); color: var(--c-text);
+  font-family: var(--f-body); font-size: var(--t-md); line-height: var(--lh-body);
+  word-break: keep-all; overflow-wrap: anywhere;
+}
+[data-brand="a"] .screen[data-theme="dark"] {
+  background:
+    radial-gradient(120% 60% at 80% 0%, rgba(62, 81, 144, .35), transparent 60%),
+    linear-gradient(180deg, var(--c-bg-deep), var(--c-bg) 40%);
+}
+[data-brand="b"] .screen { background-image: radial-gradient(rgba(122, 82, 51, .07) 1px, transparent 1.2px); background-size: 6px 6px; }
+[data-brand="b"] .screen[data-theme="dark"] { background-image: radial-gradient(rgba(242, 193, 78, .05) 1px, transparent 1.2px); }
+
+.pad { padding: 0 var(--screen-pad); }
+.stack > * + * { margin-top: var(--s-4); }
+.muted { color: var(--c-text-muted); }
+.small { font-size: var(--t-sm); line-height: 1.6; }
+.xs { font-size: var(--t-xs); line-height: 1.55; }
+.hanja { font-family: var(--f-hanja); font-weight: 700; }
+/* 시안 전환용: 다른 시안 요소는 무조건 숨김 */
+[data-brand="a"] .only-b, [data-brand="b"] .only-a { display: none !important; }
+.only-a.flex, .only-b.flex { display: flex; }
+.only-a.block, .only-b.block { display: block; }
+
+/* 상단 막대 */
+.bar { display: flex; align-items: center; gap: var(--s-2); height: 56px; padding: 0 calc(var(--screen-pad) - 10px); }
+.bar__title { font-family: var(--f-ui); font-weight: var(--fw-ui); font-size: var(--t-md); flex: 1; }
+.bar__brand { display: flex; align-items: center; gap: var(--s-2); flex: 1; min-width: 0; padding-left: 10px; }
+.bar__brand .art-a-symbol, .bar__brand .art-b-symbol { width: 32px; height: 32px; flex: none; }
+.bar__brand .art-a-wordmark { height: 20px; width: auto; }
+/* 작은 자리(높이 32px 이하)의 B 로고: 세로 워드마크 대신 심볼 + 한 줄 글자 */
+.lockup-text { font-family: var(--f-display); font-weight: 700; font-size: 16px; letter-spacing: -0.02em; white-space: nowrap; }
+.icon-btn {
+  width: var(--touch-min); height: var(--touch-min); display: inline-grid; place-items: center;
+  border: 0; background: transparent; border-radius: var(--r-pill); cursor: pointer; color: var(--c-text);
+}
+.icon-btn svg { width: 22px; height: 22px; }
+.text-btn {
+  min-height: var(--touch-min); padding: 0 var(--s-3); border: 0; background: transparent; cursor: pointer;
+  font-family: var(--f-ui); font-weight: var(--fw-ui); font-size: var(--t-sm); color: var(--c-accent-text); border-radius: var(--r-pill);
+}
+.step { font-size: var(--t-sm); color: var(--c-text-muted); padding-right: 10px; font-variant-numeric: tabular-nums; }
+.progress { height: 3px; background: var(--c-line); margin: 0 var(--screen-pad); border-radius: 2px; }
+.progress > i { display: block; height: 100%; width: 50%; background: var(--c-highlight); border-radius: 2px; }
+[data-brand="b"] .progress { height: 6px; border: var(--border-w) solid var(--edge-card); background: var(--c-surface); }
+
+/* 버튼 */
+.btn {
+  display: flex; align-items: center; justify-content: center; gap: var(--s-2); width: 100%;
+  min-height: var(--btn-h); padding: 0 var(--s-5); border-radius: var(--r-md);
+  font-family: var(--f-ui); font-weight: var(--fw-ui); font-size: var(--t-md); letter-spacing: -0.01em;
+  border: var(--border-w) solid transparent; cursor: pointer; text-decoration: none;
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.btn--primary { background: var(--c-accent); color: var(--c-on-accent); }
+.btn--ghost { background: transparent; color: var(--c-text); border-color: var(--edge-control); }
+.btn small { font-family: var(--f-body); font-weight: 400; opacity: .85; font-size: var(--t-sm); }
+[data-brand="a"] .btn { border-radius: var(--r-sm); }
+[data-brand="a"] .screen[data-theme="dark"] .btn--primary { box-shadow: 0 0 0 1px rgba(232, 198, 110, .5) inset, 0 8px 24px -10px rgba(212, 168, 71, .55); }
+[data-brand="b"] .btn { border-radius: var(--r-pill); border-color: var(--edge-control); }
+[data-brand="b"] .btn--primary { box-shadow: var(--sh-1); border-color: var(--c-accent); }
+[data-brand="b"] .btn--primary:active { transform: translateY(2px); box-shadow: none; }
+.btn-row > * + * { margin-top: var(--s-3); }
+
+/* 카드 */
+.card { background: var(--c-surface); border: var(--border-w) solid var(--edge-card); border-radius: var(--r-lg); padding: var(--s-5) var(--s-4); }
+[data-brand="b"] .card { box-shadow: var(--sh-2); }
+[data-brand="a"] .card { box-shadow: var(--sh-1); }
+.card__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-2); margin-bottom: var(--s-4); }
+.card__title { margin: 0; font-family: var(--f-display); font-weight: var(--fw-display); font-size: var(--t-lg); letter-spacing: var(--ls-display); line-height: var(--lh-tight); }
+.card__meta { font-size: var(--t-xs); color: var(--c-text-muted); }
+[data-brand="a"] .card__title::before { content: ""; display: inline-block; width: 6px; height: 6px; margin: 0 8px 3px 0; border-radius: 50%; background: var(--c-highlight); vertical-align: middle; }
+
+/* 글자 크기 */
+.eyebrow { font-family: var(--f-ui); font-size: var(--t-xs); letter-spacing: .18em; color: var(--c-gold-text); font-weight: var(--fw-ui); }
+.h1 { margin: 0; font-family: var(--f-display); font-weight: var(--fw-display); font-size: var(--t-2xl); line-height: 1.32; letter-spacing: var(--ls-display); }
+.h2 { margin: 0; font-family: var(--f-display); font-weight: var(--fw-display); font-size: var(--t-xl); line-height: 1.35; letter-spacing: var(--ls-display); }
+.lead { margin: 0; color: var(--c-text-muted); }
+
+/* 배지·칩 */
+.badge { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; min-height: 26px; border-radius: var(--r-pill); font-size: var(--t-xs); font-family: var(--f-ui); font-weight: var(--fw-ui); }
+.badge--example { background: var(--c-highlight); color: var(--c-on-highlight); }
+[data-brand="b"] .badge--example { border: var(--border-w) solid var(--c-on-highlight); }
+.badge--line { border: 1px solid var(--edge-control); color: var(--c-text); }
+.chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px; border-radius: var(--r-pill); background: var(--c-surface); border: 1px solid var(--edge-card); font-size: var(--t-sm); }
+.chip b { font-family: var(--f-hanja); }
+
+/* 안내 메모(엔진 경고·예시 표시) */
+.note { display: flex; gap: var(--s-3); padding: var(--s-3) var(--s-4); border-radius: var(--r-md); background: var(--c-note-bg); color: var(--c-note-text); font-size: var(--t-sm); line-height: 1.6; }
+.note svg { flex: none; width: 18px; height: 18px; margin-top: 2px; }
+.note--example { border: 1px dashed var(--c-line-strong); background: transparent; color: var(--c-text); }
+[data-brand="b"] .note { border: var(--border-w) solid var(--edge-card); }
+
+/* 할머니 말풍선 */
+.say { display: flex; gap: var(--s-3); align-items: flex-start; }
+.say__face { flex: none; width: 52px; height: 52px; border-radius: 50%; overflow: hidden; background: var(--c-surface-2); border: 1px solid var(--edge-card); }
+.say__face .art { width: 100%; height: 100%; transform: translateY(6px) scale(1.18); }
+.say__bubble { position: relative; flex: 1; padding: var(--s-3) var(--s-4); background: var(--c-surface); border: var(--border-w) solid var(--edge-card); border-radius: 4px var(--r-lg) var(--r-lg) var(--r-lg); font-size: var(--t-md); line-height: 1.65; }
+.say__name { display: block; font-family: var(--f-ui); font-weight: var(--fw-ui); font-size: var(--t-xs); color: var(--c-gold-text); margin-bottom: 2px; }
+[data-brand="a"] .say__bubble { font-family: var(--f-display); font-weight: 400; }
+[data-brand="b"] .say__bubble { box-shadow: var(--sh-1); }
+
+/* 복자 반응 스티커 */
+.sticker { display: inline-flex; align-items: center; gap: var(--s-2); }
+.sticker .art { width: 72px; height: auto; }
+.sticker__text { font-family: var(--f-ui); font-weight: var(--fw-ui); font-size: var(--t-sm); padding: 4px 12px; border-radius: var(--r-pill); background: var(--c-highlight); color: var(--c-on-highlight); }
+
+/* 입력 */
+.field + .field { margin-top: var(--s-5); }
+.label { display: flex; align-items: baseline; gap: 6px; margin-bottom: var(--s-2); font-family: var(--f-ui); font-weight: var(--fw-ui); font-size: var(--t-sm); }
+.label .opt { font-family: var(--f-body); font-weight: 400; color: var(--c-text-muted); font-size: var(--t-xs); }
+.input, .select {
+  width: 100%; height: var(--field-h); padding: 0 var(--s-4); font-size: var(--t-md);
+  background: var(--c-surface); color: var(--c-text); border: var(--border-w) solid var(--edge-control); border-radius: var(--r-md);
+}
+.input::placeholder { color: var(--c-text-muted); }
+.select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: calc(100% - 22px) 50%, calc(100% - 16px) 50%; background-size: 6px 6px; background-repeat: no-repeat; }
+.row3 { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: var(--s-2); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-2); }
+.unit { position: relative; }
+.unit .input { padding-right: 34px; font-variant-numeric: tabular-nums; }
+.unit span { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--c-text-muted); font-size: var(--t-sm); pointer-events: none; }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; border-radius: var(--r-md); background: var(--c-surface-2); }
+.seg button { min-height: var(--touch-min); border: 0; border-radius: calc(var(--r-md) - 4px); background: transparent; cursor: pointer; font-size: var(--t-sm); color: var(--c-text-muted); font-family: var(--f-ui); font-weight: var(--fw-ui); }
+.seg button[aria-checked="true"] { background: var(--c-surface); color: var(--c-text); box-shadow: var(--sh-1); }
+[data-brand="b"] .seg { background: transparent; padding: 0; gap: var(--s-2); }
+[data-brand="b"] .seg button { border: var(--border-w) solid var(--edge-control); border-radius: var(--r-pill); background: var(--c-surface); color: var(--c-text); }
+[data-brand="b"] .seg button[aria-checked="true"] { background: var(--c-accent); color: var(--c-on-accent); box-shadow: none; }
+.help { margin-top: var(--s-2); font-size: var(--t-sm); color: var(--c-text-muted); line-height: 1.55; }
+.dock { position: sticky; bottom: 0; padding: var(--s-4) var(--screen-pad) calc(var(--s-4) + 8px); background: linear-gradient(transparent, var(--c-bg) 30%); }
+
+/* 원국표 */
+.pillars { display: grid; grid-template-columns: 44px repeat(4, 1fr); gap: 6px; align-items: stretch; }
+.pillars .rh { display: flex; align-items: center; font-size: var(--t-xs); color: var(--c-text-muted); line-height: 1.3; }
+.pillars .ch { text-align: center; font-size: var(--t-xs); color: var(--c-text-muted); padding-bottom: 2px; font-family: var(--f-ui); font-weight: var(--fw-ui); }
+.pillars .ch.me { color: var(--c-text); }
+.pillars .tg { text-align: center; font-size: var(--t-xs); color: var(--c-text); line-height: 1.3; padding: 2px 0; }
+.pillars .tg.me { color: var(--c-gold-text); font-weight: 700; }
+.gz {
+  --el: var(--c-text); --el-soft: var(--c-surface-2);
+  position: relative; display: grid; justify-items: center; align-content: center; gap: 0;
+  min-height: 74px; padding: 6px 0 5px; border-radius: var(--r-sm); background: var(--el-soft); color: var(--el);
+  border: 1px solid color-mix(in srgb, var(--el) 35%, transparent);
+}
+.gz .hanja { font-size: var(--t-hanja-lg); line-height: 1.1; color: var(--el); }
+.gz .ko { font-size: var(--t-xs); line-height: 1.2; color: var(--el); font-weight: 600; }
+.gz.me { outline: 2px solid var(--c-text); outline-offset: 2px; }
+[data-brand="b"] .gz { border: var(--border-w) solid var(--el); border-radius: var(--r-md); }
+[data-el="wood"] { --el: var(--el-wood); --el-soft: var(--el-wood-soft); }
+[data-el="fire"] { --el: var(--el-fire); --el-soft: var(--el-fire-soft); }
+[data-el="earth"] { --el: var(--el-earth); --el-soft: var(--el-earth-soft); }
+[data-el="metal"] { --el: var(--el-metal); --el-soft: var(--el-metal-soft); }
+[data-el="water"] { --el: var(--el-water); --el-soft: var(--el-water-soft); }
+.pillars .us { text-align: center; font-size: var(--t-xs); color: var(--c-text-muted); padding-top: 2px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: var(--s-4); font-size: var(--t-xs); color: var(--c-text-muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; background: var(--el); }
+
+/* 오행 분포 */
+.elbars { display: grid; gap: 10px; }
+.elbar { display: grid; grid-template-columns: 56px 1fr 40px; align-items: center; gap: var(--s-3); }
+.elbar__name { display: flex; align-items: baseline; gap: 4px; font-family: var(--f-ui); font-weight: var(--fw-ui); font-size: var(--t-sm); color: var(--el); }
+.elbar__name .hanja { font-size: var(--t-md); }
+.elbar__track { height: 14px; border-radius: var(--r-pill); background: var(--c-surface-2); overflow: hidden; }
+.elbar__fill { height: 100%; width: calc(var(--n) / 8 * 100%); background: var(--el); border-radius: inherit; }
+.elbar__num { text-align: right; font-variant-numeric: tabular-nums; font-size: var(--t-sm); }
+.elbar.zero .elbar__track { background: transparent; border: 1.5px dashed color-mix(in srgb, var(--el) 70%, transparent); }
+.elbar.zero .elbar__num { color: var(--el); font-weight: 700; }
+[data-brand="b"] .elbar__track { border: var(--border-w) solid var(--edge-card); background: var(--c-surface); height: 16px; }
+.yy { display: flex; align-items: center; gap: var(--s-3); margin-top: var(--s-4); padding-top: var(--s-4); border-top: 1px solid var(--c-line); font-size: var(--t-sm); }
+.yy__bar { flex: 1; height: 8px; border-radius: var(--r-pill); background: var(--c-surface-2); overflow: hidden; }
+.yy__bar i { display: block; height: 100%; width: 100%; background: var(--c-text); opacity: .8; }
+
+/* 대운 흐름 */
+.luck { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: 64px; gap: 8px; overflow-x: auto; padding: 12px 2px 6px; margin: 0 -4px; scroll-snap-type: x mandatory; scrollbar-width: thin; }
+.luck__item { position: relative; scroll-snap-align: start; display: grid; justify-items: center; gap: 4px; padding: 14px 0 10px; border-radius: var(--r-md); text-align: center; }
+.luck__age { font-size: var(--t-xs); color: var(--c-text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.luck__gz { display: grid; gap: 2px; }
+.luck__gz span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--el-soft); color: var(--el); border: 1px solid var(--el); font-family: var(--f-hanja); font-weight: 700; font-size: 18px; }
+.luck__item.now { background: var(--c-surface-2); box-shadow: inset 0 0 0 1.5px var(--c-text); }
+.luck__now { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); white-space: nowrap; min-height: 20px; padding: 0 8px; font-size: 11px; }
+.luck__yr { font-size: 11px; color: var(--c-text-muted); font-variant-numeric: tabular-nums; }
+[data-brand="b"] .luck__gz span { border-width: var(--border-w); }
+
+/* 잠금 미리보기 */
+.toc { list-style: none; margin: 0; padding: 0; }
+.toc li { display: flex; align-items: center; gap: var(--s-3); min-height: 52px; border-bottom: 1px solid var(--c-line); font-size: var(--t-md); }
+.toc li:last-child { border-bottom: 0; }
+.toc .no { width: 28px; flex: none; font-family: var(--f-display); color: var(--c-gold-text); font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
+.toc .t { flex: 1; }
+.toc .st { font-size: var(--t-xs); color: var(--c-text-muted); display: inline-flex; align-items: center; gap: 4px; }
+.toc .st svg { width: 14px; height: 14px; }
+.toc li.open .st { color: var(--c-success); font-weight: 700; }
+.excerpt { position: relative; overflow: hidden; }
+.excerpt p { margin: 0 0 var(--s-3); }
+.ghost-lines { display: grid; gap: 12px; padding: var(--s-2) 0 var(--s-4); filter: blur(1.5px); opacity: .7; }
+.ghost-lines i { display: block; height: 11px; border-radius: 6px; background: var(--c-line); }
+.lockcover { position: absolute; inset: auto 0 0 0; height: 75%; display: grid; place-items: center; align-content: end; gap: var(--s-2); padding-bottom: var(--s-4); text-align: center;
+  background: linear-gradient(180deg, transparent, var(--c-surface) 48%); }
+.lockcover .lockicon { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--c-accent); color: var(--c-on-accent); }
+.lockcover .lockicon svg { width: 20px; height: 20px; }
+.price { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-2); }
+.price b { font-family: var(--f-display); font-size: var(--t-2xl); font-weight: var(--fw-display); font-variant-numeric: tabular-nums; }
+.checks { list-style: none; padding: 0; margin: var(--s-3) 0 var(--s-5); display: grid; gap: 8px; font-size: var(--t-sm); }
+.checks li { display: flex; gap: 8px; align-items: flex-start; }
+.checks svg { flex: none; width: 16px; height: 16px; margin-top: 4px; color: var(--c-gold-text); }
+
+/* 공유 카드 */
+.share { position: relative; width: 100%; aspect-ratio: 4 / 5; border-radius: var(--r-lg); overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; padding: 22px 22px 18px; background: var(--c-bg); color: var(--c-text); }
+[data-brand="a"] .share { background: radial-gradient(90% 60% at 75% 10%, rgba(62, 81, 144, .55), transparent 60%), linear-gradient(180deg, var(--c-bg-deep), var(--c-bg)); box-shadow: inset 0 0 0 1px rgba(212, 168, 71, .35), inset 0 0 0 7px var(--c-bg-deep), inset 0 0 0 8px rgba(212, 168, 71, .5); }
+[data-brand="b"] .share { border: 2px solid var(--edge-card); box-shadow: var(--sh-2); }
+.share__top { display: flex; align-items: center; gap: 8px; }
+.share__top .art-a-symbol, .share__top .art-b-symbol { width: 28px; height: 28px; }
+.share__top .art-a-wordmark { height: 15px; width: auto; }
+.share__top .lockup-text { font-size: 14px; }
+.share__mid { display: grid; align-content: center; justify-items: center; text-align: center; gap: 6px; }
+.share__gz { font-family: var(--f-hanja); font-weight: 900; font-size: 76px; line-height: 1; letter-spacing: .04em; }
+.share__gz span:first-child { color: var(--el-water); } .share__gz span:last-child { color: var(--el-earth); }
+.share__name { font-family: var(--f-display); font-weight: var(--fw-display); font-size: var(--t-lg); }
+.share__line { font-family: var(--f-display); font-size: var(--t-md); max-width: 15em; line-height: 1.55; }
+.share__mini { display: flex; gap: 6px; align-items: flex-end; height: 46px; margin-top: 8px; }
+.share__mini div { display: grid; justify-items: center; gap: 3px; font-size: 11px; width: 26px; color: var(--el); }
+.share__mini i { display: block; width: 12px; height: calc(var(--n) * 9px + 2px); border-radius: 3px; background: var(--el); }
+.share__bottom { display: flex; justify-content: space-between; align-items: center; font-size: var(--t-xs); color: var(--c-text-muted); }
+
+/* 첫 화면 그림 */
+.hero-a { width: 100%; max-width: 290px; height: auto; margin: 0 auto; }
+.hero-b { position: relative; width: 100%; max-width: 300px; margin: 0 auto; aspect-ratio: 320 / 250; }
+.hero-b__glow { position: absolute; left: 14%; right: 14%; top: 2%; bottom: 20%; border-radius: 50%; background: radial-gradient(closest-side, rgba(242, 193, 78, .35), transparent); }
+.hero-b .art-halmeoni { position: absolute; left: 50%; top: 2%; width: 50%; transform: translateX(-50%); }
+.hero-b .art-tea-table-b { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: auto; }
+.hero-b .art-bokja-loaf { position: absolute; left: 2%; bottom: 29.5%; width: 18%; --ill-sticker-edge: transparent; }
+
+.trust { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-3); }
+.trust li { display: flex; gap: var(--s-3); align-items: flex-start; font-size: var(--t-sm); line-height: 1.55; }
+.trust .ic { flex: none; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--c-surface-2); color: var(--c-gold-text); }
+.trust .ic svg { width: 18px; height: 18px; }
+.trust b { display: block; font-family: var(--f-ui); font-weight: var(--fw-ui); font-size: var(--t-md); color: var(--c-text); }
+[data-brand="b"] .trust .ic { background: var(--c-highlight); color: var(--c-on-highlight); border: var(--border-w) solid var(--edge-card); }
+.foot { padding: var(--s-6) var(--screen-pad) var(--s-8); font-size: var(--t-xs); color: var(--c-text-muted); line-height: 1.6; }
+
+/* ===== 시안 비교용 틀(채택 대상 아님) ===== */
+.deck { background: #e7e3da; color: #1d1d22; font-family: "IBM Plex Sans KR", system-ui, sans-serif; min-height: 100vh; }
+.deck-head { max-width: 1220px; margin: 0 auto; padding: 20px 16px 8px; }
+.deck-head h1 { font-size: 20px; margin: 0 0 4px; letter-spacing: -0.01em; }
+.deck-head p { margin: 0; font-size: 14px; color: #4a4a55; line-height: 1.6; }
+.toggles { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 14px 0 10px; }
+.tg-group { display: inline-flex; border: 1px solid #8a8790; border-radius: 999px; padding: 3px; background: #fff; }
+.tg-group button { min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; cursor: pointer; font-size: 14px; color: #3a3a44; }
+.tg-group button[aria-checked="true"] { background: #1d1d22; color: #fff; }
+.concept { display: none; max-width: 760px; }
+[data-brand="a"] .concept[data-for="a"], [data-brand="b"] .concept[data-for="b"] { display: block; }
+.stage { max-width: 1260px; margin: 0 auto; padding: 16px 0 40px; display: grid; grid-template-columns: repeat(auto-fill, 395px); justify-content: center; gap: 40px 20px; align-items: start; }
+.device { margin: 0; }
+.device figcaption { padding: 0 16px 10px; font-size: 14px; color: #3a3a44; }
+.device figcaption b { color: #1d1d22; }
+.phone { position: relative; width: 375px; border-radius: 34px; overflow: hidden; box-shadow: 0 0 0 10px #17171c, 0 30px 60px -20px rgba(0, 0, 0, .45); margin: 10px; }
+.status { display: flex; justify-content: space-between; align-items: center; height: 32px; padding: 0 26px; font-size: 13px; font-weight: 600; font-family: system-ui, sans-serif; }
+.fold { position: absolute; left: 0; right: 0; top: 667px; border-top: 1.5px dashed rgba(207, 90, 69, .9); pointer-events: none; z-index: 5; }
+.fold span { position: absolute; right: 8px; top: -20px; font: 600 10px/1 system-ui, sans-serif; background: #cf5a45; color: #fff; padding: 3px 6px; border-radius: 4px; }
+.share-wrap { padding: 16px; background: #d4cfc4; border-radius: 20px; width: 375px; margin: 10px; }
+.share-wrap .share { max-width: 343px; margin: 0 auto; }
+.share-note { font-size: 13px; color: #3a3a44; margin: 10px 4px 0; line-height: 1.6; }
+.sheet { max-width: 1220px; margin: 0 auto; padding: 0 16px 60px; }
+.sheet h2 { font-size: 18px; margin: 8px 0 12px; }
+.sheet-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.sheet-panel { border-radius: 16px; padding: 16px; }
+.sheet-panel h3 { margin: 0 0 10px; font-size: 14px; font-family: var(--f-ui); }
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.sw { display: grid; grid-template-columns: 34px 1fr; gap: 8px; align-items: center; font-size: 11px; line-height: 1.35; }
+.sw i { width: 34px; height: 34px; border-radius: 8px; border: 1px solid rgba(127, 127, 127, .35); }
+.sw code { font-size: 11px; }
+.sw .cr { font-variant-numeric: tabular-nums; color: var(--c-text-muted); }
+.type-spec > div { padding: 8px 0; border-bottom: 1px solid var(--c-line); }
+.logo-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+.logo-row .art-a-symbol, .logo-row .art-b-symbol { width: 72px; height: 72px; }
+.logo-row .art-a-wordmark { height: 26px; width: auto; }
+.logo-row .art-b-wordmark { height: 64px; width: auto; }
+
+@media (max-width: 480px) {
+  .deck-head { padding: 16px 16px 4px; }
+  .stage { grid-template-columns: minmax(0, 1fr); gap: 28px; padding-top: 8px; }
+  .device { min-width: 0; }
+  .phone { width: 100%; margin: 0; border-radius: 0; box-shadow: 0 1px 0 #17171c, 0 -1px 0 #17171c; }
+  .status { display: none; }
+  .fold { top: 635px; }
+  .share-wrap { width: auto; margin: 0 12px; }
+}
+@media (min-width: 1024px) {
+  .deck-head h1 { font-size: 24px; }
+}
+</style>
+</head>
+<body class="deck" data-brand="a">
+<!--@sprite-->
+
+<header class="deck-head">
+  <h1>「할머니가 풀어 주는 사주」 브랜드 시안 A·B</h1>
+  <p>P5-01 시안 단계(대표 승인 전). 화면의 사주는 <b>예시</b>입니다 — 새 사주엔진으로 계산한 가상 인물(1992-08-14 09:00, 양력, 여, 서울)의 값이며 실제 고객 정보가 아닙니다. 화면 문구는 콘텐츠 작가 확정 전 임시 문구, 할머니 이름은 미정입니다.</p>
+  <div class="toggles">
+    <div class="tg-group" role="radiogroup" aria-label="시안 선택">
+      <button type="button" role="radio" aria-checked="true" data-set-brand="a">A 달밤 서재</button>
+      <button type="button" role="radio" aria-checked="false" data-set-brand="b">B 등잔 아래 찻상</button>
+    </div>
+    <div class="tg-group" role="radiogroup" aria-label="테마 선택">
+      <button type="button" role="radio" aria-checked="true" data-set-theme="auto">화면별 기본</button>
+      <button type="button" role="radio" aria-checked="false" data-set-theme="light">모두 밝게</button>
+      <button type="button" role="radio" aria-checked="false" data-set-theme="dark">모두 어둡게</button>
+    </div>
+  </div>
+  <p class="concept" data-for="a"><b>A 달밤 서재</b> — 밤이 깊은 할머니 서재. 짙은 남색 밤하늘과 한지, 금색은 선과 점으로만. 명조체 제목과 단정한 고딕 본문으로 고급스럽고 조용한 신비를 만든다. 현행 남색·금 톤을 이어받아 바꾸는 비용이 적다. 첫 화면·결제·공유 카드는 어두운 테마, 읽는 화면은 밝은 한지 테마.</p>
+  <p class="concept" data-for="b"><b>B 등잔 아래 찻상</b> — 할머니 집 찻상에 마주 앉은 오후. 한지 바탕에 먹선, 복자의 턱시도(검정·흰색)와 노란 눈을 브랜드 색으로 쓴다. 둥근 모서리와 스티커 같은 먹선 그림자, 손글씨 느낌 명조로 친근하고 재치 있게. 기본은 밝은 테마, 어두운 테마는 '등잔 밤'.</p>
+</header>
+
+<main class="stage" id="stage">
+
+<!-- ① 메인 첫 화면 -->
+<figure class="device" data-theme-a="dark" data-theme-b="light">
+  <figcaption><b>① 메인 첫 화면</b> · 붉은 선 = 375×667 첫 화면 경계</figcaption>
+  <div class="phone screen" data-theme="dark">
+    <div class="fold"><span>첫 화면 경계</span></div>
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="bar">
+      <div class="bar__brand">
+        <span class="only-a">{{art:a-symbol}}</span><span class="only-a">{{art:a-wordmark "할머니가 풀어 주는 사주"}}</span>
+        <span class="only-b">{{art:b-symbol}}</span><span class="only-b lockup-text">할머니가 풀어 주는 사주</span>
+      </div>
+      <button class="text-btn" type="button">로그인</button>
+    </div>
+    <div class="pad" style="padding-top:4px">
+      <div class="only-a block">{{art:hero-a hero-a "둥근 창 너머 초승달을 바라보는 고양이 복자"}}</div>
+      <div class="only-b block"><div class="hero-b" role="img" aria-label="찻상 앞에서 웃는 할머니와 조는 고양이 복자"><div class="hero-b__glow"></div>{{art:halmeoni}}{{art:tea-table-b}}{{art:bokja-loaf}}</div></div>
+    </div>
+    <div class="pad stack" style="margin-top:12px">
+      <div class="only-a eyebrow">만세력 · 사주 원국 · 대운 흐름</div>
+      <div class="only-b"><span class="badge badge--example">복자도 옆에서 같이 들어요</span></div>
+      <h1 class="h1 only-a block">달 밝은 밤,<br>할머니가 당신의 사주를<br>한 장씩 펼쳐 봅니다</h1>
+      <h1 class="h1 only-b block">차 한 잔 내올게요.<br>할머니가 사주 풀어 줄게</h1>
+      <p class="lead">태어난 날과 시간만 알려 주세요. 사주 여덟 글자와 오행, 10년 단위 대운까지 먼저 무료로 보여 드려요.</p>
+      <div class="btn-row" style="padding-top:4px">
+        <a class="btn btn--primary" href="#input">내 사주 무료로 펼쳐 보기</a>
+        <a class="btn btn--ghost" href="#result">예시 결과 먼저 보기</a>
+      </div>
+    </div>
+    <div class="pad" style="margin-top:28px">
+      <div class="say">
+        <div class="say__face">{{art:halmeoni}}</div>
+        <p class="say__bubble" style="margin:0"><span class="say__name">할머니</span>어서 와요. 모르는 건 모른다고 해도 괜찮아. 아는 만큼만 알려 주면 할머니가 찬찬히 봐 줄게.</p>
+      </div>
+    </div>
+    <div class="pad" style="margin-top:28px">
+      <ul class="trust">
+        <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></span><div><b>만세력은 코드로 계산해요</b><span class="muted">절기 시각과 태어난 곳의 진태양시까지 반영해 여덟 글자를 셉니다.</span></div></li>
+        <li><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 19c4-1 9-6 13-14-6 3-11 8-12 13"/><path d="M5 19l2-2"/></svg></span><div><b>풀이는 계산된 글자에서 시작해요</b><span class="muted">할머니 말투로 쉽게 풀되, 말하지 않은 사연을 지어내지 않아요.</span></div></li>
+      </ul>
+    </div>
+    <p class="foot">사주 풀이는 전통 명리 해석에 따른 이야기이며, 미래를 과학적으로 예측한다는 뜻이 아닙니다.</p>
+  </div>
+</figure>
+
+<!-- ② 생년월일 입력 -->
+<figure class="device" data-theme-a="light" data-theme-b="light" id="input">
+  <figcaption><b>② 생년월일 입력</b> · 실제 입력 항목(BirthForm) 기준</figcaption>
+  <div class="phone screen" data-theme="light">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="bar">
+      <button class="icon-btn" type="button" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <span class="bar__title">태어난 날 알려 주기</span><span class="step">1 / 2</span>
+    </div>
+    <div class="progress" aria-hidden="true"><i></i></div>
+    <div class="pad" style="margin-top:20px">
+      <div class="say">
+        <div class="say__face">{{art:halmeoni}}</div>
+        <p class="say__bubble" style="margin:0"><span class="say__name">할머니</span>양력이든 음력이든 괜찮아. 시간을 모르면 '몰라요'를 눌러요.</p>
+      </div>
+    </div>
+    <form class="pad" style="margin-top:24px" onsubmit="return false">
+      <div class="field">
+        <label class="label" for="f-name">이름 <span class="opt">(선택 · 풀이에서 부를 이름)</span></label>
+        <input class="input" id="f-name" value="예시" autocomplete="off">
+      </div>
+      <div class="field">
+        <span class="label" id="l-g">성별</span>
+        <div class="seg" role="radiogroup" aria-labelledby="l-g"><button type="button" role="radio" aria-checked="true">여성</button><button type="button" role="radio" aria-checked="false">남성</button></div>
+      </div>
+      <div class="field">
+        <span class="label" id="l-c">달력</span>
+        <div class="seg" role="radiogroup" aria-labelledby="l-c"><button type="button" role="radio" aria-checked="true">양력</button><button type="button" role="radio" aria-checked="false">음력</button></div>
+      </div>
+      <div class="field">
+        <span class="label" id="l-d">생년월일</span>
+        <div class="row3" role="group" aria-labelledby="l-d">
+          <div class="unit"><input class="input" inputmode="numeric" value="1992" aria-label="태어난 해"><span>년</span></div>
+          <div class="unit"><input class="input" inputmode="numeric" value="8" aria-label="태어난 달"><span>월</span></div>
+          <div class="unit"><input class="input" inputmode="numeric" value="14" aria-label="태어난 날"><span>일</span></div>
+        </div>
+      </div>
+      <div class="field">
+        <span class="label" id="l-t">태어난 시간 <span class="opt">(선택)</span></span>
+        <div class="seg" role="radiogroup" aria-labelledby="l-t"><button type="button" role="radio" aria-checked="true">정확히</button><button type="button" role="radio" aria-checked="false">대략(시진)</button><button type="button" role="radio" aria-checked="false">몰라요</button></div>
+        <div class="row2" style="margin-top:8px">
+          <div class="unit"><input class="input" inputmode="numeric" value="9" aria-label="태어난 시"><span>시</span></div>
+          <div class="unit"><input class="input" inputmode="numeric" value="00" aria-label="태어난 분"><span>분</span></div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label" for="f-place">태어난 곳 <span class="opt">(선택)</span></label>
+        <select class="select" id="f-place"><option>서울</option><option>부산</option><option>해외 / 모름</option></select>
+        <p class="help">태어난 곳의 경도로 시간을 바로잡아요(진태양시). 서울이면 약 32분 당겨집니다.</p>
+      </div>
+    </form>
+    <div class="dock">
+      <a class="btn btn--primary" href="#result">사주 계산하기</a>
+      <p class="xs muted" style="margin:10px 0 0;text-align:center">입력한 정보는 내 풀이를 만드는 데만 써요.</p>
+    </div>
+  </div>
+</figure>
+
+<!-- ③ 무료 결과 -->
+<figure class="device" data-theme-a="light" data-theme-b="light" id="result">
+  <figcaption><b>③ 무료 결과</b> · 원국표 · 오행 분포 · 대운 흐름</figcaption>
+  <div class="phone screen" data-theme="light">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="bar">
+      <button class="icon-btn" type="button" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <span class="bar__title">나의 사주 원국</span>
+      <button class="icon-btn" type="button" aria-label="공유 카드 만들기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M8 8l4-4 4 4"/><path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
+    </div>
+    <div class="pad stack" style="margin-top:8px">
+      <div class="note note--example"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="8"/><path d="M10 9v5M10 6v.01" stroke-linecap="round"/></svg><span><b>예시 사주</b> — 화면 시안용 계산 결과입니다. 실제 사람의 사주가 아닙니다.</span></div>
+      <div>
+        <div class="h2">예시 님의 여덟 글자</div>
+        <p class="small muted" style="margin:4px 0 0">여 · 양력 1992년 8월 14일 9시 00분 · 서울</p>
+      </div>
+
+      <section class="card" aria-labelledby="t-pillars">
+        <div class="card__head"><h2 class="card__title" id="t-pillars">사주 원국</h2><span class="card__meta">오른쪽부터 연·월·일·시</span></div>
+        <div class="pillars" role="table" aria-label="사주 원국표: 시주 甲辰, 일주 壬戌, 월주 戊申, 연주 壬申">
+          <span></span><span class="ch">시주</span><span class="ch me">일주</span><span class="ch">월주</span><span class="ch">연주</span>
+          <span class="rh">십성</span><span class="tg">식신</span><span class="tg me">나(일간)</span><span class="tg">편관</span><span class="tg">비견</span>
+          <span class="rh">천간</span>
+          <div class="gz" data-el="wood"><span class="hanja">甲</span><span class="ko">갑 · 목</span></div>
+          <div class="gz me" data-el="water"><span class="hanja">壬</span><span class="ko">임 · 수</span></div>
+          <div class="gz" data-el="earth"><span class="hanja">戊</span><span class="ko">무 · 토</span></div>
+          <div class="gz" data-el="water"><span class="hanja">壬</span><span class="ko">임 · 수</span></div>
+          <span class="rh">지지</span>
+          <div class="gz" data-el="earth"><span class="hanja">辰</span><span class="ko">진 · 토</span></div>
+          <div class="gz" data-el="earth"><span class="hanja">戌</span><span class="ko">술 · 토</span></div>
+          <div class="gz" data-el="metal"><span class="hanja">申</span><span class="ko">신 · 금</span></div>
+          <div class="gz" data-el="metal"><span class="hanja">申</span><span class="ko">신 · 금</span></div>
+          <span class="rh">십성</span><span class="tg">편관</span><span class="tg">편관</span><span class="tg">편인</span><span class="tg">편인</span>
+          <span class="rh">12운성</span><span class="us">묘</span><span class="us">관대</span><span class="us">장생</span><span class="us">장생</span>
+        </div>
+        <div class="legend" aria-hidden="true"><span data-el="wood"><i></i>목</span><span data-el="fire"><i></i>화</span><span data-el="earth"><i></i>토</span><span data-el="metal"><i></i>금</span><span data-el="water"><i></i>수</span></div>
+      </section>
+
+      <div class="note"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10" cy="10" r="8"/><path d="M10 6v5l3 2" stroke-linecap="round"/></svg><span><b>계산 메모</b> · 진태양시 보정(−32.1분)으로 시지가 巳→辰로 바뀜</span></div>
+
+      <div class="chips" aria-label="글자 사이 관계와 공망">
+        <span class="chip"><b>辰戌</b> 충 · 시지–일지</span>
+        <span class="chip">공망(일주) <b>子丑</b></span>
+        <span class="chip">공망(연주) <b>戌亥</b></span>
+      </div>
+
+      <section class="card" aria-labelledby="t-el">
+        <div class="card__head"><h2 class="card__title" id="t-el">오행 분포</h2><span class="card__meta">8글자 · 지지는 정기 기준</span></div>
+        <div class="elbars">
+          <div class="elbar" data-el="wood" style="--n:1"><span class="elbar__name"><span class="hanja">木</span>목</span><span class="elbar__track"><i class="elbar__fill" style="display:block"></i></span><span class="elbar__num">1</span></div>
+          <div class="elbar zero" data-el="fire" style="--n:0"><span class="elbar__name"><span class="hanja">火</span>화</span><span class="elbar__track"></span><span class="elbar__num">없음</span></div>
+          <div class="elbar" data-el="earth" style="--n:3"><span class="elbar__name"><span class="hanja">土</span>토</span><span class="elbar__track"><i class="elbar__fill" style="display:block"></i></span><span class="elbar__num">3</span></div>
+          <div class="elbar" data-el="metal" style="--n:2"><span class="elbar__name"><span class="hanja">金</span>금</span><span class="elbar__track"><i class="elbar__fill" style="display:block"></i></span><span class="elbar__num">2</span></div>
+          <div class="elbar" data-el="water" style="--n:2"><span class="elbar__name"><span class="hanja">水</span>수</span><span class="elbar__track"><i class="elbar__fill" style="display:block"></i></span><span class="elbar__num">2</span></div>
+        </div>
+        <div class="yy"><span>음양</span><span class="yy__bar" aria-hidden="true"><i></i></span><span>양 8 · 음 0</span></div>
+      </section>
+
+      <section class="card" aria-labelledby="t-luck">
+        <div class="card__head"><h2 class="card__title" id="t-luck">대운 흐름</h2><span class="card__meta">10년마다 바뀌는 큰 흐름</span></div>
+        <div class="luck" role="list">
+          <div class="luck__item" role="listitem"><span class="luck__age">2세</span><span class="luck__gz"><span data-el="fire">丁</span><span data-el="earth">未</span></span><span class="luck__yr">1994</span></div>
+          <div class="luck__item" role="listitem"><span class="luck__age">12세</span><span class="luck__gz"><span data-el="fire">丙</span><span data-el="fire">午</span></span><span class="luck__yr">2004</span></div>
+          <div class="luck__item" role="listitem"><span class="luck__age">22세</span><span class="luck__gz"><span data-el="wood">乙</span><span data-el="fire">巳</span></span><span class="luck__yr">2014</span></div>
+          <div class="luck__item now" role="listitem" aria-current="true"><span class="luck__now badge badge--example">지금</span><span class="luck__age">32세</span><span class="luck__gz"><span data-el="wood">甲</span><span data-el="earth">辰</span></span><span class="luck__yr">2024</span></div>
+          <div class="luck__item" role="listitem"><span class="luck__age">42세</span><span class="luck__gz"><span data-el="water">癸</span><span data-el="wood">卯</span></span><span class="luck__yr">2034</span></div>
+          <div class="luck__item" role="listitem"><span class="luck__age">52세</span><span class="luck__gz"><span data-el="water">壬</span><span data-el="wood">寅</span></span><span class="luck__yr">2044</span></div>
+          <div class="luck__item" role="listitem"><span class="luck__age">62세</span><span class="luck__gz"><span data-el="metal">辛</span><span data-el="earth">丑</span></span><span class="luck__yr">2054</span></div>
+          <div class="luck__item" role="listitem"><span class="luck__age">72세</span><span class="luck__gz"><span data-el="metal">庚</span><span data-el="water">子</span></span><span class="luck__yr">2064</span></div>
+        </div>
+        <p class="small muted" style="margin:10px 0 0">올해 2026년은 <b class="hanja" style="color:var(--el-fire)">丙午</b>년이에요. 옆으로 밀어 다음 대운을 볼 수 있어요.</p>
+      </section>
+
+      <div class="say">
+        <div class="say__face">{{art:halmeoni}}</div>
+        <p class="say__bubble" style="margin:0"><span class="say__name">할머니</span>글자는 다 펼쳐 놨어요. 이 글자들이 무슨 이야기를 하는지는 이제부터 찬찬히 풀어 줄게.</p>
+      </div>
+    </div>
+    <div class="dock"><a class="btn btn--primary" href="#paywall">할머니 풀이 이어 보기</a></div>
+  </div>
+</figure>
+
+<!-- ④ 유료 미리보기 잠금 -->
+<figure class="device" data-theme-a="dark" data-theme-b="light" id="paywall">
+  <figcaption><b>④ 유료 미리보기 잠금</b> · 잠긴 부분은 실제 글을 내려받지 않음</figcaption>
+  <div class="phone screen" data-theme="dark">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="bar">
+      <button class="icon-btn" type="button" aria-label="뒤로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <span class="bar__title">할머니의 긴 풀이</span>
+    </div>
+    <div class="pad stack" style="margin-top:8px">
+      <div>
+        <span class="eyebrow">예시 님 · 壬戌 일주</span>
+        <div class="h2" style="margin-top:4px">여덟 글자를 여섯 장에 나눠 풀어 드려요</div>
+      </div>
+      <section class="card" aria-label="풀이 목차">
+        <ol class="toc">
+          <li class="open"><span class="no">01</span><span class="t">타고난 결</span><span class="st"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8.5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>미리보기</span></li>
+          <li><span class="no">02</span><span class="t">일과 돈</span><span class="st"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>잠김</span></li>
+          <li><span class="no">03</span><span class="t">사람과 인연</span><span class="st"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>잠김</span></li>
+          <li><span class="no">04</span><span class="t">대운 10년의 흐름</span><span class="st"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>잠김</span></li>
+          <li><span class="no">05</span><span class="t">올해 2026 丙午년</span><span class="st"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>잠김</span></li>
+          <li><span class="no">06</span><span class="t">할머니의 당부</span><span class="st"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>잠김</span></li>
+        </ol>
+      </section>
+      <section class="card excerpt" aria-labelledby="t-ex">
+        <h2 class="card__title" id="t-ex" style="margin:0 0 10px">01 타고난 결</h2>
+        <p>(시안 자리) 1장 첫머리가 이 자리에 그대로 보입니다. 할머니 말투로 쓴 서너 문장이 미리보기로 열리고, 그 아래부터는 잠깁니다.</p>
+        <div class="ghost-lines" aria-hidden="true"><i style="width:96%"></i><i style="width:88%"></i><i style="width:92%"></i><i style="width:70%"></i><i style="width:94%"></i><i style="width:60%"></i></div>
+        <div class="lockcover">
+          <span class="only-a"><span class="lockicon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg></span></span>
+          <span class="only-b"><span class="sticker">{{art:bokja-loaf}}</span></span>
+          <span class="small"><b>여기부터는 결제 후에 열려요</b></span>
+        </div>
+      </section>
+      <section class="card" aria-labelledby="t-price">
+        <div class="price"><h2 class="card__title" id="t-price" style="margin:0">전체 풀이 열기</h2><b>19,900원</b></div>
+        <ul class="checks">
+          <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8.5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>여섯 장 전체 풀이(위 목차는 시안)</li>
+          <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8.5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>대운 10년 흐름과 올해 이야기</li>
+          <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8.5l3 3 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>'내 풀이'에 보관해 다시 보기</li>
+        </ul>
+        <a class="btn btn--primary" href="#share">19,900원 결제하고 열기</a>
+        <p class="xs muted" style="margin:10px 0 0;text-align:center">금액은 결제 화면에서 한 번 더 확인해요 · 환불 규정 보기</p>
+      </section>
+    </div>
+    <p class="foot">사주 풀이는 전통 명리 해석에 따른 이야기이며, 미래를 과학적으로 예측한다는 뜻이 아닙니다.</p>
+  </div>
+</figure>
+
+<!-- ⑤ 공유 카드 -->
+<figure class="device" data-theme-a="dark" data-theme-b="light" id="share">
+  <figcaption><b>⑤ 결과 공유 카드</b> · 실제 출력 1080×1350(4:5)</figcaption>
+  <div class="share-wrap">
+    <div class="share screen" data-theme="dark" role="img" aria-label="공유 카드 예시: 임술 일주, 오행 목1 화0 토3 금2 수2">
+      <div class="share__top">
+        <span class="only-a">{{art:a-symbol}}</span><span class="only-a">{{art:a-wordmark}}</span>
+        <span class="only-b">{{art:b-symbol}}</span><span class="only-b lockup-text">할머니가 풀어 주는 사주</span>
+      </div>
+      <div class="share__mid">
+        <span class="badge badge--example">예시 사주</span>
+        <div class="share__gz"><span>壬</span><span>戌</span></div>
+        <div class="share__name">임술 일주</div>
+        <div class="share__line muted">할머니 한 줄 — “물길은 둑이 있어야 멀리 간다”</div>
+        <div class="share__mini" aria-hidden="true">
+          <div data-el="wood" style="--n:1"><i></i>목</div><div data-el="fire" style="--n:0"><i></i>화</div><div data-el="earth" style="--n:3"><i></i>토</div><div data-el="metal" style="--n:2"><i></i>금</div><div data-el="water" style="--n:2"><i></i>수</div>
+        </div>
+      </div>
+      <div class="share__bottom"><span>내 사주도 펼쳐 보기</span><span>서비스 주소 자리</span></div>
+    </div>
+    <p class="share-note">카드에는 이름·생년월일을 넣지 않는다(개인정보). 일주·오행 분포와 짧은 한 줄만. 한 줄 문구는 콘텐츠 작가가 일주별로 쓰며 지금은 예시.</p>
+  </div>
+</figure>
+
+</main>
+
+<section class="sheet" aria-labelledby="t-sheet">
+  <h2 id="t-sheet">토큰 견본 — 지금 고른 시안</h2>
+  <div class="sheet-grid">
+    <div class="sheet-panel screen" data-theme="light"><h3>밝은 테마 · 대비는 배경(--c-bg) 기준</h3><div class="swatches" data-swatches></div></div>
+    <div class="sheet-panel screen" data-theme="dark"><h3>어두운 테마 · 대비는 배경(--c-bg) 기준</h3><div class="swatches" data-swatches></div></div>
+    <div class="sheet-panel screen" data-theme="light">
+      <h3>글꼴</h3>
+      <div class="type-spec">
+        <div><div class="h1" style="font-size:26px">할머니가 풀어 주는 사주</div><span class="xs muted" data-font="--f-display"></span></div>
+        <div><p style="margin:0">태어난 날과 시간만 알려 주세요. 여덟 글자와 오행을 먼저 보여 드려요.</p><span class="xs muted" data-font="--f-body"></span></div>
+        <div><span class="hanja" style="font-size:30px">甲乙丙丁戊己庚辛壬癸 子丑寅卯</span><br><span class="xs muted" data-font="--f-hanja"></span></div>
+      </div>
+    </div>
+    <div class="sheet-panel screen" data-theme="light">
+      <h3>로고 · 밝은 바탕</h3>
+      <div class="logo-row only-a flex">{{art:a-symbol}}{{art:a-wordmark}}</div>
+      <div class="logo-row only-b flex">{{art:b-symbol}}{{art:b-wordmark}}</div>
+    </div>
+    <div class="sheet-panel screen" data-theme="dark">
+      <h3>로고 · 어두운 바탕</h3>
+      <div class="logo-row only-a flex">{{art:a-symbol}}{{art:a-wordmark}}</div>
+      <div class="logo-row only-b flex">{{art:b-symbol}}{{art:b-wordmark}}</div>
+    </div>
+  </div>
+</section>
+
+<script>
+(() => {
+  const body = document.body
+  const qs = new URLSearchParams(location.search)
+  let brand = qs.get("brand") === "b" ? "b" : "a"
+  let theme = ["light", "dark"].includes(qs.get("theme")) ? qs.get("theme") : "auto"
+
+  const SW = ["--c-bg", "--c-surface", "--c-surface-2", "--c-line-strong", "--c-text", "--c-text-muted", "--c-accent", "--c-on-accent", "--c-highlight", "--c-gold-text", "--c-danger", "--el-wood", "--el-fire", "--el-earth", "--el-metal", "--el-water"]
+  const lum = (rgb) => rgb.map((v) => v / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)).reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0)
+  const toRgb = (c) => { const m = c.match(/\d+(\.\d+)?/g); return m ? m.slice(0, 3).map(Number) : [0, 0, 0] }
+  const ratio = (a, b) => { const x = lum(toRgb(a)), y = lum(toRgb(b)); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05) }
+  const probe = document.createElement("i")
+  const resolve = (el, v) => { probe.style.color = `var(${v})`; el.appendChild(probe); const c = getComputedStyle(probe).color; probe.remove(); return c }
+  const hex = (c) => "#" + toRgb(c).map((n) => n.toString(16).padStart(2, "0")).join("")
+
+  function paint() {
+    body.dataset.brand = brand
+    document.querySelectorAll("[data-set-brand]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.setBrand === brand)))
+    document.querySelectorAll("[data-set-theme]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.setTheme === theme)))
+    document.querySelectorAll(".device").forEach((d) => {
+      const t = theme === "auto" ? d.dataset["theme" + brand.toUpperCase()] : theme
+      d.querySelectorAll(".screen").forEach((s) => (s.dataset.theme = t))
+    })
+    document.querySelectorAll("[data-swatches]").forEach((box) => {
+      const bg = resolve(box, "--c-bg")
+      box.innerHTML = SW.map((v) => {
+        const c = resolve(box, v)
+        const vs = v === "--c-on-accent" ? "--c-accent" : null
+        const r = ratio(c, vs ? resolve(box, vs) : bg).toFixed(2)
+        return `<div class="sw"><i style="background:var(${v})"></i><div><code>${v}</code><br>${hex(c)} <span class="cr">${r}:1${vs ? " (버튼 위)" : ""}</span></div></div>`
+      }).join("")
+    })
+    document.querySelectorAll("[data-font]").forEach((n) => (n.textContent = getComputedStyle(n).getPropertyValue(n.dataset.font).trim()))
+    const u = new URL(location.href); u.searchParams.set("brand", brand); theme === "auto" ? u.searchParams.delete("theme") : u.searchParams.set("theme", theme)
+    history.replaceState(null, "", u)
+  }
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-set-brand],[data-set-theme]")
+    if (!b) return
+    if (b.dataset.setBrand) brand = b.dataset.setBrand
+    if (b.dataset.setTheme) theme = b.dataset.setTheme
+    paint()
+  })
+  // 시안 안의 단일 선택 버튼(성별·달력·시간) 눌러 보기
+  document.querySelectorAll(".seg").forEach((g) => g.addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return
+    g.querySelectorAll("button").forEach((x) => x.setAttribute("aria-checked", String(x === b)))
+  }))
+  paint()
+})()
+</script>
+</body>
+</html>

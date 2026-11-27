@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="t">
+  <title id="t">할머니가 풀어 주는 사주 — 시안 B 심볼(비녀 꽂은 복자)</title>
+  <circle cx="64" cy="64" r="62" fill="#f3eadb" stroke="#221e1b" stroke-width="3"/>
+  <!-- 비녀: 오른쪽 귀 뒤로 꽂힘(귀보다 먼저 그림) -->
+  <path d="M60 46 L112 22" stroke="#7a5233" stroke-width="4.5" stroke-linecap="round"/>
+  <circle cx="111" cy="22.5" r="6" fill="#f2c14e" stroke="#221e1b" stroke-width="2.2"/>
+  <g fill="#221e1b" stroke="#221e1b" stroke-width="5" stroke-linejoin="round">
+    <path d="M30 56 L33 20 L58 38 Z"/><path d="M98 56 L95 20 L70 38 Z"/>
+  </g>
+  <g fill="#c9897b"><path d="M36 44 L37.5 29 L48 37 Z"/><path d="M92 44 L90.5 29 L80 37 Z"/></g>
+  <ellipse cx="64" cy="72" rx="39" ry="33" fill="#221e1b"/>
+  <path d="M64 45 C62 53 56.5 61 53.5 71 C50.5 82 55 94.5 64 94.5 C73 94.5 77.5 82 74.5 71 C71.5 61 66 53 64 45 Z" fill="#fffaf2"/>
+  <g fill="#f2c14e"><ellipse cx="44.5" cy="68" rx="7" ry="7.6"/><ellipse cx="83.5" cy="68" rx="7" ry="7.6"/></g>
+  <g fill="#221e1b"><ellipse cx="44.5" cy="68.5" rx="2.2" ry="5.6"/><ellipse cx="83.5" cy="68.5" rx="2.2" ry="5.6"/></g>
+  <g fill="#fffaf2"><circle cx="46.8" cy="65" r="1.4"/><circle cx="85.8" cy="65" r="1.4"/></g>
+  <path d="M60 76.5 L68 76.5 L64 81 Z" fill="#c4877c"/>
+  <path d="M64 81 Q61 86 56.5 84 M64 81 Q67 86 71.5 84" fill="none" stroke="#221e1b" stroke-width="1.8" stroke-linecap="round"/>
+  <g stroke="#221e1b" stroke-width="1.6" stroke-linecap="round" fill="none">
+    <path d="M28 80 L13 77"/><path d="M28 86 L14 89"/><path d="M100 80 L115 77"/><path d="M100 86 L114 89"/>
+  </g>
+</svg>
