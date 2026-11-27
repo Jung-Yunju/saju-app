@@ -7,7 +7,7 @@
 // 캐싱: 한 풀이 안에서는 장이 달라도 시스템 프롬프트가 같다(목소리·말씨 세기·할머니 이름만 바뀜) → 프롬프트 캐시 재사용.
 import type { FactSheet } from "../types"
 import type { FactSheetWithExtras } from "./facts"
-import { CRISIS_MESSAGE, GRANDMA_NAME, HEAVY_HEART_LINE, SELF_NAME, grandmaDisplayName, type ToneStrength, type Voice } from "./persona"
+import { GRANDMA_NAME, HEAVY_HEART_LINE, PERSONA_BACKSTORY, SELF_NAME, crisisMessage, grandmaDisplayName, type ToneStrength, type Voice } from "./persona"
 
 export const PROMPT_VERSION = "prompts@0.1.0"
 
@@ -16,6 +16,8 @@ export interface SystemOptions {
   tone?: ToneStrength
   /** 기본 GRANDMA_NAME(미정이면 null) */
   grandmaName?: string | null
+  /** 위기 문안의 부름말에 쓰는 호칭(사실표 subject.addressAs). 실명은 넣지 않는다 */
+  addressAs?: string
 }
 
 /** 사실표의 선택 칸 style.voice("담백"/"plain")를 읽는다. 없으면 할미 목소리 */
@@ -59,10 +61,10 @@ export function buildSystemPrompt(opts: SystemOptions = {}): string {
   const tone = opts.tone ?? "balanced"
   const name = opts.grandmaName === undefined ? GRANDMA_NAME : opts.grandmaName
   const who = grandmaDisplayName(name)
-  const crisis = CRISIS_MESSAGE[voice]
+  const crisis = crisisMessage(voice, opts.addressAs ?? "")
   const heavy = HEAVY_HEART_LINE[voice]
 
-  return `너는 「할머니가 풀어 주는 사주」의 ${who}다. 스스로는 "${SELF_NAME}"라고 부른다. 서울 재래시장 골목에서 마흔 해 옷 수선집을 했고, 어깨너머로 시작해 마흔 무렵부터 명리 책을 붙들었다. "옷은 사람한테 맞춰 고치는 거지, 사람을 옷에 맞추는 게 아니다." 사주는 타고난 옷감이고, 어떻게 지어 입느냐는 읽는 사람 몫이다. 할미 자신의 사연은 풀이에서 늘어놓지 않는다. 고양이 복자는 화면 연출 몫이니 글에 등장시키지 않는다.
+  return `너는 「할머니가 풀어 주는 사주」의 ${who}다. 스스로는 "${SELF_NAME}"라고 부른다. ${PERSONA_BACKSTORY} 할미 자신의 사연은 풀이에서 늘어놓지 않는다. 고양이 복자는 화면 연출 몫이니 글에 등장시키지 않는다.
 
 이 풀이의 목적은 앞날을 맞히는 것이 아니라, 읽는 사람이 자기 삶의 결정을 스스로 내리도록 돕는 것이다. 사주는 날씨 예보와 같고, 우산을 챙길지는 읽는 사람이 정한다. 글자는 생김새일 뿐이고 그것을 어떻게 쓰느냐가 삶이 된다.
 
@@ -146,5 +148,5 @@ ${voiceSection(voice)}
 
 /** 사실표에서 목소리·말씨 세기를 읽어 시스템 프롬프트를 만든다(같은 풀이의 모든 장이 같은 결과) */
 export function systemFor(facts: FactSheet, grandmaName?: string | null): string {
-  return buildSystemPrompt({ voice: resolveVoice(facts), tone: resolveTone(facts), grandmaName })
+  return buildSystemPrompt({ voice: resolveVoice(facts), tone: resolveTone(facts), grandmaName, addressAs: facts.subject.addressAs })
 }

@@ -14,6 +14,13 @@ export function grandmaDisplayName(name: string | null = GRANDMA_NAME): string {
   return name && name.trim() ? `${name.trim()} 할머니` : "할머니"
 }
 
+/**
+ * 시스템 프롬프트에 넣는 살아온 이야기 요약(characters.md §1-2 — 제안, 대표 승인 대기).
+ * 풀이에 사연을 늘어놓지 않게 하고, 비유(수선·옷감)의 뿌리로만 쓴다. 승인이 안 나면 이 문장만 바꾸면 된다.
+ */
+export const PERSONA_BACKSTORY =
+  "재래시장 골목에서 마흔 해 옷 수선집을 했고, 마흔 무렵부터 명리 책을 붙들었다. \"옷은 사람한테 맞춰 고치는 거지, 사람을 옷에 맞추는 게 아니다.\" 사주는 타고난 옷감이고, 어떻게 지어 입느냐는 읽는 사람 몫이다."
+
 /** 목소리: 할미(반말, 기본) / 담백(해요체) — voice-guide §2 */
 export type Voice = "halmi" | "plain"
 
@@ -48,6 +55,21 @@ export const CRISIS_MESSAGE: Record<Voice, string> = {
     "{호칭}, 할미가 풀이는 잠깐 접어 두마. 지금은 글자보다 네가 먼저다. 그렇게까지 힘들었구나. 혼자 들고 있지 말고 지금 바로 사람한테 닿아라. 자살예방 상담전화 109, 정신건강위기 상담전화 1577-0199는 밤에도 받는다. 곁에 믿을 사람이 있으면 오늘 그 사람한테 이 말을 그대로 보여 줘도 된다.",
   plain:
     "풀이는 잠깐 접어 둘게요. 지금은 글자보다 당신이 먼저예요. 그렇게까지 힘드셨군요. 혼자 들고 있지 말고 지금 바로 사람에게 닿아 주세요. 자살예방 상담전화 109, 정신건강위기 상담전화 1577-0199는 밤에도 받아요. 곁에 믿을 사람이 있으면 오늘 그 사람에게 이 말을 그대로 보여 줘도 돼요.",
+}
+
+/** 호칭 + 받침에 맞춘 부름말: "손주" → "손주야", "지민" → "지민아". 한글로 끝나지 않으면 그대로 */
+export function vocative(addressAs: string): string {
+  const s = addressAs.trim()
+  if (!s) return ""
+  const last = s.charCodeAt(s.length - 1)
+  if (last < 0xac00 || last > 0xd7a3) return s
+  return (last - 0xac00) % 28 === 0 ? `${s}야` : `${s}아`
+}
+
+/** 위기 문안에 호칭을 넣는다. 호칭이 없거나 담백 목소리면 부름말을 뺀다 */
+export function crisisMessage(voice: Voice, addressAs = ""): string {
+  const v = vocative(addressAs)
+  return CRISIS_MESSAGE[voice].replace("{호칭}, ", v && voice === "halmi" ? `${v}, ` : "")
 }
 
 /** 마음이 오래 무거운 사람(위기는 아님)에게 쓰는 문장(기존 SYSTEM_PROMPT "다루지 않는 것") */

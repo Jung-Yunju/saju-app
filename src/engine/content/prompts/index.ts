@@ -12,7 +12,7 @@ import { PRODUCTS, PRODUCT_CHAPTERS, PRODUCT_CODES, isProductCode, type ProductC
 export { PRODUCTS, PRODUCT_CHAPTERS, PRODUCT_CODES, BASIC_CHAPTER_IDS, isProductCode } from "./products"
 export type { ProductCode, ProductDef } from "./products"
 export { buildSystemPrompt, systemFor, resolveVoice, resolveTone, PROMPT_VERSION } from "./system"
-export { GRANDMA_NAME, SELF_NAME, LAST_WORDS, RELIABILITY_NOTICE, CRISIS_MESSAGE, HEAVY_HEART_LINE, CATCHPHRASES, grandmaDisplayName } from "./persona"
+export { GRANDMA_NAME, SELF_NAME, LAST_WORDS, RELIABILITY_NOTICE, CRISIS_MESSAGE, HEAVY_HEART_LINE, CATCHPHRASES, grandmaDisplayName, crisisMessage, vocative } from "./persona"
 export type { Voice, ToneStrength } from "./persona"
 export type { PromptChapter, FactPart, ChapterTier } from "./chapter"
 export { PREVIEW_TOPICS } from "./chapters/free"

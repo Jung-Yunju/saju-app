@@ -1573,6 +1573,63 @@
       ]
     },
     {
+      "depends": [
+        "P4-03",
+        "P4-04"
+      ],
+      "result": "",
+      "verification": {
+        "result": "미검증",
+        "note": ""
+      },
+      "issues": "",
+      "approval": {
+        "needed": true,
+        "item": "API 키 등록(대표 직접), 경쟁사 풀이 구매"
+      },
+      "docs": [],
+      "code": [
+        "scripts/content/samples/",
+        "scripts/qa/rubric/",
+        "docs/quality/"
+      ],
+      "id": "P4-05",
+      "phase": "4",
+      "title": "견본 풀이 10편 생성·냉정 채점·경쟁사 비교",
+      "owner": "품질검증 담당자",
+      "purpose": "\"돈 받을 만한가\"를 실제 풀이로 판단한다(대표 요구).",
+      "status": "개발 중",
+      "subtasks": [
+        {
+          "t": "견본 생성 스크립트(비용 상한 $5)",
+          "done": false
+        },
+        {
+          "t": "채점 기준표·자동 채점·블라인드 시트",
+          "done": false
+        },
+        {
+          "t": "대표 API 키 등록(환경 변수 SAJU_ANTHROPIC_API_KEY)",
+          "done": false
+        },
+        {
+          "t": "새 세션에서 견본 10편 생성",
+          "done": false
+        },
+        {
+          "t": "채점·경쟁사 비교·대표 판정",
+          "done": false
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-27",
+          "status": "개발 중",
+          "note": "대표 API 사용 승인(D-021)"
+        }
+      ]
+    },
+    {
       "id": "P5-01",
       "phase": "5",
       "title": "브랜드 아이덴티티·디자인 시스템",

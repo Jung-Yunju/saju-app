@@ -34,7 +34,7 @@ export function buildShareSpec(r: Pick<FreeResult, "dayMaster" | "copy">): Share
     nickname,
     line,
     shareText: copy.share.placeholder ? `${SITE_NAME} — 생년월일만 넣으면 바로 보는 무료 사주` : `“${nickname}” ${line}`,
-    path: `/free?dm=${encodeURIComponent(dm.hanja)}`,
+    path: `/free/dm/${encodeURIComponent(dm.hanja)}`,
     filename: `halmi-saju-${dm.hanja}.png`,
   }
 }
