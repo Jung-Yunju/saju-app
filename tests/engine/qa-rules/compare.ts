@@ -68,7 +68,8 @@ export const toOInput = (s: Sample): OInput => ({
 })
 
 /** QA가 기대하는 규칙 엔진 버전(엔진 상수를 가져오지 않고 직접 적는다 — 버전을 올리면 QA가 확인 후 갱신) */
-export const EXPECTED_RULES_VERSION = "rules@0.3.0"
+// 0.3.1(2026-11-27): Q-306-1 표시 score 반올림만 바뀜 — 판정·ratio 불변은 oracle-vs-engine·p306-oracle 전수 대조로 재확인
+export const EXPECTED_RULES_VERSION = "rules@0.3.1"
 
 /** 엔진 interactionId 형식(SAJU_ENGINE.md): `${ruleId}@${위치들}`, 위치 = `{pillar}{luckIndex}.{part}`를 +로 이음 — QA 독립 계산 */
 export const qaInteractionId = (x: { ruleId: string; members: { pillar: string; part: string; luckIndex?: number }[] }) => `${x.ruleId}@${x.members.map(posKey).join("+")}`

@@ -1,6 +1,7 @@
 // 품질검증 P3-06 — 무작위 원국에서 신강약·격국·억부·조후·통관·청탁 표지를 독립 오라클과 대조 + 근거 위치 무결성
 import { describe, expect, it } from "vitest"
 import { analyzeRules, computeChart, type RuleAnalysis, type RuleOptions } from "@/engine"
+import { scoreOfRatio } from "@/engine/rules/groups"
 import { charAt, hiddenOf, posKey, stemEl, type OInput } from "./oracle"
 import * as O from "./strength-oracle"
 import { chartSamples, syntheticSamples, type Sample } from "./compare"
@@ -215,9 +216,20 @@ describe("P3-06 옵션 변형 — 각 200건(실제 100 + 합성 100)", () => {
 
 describe("경미 결함 추적 — score(r×100) 반올림", () => {
   // 결함 Q-306-1: r이 소수 셋째 자리 5로 끝날 때(예: 0.5125) score가 51.3이 아니라 51.2로 나옴(부동소수 곱셈 후 반올림).
-  // 엔진이 고치면 이 it.fails가 실패하므로 it으로 바꾼다.
-  it.fails("score = r×100 사사오입과 일치(고정 시드 4,000건 + 변형)", () => {
+  // [종결 2026-11-27 QA] rules@0.3.1 scoreOfRatio(정수 산술)로 수정 확인 → it.fails를 it으로.
+  it("score = r×100 사사오입과 일치(고정 시드 4,000건 + 변형)", () => {
     console.log(`[score 반올림] ${minor.length}건\n  ${minor.slice(0, 6).join("\n  ")}`)
     expect(minor).toEqual([])
+  })
+  it("[Q-306-1 독립 확인] scoreOfRatio: 6자리 ratio 0~1 전부(1,000,001개)가 정수 산술 사사오입과 같다", () => {
+    expect(scoreOfRatio(0.5125)).toBe(51.3) // 결함 재현 값
+    expect(scoreOfRatio(0.4875)).toBe(48.8)
+    const bad: string[] = []
+    for (let micro = 0; micro <= 1_000_000; micro++) {
+      const r = Number((micro / 1e6).toFixed(6))
+      const want = Math.floor((micro + 50) / 100) / 10 // 정수에서 절반 올림 후 한 번만 나눈다
+      if (scoreOfRatio(r) !== want) { bad.push(`${r}: ${scoreOfRatio(r)} != ${want}`); if (bad.length > 5) break }
+    }
+    expect(bad).toEqual([])
   })
 })

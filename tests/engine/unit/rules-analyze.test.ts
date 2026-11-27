@@ -236,10 +236,10 @@ describe("손계산 사례 3 — 己丑년 甲戌월 癸未일 戊午시 (일간
 })
 
 describe("결과 메타·옵션·오류", () => {
-  it("engineVersion rules@0.3.0, 역법 버전, 사용 옵션 전체 기록", () => {
+  it("engineVersion rules@0.3.1, 역법 버전, 사용 옵션 전체 기록", () => {
     const r = analyzeRules(chart("甲子", "丙寅", "戊辰", "庚申"), { hiddenStemTable: "cn-lunarjs" })
-    expect(r.engineVersion).toBe("rules@0.3.0")
-    expect(RULES_ENGINE_VERSION).toBe("rules@0.3.0")
+    expect(r.engineVersion).toBe("rules@0.3.1")
+    expect(RULES_ENGINE_VERSION).toBe("rules@0.3.1")
     expect(r.calendarEngineVersion).toBe("calendar@test")
     expect(r.options).toEqual({ ...DEFAULT_RULE_OPTIONS, hiddenStemTable: "cn-lunarjs" })
     expect(r.hiddenStems.tableId).toBe("cn-lunarjs")

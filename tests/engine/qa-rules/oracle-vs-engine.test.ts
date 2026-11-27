@@ -1,4 +1,4 @@
-// 품질검증 P3-05/D-019 — 규칙 엔진(rules@0.3.0, 버전은 compare.ts EXPECTED_RULES_VERSION) vs 독립 오라클 (기본 옵션 2,000건 + 합성 2,000건 + 옵션 변형 각 200건)
+// 품질검증 P3-05/D-019 — 규칙 엔진(rules@0.3.1, 버전은 compare.ts EXPECTED_RULES_VERSION) vs 독립 오라클 (기본 옵션 2,000건 + 합성 2,000건 + 옵션 변형 각 200건)
 import { describe, expect, it } from "vitest"
 import { analyzeRules, computeChart, type RuleOptions } from "@/engine"
 import { SPEC_DEFAULTS, SPEC_STAGE_TABLE, LU_TABLE, STEMS, BRANCHES, stageOf, type OOpts } from "./oracle"

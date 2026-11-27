@@ -153,10 +153,10 @@ describe("§7.1-6-1 통관 음성·양성 사례", () => {
 })
 
 describe("버전·공개 결과", () => {
-  it("engineVersion rules@0.3.0, RuleAnalysis에 P3-06 다섯 항목", () => {
+  it("engineVersion rules@0.3.1, RuleAnalysis에 P3-06 다섯 항목", () => {
     const r = run(CASES[0])
-    expect(r.engineVersion).toBe("rules@0.3.0")
-    expect(RULES_ENGINE_VERSION).toBe("rules@0.3.0")
+    expect(r.engineVersion).toBe("rules@0.3.1")
+    expect(RULES_ENGINE_VERSION).toBe("rules@0.3.1")
     expect(Object.keys(r)).toEqual(expect.arrayContaining(["strength", "structure", "usefulGods", "climate", "qiFlow"]))
   })
   it("근거 위치는 모두 원국 위치(운 없음)이고, 시주 모름이면 hour 위치가 없다", () => {
