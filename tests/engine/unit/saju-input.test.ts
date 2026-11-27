@@ -5,7 +5,7 @@
 //   진태양시(서울 −32.09분): 17:00 → 16:28 申시, 17:40 → 17:08 酉시, 12:00 → 11:28 午시
 //   시간(五鼠遁): 戊·癸일 子시 = 壬子 → 申 庚申, 酉 辛酉 / 丁·壬일 子시 = 庚子 → 午 丙午
 import { describe, expect, it } from "vitest"
-import { computeChart, EngineInputError, gongmangString, yearPillarOf, type BirthInput, type Pillar } from "@/engine"
+import { computeChart, EngineInputError, gongmangString, RULES_ENGINE_VERSION, yearPillarOf, type BirthInput, type Pillar } from "@/engine"
 import {
   buildSajuInput,
   displaySajuFromStored,
@@ -47,7 +47,7 @@ describe("buildSajuInput pillars = computeChart(기본 옵션)", () => {
       expect(s.daeun).toHaveLength(8)
       expect(s.gongmang).toEqual({ day: gongmangString(c.pillars.day), year: gongmangString(c.pillars.year) })
       expect(s.warnings).toEqual(c.warnings)
-      expect(s.engine_version).toBe(`${c.engineVersion}+rules@0.1.0`)
+      expect(s.engine_version).toBe(`${c.engineVersion}+${RULES_ENGINE_VERSION}`)
     })
   }
 
