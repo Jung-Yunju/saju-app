@@ -154,9 +154,16 @@ describe("키 없음 · 장 명세 없음", () => {
   })
 })
 
+// 정상 1명 8장 예산(가짜 클라이언트 기준). 상한은 "호출 직전 누적 + 진행 중 최악 + 이번 최악 ≤ 상한"으로 막으므로
+// 필요한 최소 상한은 실제 추정 비용 합보다 크다. 2026-11-28 측정(prompts@0.3.0, 이분 탐색, 동시 2):
+//   p01 최소 $0.5358 · 10명 중 최대 $0.538 (prompts@0.2.0 때 p01 $0.4831 — 그래서 예전 $0.50이 통과했다)
+// 최대 $0.538에 여유 약 10%를 두고 0.05 단위로 올린 값. 프롬프트가 다시 10% 넘게 길어지면 이 테스트가 먼저 알린다.
+// 근거 표: docs/TEST_REPORT.md "2026-11-28 · prompts@0.3.0 개운 범주 독립 검증" 절
+const ONE_PERSON_BUDGET_USD = 0.6
+
 describe("전체 흐름 1명(가짜 클라이언트)", async () => {
   const { d, logs, fake, keysSeen } = deps()
-  const r = await runSamples(parseArgs(["--only", "1", "--budget-usd", "0.5"]), d)
+  const r = await runSamples(parseArgs(["--only", "1", "--budget-usd", String(ONE_PERSON_BUDGET_USD)]), d)
   const dir = r.outDir!
   const rec = JSON.parse(readFileSync(join(dir, "p01.json"), "utf8")) as SampleRecord
   const html = readFileSync(join(dir, "index.html"), "utf8")
@@ -221,8 +228,15 @@ describe("전체 흐름 1명(가짜 클라이언트)", async () => {
 
 describe("비용 상한", () => {
   it("상한을 넘기 직전 호출을 보내지 않고 멈춘다 — 누적은 상한 이하, 남은 인물은 건너뜀(상태 4)", async () => {
+    // 상한을 숫자로 박지 않고 같은 조건의 시험 실행에서 잡는다: 첫 호출의 최악 비용은 넘고(첫 장은 보냄),
+    // "첫 호출 실제 비용 + 둘째 호출 최악 비용"은 못 넘는(둘째 장에서 막힘) 한가운데. 프롬프트 길이가 바뀌어도 뜻이 같다.
+    const probe = await runSamples(parseArgs(["--only", "1", "--budget-usd", "1000", "--concurrency", "1"]), deps().d)
+    const [c1, c2] = probe.calls
+    const lo = c1.worstCaseUsd
+    const hi = c1.costUsdEstimate + c2.worstCaseUsd
+    expect(lo).toBeLessThan(hi)
+    const budget = Math.round(((lo + hi) / 2) * 1e6) / 1e6
     const { d, fake, logs } = deps()
-    const budget = 0.12
     const r = await runSamples(parseArgs(["--only", "1,2", "--budget-usd", String(budget), "--concurrency", "1"]), d)
     expect(r.exitCode).toBe(4)
     expect(r.totalCostUsd).toBeLessThanOrEqual(budget)
