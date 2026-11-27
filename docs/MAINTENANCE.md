@@ -86,3 +86,17 @@ Hook 등록은 `.claude/settings.json`의 `hooks` 항목에서 한다(총괄실�
 - 지난 기록만 지우기: `rm .claude/office/events-<날짜>*.jsonl`
 - 수집을 멈추기: `.claude/settings.json`에서 `hooks` 항목을 빼면 바로 반영된다(세션 재시작 불필요).
 - 이 기록은 저장소 밖으로 보내지 않는다. 화면용 페이지 DB(`office/state`)에 올라간 문서는 그 페이지에서 따로 지운다.
+
+## DB 마이그레이션 적용 절차 (대표 승인 필요)
+운영 DB 변경은 **대표 승인 후에만** 한다(공통 규칙 15). 직원은 마이그레이션 파일만 만들고 `prisma validate`·`format`·`generate`(로컬)만 실행한다. `migrate deploy`·`migrate dev`·`db push`는 `.claude/settings.json`에서 막혀 있다.
+
+현재 대기 중: `prisma/migrations/20261127090000_reading_v3_safety` (추가만 — 생성 시도 상한·잠금 시각·정확도 열·주문 birthInfo·AiUsage 표). 상세·확인 쿼리: `docs/DATABASE.md` 2·4절.
+
+1. **순서**: 백업 → Neon 개발 브랜치 리허설 → 운영 `npx prisma migrate deploy` → 새 코드 배포(스위치 끔) → `DB_SCHEMA_V3=true` 설정 후 재배포.
+   - 새 schema가 든 코드를 마이그레이션보다 **먼저 배포하면 안 된다**(스위치와 무관하게 새 열을 조회해 화면 오류). 이 변경을 main에 합칠 때는 운영 적용 일정과 맞춘다.
+2. **백업 확인**: Neon 콘솔에서 복원 시점(PITR) 보관 기간 확인, 적용 직전 시각 기록, 가능하면 운영 브랜치 스냅숏 브랜치 생성.
+3. **적용 전후 확인**: `npx prisma migrate status`(보류 목록이 예상과 같은지), DATABASE.md 4절 확인 쿼리(상태별 개수가 적용 전후 같음).
+4. **문제 시**: 먼저 `DB_SCHEMA_V3`를 지우고 재배포(DB는 그대로). DB까지 되돌리려면 대표 승인 → 이전 코드 배포 → 백업 확인 → 같은 폴더 `down.sql` 실행 → `npx prisma migrate resolve --rolled-back <마이그레이션 이름>`. down은 새 열의 데이터를 지운다.
+5. **환경변수**: `DB_SCHEMA_V3`(정확히 `true`일 때만 켜짐), `GENERATION_MAX_ATTEMPTS`(풀이 1건당 AI 생성 시도 상한, 1~10, 기본 3).
+6. **상한 도달 풀이 처리(운영자)**: 생성 API가 `409 retryExhausted`를 돌려준 결제 건은 고객 문의로 들어온다. 원인 확인 뒤 재생성(해당 풀이 `attemptCount`를 0으로 되돌림 = 운영 데이터 변경, 승인 필요) 또는 토스 환불. 자동 환불 경로는 아직 없다.
+7. **적용한 마이그레이션 파일은 고치지 않는다**(체크섬 불일치). 고칠 일이 생기면 새 마이그레이션을 만든다.

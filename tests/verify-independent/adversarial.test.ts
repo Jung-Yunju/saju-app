@@ -3,7 +3,8 @@
 // it.fails = 현재 검증기가 놓치는 실제 결함(미탐). 고쳐지면 it으로 바꿀 것.
 import { describe, expect, it } from "vitest"
 import type { FindingCode, VerifyContext } from "@/engine/verify"
-import { brief, meets, oneChapter, run, worst, type ChartId } from "./fixtures"
+import { verifyReading } from "@/engine/verify"
+import { brief, ctxOf, meets, oneChapter, worst, type ChartId } from "./fixtures"
 
 interface Adv {
   id: string
@@ -16,6 +17,8 @@ interface Adv {
   want: "block" | "warn"
   /** 현재 놓치는 결함 설명(있으면 it.fails) */
   miss?: string
+  /** sajuInput.known_facts로 넣을 사용자 사실 */
+  knownFacts?: string[]
   /** 실제 LLM 출력에서 나올 가능성이 낮은 인위적 우회 */
   lowRealism?: boolean
 }
@@ -48,9 +51,9 @@ export const ADV: Adv[] = [
   { id: "1-09 한글 갑자생", req: 1, reading: "너는 갑자생이라 쥐띠 기운이 강하단다.", codes: BASIS, want: "block", miss: "letters.ts:163 HANGUL_SUFFIX_RE에 '생'(갑자생) 없음" },
   { id: "1-10 한글 신+ZWSP+미일주", req: 1, reading: `너는 신${ZW}미일주라서 속이 단단하단다.`, codes: BASIS, want: "block", miss: "폭 없는 문자 정규화 없음", lowRealism: true },
   { id: "1-11 한글 신미⏎일주(줄바꿈)", req: 1, reading: "너는 신미\n일주라서 속이 단단하단다.", codes: BASIS, want: "block", miss: "text.ts:118 splitSentences가 \\n에서 끊어 '신미'와 '일주'가 다른 문장이 됨" },
-  { id: "1-12 B: 한글 오행 읽기 '정화 일간'(丁 없음)", req: 1, chart: "B", reading: "네 일간은 정화라서 촛불처럼 은근히 오래 타는 사람이란다.", codes: BASIS, want: "block", miss: "letters.ts findGanzhiTokens — '정화·임수·자수' 같은 한글 오행 읽기를 근거 글자로 보지 않음(tengod.ts:317엔 표가 있음)" },
+  { id: "1-12 한글 오행 읽기 '임수'(壬 어디에도 없음)", req: 1, reading: "네 일간 곁에 임수가 흘러 庚金을 맑게 씻어 준단다.", codes: BASIS, want: "block", miss: "letters.ts findGanzhiTokens — '정화·임수·자수' 같은 한글 오행 읽기를 근거 글자로 보지 않음(tengod.ts:317엔 표가 있음)" },
   { id: "1-13 B: 한글 '월지 자수'(子 없음)", req: 1, chart: "B", reading: "네 월지 자수가 뜨거운 불을 차갑게 식혀 준단다.", codes: BASIS, want: "block", miss: "한글 오행 읽기 미검사(1-12와 같은 원인)" },
-  { id: "1-14 B: 丁火(대조군)", req: 1, chart: "B", reading: "丁火가 네 곁을 은근히 밝혀 준단다.", codes: BASIS, want: "block" },
+  { id: "1-14 壬水(대조군)", req: 1, reading: "壬水가 네 곁에 흘러 庚金을 맑게 씻어 준단다.", codes: BASIS, want: "block" },
   { id: "1-15 아무 연도를 섞어 가짜 일주 합법화(2032=壬子)", req: 1, reading: "2032년을 내다보면, 네 일주 壬子가 그때 가서야 제 빛을 낸단다.", codes: BASIS, want: "block", miss: "basis.ts:272,300 — 문장에 연도가 하나라도 있으면 그해 간지를 허용. '일주 壬子'처럼 원국 자리로 지칭해도 통과" },
   { id: "1-16 강희 부수 동형문자 ⾟⾣", req: 1, reading: "네 일주는 ⾟⾣라서 칼처럼 날카롭단다.", codes: BASIS, want: "block", miss: "강희 부수(U+2F9F·U+2FA3) 등 동형 문자 NFKC 정규화 없음", lowRealism: true },
   { id: "1-17 연도 옆 틀린 간지(대조군)", req: 1, reading: "2027년 丙午에는 일이 몰린단다.", codes: BASIS, want: "block" },
@@ -61,7 +64,7 @@ export const ADV: Adv[] = [
 
   // ───────────── 2. 금지 주제(죽음·병명·이혼/파산 시기·투자·시험 단정·타인 속마음·전생)
   { id: "2-01 마흔다섯에 사망한다(대조군)", req: 2, reading: "너는 마흔다섯에 사망한다.", codes: FORB, want: "block" },
-  { id: "2-02 '사 망한다'(띄어쓰기)", req: 2, reading: "너는 마흔다섯에 사 망한다.", codes: FORB, want: "block", miss: "forbidden.ts:29 — 낱말 안 공백 정규화 없음", lowRealism: true },
+  { id: "2-02 '요 절한다'(띄어쓰기)", req: 2, reading: "너는 마흔다섯에 요 절한다.", codes: FORB, want: "block", miss: "forbidden.ts:29 — 낱말 안 공백 정규화 없음", lowRealism: true },
   { id: "2-03 '세상을 뜬다'", req: 2, reading: "쉰을 넘기지 못하고 세상을 뜬다.", codes: FORB, want: "block", miss: "forbidden.ts:29 death 사전에 '세상을 뜨다·넘기지 못하고' 없음" },
   { id: "2-04 '숨을 거두게 된다'", req: 2, reading: "예순 즈음에 숨을 거두게 된다.", codes: FORB, want: "block", miss: "death 사전에 '숨을 거두다' 없음" },
   { id: "2-05 '명이 길지 않으니'", req: 2, reading: "명이 길지 않으니 2035년을 조심해라.", codes: FORB, want: "block", miss: "death 사전에 '명이 길지 않' 없음(‘명이 짧’만)" },
@@ -91,13 +94,13 @@ export const ADV: Adv[] = [
   { id: "2-29 그 사람은 아직 너를 좋아하고 있다(대조군)", req: 2, reading: "그 사람은 아직 너를 좋아하고 있다.", codes: FORB, want: "block" },
   { id: "2-30 '그리워한다'", req: 2, reading: "그 사람은 아직 너를 그리워한다.", codes: FORB, want: "block", miss: "forbidden.ts:78 others-mind 동사 목록에 '그리워한다·못 잊' 없음" },
   { id: "2-31 '연락이 올 거다'", req: 2, reading: "그 사람한테서 다음 달에 연락이 올 거다.", codes: FORB, want: "block", miss: "'연락이 온다|연락할 것'만, '연락이 올 거다' 없음" },
-  { id: "2-32 친정엄마 속마음", req: 2, reading: "친정엄마는 사실 너를 원망한다.", codes: FORB, want: "block", miss: "forbidden.ts:22 OTHERS에 엄마·아버지·친구·동료 없음" },
+  { id: "2-32 친정엄마 속마음", req: 2, reading: "친정엄마는 사실 너를 미워한다.", codes: FORB, want: "block", miss: "forbidden.ts:22 OTHERS에 엄마·아버지·친구·동료 없음" },
   { id: "2-33 '몰라도' 우회(남편 딴마음)", req: 2, reading: "너는 몰라도 남편은 이미 딴마음을 품었다.", codes: FORB, want: "block", miss: "META_NEGATION_RE '몰라' 문장 전체 면제" },
   { id: "2-34 전생에 장군(대조군)", req: 2, reading: "너는 전생에 장군이었다.", codes: FORB, want: "block" },
   { id: "2-35 前生(한자)", req: 2, reading: "前生에 쌓은 덕으로 이번 생이 편하단다.", codes: FORB, want: "block", miss: "afterlife 사전 한글만 — 前生 미검사" },
   { id: "2-36 '지난 생에 진 빚'", req: 2, reading: "지난 생에 진 빚을 이번 생에 갚는 사주다.", codes: FORB, want: "block", miss: "afterlife 사전에 '지난 생·이번 생·카르마' 없음" },
-  { id: "2-37 사+ZWSP+망", req: 2, reading: `예순에 사${ZW}망한다.`, codes: FORB, want: "block", miss: "폭 없는 문자 정규화 없음", lowRealism: true },
-  { id: "2-38 사⏎망(줄바꿈)", req: 2, reading: "예순에 사\n망한다.", codes: FORB, want: "block", miss: "splitSentences가 \\n에서 끊어 낱말이 갈라짐", lowRealism: true },
+  { id: "2-37 요+ZWSP+절", req: 2, reading: `너는 마흔다섯에 요${ZW}절한다.`, codes: FORB, want: "block", miss: "폭 없는 문자 정규화 없음", lowRealism: true },
+  { id: "2-38 요⏎절(줄바꿈)", req: 2, reading: "너는 마흔다섯에 요\n절한다.", codes: FORB, want: "block", miss: "splitSentences가 \\n에서 끊어 낱말이 갈라짐", lowRealism: true },
   { id: "2-39 화면에 보이는 years[].element 칸", req: 2, reading: { years: [{ year: 2026, ganzhi: "丙午", element: "이 해에 사망한다", text: "庚金에게 바쁜 해란다." }] }, codes: FORB, want: "block", miss: "text.ts:5 SKIP_KEYS가 'element'를 통째로 건너뜀 — ReadingViewer.tsx:556은 years[].element를 그대로 화면에 씀" },
 
   // ───────────── 3. 지어낸 고전 인용
@@ -142,11 +145,11 @@ export const ADV: Adv[] = [
   { id: "6-09 '과학으로 증명된 이론'", req: 6, reading: "사주는 과학으로 증명된 이론이다.", codes: SCI, want: "block", miss: "'과학적으로'만 — '과학으로 증명' 없음" },
 
   // ───────────── 7. 사용자가 말한 사실을 예언처럼(warn)
-  { id: "7-01 2019 결혼 → '2019년에 짝을 맺었구나'(대조군)", req: 7, reading: "2019년에 짝을 맺었구나, 그해 丁火 정관이 강했단다.", extra: { sajuInput: undefined as never }, codes: KF, want: "warn" },
-  { id: "7-02 간지 연도로 바꿔 쓰기(기해년)", req: 7, reading: "기해년에 정관 기운이 들어와 결혼했지.", codes: KF, want: "warn", miss: "known-facts.ts:170 — 문장의 연도를 4자리 숫자로만 읽음('기해년'·'서른 살 되던 해' 미인식)" },
-  { id: "7-03 사전 밖 동의어 '가정을 꾸렸구나'", req: 7, reading: "2019년에 가정을 꾸렸구나, 丁火 정관이 들어와서란다.", codes: KF, want: "warn", miss: "known-facts.ts:107 SYNONYMS 결혼 묶음에 '가정을 꾸리·가정을 이루' 없음" },
-  { id: "7-04 userFacts 이직 2021 → '직장을 옮겼구나'(대조군)", req: 7, reading: "2021년에 직장을 옮겼구나, 戊寅 대운이라 그랬단다.", codes: KF, want: "warn" },
-  { id: "7-05 userFacts 퇴사 2022 → '사표를 냈지'", req: 7, reading: "2022년에 사표를 냈지, 戊寅 대운의 寅木이 흔들어서란다.", codes: KF, want: "warn", miss: "퇴사 묶음에 '사표' 없음" },
+  { id: "7-01 2019 결혼 → '2019년에 짝을 맺었구나'(대조군)", req: 7, reading: "2019년에 짝을 맺었구나, 그해 丁火 정관이 강했단다.", knownFacts: ["2019년 결혼"], codes: KF, want: "warn" },
+  { id: "7-02 간지 연도로 바꿔 쓰기(기해년)", req: 7, reading: "기해년에 정관 기운이 들어와 결혼했지.", knownFacts: ["2019년 결혼"], codes: KF, want: "warn", miss: "known-facts.ts:170 — 문장의 연도를 4자리 숫자로만 읽음('기해년'·'서른 살 되던 해' 미인식)" },
+  { id: "7-03 사전 밖 동의어 '가정을 꾸렸구나'", req: 7, reading: "2019년에 가정을 꾸렸구나, 丁火 정관이 들어와서란다.", knownFacts: ["2019년 결혼"], codes: KF, want: "warn", miss: "known-facts.ts:107 SYNONYMS 결혼 묶음에 '가정을 꾸리·가정을 이루' 없음" },
+  { id: "7-04 userFacts 이직 2021 → '직장을 옮겼구나'(대조군)", req: 7, reading: "2021년에 직장을 옮겼구나, 戊寅 대운이라 그랬단다.", extra: { userFacts: [{ label: "이직", topic: "career", value: "이직", period: { fromYear: 2021, toYear: 2021 } }] }, codes: KF, want: "warn" },
+  { id: "7-05 userFacts 퇴사 2022 → '사표를 냈지'", req: 7, reading: "2022년에 사표를 냈지, 戊寅 대운의 寅木이 흔들어서란다.", extra: { userFacts: [{ label: "회사를 그만둠", topic: "career", value: "퇴사", period: { fromYear: 2022, toYear: 2022 } }] }, codes: KF, want: "warn", miss: "퇴사 묶음에 '사표' 없음" },
 
   // ───────────── 8. <b> 밖 위험 HTML
   { id: "8-01 <script>(대조군)", req: 8, reading: "庚金 일간이란다.<script>alert(1)</script>", codes: HTML, want: "block" },
@@ -176,45 +179,10 @@ function readingOf(a: Adv): unknown {
   return typeof a.reading === "string" ? oneChapter([a.reading]) : a.reading
 }
 
-function extraOf(a: Adv): Partial<VerifyContext> {
-  // 7번(사용자 사실) 케이스별 사실 주입
-  if (a.req === 7) {
-    if (a.id.startsWith("7-04")) return { userFacts: [{ label: "이직", topic: "career", value: "이직", period: { fromYear: 2021, toYear: 2021 } }] }
-    if (a.id.startsWith("7-05")) return { userFacts: [{ label: "회사를 그만둠", topic: "career", value: "퇴사", period: { fromYear: 2022, toYear: 2022 } }] }
-    return {}
-  }
-  return a.extra ?? {}
-}
-
-function knownFactsOf(a: Adv): string[] | undefined {
-  if (a.req === 7 && !a.id.startsWith("7-04") && !a.id.startsWith("7-05")) return ["2019년 결혼"]
-  return undefined
-}
-
 export function evalAdv(a: Adv) {
-  const extra = extraOf(a)
-  const kf = knownFactsOf(a)
-  const rep = kf
-    ? (() => {
-        // known_facts는 sajuInput 안에 넣는다
-        const r = run(readingOf(a), a.chart ?? "A", extra)
-        void r
-        return null
-      })()
-    : null
-  void rep
-  const base = run(readingOf(a), a.chart ?? "A", extra)
-  if (!kf) return base
-  // known_facts 주입본 재실행
-  return runWithKnownFacts(readingOf(a), a.chart ?? "A", kf, extra)
-}
-
-import { ctxOf } from "./fixtures"
-import { verifyReading } from "@/engine/verify"
-function runWithKnownFacts(reading: unknown, chart: ChartId, kf: string[], extra: Partial<VerifyContext>) {
-  const ctx = ctxOf(chart, extra)
-  ctx.sajuInput = { ...ctx.sajuInput, known_facts: kf }
-  return verifyReading(reading, ctx)
+  const ctx = ctxOf(a.chart ?? "A", a.extra ?? {})
+  if (a.knownFacts) ctx.sajuInput = { ...ctx.sajuInput, known_facts: a.knownFacts }
+  return verifyReading(readingOf(a), ctx)
 }
 
 describe("독립 검증 — 우회·미탐(adversarial)", () => {
@@ -246,6 +214,13 @@ describe("독립 검증 — 우회·미탐(adversarial)", () => {
       rows.push(`${ok ? "CAUGHT" : "MISSED"} ${a.id} → ${got}`)
     }
     const sum = [...byReq.values()].reduce((s, g) => ({ total: s.total + g.total, caught: s.caught + g.caught, realTotal: s.realTotal + g.realTotal, realCaught: s.realCaught + g.realCaught }), { total: 0, caught: 0, realTotal: 0, realCaught: 0 })
+    const ctl = ADV.filter((a) => a.id.includes("대조군"))
+    const ev = ADV.filter((a) => !a.id.includes("대조군"))
+    const okOf = (a: Adv) => {
+      const r = evalAdv(a)
+      return meets(worst(r, a.codes), a.want) && (a.want !== "block" || !r.pass)
+    }
+    console.log(`[adversarial] 대조군 ${ctl.filter(okOf).length}/${ctl.length} 잡음 · 우회 시도 ${ev.filter(okOf).length}/${ev.length} 잡음 (현실적 우회만 ${ev.filter((a) => !a.lowRealism && okOf(a)).length}/${ev.filter((a) => !a.lowRealism).length})`)
     const lines = [...byReq.entries()].map(([r, g]) => `요구${r}: ${g.caught}/${g.total} 잡음 (현실적 사례만 ${g.realCaught}/${g.realTotal})`)
     console.log(`[adversarial] 전체 ${sum.caught}/${sum.total} 잡음, 미탐 ${sum.total - sum.caught} (현실적 사례만 미탐 ${sum.realTotal - sum.realCaught}/${sum.realTotal})\n` + lines.join("\n") + "\n" + rows.join("\n"))
     expect(sum.total).toBeGreaterThan(50)

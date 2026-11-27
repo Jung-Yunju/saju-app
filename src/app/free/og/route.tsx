@@ -54,13 +54,13 @@ export async function GET(req: NextRequest) {
           </div>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", marginLeft: 56 }}>
             <div style={{ fontSize: 30, color: C.muted }}>{SITE_NAME}</div>
-            {dm && <div style={{ fontSize: 32, color: C.muted, marginTop: 28 }}>{`${dm.ko}${dm.element} 일간`}</div>}
+            {dm && nickname !== `${dm.ko}${dm.element} 일간` && <div style={{ fontSize: 32, color: C.muted, marginTop: 28 }}>{`${dm.ko}${dm.element} 일간`}</div>}
             <div style={{ fontSize: nickname.length > 10 ? 54 : 68, color: C.text, marginTop: 8, lineHeight: 1.2 }}>{nickname}</div>
             <div style={{ fontSize: 34, color: C.text, marginTop: 20, lineHeight: 1.4 }}>{line}</div>
             <div style={{ fontSize: 28, color: C.muted, marginTop: 28 }}>무료로 해 보기 · 가입 없이</div>
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={cat} width={200} height={150} alt="" style={{ position: "absolute", right: 36, top: -64 }} />
+          <img src={cat} width={200} height={150} alt="" style={{ position: "absolute", right: 36, top: -30 }} />
         </div>
       </div>
     ),
