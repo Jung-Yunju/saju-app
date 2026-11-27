@@ -62,7 +62,7 @@
         "result": "통과",
         "note": "공식 문서(code.claude.com) 대조 및 실제 명령 실행으로 확인"
       },
-      "issues": "GitHub 저장소가 공개(public) 상태 — 비공개 전환 필요. 2026-11-27 push가 GitHub 권한 오류(403)로 거부됨 — Claude GitHub 연결 재설정 필요(대표 조치).",
+      "issues": "GitHub 저장소가 공개(public) 상태 — 비공개 전환 필요(대표 조치). push 권한 오류는 대표가 저장소 주인 계정으로 재연결해 해결됨.",
       "approval": {
         "needed": false,
         "item": ""
@@ -84,6 +84,11 @@
           "date": "2026-11-27",
           "status": "개발 완료",
           "note": "push 권한 오류 발견, 문제 항목에 추가"
+        },
+        {
+          "date": "2026-11-27",
+          "status": "개발 완료",
+          "note": "GitHub 재연결 후 push 성공"
         }
       ]
     },
