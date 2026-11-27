@@ -226,10 +226,14 @@ export function secStrength(facts: FactSheet): string {
     lines.push(`신강약 판정: ${c.strength.verdict}`)
     for (const v of c.strength.views ?? []) lines.push(`- ${v.method} 방식: ${v.verdict}`)
   }
-  for (const u of c.usefulGod ?? []) lines.push(`용신(${u.method} 방식): ${elementLabel(u.element)}`)
+  const useful = c.usefulGod ?? []
+  for (const u of useful) lines.push(`${u.method}: ${elementLabel(u.element)}`)
   if (c.climate) lines.push(`조후: ${c.climate.summary}`)
   if (!lines.length) lines.push("판정 없음 — 신강·신약·용신·조후를 말하지 않는다")
-  else lines.push("방식마다 판정이 다를 수 있다. 쓸 때는 방식 이름을 밝히고 한 판정으로 못 박지 않는다")
+  else {
+    lines.push("방식마다 판정이 다를 수 있다. 쓸 때는 방식 이름을 밝히고 한 판정으로 못 박지 않는다")
+    if (useful.length) lines.push("용신 줄은 관점마다 적힌 머리말(예: '힘의 균형으로 보면(억부)')을 그대로 붙여 쓴다. 관점들을 하나로 합치거나 '진짜 용신'을 고르지 않는다")
+  }
   return section("신강약·용신(규칙 엔진)", lines)
 }
 
@@ -247,7 +251,7 @@ export function secDaeunNow(facts: FactSheet): string {
     const first = [...facts.luck.daeun].sort((a, b) => a.index - b.index)[0]
     lines.push(
       first
-        ? `지금은 첫 대운 전이다(월주 ${withReading(facts.chart.pillars.month)}의 기운이 이끄는 시기). 첫 대운은 만 ${first.startAge}세, ${first.startYear}년부터`
+        ? `지금은 첫 대운 전이다(이 시기는 원국, 특히 월주 ${withReading(facts.chart.pillars.month)} 중심으로 읽는다. 따로 소운으로 보는 방법도 있어 '월주가 이끈다'고 못 박지 않는다). 첫 대운은 만 ${first.startAge}세, ${first.startYear}년부터`
         : "대운 정보 없음 — 대운 이야기를 하지 않는다",
     )
   }
@@ -270,7 +274,7 @@ export function secDaeunList(facts: FactSheet, which: "past" | "ahead", limit = 
   const lines = rows.map((d) => daeunLine(facts, d, d.current ? " ← 지금" : ""))
   if (which === "past") {
     const first = sorted[0]
-    if (first && first.startAge > 0) lines.unshift(`- 첫 대운 전(만 0~${first.startAge - 1}세): 월주 ${withReading(facts.chart.pillars.month)}의 기운이 이끈 시기`)
+    if (first && first.startAge > 0) lines.unshift(`- 첫 대운 전(만 0~${first.startAge - 1}세): 원국, 특히 월주 ${withReading(facts.chart.pillars.month)} 중심으로 읽는 시기(따로 소운으로 보는 방법도 있다 — 한 방식으로 못 박지 않는다)`)
   }
   return section(title, lines)
 }

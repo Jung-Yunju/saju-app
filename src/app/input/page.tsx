@@ -108,7 +108,7 @@ function InputPageInner() {
           </button>
         </form>
 
-        <Link href="/" className="block text-center text-[11px] text-[#9ea3ab] mt-5 hover:text-[#a5603f] transition-colors">
+        <Link href="/" className="block text-center text-xs text-[#6b7280] py-3.5 mt-3 hover:text-[#a5603f] transition-colors">
           ← 처음으로
         </Link>
       </div>

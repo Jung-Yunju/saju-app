@@ -50,3 +50,4 @@ next-env.d.ts
 # 견본 풀이 블라인드 채점 정답표·점수(커밋 금지)
 samples/**/blind-key.json
 samples/**/blind-scores*
+preview-out/

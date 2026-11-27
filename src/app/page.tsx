@@ -32,7 +32,7 @@ export default async function Home() {
             <span className="text-xs" style={{ color: "#7a7fa8" }}>{session.user?.name}</span>
           </div>
         ) : (
-          <Link href="/login" className="text-xs font-semibold transition-opacity hover:opacity-70" style={{ color: "#d4a847" }}>
+          <Link href="/login" className="inline-flex min-h-[44px] items-center px-2 text-xs font-semibold transition-opacity hover:opacity-70" style={{ color: "#d4a847" }}>
             로그인
           </Link>
         )}

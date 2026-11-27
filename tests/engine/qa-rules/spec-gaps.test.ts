@@ -79,3 +79,28 @@ describe("오행 가중에 일간 포함(명세 해석 차이) — 현재 동작
     // schools.md §8 문구("천간(월·연·시) 각 1.0")대로라면 3 + 6.5 = 9.5
   })
 })
+
+// ─────────────────────────────── P3-06 (rules@0.3.0) — 명세와 다르거나 명세에 없는 점의 현재 동작 고정
+const prim306 = (a: ReturnType<typeof analyzeRules>) => a.structure.candidates.find((c) => c.role === "primary")!
+describe("P3-06 명세 공백·명세 본문 차이 — 현재 동작", () => {
+  it("사례 7 재성파인: 명세 손계산은 '없음'이나 §5.1 규칙(재성·인성 천간이 이웃 기둥)상 연간 甲(편재)–월간 己(정인)로 성립 → 엔진 표시함", () => {
+    const a = analyzeRules(chartOf("甲辰", "己巳", "庚戌", "丙子"))
+    expect(a.qiFlow.clarityFlags.map((f) => f.flag)).toEqual(["재성파인"])
+    expect(a.qiFlow.clarityFlags[0].members.map((m) => m.pillar)).toEqual(["year", "month"])
+  })
+  it("사례 11 agreement: 억부 byModel(B)는 agreement에 들어가지 않음(§6 타입은 method 목록) — 명세 문구 '수 = 통관·억부(B)'와 다름", () => {
+    const a = analyzeRules(chartOf("庚申", "甲申", "甲寅", "癸酉"))
+    expect(a.usefulGods.agreement).toEqual([{ element: "fire", methods: ["gyeokguk"] }, { element: "water", methods: ["tonggwan"] }])
+  })
+  it("상신 hiddenOnly: 투출이 있어도 지장간 위치를 함께 적는다(명세 사례 2·5·10 표기는 투출이 없을 때만 '지장간만')", () => {
+    const a = analyzeRules(chartOf("戊寅", "辛酉", "甲寅", "乙亥")) // 사례 5 정관격
+    const jae = prim306(a).sangsin!.find((g) => g.group === "jaeseong")!
+    expect(jae.touchul.map((p) => p.pillar)).toEqual(["year"])
+    expect(jae.hiddenOnly.map((p) => p.pillar)).toEqual(["year", "day", "hour"]) // 명세 사례 5: "재성(토) 투출 [연간 戊]"만
+  })
+  it("G1 戊·己 일간의 巳·午월: 정기가 인성이라 록겁 계열이 아님 → 록 표 戊巳·己午, 양인 표 戊午가 쓰이지 않음(명세 내부 모순)", () => {
+    expect(prim306(analyzeRules(chartOf("甲子", "己巳", "戊辰", null))).name).toBe("편인격")
+    expect(prim306(analyzeRules(chartOf("甲子", "庚午", "戊辰", null))).name).toBe("정인격")
+    expect(prim306(analyzeRules(chartOf("甲子", "庚午", "己巳", null))).name).toBe("편인격")
+  })
+})

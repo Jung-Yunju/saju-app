@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest"
 import { normalizeText, collectSegments } from "@/engine/verify/text"
 import { isGuidanceSentence } from "@/engine/verify/patterns"
-import { detectCrisis } from "@/engine/verify"
+import { detectCrisis, findGanzhiTokens, type ReadingLike } from "@/engine/verify"
 import { findingsOf, readingOf, run, SAJU_MIN, worst } from "./helpers"
 import { CLEAN_READING } from "./fixtures"
 
@@ -35,7 +35,7 @@ describe("② 위기 대응", () => {
   it.each(["자, 살펴보자", "여자 살림이 힘들어요", "죽을 만큼 바빠요", "자 해 보자", "살기 좋은 곳으로 가고 싶어요"])("위기 아님: %s", (t) => expect(detectCrisis(t)).toBeNull())
 
   const userText = "요즘은 그만 살고 싶어요"
-  const stopped = (msg: string) => ({ crisis: { message: msg } })
+  const stopped = (msg: string) => ({ quote: "", crisis: { message: msg } })
   it("구체 안내(상담 전화 번호)가 있고 풀이를 멈췄으면 info", () => {
     const r = run(stopped("지금 마음부터 챙기자. 자살예방상담전화 109로 전화해라."), { userText })
     expect(worst(r.findings.filter((f) => f.code === "CRISIS_RESPONSE"))).toBe("info")
@@ -79,7 +79,7 @@ describe("④ 화면에 나가는 칸은 전부 검사", () => {
   it("아주 깊은 객체에서도 스택이 넘치지 않는다", () => {
     let node: Record<string, unknown> = { text: "壬水가 흐른다." }
     for (let i = 0; i < 20000; i++) node = { child: node }
-    expect(() => collectSegments({ parts: [{ chapters: [{ body: ["庚金"], extra: node }] }] })).not.toThrow()
+    expect(() => collectSegments({ parts: [{ chapters: [{ body: ["庚金"], extra: node }] }] } as unknown as ReadingLike)).not.toThrow()
   })
 })
 
@@ -117,9 +117,10 @@ describe("⑥ 기둥 쪼개기·한글 간지·자리 불일치·연도 끼워 �
   ])("통과: %s", (t) => {
     expect(findingsOf(t, ["BASIS_NOT_IN_CHART", "YEAR_GANZHI_MISMATCH"]).filter((f) => f.severity !== "info")).toEqual([])
   })
-  it("한글 오행 읽기: 자리 이름 뒤의 '자수'는 근거 글자(작은 원국엔 子가 없어 block), 이 원국의 '해수'(亥)는 대운 글자라 warn", () => {
+  it("한글 오행 읽기: 자리 이름 뒤의 '자수'·'해수'는 근거 글자로 센다(작은 원국엔 子가 없어 block, 亥는 공망이라 통과)", () => {
     expect(worst(findingsOf("월지 자수가 불을 끈다.", "BASIS_NOT_IN_CHART", { sajuInput: SAJU_MIN }))).toBe("block")
-    expect(findingsOf("월지 해수가 불을 끈다.", "BASIS_NOT_IN_CHART")[0]?.rule).toBe("luck-unmarked")
+    expect(findGanzhiTokens("월지 해수가 불을 끈다.").map((t) => t.value)).toEqual(["亥"])
+    expect(findGanzhiTokens("바닷물 해수가 차다.")).toEqual([])
   })
   it("문장 끝 연도로 먼 곳의 가짜 기둥을 합법화하지 못한다", () => {
     const fs = findingsOf("壬子의 물이 네 庚金을 씻어 준다, 할미가 보기엔 그렇다, 2032년쯤.", "BASIS_NOT_IN_CHART")

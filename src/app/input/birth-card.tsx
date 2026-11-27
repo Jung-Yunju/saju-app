@@ -70,7 +70,7 @@ export function BirthCard({
         <div className="grid grid-cols-3 gap-1.5 mt-2">
           {modes.map(({ v, l }) => (
             <button key={v} type="button" onClick={() => { setField("timeMode", v); setField("birthHour", ""); setField("birthMinute", ""); setField("ziChoice", "") }}
-              className={`py-2.5 rounded-lg text-[11px] font-medium border transition-colors ${form.timeMode === v ? "bg-[#1b2a3a] text-white border-[#1b2a3a]" : "bg-white text-[#6b7280] border-[#e4ddd3] hover:border-[#1b2a3a]"}`}>
+              className={`min-h-[44px] py-2.5 rounded-lg text-xs font-medium border transition-colors ${form.timeMode === v ? "bg-[#1b2a3a] text-white border-[#1b2a3a]" : "bg-white text-[#6b7280] border-[#e4ddd3] hover:border-[#1b2a3a]"}`}>
               {l}
             </button>
           ))}
@@ -178,10 +178,10 @@ function ToggleBtn({ children, active, accent, onClick }: {
   const activeCls = accent ? "bg-[#a5603f] text-white border-[#a5603f]" : "bg-[#1b2a3a] text-white border-[#1b2a3a]"
   return (
     <button type="button" onClick={onClick}
-      className={`py-2.5 rounded-lg text-sm font-medium border transition-colors ${active ? activeCls : "bg-white text-[#6b7280] border-[#e4ddd3] hover:border-[#1b2a3a]"}`}>
+      className={`min-h-[44px] py-2.5 rounded-lg text-sm font-medium border transition-colors ${active ? activeCls : "bg-white text-[#6b7280] border-[#e4ddd3] hover:border-[#1b2a3a]"}`}>
       {children}
     </button>
   )
 }
 
-const inputCls = "mt-2 w-full border border-[#e4ddd3] rounded-xl px-4 py-2.5 text-sm text-[#1b2a3a] placeholder:text-[#c8bfb0] bg-white focus:outline-none focus:border-[#a5603f] transition-colors"
+const inputCls = "mt-2 w-full border border-[#e4ddd3] rounded-xl px-4 py-2.5 min-h-[44px] text-base text-[#1b2a3a] placeholder:text-[#9a8f80] bg-white focus:outline-none focus:border-[#a5603f] transition-colors"

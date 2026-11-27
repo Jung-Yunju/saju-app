@@ -192,13 +192,15 @@ export function weightedEls(n: Natal, table: Table): Record<Element, number> {
   return w
 }
 export function tonggwan(n: Natal, table: Table): Element[] {
-  const w = weightedEls(n, table)
-  const T = Object.values(w).reduce((a, b) => a + b, 0)
+  // QA 해석: 동점 비교는 6자리 반올림 가중으로(부동소수 잡음 제거), 동점이면 X의 오행 순서(목→수)
+  const raw = weightedEls(n, table)
+  const w = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, r6(v)])) as Record<Element, number>
+  const T = Object.values(raw).reduce((a, b) => a + b, 0)
   const hits: { z: Element; wx: number }[] = []
   for (let x = 0; x < 5; x++) {
     const y = (x + 2) % 5
     const wx = w[ELEMENTS[x]], wy = w[ELEMENTS[y]]
-    if (r6(wx / T) >= 0.25 && r6(wy / T) >= 0.25 && r6(Math.min(wx, wy) / Math.max(wx, wy)) >= 0.5) hits.push({ z: ELEMENTS[(x + 1) % 5], wx })
+    if (r6(wx / T) >= 0.25 && wx > 0 && r6(wy / T) >= 0.25 && r6(Math.min(wx, wy) / Math.max(wx, wy)) >= 0.5) hits.push({ z: ELEMENTS[(x + 1) % 5], wx })
   }
   return hits.sort((a, b) => b.wx - a.wx).map((h) => h.z)
 }
@@ -221,3 +223,5 @@ export function clarityFlags(n: Natal): string[] {
 }
 
 export const bIdx = bi
+/** 점수 = r × 100 소수 1자리 반올림(사사오입). 부동소수 잡음 없이 10진 반올림 */
+export const scoreOf = (r: number) => Math.round(Number((r * 1000).toFixed(6))) / 10
