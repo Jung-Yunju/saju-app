@@ -15,7 +15,16 @@ const ORDER = ["hour", "day", "month", "year"] as const
 const ORDER_LABEL = { hour: "시주", day: "일주", month: "월주", year: "연주" } as const
 
 function Text({ block }: { block: CopyBlock }) {
-  return block.placeholder ? <p className="fr-ph">{block.text}</p> : <p className="fr-halmi-text">{block.text}</p>
+  if (block.placeholder) return <p className="fr-ph">{block.text}</p>
+  return (
+    <>
+      {block.lead && <p className="fr-lead">{block.lead}</p>}
+      <p className="fr-halmi-text">{block.text}</p>
+      {block.details?.map((d) => (
+        <p key={d.label} className="fr-detail"><b>{d.label}</b> {d.text}</p>
+      ))}
+    </>
+  )
 }
 
 function Gz({ g, className }: { g: GanzhiView; className?: string }) {
@@ -52,6 +61,7 @@ export function ResultView({ result: r, onReset }: { result: FreeResult; onReset
             <div className="fr-card fr-halmi">
               <div className="fr-halmi-item"><h3>일간 이야기</h3><Text block={r.copy.dayMaster} /></div>
               <div className="fr-halmi-item"><h3>{r.dayPillar.ko} 일주 이야기</h3><Text block={r.copy.dayPillar} /></div>
+              {r.copy.disclaimer && <p className="fr-ph fr-fine-left">{r.copy.disclaimer}</p>}
             </div>
           </section>
 
@@ -109,7 +119,7 @@ export function ResultView({ result: r, onReset }: { result: FreeResult; onReset
                 <div className="fr-halmi" style={{ marginTop: "var(--s-4)" }}>
                   {r.copy.elements.map((c) => (
                     <div key={`${c.kind}-${c.el}`} className="fr-halmi-item">
-                      <h3>{c.kind === "dominant" ? `${c.el}(${EL_HANJA[c.el]})이 많은 편` : `${c.el}(${EL_HANJA[c.el]})이 비어 있어요`}</h3>
+                      <h3>{c.kind === "excess" ? `${c.el}(${EL_HANJA[c.el]})이 넘치는 편` : c.kind === "lack" ? `${c.el}(${EL_HANJA[c.el]})이 비어 있어요` : `${c.el}(${EL_HANJA[c.el]})이 알맞아요`}</h3>
                       <Text block={c} />
                     </div>
                   ))}
@@ -128,7 +138,7 @@ export function ResultView({ result: r, onReset }: { result: FreeResult; onReset
                 <Gz g={r.thisYear.ganzhi} className="h fr-hanja" />
                 <span className="k">{r.thisYear.ganzhi.ko}년</span>
               </div>
-              <Text block={r.copy.thisYear} />
+              <div><Text block={r.copy.thisYear} />{r.copy.thisYearNote && <p className="fr-ph fr-fine-left">{r.copy.thisYearNote}</p>}</div>
             </div>
           </section>
 
@@ -276,9 +286,16 @@ function LockedBlock({ teaser }: { teaser: FreeResult["copy"]["teaser"] }) {
         </svg>
         <h2 id="fr-h-lock">{teaser.title}</h2>
         <p className="fr-sub" style={{ marginTop: "var(--s-1)", marginBottom: 0 }}>무료 결과 뒤에는 이런 이야기가 이어져요.</p>
-        <ul>{teaser.items.map((t, i) => <li key={i} className={teaser.placeholder ? "fr-ph" : ""}>{t}</li>)}</ul>
+        {teaser.placeholder ? (
+          <p className="fr-ph" style={{ marginTop: "var(--s-3)" }}>{teaser.lock}</p>
+        ) : (
+          <>
+            <ul>{teaser.items.map((t) => <li key={t.menu}><span><b>{t.menu}</b> {t.preview}</span></li>)}</ul>
+            <p className="fr-halmi-text" style={{ marginTop: "var(--s-4)" }}>{teaser.lock}</p>
+          </>
+        )}
         <button type="button" className="fr-btn fr-btn-ghost" onClick={() => setNotice(true)} aria-describedby="fr-lock-msg">
-          더 깊은 풀이 보기
+          {teaser.button}
         </button>
         <p id="fr-lock-msg" className="fr-toast" role="status" aria-live="polite">{notice ? "아직 준비 중이에요. 곧 만나요." : ""}</p>
       </div>

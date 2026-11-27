@@ -37,7 +37,23 @@ export function shuffle<T>(xs: readonly T[], rnd: () => number): T[] {
 
 // ─────────────────────────────────────────── 견본 → 읽기용 평문
 
-const DEFAULT_MASK = ["할미", "할머니", "복자"]
+/** 이름 가리기 기본값: 우리 캐릭터 + 1순위 기준점(docs/business/trends/benchmark-halmakase.md)의 상호. 상대도 할머니 캐릭터라 "할머니"는 양쪽에서 가려진다 */
+export const DEFAULT_MASK = ["할미", "할머니", "복자", "할마카세", "grandma-saju.com", "grandma-saju"]
+/** 1순위 비교 대상(docs/quality/competitor-compare.md §1) */
+export const DEFAULT_COMPETITOR = "할마카세"
+
+export interface CompareSpec {
+  persona: string
+  /** 경쟁사 이름(정답표·결과에만 적힌다. 시트의 A/B 칸에는 나오지 않는다) */
+  competitor: string
+}
+
+/** "p01" → {p01, 할마카세}, "p01:다른곳" → {p01, 다른곳} */
+export function parseCompareSpec(v: string): CompareSpec {
+  const i = v.indexOf(":")
+  if (i < 0) return { persona: v.trim(), competitor: DEFAULT_COMPETITOR }
+  return { persona: v.slice(0, i).trim(), competitor: v.slice(i + 1).trim() || DEFAULT_COMPETITOR }
+}
 const HIDE_FIELDS = new Set(["pos", "chapter_id", "element", "key", "id", "ganzhi", "letter", "year"])
 const FIELD_LABEL: Record<string, string> = { todo: "오늘부터 할 일", ask: "물음", caveat: "참고" }
 
@@ -96,8 +112,8 @@ export function sampleText(s: LoadedSample, mask: readonly string[]): string {
 
 export interface BlindOptions {
   seed: string
-  /** 경쟁사 칸을 둘 인물(persona). 대표가 같은 생년월일로 경쟁사 풀이를 산 인물 */
-  compare: readonly string[]
+  /** 경쟁사 칸을 둘 인물(persona)과 경쟁사 이름. 대표가 같은 생년월일로 경쟁사 풀이를 산 인물 */
+  compare: readonly (string | CompareSpec)[]
   /** 구체성 표본 검사: 견본마다 뽑을 문장 수(기본 8) */
   swapPerSample?: number
   /** 이름 가리기(기본 할미·할머니·복자). [] = 가리지 않음 */
@@ -108,7 +124,7 @@ export interface BlindKey {
   version: string
   sheetId: string
   seed: string
-  compare: { n: number; persona: string; ours: "A" | "B" }[]
+  compare: { n: number; persona: string; competitor: string; ours: "A" | "B" }[]
   ours: { id: string; persona: string; file: string }[]
   swap: { id: string; persona: string; chapterId: string }[]
 }
@@ -122,10 +138,17 @@ function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;")
 }
 
+/** 경쟁사 비교에서만 매기는 참고 항목(평균·합격선에 넣지 않는다) — 상대는 그림·쪽 넘김 화면이 있어 글만으로는 못 보는 부분 */
+export const COMPARE_EXTRA = [
+  { key: "visual", label: "화면·그림 체감(참고)", short: "평균 미포함. 붙여 넣은 글 말고 실제 화면에서 받은 느낌" },
+  { key: "volume", label: "분량 체감(참고)", short: "평균 미포함. 값에 비해 많이 받았다는 느낌" },
+] as const
+
 function ratingBlock(prefix: string, compare: boolean): string {
-  return RUBRIC_ITEMS.map(({ key, label, short }) => {
+  const items = compare ? [...RUBRIC_ITEMS, ...COMPARE_EXTRA] : RUBRIC_ITEMS
+  return items.map(({ key, label, short }) => {
     const name = `${prefix}.${key}`
-    const lab = compare ? (COMPARE_LABEL[key] ?? label) : label
+    const lab = compare ? (COMPARE_LABEL[key as keyof typeof COMPARE_LABEL] ?? label) : label
     const radios = [1, 2, 3, 4, 5].map((v) => `<label class="r"><input type="radio" name="${esc(name)}" value="${v}">${v}</label>`).join("")
     return `<div class="item"><div class="lab">${esc(lab)} <small>${esc(short)}</small></div><div class="radios">${radios}</div></div>`
   }).join("")
@@ -141,16 +164,17 @@ function subjectLine(s: LoadedSample): string {
 export function buildBlindSheet(samples: readonly LoadedSample[], opts: BlindOptions): BlindSheet {
   const mask = opts.maskWords ?? DEFAULT_MASK
   const per = opts.swapPerSample ?? 8
-  const unknown = opts.compare.filter((p) => !samples.some((s) => s.persona === p))
+  const specs = opts.compare.map((c) => (typeof c === "string" ? parseCompareSpec(c) : c))
+  const unknown = specs.map((c) => c.persona).filter((p) => !samples.some((s) => s.persona === p))
   if (unknown.length) throw new Error(`--compare에 없는 인물: ${unknown.join(", ")}`)
   const sheetId = createHash("sha256")
-    .update([BLIND_VERSION, opts.seed, ...samples.map((s) => s.persona), "|", ...opts.compare].join("\n"))
+    .update([BLIND_VERSION, opts.seed, ...samples.map((s) => s.persona), "|", ...specs.map((c) => `${c.persona}:${c.competitor}`)].join("\n"))
     .digest("hex")
     .slice(0, 12)
   const rnd = seededRandom(`${opts.seed}:${sheetId}`)
 
   // 1) 경쟁사 비교(A/B)
-  const compare = opts.compare.map((persona, i) => ({ n: i + 1, persona, ours: (rnd() < 0.5 ? "A" : "B") as "A" | "B" }))
+  const compare = specs.map((c, i) => ({ n: i + 1, persona: c.persona, competitor: c.competitor, ours: (rnd() < 0.5 ? "A" : "B") as "A" | "B" }))
   // 2) 우리 견본 단독 채점(순서 섞기)
   const ours = shuffle(samples, rnd).map((s, i) => ({ id: `S${i + 1}`, persona: s.persona, file: s.file, s }))
   // 3) 구체성 표본 검사(인물을 섞어서, 간지·숫자·십성 가림)
@@ -181,8 +205,9 @@ export function buildBlindSheet(samples: readonly LoadedSample[], opts: BlindOpt
           : `<pre class="text pasted" data-from="paste-${c.n}">(아래 붙여 넣기 칸에 경쟁사 풀이를 넣으면 여기에 보입니다)</pre>`
       return `<section class="cmp" data-n="${c.n}">
 <h2>비교 ${c.n} <small>${esc(subjectLine(s))}</small></h2>
-<details class="paste"><summary>경쟁사 풀이 붙여 넣기 — 이 칸의 글은 이 화면에만 보이고 어디에도 저장·전송되지 않습니다</summary>
-<textarea id="paste-${c.n}" rows="6" placeholder="경쟁사 풀이 본문을 붙여 넣으세요"></textarea></details>
+<details class="paste"><summary>경쟁사(${esc(c.competitor)}) 풀이 붙여 넣기 — 이 칸의 글은 이 화면에만 보이고 어디에도 저장·전송되지 않습니다</summary>
+<p class="hint">여러 장(쪽)으로 나뉘어 있으면 차례대로 이어 붙여 넣으세요. 그림·만화는 붙지 않으니 「화면·그림 체감」 칸에 따로 매깁니다.</p>
+<textarea id="paste-${c.n}" rows="8" placeholder="같은 생년월일로 받은 경쟁사 풀이 본문을 붙여 넣으세요"></textarea></details>
 <div class="ab">
 <div class="slot"><h3>풀이 A</h3>${slot("A")}<div class="rate">${ratingBlock(`cmp${c.n}.A`, true)}<label class="price">낼 만한 값(원) <input type="number" min="0" step="1000" name="cmp${c.n}.A.price"></label></div></div>
 <div class="slot"><h3>풀이 B</h3>${slot("B")}<div class="rate">${ratingBlock(`cmp${c.n}.B`, true)}<label class="price">낼 만한 값(원) <input type="number" min="0" step="1000" name="cmp${c.n}.B.price"></label></div></div>

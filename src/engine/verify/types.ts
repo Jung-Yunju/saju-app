@@ -6,7 +6,7 @@
 import type { CalendarResult } from "../types"
 import type { RuleAnalysis } from "../rules/types"
 
-export const VERIFY_VERSION = "verify@0.1.0"
+export const VERIFY_VERSION = "verify@0.2.0"
 
 export type Severity = "block" | "warn" | "info"
 
@@ -61,6 +61,17 @@ export interface VerifyReport {
   score: number
   counts: Record<Severity, number>
   findings: Finding[]
+  /**
+   * 어떤 검사가 실제로 돌았는지. 돌지 않은 검사를 "통과"로 오해하지 않게 밝힌다.
+   * crisis: ctx.userText가 없으면 "not-run:no-userText"(위기 검사 미실행 — 호출 쪽이 고민 글을 넘겨야 함)
+   * tenGods: 십성 대조 기준 — rules(ctx.rules) / chart(ctx.chart로 analyzeRules) / sajuInput(같은 규칙 함수로 계산)
+   */
+  coverage: {
+    crisis: "ran" | "not-run:no-userText"
+    tenGods: "rules" | "chart" | "sajuInput"
+    knownFacts: "ran" | "not-run:no-facts"
+    verifiedQuotes: number
+  }
   /** BARNUM 계산 결과 등 요약(장별 근거 없는 문장 비율) */
   stats: {
     texts: number

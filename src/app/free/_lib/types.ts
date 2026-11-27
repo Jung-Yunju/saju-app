@@ -33,13 +33,26 @@ export interface DaeunView extends GanzhiView {
 /** 할미 문장 한 덩어리. placeholder=true면 문안 준비 중 자리표시 */
 export interface CopyBlock {
   title?: string
+  /** 첫 줄(hook·일주 한 줄 등) */
+  lead?: string
   text: string
+  /** 이름표가 붙은 덧줄(강점·맹점·처방 등) */
+  details?: { label: string; text: string }[]
   placeholder: boolean
 }
 
 export interface ElementCopy extends CopyBlock {
-  kind: "dominant" | "lacking"
+  kind: "excess" | "lack" | "balanced"
   el: ElementKo
+}
+
+export interface TeaserCopy {
+  title: string
+  /** 맛보기 문장(잠긴 본문 아님). needsConfirm 항목은 서버에서 이미 뺐다 */
+  items: { menu: string; preview: string }[]
+  lock: string
+  button: string
+  placeholder: boolean
 }
 
 export interface FreeCopy {
@@ -47,9 +60,12 @@ export interface FreeCopy {
   dayPillar: CopyBlock
   elements: ElementCopy[]
   thisYear: CopyBlock
-  /** 유료 미리보기 잠금 블록의 겉 문구(잠긴 본문은 없음) */
-  teaser: { title: string; items: string[]; placeholder: boolean }
+  /** 올해 문안 아래 작은 안내 */
+  thisYearNote: string
+  teaser: TeaserCopy
   share: { nickname: string; line: string; placeholder: boolean }
+  /** "증명된 예언이 아니다" 안내(화면에 한 번) */
+  disclaimer: string
 }
 
 export interface FreeResult {

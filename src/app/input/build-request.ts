@@ -1,5 +1,8 @@
 // 입력 화면의 폼 상태 -> /api/reading/direct 요청 본문 변환 (순수 함수, 화면 계산 없음)
 
+export const MIN_BIRTH_YEAR = 1900
+export const MAX_BIRTH_YEAR = 2100
+
 export type TimeMode = "exact" | "sijin" | "unknown"
 // ziNight 선택값: "night" = 밤 11시~12시(태어난 날 밤), "dawn" = 자정~새벽 1시, "" = 모름(보내지 않음)
 export type ZiChoice = "" | "night" | "dawn"
@@ -125,7 +128,9 @@ export function buildRequest(type: string, me: BirthForm, other: BirthForm | nul
     return { error: "상대방 생년월일과 성별도 입력해 주세요." }
   }
   const y = parseInt(me.birthYear, 10)
-  if (!(y >= 1900 && y <= 2024)) return { error: "생년을 1900~2024 사이로 입력해 주세요." }
+  // 서버 검증(src/lib/validate.ts MIN_YEAR~MAX_YEAR)과 같은 범위. 미래 연도는 현재 연도까지만 받는다
+  const maxYear = Math.min(MAX_BIRTH_YEAR, new Date().getFullYear())
+  if (!(y >= MIN_BIRTH_YEAR && y <= maxYear)) return { error: `생년을 ${MIN_BIRTH_YEAR}~${maxYear} 사이로 입력해 주세요.` }
 
   const mine = personFields(me)
   if ("error" in mine) return { error: mine.error }

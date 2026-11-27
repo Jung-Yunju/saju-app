@@ -82,3 +82,18 @@ describe("기타", () => {
     }
   })
 })
+
+describe("생년 입력 범위(P5-04)", () => {
+  const f = (y: string) => ({ ...emptyForm(), birthYear: y, birthMonth: "3", birthDay: "5", gender: "F" })
+  it("2025년 이후 출생(올해까지)도 받는다", () => {
+    const thisYear = new Date().getFullYear()
+    expect("body" in buildRequest("BASIC", f("2025"), null)).toBe(true)
+    expect("body" in buildRequest("BASIC", f(String(thisYear)), null)).toBe(true)
+  })
+  it("1900 미만과 올해보다 미래는 거절하고 안내 문구에 범위를 적는다", () => {
+    const thisYear = new Date().getFullYear()
+    expect("error" in buildRequest("BASIC", f("1899"), null)).toBe(true)
+    const r = buildRequest("BASIC", f(String(thisYear + 1)), null)
+    expect("error" in r && r.error).toContain(`1900~${thisYear}`)
+  })
+})

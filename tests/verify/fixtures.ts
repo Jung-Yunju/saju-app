@@ -1,8 +1,10 @@
 // P4-04 검증기 테스트 견본 — 실제 저장 형식(SajuInputData·FullReading)과 같은 모양
 // SAJU_1990F는 buildSajuInput(1990, 5, 15, 14, "F", "SOLAR", "지연", false, { now: 2026-06-01 })의 실제 출력이다
 // (samples.test.ts에서 같은지 확인). 원국 庚午 辛巳 庚辰 癸未 · 일간 庚 · 대운 庚辰→己卯→戊寅→丁丑(2023)→… · 올해 2026 丙午
-// 규칙 엔진(rules@0.2.0, 기본 옵션) 겉 글자 십성: 庚 비견, 午 정관, 辛 겁재, 巳 편관, 辰 편인, 癸 상관, 未 정인
+// 규칙 엔진(기본 옵션) 겉 글자 십성: 庚 비견, 午 정관, 辛 겁재, 巳 편관, 辰 편인, 癸 상관, 未 정인
 // 세운(입춘 기준 간지 연도): 2011 辛卯, 2015 乙未, 2019 己亥, 2020 庚子, 2023 癸卯, 2025 乙巳, 2026 丙午, 2027 丁未, 2028 戊申, 2029 己酉
+import { RULES_ENGINE_VERSION } from "@/engine"
+import { CALENDAR_ENGINE_VERSION } from "@/engine/calendar/constants"
 import type { SajuInputData } from "@/lib/saju-input"
 import type { FullReading } from "@/lib/generate-reading-v2"
 
@@ -31,7 +33,7 @@ export const SAJU_1990F: SajuInputData = {
   known_facts: [],
   voice: "할미",
   warnings: [],
-  engine_version: "calendar@0.1.1+rules@0.2.0",
+  engine_version: `${CALENDAR_ENGINE_VERSION}+${RULES_ENGINE_VERSION}`, // 엔진 버전이 오르면 자동으로 따라감
 }
 
 const LAST_WORDS = "할미가 그려 준 그림에 너를 가두지 마라. 운은 구름 같아서 빈 몸이라야 멀리 타고 간다."

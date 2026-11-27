@@ -1,4 +1,4 @@
-// 풀이 결과 자동 검증기 (P4-04, verify@0.1.0) — 담당: 품질검증·보안 담당자
+// 풀이 결과 자동 검증기 (P4-04, verify@0.2.0 — 독립 검토 반영) — 담당: 품질검증·보안 담당자
 // verifyReading(reading, ctx) → VerifyReport. 순수 함수: AI·DB·네트워크·파일·현재 시각을 쓰지 않는다.
 // 같은 입력이면 같은 보고서(발견 순서 포함). block이 하나라도 있으면 pass = false → 고객에게 보내지 않는다.
 // 검사 항목(코드값): BASIS_NOT_IN_CHART·YEAR_GANZHI_MISMATCH / TENGOD_MISMATCH / FORBIDDEN_TOPIC / FAKE_CLASSIC_QUOTE /
@@ -24,6 +24,7 @@ import { checkCrisis } from "./checks/crisis"
 export * from "./types"
 export { collectSegments, splitSentences } from "./text"
 export { buildChartLetters, findGanzhiTokens, GENERAL_HANJA_WORDS } from "./letters"
+export { detectCrisis, CRISIS_RE, COUNSEL_RE } from "./checks/crisis"
 
 const SEVERITY_ORDER: Record<Severity, number> = { block: 0, warn: 1, info: 2 }
 
@@ -48,9 +49,17 @@ function rulesFor(ctx: VerifyContext): RuleAnalysis | undefined {
 export function verifyReading(reading: ReadingLike | unknown, ctx: VerifyContext): VerifyReport {
   const findings: Finding[] = []
   const stats: VerifyReport["stats"] = { texts: 0, sentences: 0, barnumByChapter: [] }
+  const hasUserText = typeof ctx.userText === "string" && ctx.userText.trim() !== ""
+  const hasFacts = (ctx.sajuInput?.known_facts ?? []).length > 0 || (ctx.userFacts ?? []).length > 0
+  const coverage: VerifyReport["coverage"] = {
+    crisis: hasUserText ? "ran" : "not-run:no-userText",
+    tenGods: ctx.rules ? "rules" : ctx.chart ? "chart" : "sajuInput",
+    knownFacts: hasFacts ? "ran" : "not-run:no-facts",
+    verifiedQuotes: (ctx.verifiedQuotes ?? []).length,
+  }
   if (!reading || typeof reading !== "object" || Array.isArray(reading)) {
     findings.push({ severity: "block", code: "MALFORMED_READING", location: { path: "", field: "" }, excerpt: excerptOf(String(reading)), message: "풀이가 JSON 객체가 아님" })
-    return finalize(findings, stats)
+    return finalize(findings, stats, coverage)
   }
   const r = reading as ReadingLike
   const letters = buildChartLetters(ctx.sajuInput ?? { pillars: { year: "", month: "", day: "" } }, ctx.rules?.options.hiddenStemTable)
@@ -59,6 +68,9 @@ export function verifyReading(reading: ReadingLike | unknown, ctx: VerifyContext
 
   const segments = collectSegments(r)
   stats.texts = segments.length
+  // 본문(body·text·claim)이 하나도 없으면 고객에게 보낼 내용이 없다 — 빈 풀이 통과 방지(독립 검토 edge)
+  if (!segments.some((s) => s.narrative && s.text.trim() !== ""))
+    findings.push({ severity: "block", code: "MALFORMED_READING", rule: "empty", location: { path: "", field: "" }, excerpt: "", message: "검사할 본문(body·text·claim)이 없음 — 빈 풀이는 보내지 않는다" })
 
   findings.push(...checkBasis(segments, letters))
   findings.push(...checkStructuredGanzhi(r, letters))
@@ -74,10 +86,10 @@ export function verifyReading(reading: ReadingLike | unknown, ctx: VerifyContext
   findings.push(...checkKnownFacts(segments, ctx.sajuInput?.known_facts ?? [], ctx.userFacts ?? []))
   findings.push(...checkHtml(segments))
   findings.push(...checkCrisis(ctx.userText, r, segments))
-  return finalize(findings, stats)
+  return finalize(findings, stats, coverage)
 }
 
-function finalize(findings: Finding[], stats: VerifyReport["stats"]): VerifyReport {
+function finalize(findings: Finding[], stats: VerifyReport["stats"], coverage: VerifyReport["coverage"]): VerifyReport {
   // 안정 정렬: 심각도 → (같은 심각도 안에서는 검사 순서·경로 순서 유지)
   const sorted = findings.map((f, i) => ({ f, i })).sort((a, b) => SEVERITY_ORDER[a.f.severity] - SEVERITY_ORDER[b.f.severity] || a.i - b.i).map((x) => x.f)
   const counts: Record<Severity, number> = { block: 0, warn: 0, info: 0 }
@@ -88,6 +100,7 @@ function finalize(findings: Finding[], stats: VerifyReport["stats"]): VerifyRepo
     score: Math.max(0, 100 - 25 * counts.block - 5 * counts.warn),
     counts,
     findings: sorted,
+    coverage,
     stats,
   }
 }
@@ -95,5 +108,5 @@ function finalize(findings: Finding[], stats: VerifyReport["stats"]): VerifyRepo
 /** 보고서에서 사람이 읽을 한 줄 요약(로그용 — 개인정보·본문 전문을 넣지 않는다) */
 export function summarizeReport(rep: VerifyReport): string {
   const codes = [...new Set(rep.findings.filter((f) => f.severity !== "info").map((f) => f.code))]
-  return `${rep.version} ${rep.pass ? "PASS" : "BLOCK"} score=${rep.score} block=${rep.counts.block} warn=${rep.counts.warn} info=${rep.counts.info}${codes.length ? " codes=" + codes.join(",") : ""}`
+  return `${rep.version} ${rep.pass ? "PASS" : "BLOCK"} score=${rep.score} block=${rep.counts.block} warn=${rep.counts.warn} info=${rep.counts.info}${codes.length ? " codes=" + codes.join(",") : ""}${rep.coverage.crisis === "ran" ? "" : " crisis=not-run"}`
 }

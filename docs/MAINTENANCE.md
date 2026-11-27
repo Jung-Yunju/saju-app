@@ -100,3 +100,13 @@ Hook 등록은 `.claude/settings.json`의 `hooks` 항목에서 한다(총괄실�
 5. **환경변수**: `DB_SCHEMA_V3`(정확히 `true`일 때만 켜짐), `GENERATION_MAX_ATTEMPTS`(풀이 1건당 AI 생성 시도 상한, 1~10, 기본 3).
 6. **상한 도달 풀이 처리(운영자)**: 생성 API가 `409 retryExhausted`를 돌려준 결제 건은 고객 문의로 들어온다. 원인 확인 뒤 재생성(해당 풀이 `attemptCount`를 0으로 되돌림 = 운영 데이터 변경, 승인 필요) 또는 토스 환불. 자동 환불 경로는 아직 없다.
 7. **적용한 마이그레이션 파일은 고치지 않는다**(체크섬 불일치). 고칠 일이 생기면 새 마이그레이션을 만든다.
+
+## 견본 풀이 생성 (scripts/content/samples)
+가상 인물 10명의 기본 풀이 8장을 실제 AI로 만들어 대표가 품질을 확인하는 도구입니다. 실행 순서, 비용, 실패 시 대처는 `scripts/content/samples/README.md`에 있습니다. 담당은 백엔드·서버 개발자입니다.
+- **실행은 대표 승인이 있을 때만 합니다.** 키는 클라우드 환경 변수 `SAJU_ANTHROPIC_API_KEY`(새 세션부터 반영)로 받습니다. 일반 이름 `ANTHROPIC_API_KEY`는 읽지 않습니다. 키가 없으면 안내만 하고 끝납니다(상태 2).
+- 명령: `node scripts/content/samples/generate.mjs --only 1 --budget-usd 0.5`(1명 시험) → `--compare --budget-usd 5`(전체). 비용 0으로 연습하려면 `--fake`를 씁니다.
+- 비용 상한: 호출 직전에 최악 비용을 더해 `--budget-usd`(기본 5달러)를 넘으면 그 호출을 보내지 않고 멈춥니다. 이어서 할 때는 `--retry-failed`를 씁니다. 실제 청구액은 `docs/COST_REPORT.md`에 기록합니다.
+- 출력: `samples/<날짜>/`(인물별 JSON + `index.html` + 요약). 이 폴더는 `.gitignore`의 `/samples/` 항목이라 커밋되지 않습니다. 저장소가 공개 상태이므로 그대로 둡니다. 지울 때는 `rm -rf samples/<날짜>`를 씁니다(로컬 파일이라 운영 데이터가 아닙니다).
+- 인물을 바꿀 때: `personas.ts`의 `expect` 칸을 엔진으로 확인한 값으로 적습니다. `tests/content/samples.test.ts`가 일간 10개가 모두 다른지와 윤달·서머타임·시각 모름·입춘 경계·극신강약 조건을 엔진으로 다시 확인합니다. 엔진 판정이 바뀌어 조건이 깨지면 이 테스트가 실패합니다.
+- 장 구성이나 프롬프트가 바뀌면 스크립트는 고칠 필요가 없습니다(`chaptersForProduct("BASIC")`를 그대로 씁니다). 출력 칸이 새로 생기면 화면(`html.ts`)이 이름 그대로 보여 줍니다. 쉬운 이름을 붙이려면 `FIELD_KO`에 추가합니다.
+- 검사: `npx vitest run tests/content/samples.test.ts`(가짜 클라이언트만 씁니다. API 호출 없음).

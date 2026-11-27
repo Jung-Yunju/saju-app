@@ -6,8 +6,14 @@
 <title>인트로 ① 등잔이 켜진다 — 할머니가 풀어 주는 사주 (시안)</title>
 <meta name="theme-color" content="#1b1815">
 <script>
-/* 그리기 전에 결정: 움직임 줄이기 설정 또는 ?still=1 이면 처음부터 끝 장면(정지 화면) */
-(function(){var q=location.search;if(/[?&]still=1/.test(q)||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){document.documentElement.className='is-done is-still';}})();
+/* 그리기 전에 결정(design/intro 공통):
+   - 움직임 줄이기 설정 또는 ?still=1 → 끝 장면 정지(is-still)
+   - 재방문(localStorage 'halmi-intro-seen') → 인트로 생략, 끝 장면(is-revisit). ?fresh=1 이면 무시
+   - 기본은 압축본(cut-short, 2~3초). ?cut=full 이면 전체판 */
+(function(){var q=location.search,c='is-play';
+if(/[?&]still=1/.test(q)||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))c='is-done is-still';
+else{try{if(!/[?&](fresh=1|at=)/.test(q)&&localStorage.getItem('halmi-intro-seen'))c='is-done is-revisit';}catch(e){}}
+if(!/[?&]cut=full/.test(q))c+=' cut-short';document.documentElement.className=c;})();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -234,7 +240,10 @@ svg .fb{transform-box:fill-box}
 </div>
 <script>
 (function(){
-  var TOTAL=5600, h=document.documentElement, btn=document.getElementById('ctl'), timer;
+  /* 전체판 5.6초 · 압축본 2.8초. 압축 방식: 같은 움직임을 2배속 */
+  var FULL=5600, SHORT=2800, RATE=2;
+  var h=document.documentElement, q=new URLSearchParams(location.search), btn=document.getElementById('ctl'), timer;
+  var short=h.classList.contains('cut-short'), total=short?SHORT:FULL;
   var dark=document.getElementById('dark'), flame=document.getElementById('flame');
   function aim(){ /* 어둠이 걷히는 중심 = 등잔불 화면 위치 */
     var r=flame.getBoundingClientRect(), b=dark.getBoundingClientRect();
@@ -242,16 +251,19 @@ svg .fb{transform-box:fill-box}
     dark.style.setProperty('--ly',(r.top+r.height*.6-b.top)+'px');
   }
   aim(); addEventListener('resize',aim);
+  function speed(){if(short&&RATE!==1)document.getAnimations().forEach(function(a){a.playbackRate=RATE;});}
+  function mark(){try{localStorage.setItem('halmi-intro-seen','1');}catch(e){}}
   function done(){clearTimeout(timer);h.classList.remove('is-play');h.classList.add('is-done');btn.textContent='다시 보기';}
-  function play(){clearTimeout(timer);h.classList.remove('is-done');h.classList.remove('is-play');void h.offsetWidth;h.classList.add('is-play');btn.textContent='건너뛰기';timer=setTimeout(done,TOTAL);}
+  function play(){clearTimeout(timer);h.classList.remove('is-done','is-revisit','is-play');void h.offsetWidth;h.classList.add('is-play');speed();btn.textContent='건너뛰기';timer=setTimeout(done,total);}
   btn.addEventListener('click',function(){h.classList.contains('is-play')?done():play();});
   window.replay=play; window.finish=done;
   addEventListener('message',function(e){if(e.data==='replay')play();});
   if(h.classList.contains('is-done')){btn.textContent='다시 보기';return;}
-  var at=new URLSearchParams(location.search).get('at'); /* 검수용: ?at=1500 그 순간에 멈춤, ?at=end 끝 장면 */
+  var at=q.get('at'); /* 검수용: ?at=1500 화면 시계 1.5초 장면에서 멈춤, ?at=end 끝 장면 */
   if(at==='end'){done();return;}
-  if(at!==null){document.getAnimations().forEach(function(a){a.pause();a.currentTime=+at;});return;}
-  timer=setTimeout(done,TOTAL);
+  speed();
+  if(at!==null){document.getAnimations().forEach(function(a){var r=a.playbackRate||1;a.pause();a.currentTime=+at*r;});return;}
+  mark(); timer=setTimeout(done,total);
 })();
 </script>
 </body>

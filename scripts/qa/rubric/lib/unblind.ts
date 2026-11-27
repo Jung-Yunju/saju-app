@@ -2,7 +2,7 @@
 // 순수 함수. 결과에는 점수·짧은 관찰만 들어간다(원문 없음).
 import type { BatchScore } from "./metrics"
 import type { BlindKey, ExportedScores } from "./blind"
-import { ratingsFor } from "./blind"
+import { COMPARE_EXTRA, ratingsFor } from "./blind"
 import { RUBRIC_ITEMS, COMPARE_LABEL, judgeBatch, judgeSample, type AutoCaps, type SampleJudgement } from "./rubric"
 import { specificityCap } from "./metrics"
 
@@ -12,7 +12,7 @@ const esc = (s: string) => s.replace(/\|/g, "\\|").replace(/\n/g, " ")
 export interface UnblindResult {
   markdown: string
   samples: { persona: string; judgement: SampleJudgement }[]
-  compare: { n: number; persona: string; oursMean: number | null; theirsMean: number | null; prefer: "ours" | "theirs" | "same" | "" }[]
+  compare: { n: number; persona: string; competitor: string; oursMean: number | null; theirsMean: number | null; prefer: "ours" | "theirs" | "same" | "" }[]
   swap: { persona: string; asked: number; specific: number; share: number | null; suggestedSpecificity: number | null }[]
 }
 
@@ -32,8 +32,8 @@ export function unblind(key: BlindKey, sc: ExportedScores, auto?: BatchScore): U
       const prefer = p === c.ours ? "ours" : p === theirsAB ? "theirs" : p === "same" ? "same" : ""
       const om = mean(Object.values(o))
       const tm = mean(Object.values(t))
-      compare.push({ n: c.n, persona: c.persona, oursMean: om, theirsMean: tm, prefer })
-      L.push(`### 비교 ${c.n} — ${esc(c.persona)} (우리 = ${c.ours})`, "", "| 항목 | 우리 | 경쟁사 | 차이 |", "|---|---|---|---|")
+      compare.push({ n: c.n, persona: c.persona, competitor: c.competitor ?? "경쟁사", oursMean: om, theirsMean: tm, prefer })
+      L.push(`### 비교 ${c.n} — ${esc(c.persona)} vs ${esc(c.competitor ?? "경쟁사")} (우리 = ${c.ours})`, "", "| 항목 | 우리 | 경쟁사 | 차이 |", "|---|---|---|---|")
       for (const { key: k, label } of RUBRIC_ITEMS) {
         const a = o[k]
         const b = t[k]
@@ -41,7 +41,12 @@ export function unblind(key: BlindKey, sc: ExportedScores, auto?: BatchScore): U
       }
       const po = sc.ratings[`cmp${c.n}.${c.ours}.price`]
       const pt = sc.ratings[`cmp${c.n}.${theirsAB}.price`]
-      L.push(`| 평균 | ${om ?? "-"} | ${tm ?? "-"} | ${om !== null && tm !== null ? Math.round((om - tm) * 100) / 100 : "-"} |`, "")
+      for (const x of COMPARE_EXTRA) {
+        const a = sc.ratings[`cmp${c.n}.${c.ours}.${x.key}`]
+        const b = sc.ratings[`cmp${c.n}.${theirsAB}.${x.key}`]
+        if (typeof a === "number" || typeof b === "number") L.push(`| ${x.label} | ${a ?? "-"} | ${b ?? "-"} | 평균 미포함 |`)
+      }
+      L.push(`| 평균(8항목) | ${om ?? "-"} | ${tm ?? "-"} | ${om !== null && tm !== null ? Math.round((om - tm) * 100) / 100 : "-"} |`, "")
       L.push(`- 돈 낼 쪽: ${prefer === "ours" ? "우리" : prefer === "theirs" ? "경쟁사" : prefer === "same" ? "비슷함" : "(고르지 않음)"} · 낼 만한 값: 우리 ${po ?? "-"}원 / 경쟁사 ${pt ?? "-"}원`)
       const note = sc.notes?.[`cmp${c.n}.note`]
       if (note) L.push(`- 관찰: ${esc(note)}`)

@@ -1122,27 +1122,27 @@
       "depends": [
         "P3-05"
       ],
-      "status": "개발 중",
+      "status": "검증 중",
       "subtasks": [
         {
           "t": "판단 기준 명세 (자평진전·적천수·궁통보감 관점)",
-          "done": false
+          "done": true
         },
         {
           "t": "엔진 구현 (점수와 근거 출력)",
-          "done": false
+          "done": true
         },
         {
           "t": "학파 간 충돌 사례 정리",
-          "done": false
+          "done": true
         }
       ],
-      "result": "",
+      "result": "rules@0.3.0: 신강약 3모형(A 기본)·격국(자평진전, 특수격 후보)·관점별 용신(희기신)·간이 조후·기세 + D-019. 명세 손계산 12사례 일치.",
       "verification": {
         "result": "미검증",
         "note": ""
       },
-      "issues": "",
+      "issues": "분포 1만 건: 신약 49.6%·표 민감 46%·경계 근접 33% — 연구소장 검토 · 명세 내부 불일치 3건 연구소장 판정 대기",
       "approval": {
         "needed": false,
         "item": ""
@@ -1169,6 +1169,11 @@
           "date": "2026-11-27",
           "status": "개발 중",
           "note": "연구소장 판단 명세 완료(docs/knowledge/strength-structure-spec.md) → 엔진 개발자 구현 착수"
+        },
+        {
+          "date": "2026-11-28",
+          "status": "검증 중",
+          "note": "구현 완료, 품질검증 테스트 갱신·독립 검증 착수"
         }
       ]
     },

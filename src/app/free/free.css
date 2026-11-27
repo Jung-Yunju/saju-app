@@ -180,3 +180,9 @@
   .fr-result-main > .fr-section:first-child, .fr-result-side > .fr-section:first-child { margin-top: 0; }
   .fr-tl-scroll { margin: 0 -8px; padding-left: 8px; padding-right: 8px; }
 }
+
+.fr-lead { font-family: var(--f-display); font-weight: 700; font-size: var(--t-lg); line-height: 1.4; margin-bottom: var(--s-2); }
+.fr-detail { margin-top: var(--s-2); font-size: var(--t-sm); }
+.fr-detail b { color: var(--c-gold-text); font-family: var(--f-ui); margin-right: var(--s-1); }
+.fr-fine-left { font-size: var(--t-sm); margin-top: var(--s-3); }
+.fr-lock li { align-items: flex-start; }

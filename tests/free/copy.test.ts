@@ -1,14 +1,22 @@
 import { describe, expect, it } from "vitest"
-import { firstSentence, pickElementFocus, selectCopy, type CopyFacts } from "@/app/free/_lib/content"
+import { firstSentence, selectCopy, type CopyFacts } from "@/app/free/_lib/content"
 import { buildShareSpec, wrapLines } from "@/app/free/share-card"
 import { PLACEHOLDER_TEXT, type FreeResult } from "@/app/free/_lib/types"
+
+import fs from "node:fs"
+import path from "node:path"
+import { classifyElements, fillTokens, loadRawContent } from "@/app/free/_lib/content"
 
 const facts: CopyFacts = {
   dayMaster: { hanja: "甲", ko: "갑", element: "목" },
   dayPillar: { hanja: "甲子", ko: "갑자" },
-  elements: [{ el: "목", count: 3 }, { el: "화", count: 0 }, { el: "토", count: 2 }, { el: "금", count: 1 }, { el: "수", count: 0 }],
+  dayBranch: { hanja: "子", ko: "자" },
+  elements: [{ el: "목", count: 3 }, { el: "화", count: 0 }, { el: "토", count: 2 }, { el: "금", count: 1 }, { el: "수", count: 2 }],
+  hourUnknown: false,
   thisYear: { year: 2026, hanja: "丙午", ko: "병오" },
 }
+const real = loadRawContent(path.join(process.cwd(), "content", "free"))
+const hasReal = fs.existsSync(path.join(process.cwd(), "content/free/day-master.json"))
 
 describe("문안 선택", () => {
   it("문안 파일이 없으면 '문안 준비 중' 자리표시로 동작한다", () => {
@@ -18,23 +26,17 @@ describe("문안 선택", () => {
     expect(c.share.nickname).toBe("갑목 일간")
   })
 
-  it("키 형식(객체·배열·한글 키)에 맞춰 일간·일주·올해 문장을 고른다", () => {
-    const c = selectCopy({
-      dayMaster: { 甲: { nickname: "큰 나무", text: "곧게 자라요. 그늘도 줘요." } },
-      dayPillar: { entries: [{ ganzhi: "甲子", text: "물 위의 나무" }] },
-      thisYear: { 병오: "불의 해" },
-      shareCard: { 甲: { nickname: "봄 나무", line: "천천히 큰다." } },
-    }, facts)
-    expect(c.dayMaster).toMatchObject({ title: "큰 나무", placeholder: false })
-    expect(c.dayPillar.text).toBe("물 위의 나무")
-    expect(c.thisYear.text).toBe("불의 해")
-    expect(c.share).toEqual({ nickname: "봄 나무", line: "천천히 큰다.", placeholder: false })
+  it("치환 토큰: 모두 채우고, 값이 없으면 그 문장을 버린다", () => {
+    expect(fillTokens("{a}는 {b}", { a: "가", b: "나" })).toBe("가는 나")
+    expect(fillTokens("{a}는 {b}", { a: "가" })).toBeNull()
   })
 
-  it("오행: 가장 많은 오행 1개 + 없는 오행(최대 2개)", () => {
-    expect(pickElementFocus(facts.elements)).toEqual({ dominant: "목", lacking: ["화", "수"] })
-    const c = selectCopy({ elements: { dominant: { 목: "목 많음" }, lacking: { 화: "화 없음" } } }, facts)
-    expect(c.elements.map((e) => `${e.kind}:${e.el}:${e.text}`)).toEqual(["dominant:목:목 많음", "lacking:화:화 없음", `lacking:수:${PLACEHOLDER_TEXT}`])
+  it("오행 판정: 0=없음, 4개 이상(시주 모름 3개 이상)=넘침, 없으면 가장 많은 오행 알맞음", () => {
+    const e = (c: number[]) => (["목", "화", "토", "금", "수"] as const).map((el, i) => ({ el, count: c[i] }))
+    expect(classifyElements(e([4, 0, 2, 1, 1]), false, "목")).toEqual([{ kind: "excess", el: "목" }, { kind: "lack", el: "화" }])
+    expect(classifyElements(e([3, 1, 1, 1, 0]), false, "목")).toEqual([{ kind: "lack", el: "수" }])
+    expect(classifyElements(e([3, 1, 1, 1, 0]), true, "목")[0]).toEqual({ kind: "excess", el: "목" })
+    expect(classifyElements(e([2, 2, 1, 2, 1]), false, "금")).toEqual([{ kind: "balanced", el: "금" }])
   })
 
   it("깨진 형식이어도 예외 없이 자리표시로 돌아간다", () => {
@@ -44,6 +46,44 @@ describe("문안 선택", () => {
   it("한 줄은 첫 문장만, 60자 제한", () => {
     expect(firstSentence("첫째. 둘째.")).toBe("첫째.")
     expect(firstSentence("가".repeat(100)).length).toBe(60)
+  })
+
+  it.skipIf(!hasReal)("실제 문안(content/free): 일간 10개 × 일주 60개 전부 채워지고 {토큰}이 남지 않는다", () => {
+    const stems = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
+    const kos = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"]
+    const els = ["목", "목", "화", "화", "토", "토", "금", "금", "수", "수"] as const
+    const branches = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
+    const bko = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"]
+    for (let i = 0; i < 60; i++) {
+      const si = i % 10, bi = i % 12
+      const c = selectCopy(real, {
+        ...facts, dayMaster: { hanja: stems[si], ko: kos[si], element: els[si] },
+        dayPillar: { hanja: stems[si] + branches[bi], ko: kos[si] + bko[bi] }, dayBranch: { hanja: branches[bi], ko: bko[bi] },
+      })
+      const all = JSON.stringify(c)
+      expect(c.dayMaster.placeholder, stems[si]).toBe(false)
+      expect(c.dayPillar.placeholder, stems[si] + branches[bi]).toBe(false)
+      expect(c.thisYear.placeholder, stems[si]).toBe(false)
+      expect(c.share.placeholder).toBe(false)
+      expect(c.elements.every((e) => !e.placeholder)).toBe(true)
+      expect(all).not.toMatch(/\{\w+\}/)
+    }
+  })
+
+  it.skipIf(!hasReal)("실제 문안: teaser의 needsConfirm 항목(P3·P8)은 숨기고, 일지 충·합 덧줄은 해당자에게만", () => {
+    const c = selectCopy(real, facts) // 일지 子 + 2026 午 = 자오충
+    expect(c.teaser.items.map((i) => i.menu).join("|")).not.toMatch(/앞으로 열 해 날씨|한 해 옷 고쳐 입기/)
+    expect(c.teaser.items.length).toBe(6)
+    expect(c.thisYear.text).toContain("자오충")
+    const other = selectCopy(real, { ...facts, dayBranch: { hanja: "寅", ko: "인" } })
+    expect(other.thisYear.text).not.toContain("자오충")
+  })
+
+  it.skipIf(!hasReal)("실제 문안: 일간이 다르면 별명·올해 줄이 다르다", () => {
+    const a = selectCopy(real, facts)
+    const b = selectCopy(real, { ...facts, dayMaster: { hanja: "庚", ko: "경", element: "금" } })
+    expect(a.share.nickname).not.toBe(b.share.nickname)
+    expect(a.thisYear.text).not.toBe(b.thisYear.text)
   })
 })
 

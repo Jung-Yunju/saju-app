@@ -9,7 +9,7 @@ import { isSampleFileName, loadSamplesDir, parseSample } from "../../scripts/qa/
 import { allowedCatchphrases, crossDuplication, scoreBatch, sentencesOf, specificityCap, voiceCap, type SampleScore } from "../../scripts/qa/rubric/lib/metrics"
 import { renderAutoScoreMarkdown } from "../../scripts/qa/rubric/lib/report"
 import { judgeSample, type Ratings } from "../../scripts/qa/rubric/lib/rubric"
-import { runAutoScore } from "../../scripts/qa/rubric/auto-score"
+import { runAutoScore } from "../../scripts/qa/rubric/lib/commands"
 
 const ALL5: Ratings = { accuracy: 5, specificity: 5, depth: 5, voice: 5, usefulness: 5, safety: 5, personalization: 5, fun: 5 }
 
@@ -99,9 +99,9 @@ describe("좋은 글 2편 vs 바넘투성이 2편 — 한 묶음으로 채점", 
 
 describe("검증기 block이 상한·자동 불합격으로 이어진다", () => {
   const facts = factsFor(BIRTH_1)
-  it("원국에 없는 글자(子)를 근거로 쓰면 정확성 상한 2 + 자동 불합격", () => {
+  it("십성을 틀리게 쓰면(월간 신(辛)=겁재인데 정인이라 씀) 정확성 상한 2 + 자동 불합격", () => {
     const chs = goodChapters1()
-    ;(chs[0].output as { body: string[] }).body.push("일지 자(子)가 너를 차갑게 식힌다.")
+    ;(chs[0].output as { body: string[] }).body.push("월간 신(辛)은 정인이다.")
     const s = scoreBatch([parseSample({ persona: "bad-letter", facts, chapters: chs }, "x.json")]).samples[0]
     expect(s.verify.accuracy.block).toBeGreaterThanOrEqual(1)
     expect(s.caps.accuracy).toBe(2)
@@ -129,7 +129,7 @@ describe("검증기 block이 상한·자동 불합격으로 이어진다", () =>
   })
   it("파이프라인이 저장한 verify.pass와 재검증이 다르면 표시", () => {
     const chs = goodChapters1()
-    ;(chs[0].output as { body: string[] }).body.push("일지 자(子)가 너를 차갑게 식힌다.")
+    ;(chs[0].output as { body: string[] }).body.push("월간 신(辛)은 정인이다.")
     chs[0].verify = { pass: true, findings: [] }
     const s = scoreBatch([parseSample({ persona: "stored", facts, chapters: chs }, "x.json")]).samples[0]
     expect(s.verify.storedMismatch).toEqual(["nature"])
@@ -209,9 +209,28 @@ describe("실행(파일 입출력)", () => {
   it("명령줄 실행(vite-node)도 같은 파일을 만든다", () => {
     const root = resolve(__dirname, "../..")
     const out = join(dir, "cli.md")
+    const ref = join(dir, "ref.md")
+    runAutoScore({ dir: day, json: false, out: ref })
     const r = spawnSync(resolve(root, "node_modules/.bin/vite-node"), [resolve(root, "scripts/qa/rubric/auto-score.ts"), day, "--out", out], { cwd: root, encoding: "utf8" })
     expect(r.status, r.stderr).toBe(0)
     expect(r.stdout).toMatch(/자동 채점 4편/)
-    expect(readFileSync(out, "utf8")).toBe(readFileSync(join(day, "auto-score.md"), "utf8"))
+    expect(readFileSync(out, "utf8")).toBe(readFileSync(ref, "utf8"))
   }, 60_000)
+})
+
+// 알려진 검증기(src/engine/verify) 빈틈 — 2026-11-27 채점 도구 작성 중 발견, 총괄실장에게 보고함.
+// it.fails: 지금은 검증기가 못 잡아서 "실패가 기대값"이다. 검증기가 고쳐지면 이 시험이 빨갛게 바뀌니 그때 it으로 바꾼다.
+describe("알려진 검증기 빈틈(고쳐지면 it.fails → it)", () => {
+  const facts = factsFor(BIRTH_1)
+  const blocks = (t: string) => {
+    const chs = goodChapters1()
+    ;(chs[0].output as { body: string[] }).body = [t]
+    return scoreBatch([parseSample({ persona: "gap", facts, chapters: [chs[0]] }, "x.json")]).samples[0].verify.accuracy.block
+  }
+  it("대조군: '시간 임(壬)은 정관이다'(식신인데 정관) → block", () => expect(blocks("시간 임(壬)은 정관이다.")).toBeGreaterThanOrEqual(1))
+  it.fails("말투 가이드 §7 공식 '임(壬)이 경(庚) 일간인 너한테는 정관이다' → 지금은 block 0(일간 글자가 끼면 십성 대조를 건너뜀)", () =>
+    expect(blocks("임(壬)이 경(庚) 일간인 너한테는 정관이다.")).toBeGreaterThanOrEqual(1))
+  it("대조군: '2027년 丙午년'(2027은 丁未) → block", () => expect(blocks("2027년 丙午년에는 일이 바빠진다.")).toBeGreaterThanOrEqual(1))
+  it.fails("말투 가이드 §6 표기 '2030년 병오(丙午)년'(2030은 庚戌) → 지금은 block 0(한글(한자) 병기 연도 간지를 대조 안 함)", () =>
+    expect(blocks("2030년 병오(丙午)년에는 일이 바빠진다.")).toBeGreaterThanOrEqual(1))
 })

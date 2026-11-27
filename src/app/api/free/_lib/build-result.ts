@@ -39,6 +39,8 @@ export function buildFreeResult(s: SajuInputData, raw: RawContent): FreeResult {
   const copy = selectCopy(raw, {
     dayMaster,
     dayPillar: { hanja: day.hanja, ko: day.ko },
+    dayBranch: { hanja: day.branchHanja, ko: day.branchKo },
+    hourUnknown: !pillars.some((p) => p.key === "hour"),
     elements,
     thisYear: { year: s.this_year, hanja: ty.hanja, ko: ty.ko },
   })
