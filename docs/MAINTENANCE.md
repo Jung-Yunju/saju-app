@@ -44,11 +44,11 @@
 | 상태 계산 | `scripts/office/snapshot.mjs` | 이벤트 기록 + 현황판(`docs/board/tasks.json`) → 직원별 상태 문서 |
 | 작업기록 보조 변환 | `scripts/office/backfill.mjs` | Hook을 켜기 전에 끝난 오늘 활동을 Claude Code 작업기록에서 뽑아 이벤트로 바꾼다(선택 기능) |
 | 예시 데이터 | `scripts/office/make-sample.mjs` → `office/fixtures/` | 화면의 "예시 화면"용 가짜 데이터. 실제 업무가 아니다 |
-| 테스트 | `tests/office/*.test.ts` | `npx vitest run tests/office` |
+| 테스트 | `tests/office/*.test.ts` | `npx vitest run tests/office` (품질검증 결함 회귀 테스트는 `tests/office/regressions.test.ts`) |
 
 ### 기록 위치 (모두 커밋 금지 — `.gitignore`의 `/.claude/office/`)
 - 이벤트: `.claude/office/events.jsonl` (한 줄 = 이벤트 하나). 5MB를 넘으면 `events-<날짜>.jsonl`로 이름을 바꿔 넘기고 새 파일에 이어 쓴다.
-- 상태 문서: `.claude/office/state.json` (200KB 이하)
+- 상태 문서: `.claude/office/state.json` (200KB 이하, 파일 권한 0600 — 만들 때마다 다시 맞춘다)
 - 테스트처럼 다른 폴더에 쓰려면 환경변수 `OFFICE_EVENTS_DIR=<폴더>`.
 
 ### 명령
@@ -59,14 +59,25 @@
 | 기준 시각 고정(재현·검증) | `node scripts/office/snapshot.mjs --now 2026-11-27T12:30:00Z --out <파일>` |
 | 다른 이벤트 파일·현황판 사용 | `--events <파일>` `--board <tasks.json>` |
 | 오늘 이미 끝난 활동 합치기 | `node scripts/office/snapshot.mjs --backfill-transcripts ~/.claude/projects/<프로젝트 폴더>` |
-| 예시 데이터 다시 만들기 | `node scripts/office/make-sample.mjs` (판정 규칙을 바꾸면 꼭 다시 실행 — 테스트가 저장본과 비교한다) |
+| 예시 데이터 다시 만들기 | `node scripts/office/make-sample.mjs` (판정 규칙을 바꾸면 꼭 다시 실행 — 테스트가 저장본과 비교한다). 예시 이벤트는 줄마다 `"sample":true`가 붙고, 이런 줄이 하나라도 섞이면 `--sample` 없이도 상태 문서에 `sample:true`(예시 표시)가 붙는다 |
 
 Hook 등록은 `.claude/settings.json`의 `hooks` 항목에서 한다(총괄실장 관리). 모든 Hook은 `async: true`로 등록해 직원 업무를 늦추지 않는다. 명령은 `node "$CLAUDE_PROJECT_DIR/.claude/hooks/office-event.mjs"` 형식이다.
+
+### 판정 보정 규칙 (2026-11-27 품질검증 불합격 결함 수정)
+계약서 4절 규칙 위에 다음을 더했다. 실제 Claude Code 기록에서 관찰된 형태에 맞춘 것이라, Claude Code 버전이 바뀌면 다시 확인한다.
+- **내부 보조 에이전트(D1)**: `agent_type`이 없는 `SubagentStart`/`SubagentStop`은 총괄실장의 응답 종료 직후 1초 안에 오는 내부 보조 에이전트로 보인다(작업기록 폴더에 기록이 없음). Hook은 이것을 `staff:"internal"`로 기록하고, 상태 계산은 무시한다. 예전 기록에 `staff:"main"`으로 남은 `SubagentStart`/`SubagentStop`도 같은 이유로 무시한다(`snapshot.mjs`의 `isIgnoredEvent`).
+- **총괄실장 휴식(D1-b)**: 응답 종료(`Stop`) 또는 입력 대기 알림(`Notification` `idle_prompt`) 뒤에는 다음 도구 이벤트가 올 때까지 "휴식"(전체가 10분 넘게 조용하면 "상태 확인 불가"). 이 사이에는 직원 호출·보고에 따른 "회의(규칙)"도 표시하지 않는다. 승인 요청 알림은 예외로 "승인 대기"가 우선한다.
+- **같은 직원의 이어서 일하기(D2)**: 같은 `agentId`로 재개된 직원도 업무 구간마다 닫힌다(`SESSION_MS` 상수).
+  - 출근(`SubagentStart`)이 오면 같은 직원의 열린 업무(도구 기록만으로 만든 암묵 업무 포함)를 그 시각에 닫고 새로 연다. 5초 안에 먼저 찍힌 도구 기록은 비동기 Hook 순서 뒤바뀜으로 보고 같은 업무로 합친다.
+  - 보고(`SubagentStop`)는 같은 직원의 열린 업무를 모두 닫는다. 보고 뒤 2초 안의 도구 기록은 무시, 1분 안에 출근 기록 없이 다시 도구를 쓰면 같은 업무를 다시 연다(보고 독촉 뒤 재보고), 그 뒤면 새 암묵 업무.
+  - 작업기록 변환은 보고(`SubagentHandback` 성공) 1건마다 종료를 넣고, 다음 지시(재개 메시지)에서 새 시작을 넣는다. 보고 없이 응답이 끝난 뒤 새 지시가 와도 구간을 나눈다. 도구 결과 줄·이미지 같은 딸림 줄(`turnCompanion`)은 새 지시로 보지 않는다.
+  - Hook 기록과 작업기록을 합칠 때 출근/보고 중복은 "같은 직원 + 같은 종류 + 10초 이내"로 판정한다(예전에는 같은 직원이면 무조건 중복으로 봐서 재개 구간이 사라졌다).
 
 ### 개인정보·내용 미기록 원칙
 - 기록하는 것: 시각, 직원, 이벤트 종류, 도구 이름, 도구 분류, 저장소 기준 파일 경로, 총괄실장의 직원 호출 설명(60자까지)과 카드 ID, 성공/실패, 토큰 수, 내부 ID(세션·직원 업무·도구 호출 ID).
 - 기록하지 않는 것: 명령문, 파일 내용, 지시문(프롬프트), 도구 결과, 검색어, 웹 주소, 직원의 마지막 보고문, 오류 메시지 본문, 알림 문구.
-- `.env`가 들어간 경로는 `[비공개 파일]`, 저장소 밖 경로는 파일 이름까지 숨기고 `[외부 경로]`로 기록한다.
+- `.env`가 들어간 경로는 `[비공개 파일]`, 저장소 밖 경로는 파일 이름까지 숨기고 `[외부 경로]`로 기록한다. `~`로 시작하는 경로(`~/…`, `~사용자/…`)는 홈 폴더이므로 `[외부 경로]`다.
+- 직원 호출 설명(60자)에 이메일·전화번호·주민등록번호·날짜(연·월·일이 모두 있는 날짜, `1987년생` 포함) 형태가 있으면 `[가림]`으로 바꾼 뒤 자른다(`office-event.mjs`의 `maskPersonal`·`cleanDesc`). 생년월일과 일반 날짜를 구분할 수 없어 날짜는 모두 가린다. 작업기록 변환과 상태 문서 출력(예전 기록 포함)에도 같은 가림을 적용한다. 형태 기반이라 이름·주소처럼 형태가 없는 개인정보는 못 거른다 — 직원 호출 설명에는 고객 정보를 쓰지 않는 것이 원칙이다.
 - 작업기록 보조 변환도 같은 규칙을 따른다. 작업기록 형식은 Claude Code 내부 형식이라 버전이 바뀌면 일부가 빠질 수 있다. 주 데이터는 언제나 Hook 기록이다.
 - 비용은 "API 단가 환산 추정"이다. 구독 요금 안에서 쓰므로 실제 청구액이 아니다.
 

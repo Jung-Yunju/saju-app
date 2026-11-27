@@ -17,6 +17,13 @@ export type {
   HiddenStemTableId, HiddenStemsResult, TenGod, TenGodHit, TwelveStage, TwelveStageHit, Interaction,
   InteractionType, GongmangEntry, ElementDistribution, ElementRecord, YinYang,
 } from "./rules/types"
+// 규칙 엔진 rules@0.3.0 (P3-06): 신강약·격국·용신·간이 조후·기세 + D-019 포함 표시(interactionId)
+export { interactionId, USEFUL_GOD_METHODS, STRENGTH_THRESHOLDS, hourPillarsOf, CLIMATE_BRANCH, CLIMATE_SOURCE } from "./rules"
+export type {
+  StrengthModel, StrengthVerdict, TenGodGroup, SeasonState, StrengthBasisItem, FactorCheck, StrengthModelResult,
+  StrengthAffected, StrengthResult, StructureGroupRef, StructureCandidate, StructureResult, UsefulGodMethod,
+  UsefulGodCandidate, FavorableSet, UsefulGodView, UsefulGodsResult, ClimateResult, QiFlowResult,
+} from "./rules/types"
 
 /** 출생 정보 → 원국·절기·대운 (역법 객관값) */
 export function computeChart(input: BirthInput, options?: Partial<EngineOptions>): CalendarResult {

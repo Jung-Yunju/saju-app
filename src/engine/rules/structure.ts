@@ -36,7 +36,7 @@ const EARTH_STORES: readonly Pillar["branch"][] = ["辰", "戌", "丑", "未"]
 
 // ─────────────────────────────────────────── 정격
 
-interface Pick {
+interface StructPick {
   name: string
   alias?: string[]
   kind: "regular" | "rokgeop"
@@ -58,7 +58,7 @@ function monthHiddenByPriority(n: Natal, table: HiddenStemTableId): HiddenStem[]
 }
 
 /** G1: 록겁 계열이면 그 결과, 아니면 null */
-function rokgeopOf(n: Natal, table: HiddenStemTableId, match: RuleOptions["touchulMatch"]): Pick | null {
+function rokgeopOf(n: Natal, table: HiddenStemTableId, match: RuleOptions["touchulMatch"]): StructPick | null {
   const dayStem = n.day.stem
   const main = mainQiOf(n.month, table)
   const tg = tenGodOfStem(dayStem, main)
@@ -73,7 +73,7 @@ function rokgeopOf(n: Natal, table: HiddenStemTableId, match: RuleOptions["touch
 }
 
 /** G2(투출 우선) / G2'(정기 고정). 록겁 계열이 아닐 때만 */
-function regularOf(n: Natal, table: HiddenStemTableId, mode: RuleOptions["structureTouchul"], match: RuleOptions["touchulMatch"]): Pick {
+function regularOf(n: Natal, table: HiddenStemTableId, mode: RuleOptions["structureTouchul"], match: RuleOptions["touchulMatch"]): StructPick {
   const dayStem = n.day.stem
   const d = stemElement(dayStem)
   const hs = monthHiddenByPriority(n, table)
@@ -102,12 +102,9 @@ function regularOf(n: Natal, table: HiddenStemTableId, mode: RuleOptions["struct
   }
 }
 
-function primaryPick(n: Natal, table: HiddenStemTableId, o: Pick_<RuleOptions>): Pick {
+function primaryPick(n: Natal, table: HiddenStemTableId, o: Pick<RuleOptions, "structureTouchul" | "touchulMatch">): StructPick {
   return rokgeopOf(n, table, o.touchulMatch) ?? regularOf(n, table, o.structureTouchul, o.touchulMatch)
 }
-type Pick_<T> = Pick<T, "structureTouchul" | "touchulMatch">
-// (TypeScript 내장 Pick과 이름이 겹치지 않게 위 interface Pick은 지역 타입으로 쓴다)
-type Pick<T, K extends keyof T = keyof T> = { [P in K]: T[P] }
 
 // ─────────────────────────────────────────── 상신·꺼리는 묶음 (§2.3)
 
@@ -167,7 +164,7 @@ function refOf(n: Natal, table: HiddenStemTableId, spec: RefSpec): StructureGrou
   }
 }
 
-function toCandidate(n: Natal, table: HiddenStemTableId, p: Pick, extra: Pick<StructureCandidate, "confidence" | "variantAgreement" | "role">): StructureCandidate {
+function toCandidate(n: Natal, table: HiddenStemTableId, p: StructPick, extra: Pick<StructureCandidate, "confidence" | "variantAgreement" | "role">): StructureCandidate {
   const t = sangsinTable(p)
   let sangsin = t.sangsin.map((s) => refOf(n, table, s))
   if (t.touchulOnly) sangsin = sangsin.filter((s) => s.touchul.length > 0)
@@ -184,7 +181,6 @@ function toCandidate(n: Natal, table: HiddenStemTableId, p: Pick, extra: Pick<St
     role: extra.role,
     ruleId: p.ruleId,
   }
-  if (t.notes.length) c.conditions = undefined
   return c
 }
 
@@ -211,7 +207,7 @@ export function regularStructures(n: Natal, o: RuleOptions): RegularResult {
         if (!t.length) continue
         const tg = tenGodOfStem(n.day.stem, h.stem)
         const nm = STRUCTURE_NAME[tg]
-        const alt: Pick = {
+        const alt: StructPick = {
           name: nm.name, ...(nm.alias ? { alias: [...nm.alias] } : {}), kind: "regular",
           pivot: { stem: h.stem, role: h.role, touchul: t[0], tenGod: tg }, ruleId: "structure.zp.G1alt",
         }

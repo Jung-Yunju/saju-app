@@ -80,6 +80,8 @@ export function formatPosition(pos: Position, hiddenRole?: string, daeunIndexOf?
  */
 export function sanitizeWarning(w: string): string {
   let m: RegExpMatchArray | null
+  // 개인 시각·날짜가 들어 있지 않은 고정 문구는 그대로 둔다
+  if (/^태어난 시각 모름 — /.test(w) || /^이 음력 달은 합삭이/.test(w) || /^만 \d+세 미만이라/.test(w) || /^태어난 시각을 몰라/.test(w)) return w
   if ((m = w.match(/^시지 경계 \d+분 이내 출생.*— (.+ 경계)$/))) return `태어난 시각이 시(時)의 경계에 가까움 — ${m[1]}`
   if ((m = w.match(/^자정 \d+분 이내 출생(\(야자시 설정\))? — (.+)$/))) return `자정 가까이 출생${m[1] ?? ""} — ${m[2]}`
   if ((m = w.match(/^진태양시 보정\([^)]*\)으로 시지가 (.+)로 바뀜$/))) return `진태양시 보정으로 시지가 ${m[1]}로 바뀜`
@@ -104,7 +106,6 @@ export function sanitizeAddressAs(s: string | undefined): string {
   if (typeof s !== "string") return DEFAULT_ADDRESS_AS
   const t = s
     .replace(/<[^>]*>/g, "")
-    // eslint-disable-next-line no-control-regex
     .replace(/[\u0000-\u001f\u007f"'`{}[\]<>\\]/g, "")
     .replace(/\s+/g, " ")
     .trim()

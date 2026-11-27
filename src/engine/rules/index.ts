@@ -1,7 +1,9 @@
-// 명리 규칙 엔진 공개 함수 (P3-05, rules@0.2.0)
+// 명리 규칙 엔진 공개 함수 (P3-05 rules@0.2.0 → P3-06 rules@0.3.0)
 // 입력: 역법 결과(CalendarResult)의 원국 + (선택) 대운·세운 간지. 출력: RuleAnalysis(해석 재료).
 // 순수 함수 — AI·DB·네트워크·현재 시각을 쓰지 않는다. 같은 입력·옵션이면 같은 출력(배열 순서 포함).
-// 명세: docs/knowledge/rules-spec.md · 옵션: docs/knowledge/schools.md · 설계: docs/SAJU_ENGINE.md "규칙 엔진"
+// 명세: docs/knowledge/rules-spec.md · docs/knowledge/strength-structure-spec.md · 옵션: docs/knowledge/schools.md
+// 설계: docs/SAJU_ENGINE.md "규칙 엔진". 신강약·격국·용신·조후·기세는 명세 §6 제안대로 RuleAnalysis에 함께 담는다
+// (별도 함수로 나누면 호출하는 쪽이 옵션·원국을 두 번 맞춰야 하고, 검증기 P4-04가 결과 하나만 대조하면 되게 하기 위함).
 import { EngineInputError, type CalendarResult, type Pillar } from "../types"
 import { assertPillar, stemElement, stemYinYang, tenGodOfBranch, tenGodOfStem } from "./basics"
 import { elementDistribution } from "./elements"
@@ -10,6 +12,11 @@ import { hiddenStemsOf } from "./hidden"
 import { findInteractions, type Slot } from "./interactions"
 import { resolveRuleOptions } from "./options"
 import { twelveStageOf, twelveStagesTableId } from "./twelveStages"
+import { analyzeStrength } from "./strength"
+import { regularStructures, specialStructures } from "./structure"
+import { analyzeUsefulGods, eokbuRank1Of, markReverses } from "./usefulGod"
+import { analyzeClimate } from "./climate"
+import { analyzeQiFlow } from "./qiFlow"
 import type {
   HiddenStem, NatalPillarKey, Position, RuleAnalysis, RuleExtra, RuleOptions, TenGodHit, TwelveStageHit,
 } from "./types"
@@ -121,6 +128,25 @@ export function analyzeRules(chart: CalendarResult, options?: Partial<RuleOption
   // 공망
   const targets: GongmangTarget[] = slots.map((s) => ({ position: { ...s.branchPos }, branch: s.pillar.branch }))
   const gongmang = analyzeGongmang(o.gongmangBasis, src.natal, targets)
+  const elements = elementDistribution(src.natal, o)
+
+  // P3-06: 원국만 판단(운 제외). 관계는 원국 내부(scope natal)만 쓴다
+  const natalInteractions = interactions.filter((i) => i.scope === "natal")
+  const strength = analyzeStrength(src.natal, o, natalInteractions)
+  const A = strength.models[0] // weighted (특수격·통관·기세는 strengthPrimary와 무관하게 모형 A 사용, spec §2.4)
+  const dayEl = stemElement(dayStem)
+  const regular = regularStructures(src.natal, o)
+  const special =
+    o.specialStructures === "off"
+      ? { candidates: [], notes: [] }
+      : specialStructures({ n: src.natal, o, strength, A, weighted: elements.weighted, interactions: natalInteractions })
+  markReverses(special.candidates, dayEl, strength.groupTotals, eokbuRank1Of(strength, dayEl))
+  const climate = analyzeClimate(src.natal)
+  const usefulGods = analyzeUsefulGods({
+    n: src.natal, o, d: dayEl, weighted: elements.weighted, strength, A, climate,
+    regular: regular.candidates, special: special.candidates,
+  })
+  const qiFlow = analyzeQiFlow(src.natal, elements.weighted, A.total as number)
 
   return {
     engineVersion: RULES_ENGINE_VERSION,
@@ -134,11 +160,24 @@ export function analyzeRules(chart: CalendarResult, options?: Partial<RuleOption
     twelveStages,
     interactions,
     gongmang,
-    elements: elementDistribution(src.natal, o),
+    elements,
+    strength,
+    structure: {
+      candidates: [...regular.candidates, ...special.candidates],
+      tableSensitive: regular.tableSensitive,
+      byTable: regular.byTable,
+      notes: [...regular.notes, ...special.notes],
+    },
+    usefulGods,
+    climate,
+    qiFlow,
   }
 }
 
-export { resolveRuleOptions, DEFAULT_RULE_OPTIONS } from "./options"
+export { resolveRuleOptions, DEFAULT_RULE_OPTIONS, USEFUL_GOD_METHODS } from "./options"
+export { interactionId } from "./interactions"
+export { STRENGTH_THRESHOLDS, hourPillarsOf } from "./strength"
+export { CLIMATE_BRANCH, CLIMATE_SOURCE } from "./climate"
 export { RULES_ENGINE_VERSION } from "./version"
 export { hiddenStemsOf } from "./hidden"
 export { twelveStageOf, twelveStagesTableId } from "./twelveStages"
