@@ -1,13 +1,14 @@
 // O-02 가상 사무실 1단계 — 품질검증 담당 독립 검증(개발자 테스트 tests/office/** 와 별도)
 // 1) 공격적 Hook 입력(실제 프로세스 실행, OFFICE_EVENTS_DIR 임시 폴더)
 // 2) 상태 판정 경계(2분·10분·30분)·기록 없음·세션 종료 → 일하는 상태 금지
-// 3) 발견 결함 재현(it.fails: 지금은 결함 때문에 실패하는 것이 정상. 수정되면 이 표시를 지우고 it 로 바꾼다)
+// 3) 결함 재현·수정 확인(it.fails 는 아직 남은 결함: 지금은 실패하는 것이 정상. 수정되면 it 로 바꾼다)
 import { describe, expect, it } from "vitest"
 import { spawnSync, spawn } from "node:child_process"
 import { mkdtempSync, readFileSync, readdirSync, existsSync, writeFileSync, statSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { computeState } from "../../scripts/office/snapshot.mjs"
+import { cleanDesc } from "../../.claude/hooks/office-event.mjs"
 
 const ROOT = resolve(__dirname, "..", "..")
 const HOOK = join(ROOT, ".claude", "hooks", "office-event.mjs")
@@ -353,5 +354,17 @@ describe("재검증 — 새 판정 규칙과 원칙", () => {
     const m = status(ev, 400, "main")
     expect(m.status).toBe("awaiting_approval") // 직원이 이미 다음 일을 하는데도 총괄실장 쪽 승인 대기가 남음
     expect(WORK.has(m.status)).toBe(false)
+  })
+})
+
+// 결함 R1(재검증에서 발견, L2 수정의 부작용): 업무 설명을 60자로 자르기 전에 개인정보 가림 정규식을 전체 길이에 돌려
+// 길이의 제곱에 비례해 느려진다(4만 자 약 1.2초, 500만 자는 끝나지 않음). 이 동안 Hook의 4초 자체 종료 타이머도 돌지 않고,
+// 작업기록 변환(snapshot --backfill-transcripts)에는 시간 제한이 없다. 수정되면 it 로 바꾼다.
+describe("남은 결함", () => {
+  it.fails("R1: 긴 업무 설명(4만 자)도 가림·자르기가 0.3초 안에 끝난다", () => {
+    const t = Date.now()
+    const out = cleanDesc("1".repeat(40000))
+    expect(String(out).length).toBeLessThanOrEqual(60)
+    expect(Date.now() - t).toBeLessThan(300)
   })
 })

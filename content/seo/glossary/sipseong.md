@@ -29,6 +29,6 @@ basis: rules-spec.md §4, strength-structure-spec.md §0.2
 
 각 십성이 뜻하는 성격은 교재마다 표현이 다르고, 옛 책에는 그 시대의 잣대가 섞인 판정도 있다. 십성은 좋고 나쁨의 판정표가 아니라 힘이 어디서 오고 어디로 나가는지 보는 이름표로 읽는 게 안전하다.
 
-→ [내 십성 무료로 보기](/free?from=seo-yongeo-sipseong)
+→ [내 여덟 글자 무료로 보기](/free?from=seo-yongeo-sipseong)
 
 *옛 명리 이론으로 읽은 것이고, 앞날을 맞힌다고 증명된 것이 아닙니다.*
