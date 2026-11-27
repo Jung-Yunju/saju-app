@@ -82,8 +82,14 @@ export function v(stem: string): string {
  * stemLast: 어간 기본 마지막 음절(받침 없는 어간일 때만 의미). 끝 음절이 받침을 얻었으면 그 받침을 자모로 앞에 붙인다.
  * 예) "갈라선" + "다." → "ㄴ다." / "갈라설" + " 것" → "ㄹ 것" / "갈라섰" + "다" → "ㅆ다" / "갈라서" + "게" → "게"
  */
-export function tailOf(matchedLast: string, stemLast: string | undefined, rest: string): string {
-  if (!stemLast) return rest
+export function tailOf(matchedLast: string, stemLast: string | undefined, rest: string, conjugated = false): string {
+  if (!stemLast) {
+    // 활용형을 직접 적은 꼴(망할·헤어진·죽는): 끝 음절 받침 ㄴ·ㄹ·ㅆ을 어미 머리로
+    if (!conjugated) return rest
+    const m = decompose(matchedLast)
+    const mark = m ? (m.t === T_N ? "ㄴ" : m.t === T_L ? "ㄹ" : m.t === T_SS ? "ㅆ" : "") : ""
+    return mark + rest
+  }
   const m = decompose(matchedLast)
   const b = decompose(stemLast)
   if (!m || !b || b.t !== 0) return rest

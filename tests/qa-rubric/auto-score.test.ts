@@ -220,7 +220,7 @@ describe("실행(파일 입출력)", () => {
 
 // 알려진 검증기(src/engine/verify) 빈틈 — 2026-11-27 채점 도구 작성 중 발견, 총괄실장에게 보고함.
 // it.fails: 지금은 검증기가 못 잡아서 "실패가 기대값"이다. 검증기가 고쳐지면 이 시험이 빨갛게 바뀌니 그때 it으로 바꾼다.
-describe("알려진 검증기 빈틈(고쳐지면 it.fails → it)", () => {
+describe("알려진 검증기 빈틈(고쳐지면 it.fails → it) — 두 건 모두 verify@0.3.0에서 고쳐짐", () => {
   const facts = factsFor(BIRTH_1)
   const blocks = (t: string) => {
     const chs = goodChapters1()
@@ -228,9 +228,11 @@ describe("알려진 검증기 빈틈(고쳐지면 it.fails → it)", () => {
     return scoreBatch([parseSample({ persona: "gap", facts, chapters: [chs[0]] }, "x.json")]).samples[0].verify.accuracy.block
   }
   it("대조군: '시간 임(壬)은 정관이다'(식신인데 정관) → block", () => expect(blocks("시간 임(壬)은 정관이다.")).toBeGreaterThanOrEqual(1))
-  it.fails("말투 가이드 §7 공식 '임(壬)이 경(庚) 일간인 너한테는 정관이다' → 지금은 block 0(일간 글자가 끼면 십성 대조를 건너뜀)", () =>
+  // verify@0.3.0에서 고쳐짐(기준틀 "경(庚) 일간인 너한테"를 건너뛰고 앞 글자에 묶음). 이전 기록: 일간 글자가 끼면 십성 대조를 건너뜀
+  it("말투 가이드 §7 공식 '임(壬)이 경(庚) 일간인 너한테는 정관이다' → block (fixed: verify@0.3.0)", () =>
     expect(blocks("임(壬)이 경(庚) 일간인 너한테는 정관이다.")).toBeGreaterThanOrEqual(1))
   it("대조군: '2027년 丙午년'(2027은 丁未) → block", () => expect(blocks("2027년 丙午년에는 일이 바빠진다.")).toBeGreaterThanOrEqual(1))
-  it.fails("말투 가이드 §6 표기 '2030년 병오(丙午)년'(2030은 庚戌) → 지금은 block 0(한글(한자) 병기 연도 간지를 대조 안 함)", () =>
+  // verify@0.3.0에서 고쳐짐(연도↔간지 결속 문법). 이전 기록: 한글(한자) 병기 연도 간지를 대조 안 함
+  it("말투 가이드 §6 표기 '2030년 병오(丙午)년'(2030은 庚戌) → block (fixed: verify@0.3.0)", () =>
     expect(blocks("2030년 병오(丙午)년에는 일이 바빠진다.")).toBeGreaterThanOrEqual(1))
 })

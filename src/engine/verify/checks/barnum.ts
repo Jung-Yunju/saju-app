@@ -6,6 +6,8 @@
 //   - 상투 문장 사전(BARNUM_PHRASES)에 걸리고 근거 표지가 없는 문장 → warn(문장 하나씩)
 //   - 서술 칸(body·text·claim)을 장(또는 최상위 항목)별로 묶어 근거 없는 문장 비율 > 기준(기본 0.5) → warn(문장 목록)
 // todo·ask·제목·마지막 말은 행동·질문·장식이라 비율 계산에서 뺀다(사전 검사는 body·text·claim만).
+// verify@0.3.0 — 근거 글자가 "부르는 말"로만 쓰인 문장("庚金인 너는 …", "癸水 상관을 가진 너도 …")은 근거로 치지 않는다:
+//   그 꾸밈 구간을 지운 뒤에도 근거 표지가 남아야 근거 있는 문장이다. 지우고 나서 상투 문장이면 warn(rule phrase-decorated).
 import type { Finding, TextSegment, VerifyReport } from "../types"
 import { excerptOf, splitSentences } from "../text"
 import { findGanzhiTokens } from "../letters"
@@ -50,6 +52,23 @@ export const BARNUM_ALWAYS: readonly RegExp[] = [
   /누구나 그렇듯|다들 그렇듯|남들처럼 너도|누구에게나|사람이라면 (다|누구나|누구든)|모든 사람이|세상 사람 (다|누구나)|누구든 (다|그렇)/,
 ]
 
+/** 근거 글자를 부르는 말로만 쓴 꾸밈 구간("庚金인 너는", "癸水 상관을 가진 너도", "庚 일간인 당신은") */
+const VOCATIVE_RE = /[^\s,.!?]{1,12}(?:\s[^\s,.!?]{1,8}){0,2}?\s?(?:인|일간인|일주인|이 있는|가 있는|을 가진|를 가진|를 지닌|을 지닌|을 품은|를 품은|으로 태어난|로 태어난|사주의|사주인)\s(?:너|네|당신|그대|사람|너희|우리 [가-힣]{1,4})(?:는|도|가|이|라면|야|아)?/g
+
+export function hasBasisOutsideVocative(sentence: string): boolean {
+  const rest = sentence.replace(VOCATIVE_RE, (m) => " ".repeat(m.length))
+  return hasBasisMarker(rest)
+}
+
+/** 바넘 상투 표현을 더 넓게(Forer 진술 계열) */
+export const BARNUM_EXTRA: readonly RegExp[] = [
+  /겉(?:은|으로는)\s?[^.!?]{0,12}(?:보여도|보이지만)\s?[^.!?]{0,8}속(?:은|으로는)/,
+  /(?:말 못 할|남모를|남에게 말하지 못한)\s?(?:고민|사연|상처)/,
+  /(?:마음 한구석|마음 깊은 곳)(?:에|엔)/,
+  /(?:변화|자유)를\s?(?:원하|바라)면서도\s?[^.!?]{0,8}(?:안정|불안)/,
+  /(?:생각이 많|속정이 깊|정이 많|책임감이 강|티를 (?:잘 )?내지 않|혼자 삭이|속으로 끙끙|눈치를 (?:많이 )?보|자존심이 강|쉽게 마음을 열지)/,
+]
+
 export function hasBasisMarker(sentence: string): boolean {
   return BASIS_MARKER_RE.test(sentence) || findGanzhiTokens(sentence).length > 0
 }
@@ -87,13 +106,28 @@ export function checkBarnum(
           message: "'누구나 그렇듯'처럼 누구에게나 맞는 말임을 스스로 밝힌 문장 — 근거 글자가 있어도 이 사람만의 말로 바꿀 것",
         })
       }
-      if (hasBasisMarker(s.text)) return
+      if (hasBasisMarker(s.text)) {
+        // 근거 글자가 부르는 말로만 쓰였고 나머지가 상투 문장이면 warn
+        if (!always && !hasBasisOutsideVocative(s.text)) {
+          const hit2 = [...BARNUM_PHRASES, ...BARNUM_EXTRA].find((re) => re.test(s.text))
+          if (hit2)
+            findings.push({
+              severity: "warn",
+              code: "BARNUM",
+              location: sentences.length > 1 ? { ...seg.location, sentence: i } : seg.location,
+              excerpt: excerptOf(s.text),
+              rule: "phrase-decorated",
+              message: "근거 글자를 부르는 말(\"○○인 너는\")로만 끼운 상투 문장 — 그 글자에서 어떻게 그런 성향이 나오는지 이어서 말하거나 지울 것",
+            })
+        }
+        return
+      }
       if (always) {
         g.unmarked.push({ text: s.text, seg, i })
         return
       }
       g.unmarked.push({ text: s.text, seg, i })
-      const hit = BARNUM_PHRASES.find((re) => re.test(s.text))
+      const hit = [...BARNUM_PHRASES, ...BARNUM_EXTRA].find((re) => re.test(s.text))
       if (hit)
         findings.push({
           severity: "warn",

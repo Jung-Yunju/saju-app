@@ -1,9 +1,10 @@
-// 풀이 결과 자동 검증기 (P4-04, verify@0.2.0 — 독립 검토 반영) — 담당: 품질검증·보안 담당자
+// 풀이 결과 자동 검증기 (P4-04, verify@0.3.0 — 2차 블라인드 검토 불합격 후 구조 규칙으로 재설계) — 담당: 품질검증·보안 담당자
 // verifyReading(reading, ctx) → VerifyReport. 순수 함수: AI·DB·네트워크·파일·현재 시각을 쓰지 않는다.
 // 같은 입력이면 같은 보고서(발견 순서 포함). block이 하나라도 있으면 pass = false → 고객에게 보내지 않는다.
 // 검사 항목(코드값): BASIS_NOT_IN_CHART·YEAR_GANZHI_MISMATCH / TENGOD_MISMATCH / FORBIDDEN_TOPIC / FAKE_CLASSIC_QUOTE /
 //   BARNUM / MORAL_JUDGEMENT·GENDER_STEREOTYPE / SCIENTIFIC_CLAIM / KNOWN_FACT_AS_PREDICTION / UNSAFE_HTML / CRISIS_RESPONSE
-// 설계·오탐 처리: docs/TEST_REPORT.md "P4-04" 절, 각 checks/*.ts 머리말.
+// 설계·오탐 처리: docs/TEST_REPORT.md "verify@0.3.0" 절, docs/quality/verifier-v0.3-design.md, 각 checks/*.ts 머리말.
+// 이 검증기는 출고 안전의 유일한 방어선이 아니다(사전·문법 밖 표현은 지나간다). review.needed가 true면 사람이 본다.
 import { analyzeRules } from "../rules"
 import type { RuleAnalysis } from "../rules/types"
 import type { Finding, ReadingLike, Severity, VerifyContext, VerifyReport } from "./types"
@@ -19,12 +20,15 @@ import { checkMoral } from "./checks/moral"
 import { checkScience } from "./checks/science"
 import { checkKnownFacts } from "./checks/known-facts"
 import { checkHtml } from "./checks/html"
-import { checkCrisis } from "./checks/crisis"
+import { assessCrisis, checkCrisis } from "./checks/crisis"
 
 export * from "./types"
 export { collectSegments, splitSentences } from "./text"
 export { buildChartLetters, findGanzhiTokens, GENERAL_HANJA_WORDS } from "./letters"
-export { detectCrisis, CRISIS_RE, COUNSEL_RE } from "./checks/crisis"
+export { assessCrisis, detectCrisis, CRISIS_RE, COUNSEL_RE, type CrisisAssessment } from "./checks/crisis"
+export { findMentions, bindTenGods, findTenGodNames } from "./mentions"
+export { findHarms, modalityOf } from "./harm"
+export { yearRefs, hasTiming } from "./timing"
 
 const SEVERITY_ORDER: Record<Severity, number> = { block: 0, warn: 1, info: 2 }
 
@@ -51,8 +55,10 @@ export function verifyReading(reading: ReadingLike | unknown, ctx: VerifyContext
   const stats: VerifyReport["stats"] = { texts: 0, sentences: 0, barnumByChapter: [] }
   const hasUserText = typeof ctx.userText === "string" && ctx.userText.trim() !== ""
   const hasFacts = (ctx.sajuInput?.known_facts ?? []).length > 0 || (ctx.userFacts ?? []).length > 0
+  const crisis = hasUserText ? assessCrisis(ctx.userText) : null
   const coverage: VerifyReport["coverage"] = {
     crisis: hasUserText ? "ran" : "not-run:no-userText",
+    crisisLevel: crisis ? crisis.level : "not-run",
     tenGods: ctx.rules ? "rules" : ctx.chart ? "chart" : "sajuInput",
     knownFacts: hasFacts ? "ran" : "not-run:no-facts",
     verifiedQuotes: (ctx.verifiedQuotes ?? []).length,
@@ -74,7 +80,7 @@ export function verifyReading(reading: ReadingLike | unknown, ctx: VerifyContext
 
   findings.push(...checkBasis(segments, letters))
   findings.push(...checkStructuredGanzhi(r, letters))
-  findings.push(...checkTenGods(segments, buildTenGodLookup(letters, rulesFor(ctx))))
+  findings.push(...checkTenGods(segments, buildTenGodLookup(letters, rulesFor(ctx)), letters))
   findings.push(...checkForbidden(segments))
   findings.push(...checkClassicQuotes(segments, ctx.verifiedQuotes ?? []))
   const barnum = checkBarnum(segments, ctx.options?.barnumRatio ?? 0.5, ctx.options?.barnumMinSentences ?? 1)
@@ -83,9 +89,11 @@ export function verifyReading(reading: ReadingLike | unknown, ctx: VerifyContext
   stats.sentences = barnum.stats.reduce((n, s) => n + s.sentences, 0)
   findings.push(...checkMoral(segments))
   findings.push(...checkScience(segments))
-  findings.push(...checkKnownFacts(segments, ctx.sajuInput?.known_facts ?? [], ctx.userFacts ?? []))
+  const d0 = (ctx.sajuInput?.daeun ?? [])[0]
+  const birthYear = d0 && Number.isFinite(d0.start_year) && Number.isFinite(d0.start_age) ? d0.start_year - d0.start_age : null
+  findings.push(...checkKnownFacts(segments, ctx.sajuInput?.known_facts ?? [], ctx.userFacts ?? [], birthYear))
   findings.push(...checkHtml(segments))
-  findings.push(...checkCrisis(ctx.userText, r, segments))
+  findings.push(...checkCrisis(ctx.userText, r, segments, crisis ?? undefined))
   return finalize(findings, stats, coverage)
 }
 
@@ -94,6 +102,11 @@ function finalize(findings: Finding[], stats: VerifyReport["stats"], coverage: V
   const sorted = findings.map((f, i) => ({ f, i })).sort((a, b) => SEVERITY_ORDER[a.f.severity] - SEVERITY_ORDER[b.f.severity] || a.i - b.i).map((x) => x.f)
   const counts: Record<Severity, number> = { block: 0, warn: 0, info: 0 }
   for (const f of sorted) counts[f.severity]++
+  const reasons: string[] = []
+  if (coverage.crisisLevel === "crisis") reasons.push("crisis")
+  if (coverage.crisisLevel === "review") reasons.push("crisis-review")
+  if (sorted.some((f) => f.code === "FORBIDDEN_TOPIC" && f.severity === "warn")) reasons.push("forbidden-warn")
+  if (sorted.some((f) => f.code === "TENGOD_MISMATCH" && f.severity === "info")) reasons.push("tengod-uncertain")
   return {
     version: VERIFY_VERSION,
     pass: counts.block === 0,
@@ -101,6 +114,7 @@ function finalize(findings: Finding[], stats: VerifyReport["stats"], coverage: V
     counts,
     findings: sorted,
     coverage,
+    review: { needed: reasons.length > 0, reasons },
     stats,
   }
 }
@@ -108,5 +122,5 @@ function finalize(findings: Finding[], stats: VerifyReport["stats"], coverage: V
 /** 보고서에서 사람이 읽을 한 줄 요약(로그용 — 개인정보·본문 전문을 넣지 않는다) */
 export function summarizeReport(rep: VerifyReport): string {
   const codes = [...new Set(rep.findings.filter((f) => f.severity !== "info").map((f) => f.code))]
-  return `${rep.version} ${rep.pass ? "PASS" : "BLOCK"} score=${rep.score} block=${rep.counts.block} warn=${rep.counts.warn} info=${rep.counts.info}${codes.length ? " codes=" + codes.join(",") : ""}${rep.coverage.crisis === "ran" ? "" : " crisis=not-run"}`
+  return `${rep.version} ${rep.pass ? "PASS" : "BLOCK"} score=${rep.score} block=${rep.counts.block} warn=${rep.counts.warn} info=${rep.counts.info}${codes.length ? " codes=" + codes.join(",") : ""}${rep.coverage.crisis === "ran" ? (rep.coverage.crisisLevel !== "none" ? " crisis=" + rep.coverage.crisisLevel : "") : " crisis=not-run"}${rep.review.needed ? " review" : ""}`
 }

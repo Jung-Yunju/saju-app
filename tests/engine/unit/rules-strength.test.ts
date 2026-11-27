@@ -1,4 +1,4 @@
-// 신강·신약 테스트 — src/engine/rules/strength.ts (rules@0.3.0, P3-06)
+// 신강·신약 테스트 — src/engine/rules/strength.ts (rules@0.3.0, P3-06 → rules@0.4.0 D-022: tableSensitive 정의 분리는 QA가 명세 §1.9·§7 사례 7 정정본으로 갱신)
 // 기대값: docs/knowledge/strength-structure-spec.md §7 사례 1~12의 손계산 값(u 단위: 천간 1.0 = 30u)을 그대로 옮겼다.
 // 구현 결과를 복사하지 않았다. 명세 숫자와 다르게 나온 곳은 없었다(신강약 범위). 판정은 명리상 정답이 아니라 명세 규칙의 결과다.
 import { describe, expect, it } from "vitest"
@@ -153,6 +153,7 @@ describe("§1.9 지장간 표 민감도", () => {
       ["main-only", 0.761905, "신강"],
     ])
     expect(s.tableSensitive).toBe(false)
+    expect(s.tableSensitiveIncludingMainOnly).toBe(false) // 세 표 모두 신강
   })
   it("사례 3: cn 0.504762(S 159) · main 0.523810(S 165) 중화", () => {
     const s = run(CASES[3].gz).strength
@@ -161,14 +162,21 @@ describe("§1.9 지장간 표 민감도", () => {
       ["main-only", 0.52381, "중화"],
     ])
   })
-  it("사례 7: kr 중화 → cn 0.461905 중화(근접) · main 0.428571 신약 → tableSensitive true", () => {
+  it("사례 7: kr 중화 → cn 0.461905 중화(근접) · main 0.428571 신약 → (0.4.0 §1.9) tableSensitive false · IncludingMainOnly true", () => {
     const s = run(CASES[7].gz).strength
     expect(s.tableSensitivity).toEqual([
       { tableId: "cn-lunarjs", ratio: 0.461905, verdict: "중화", extreme: null, nearBoundary: true },
       // 명세에 없는 값: |0.428571 − 0.45| = 0.021429 < 0.03 → 근접(손계산)
       { tableId: "main-only", ratio: 0.428571, verdict: "신약", extreme: null, nearBoundary: true },
     ])
-    expect(s.tableSensitive).toBe(true)
+    // 명세 §7 사례 7 정정본(2026-11-28): kr·cn 둘 다 중화 → 고객 안내 기준 false, main-only 신약까지 넣은 세 표 비교만 true
+    expect(s.tableSensitive).toBe(false)
+    expect(s.tableSensitiveIncludingMainOnly).toBe(true)
+  })
+  it("선택 표가 main-only면 {main-only, kr, cn} 비교 → 두 정의가 같다(사례 7: 신약 vs 중화 → 둘 다 true)", () => {
+    const s = run(CASES[7].gz, { hiddenStemTable: "main-only" }).strength
+    expect(s.models[0].verdict).toBe("신약")
+    expect([s.tableSensitive, s.tableSensitiveIncludingMainOnly]).toEqual([true, true])
   })
   it("선택한 표가 바뀌면 나머지 두 표를 낸다(cn-lunarjs 선택 시 kr·main)", () => {
     const s = run(CASES[7].gz, { hiddenStemTable: "cn-lunarjs" }).strength

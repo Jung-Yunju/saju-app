@@ -7,16 +7,76 @@
 //   - 문장에 연도가 있어도 그해 세운 기둥은 그 연도 가까이(15자 안) 쓰였거나 "○○년/해"로 쓸 때만 허용
 //   - "壬水가 한 글자도 없다"처럼 없는 글자를 없다고 말하는 문장은 info(부재 진술)
 //   - 띄어 쓴 기둥("辛 未")·한글 간지("일주는 신미", "갑자생")·한글 오행 읽기("임수")도 토큰으로 센다(letters.ts)
+// verify@0.3.0: 연도(절대·상대 "내년·작년·후년"·"그해·이듬해") ↔ 간지 결속 문법(yearGanzhiBindings)으로 그해 간지와 항상 대조.
+//   조사·쉼표·괄호·"곧/즉"·"의 간지는"이 끼어도, 간지가 앞에 와도("丙午년인 2027년"), 그 간지가 올해·대운 기둥이어도 면제하지 않는다.
+//   "X 대운"으로 묶이면 그해가 X 대운 기간(±1년) 안인지 본다(rule daeun-year).
 import type { Finding, ReadingLike, TextSegment } from "../types"
 import { excerptAt, excerptOf, splitSentences, yearsInText } from "../text"
 import { findGanzhiTokens, hangulToGanzhi, HIDDEN_MARKER_RE, LUCK_MARKER_RE, parsePillar, yearGanzhi, type ChartLetters } from "../letters"
+import { findMentions } from "../mentions"
+import { yearRefs } from "../timing"
 
 /** 대운·세운을 다루는 칸 — 이 안의 운 글자는 운이라고 밝힌 것으로 본다 */
 const LUCK_PATH_RE = /^(daeun_overview|life_graph|years|shaky_years|review)\b/
 /** 구조 검사(checkStructuredGanzhi)가 따로 보는 칸 */
 const STRUCTURED_GANZHI_RE = /^(years|daeun_overview|life_graph\.periods)\[\d+\]\.ganzhi$/
 
-const YEAR_LABEL_RE = /(1[89]\d{2}|20\d{2})\s*년?\s*[(（]?\s*([甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]|[갑을병정무기경신임계][자축인묘진사오미신유술해](?=\s?년))/g
+/** 연도 → 간지 사이에 올 수 있는 말(조사·쉼표·"의 간지는"·"에 들어오는") */
+const YEAR_TO_GZ_GAP_RE =
+  /^\s*(?:년도?|해)?\s*(?:은|는|이|가|의|에|에는|엔|인|이라는|이란|라는|으로|부터|—|–|-|:|,|[(（])?\s*,?\s*(?:곧|즉|바로|그러니까)?\s*(?:(?:의\s?)?(?:간지|세운|해 기운|해 글자|글자|기운)(?:은|는|이|가)?|(?:에\s?)?(?:들어오는|찾아오는|오는|드는|닿는|맞는|만나는)|(?:이|가)\s?(?:되는|드는))?\s*$/
+/** 간지 → 연도 사이 */
+const GZ_TO_YEAR_GAP_RE = /^\s*(?:년|해)?\s*(?:인|이던|이었던|이 되는|이 드는|에 해당하는|이라는|라는|[(（]|—|–|-|:)?\s*$/
+/** 한글 간지를 접미어 없이 연도 뒤에 쓴 꼴("2030년은 경술이다") — 서술격·문장부호가 뒤따를 때만 */
+const HANGUL_GZ_AFTER_RE = /^([갑을병정무기경신임계][자축인묘진사오미신유술해])(?=\s?(?:년|해|[(（]|이다|이고|이며|이라|이니|이야|이란다|이지|[,.]|$))/
+
+interface YearBinding {
+  year: number
+  g: string
+  at: number
+  len: number
+  rel: boolean
+  daeun: boolean
+  label: string
+}
+
+const gzOf = (p: { stem: string; branch: string } | null) => (p ? p.stem + p.branch : "")
+
+/** 문장 속 연도 표현과 그 연도에 붙인 간지(앞·뒤 어느 쪽이든) */
+export function yearGanzhiBindings(text: string, letters: ChartLetters): YearBinding[] {
+  const out: YearBinding[] = []
+  const refs = yearRefs(text, letters.thisYear)
+  if (refs.length === 0) return out
+  const mentions = findMentions(text).filter((m) => m.pillar && m.chars.length === 2)
+  for (const r of refs) {
+    const label = text.slice(r.index, r.end).trim()
+    // 뒤: 연도 + 사이말 + 간지
+    for (const m of mentions) {
+      if (m.index < r.end) continue
+      if (m.index - r.end > 24) break
+      if (!YEAR_TO_GZ_GAP_RE.test(text.slice(r.end, m.index))) continue
+      const g = m.chars.join("")
+      out.push({ year: r.year, g, at: r.index, len: m.end - r.index, rel: r.kind === "rel", daeun: /^[^가-힣]{0,3}\s?대운/.test(text.slice(m.end, m.end + 5)), label })
+      break
+    }
+    if (!out.some((b) => b.at === r.index)) {
+      // 한글 간지 접미어 없이: "2030년은 경술이다"
+      const gapM = /^\s*(?:년도?|해)?\s*(?:은|는|이|가|의|,)?\s*,?\s*/.exec(text.slice(r.end))
+      const at = r.end + (gapM ? gapM[0].length : 0)
+      const h = HANGUL_GZ_AFTER_RE.exec(text.slice(at, at + 12))
+      const g = h ? hangulToGanzhi(h[1]) : null
+      if (g) out.push({ year: r.year, g, at: r.index, len: at + 2 - r.index, rel: r.kind === "rel", daeun: false, label })
+    }
+    // 앞: 간지 + 사이말 + 연도("丙午년인 2027년", "병오년(2026)")
+    const before = mentions.filter((m) => m.end <= r.index && r.index - m.end <= 8)
+    const m = before[before.length - 1]
+    // 대운 이름("대운은 정축, 2023년부터")은 연도의 간지가 아니다
+    const daeunCtx = m && (/대운\s?(?:은|는|이|가|의)?\s?$/.test(text.slice(Math.max(0, m.index - 6), m.index)) || /^\s?대운/.test(text.slice(m.end, m.end + 4)))
+    if (m && !daeunCtx && GZ_TO_YEAR_GAP_RE.test(text.slice(m.end, r.index)) && !out.some((b) => b.at === r.index)) {
+      out.push({ year: r.year, g: m.chars.join(""), at: m.index, len: r.end - m.index, rel: r.kind === "rel", daeun: false, label })
+    }
+  }
+  return out
+}
 
 const ABSENCE_AFTER_RE = /^[木火土金水]?\s?(가|이|는|은|도)?\s?(한 글자도|하나도|한 자도|전혀|아예|원국에|네 사주에|여덟 글자에)?\s?(없|안 보|빠져)/
 const POSITION_KO = { year: "연주", month: "월주", day: "일주", hour: "시주" } as const
@@ -46,26 +106,45 @@ function checkText(
   }
   const seen = new Set<string>()
 
-  // "2015년 丙申" 처럼 연도에 바로 붙인 간지가 그해 간지와 다른가
-  for (const m of text.matchAll(YEAR_LABEL_RE)) {
-    const y = Number(m[1])
-    const g = /[가-힣]/.test(m[2]) ? hangulToGanzhi(m[2]) : m[2]
-    if (!g) continue
-    const real = yearGanzhi(y)
-    if (g === real) continue
-    const tail = text.slice((m.index ?? 0) + m[0].length, (m.index ?? 0) + m[0].length + 4)
-    // "2011년 丁亥 대운이 들어와" — 그해 시작한 대운 이름이면 정상
-    const isDaeunLabel = /^\s?대운/.test(tail) && letters.daeun.some((d) => d.ganzhi === g)
-    if (isDaeunLabel) continue
-    seen.add(`Y:${g}`)
+  // 연도(절대·상대) ↔ 간지 결속: "2030년 병오(丙午)년", "2028년은, 무신(戊申)", "내년 丁未", "丙午년인 2027년" → 그해 간지와 대조
+  for (const b of yearGanzhiBindings(text, letters)) {
+    const real = yearGanzhi(b.year)
+    if (b.daeun) {
+      const idx = letters.daeun.findIndex((d) => d.ganzhi === b.g)
+      if (idx < 0) continue // 없는 대운 이름은 아래 토큰 검사가 BASIS로 잡는다
+      const from = letters.daeun[idx].start_year
+      const to = idx + 1 < letters.daeun.length ? letters.daeun[idx + 1].start_year - 1 : from + 9
+      if (b.year >= from - 1 && b.year <= to + 1) continue
+      seen.add(`Y:${b.g}`)
+      out.push({
+        severity: "block",
+        code: "YEAR_GANZHI_MISMATCH",
+        location: loc,
+        excerpt: excerptAt(text, b.at, b.len),
+        rule: "daeun-year",
+        message: `${b.year}년에 ${b.g} 대운이라 했으나 ${b.g} 대운은 ${from}~${to}년`,
+      })
+      continue
+    }
+    if (b.g === real) {
+      if (b.rel) localPillars.set(b.g, b.year)
+      continue
+    }
+    // 입춘 전 출생·1월: 그해 1월은 아직 전년 간지 — 원국 연주이거나 "1월" 표지가 있으면 전년 간지 허용
+    const prev = yearGanzhi(b.year - 1)
+    if (b.g === prev && (gzOf(letters.natal.year) === b.g || /(?<!\d)1\s?월|정월|입춘 전|입춘 앞/.test(text))) continue
+    seen.add(`Y:${b.g}`)
     out.push({
       severity: "block",
       code: "YEAR_GANZHI_MISMATCH",
       location: loc,
-      excerpt: excerptAt(text, m.index ?? 0, m[0].length),
-      message: `${y}년의 간지는 ${real}인데 ${g}로 적음`,
+      excerpt: excerptAt(text, b.at, b.len),
+      rule: b.rel ? "relative-year" : "year",
+      message: `${b.label}(${b.year}년)의 간지는 ${real}인데 ${b.g}로 적음`,
     })
   }
+  // 상대 연도로 맞게 적은 간지는 이 문장에서 허용(내년 丁未 → 丁未)
+  for (const r of yearRefs(text, letters.thisYear)) if (r.kind === "rel") localPillars.set(yearGanzhi(r.year), r.year)
 
   for (const t of findGanzhiTokens(text, strict)) {
     const key = `${t.kind === "char" ? "C" : "P"}:${t.value}`

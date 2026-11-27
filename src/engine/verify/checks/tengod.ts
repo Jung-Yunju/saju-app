@@ -1,15 +1,14 @@
 // 2. TENGOD_MISMATCH — 본문이 글자와 십성을 묶어 말하면 규칙 엔진 결과와 대조
-// 잡는 꼴(가능한 범위만):
-//   A. 글자 → 십성: "酉는 정관", "유(酉)는 정관이야", "酉 정관", "酉가 곧 편재", "유금은 정관"
-//   B. 십성 → 글자: "정관인 酉", "정관(酉)", "정관 酉", "정관 유(酉)"
-// 대조 기준: ctx.rules(analyzeRules 결과)의 tenGods에서 같은 글자의 십성. 없으면 같은 규칙 함수로 계산.
-//   - 겉 글자 기준과 맞으면 통과
-//   - 지지인데 지장간 기준이나 다른 학파(지지 음양 기준 byOrder)로만 맞으면 info(불확실)
-//   - 일간 글자는 비견으로만 통과(그 밖의 십성이면 block)
-//   - 어느 기준으로도 안 맞으면 block
-//   - 부정문("정관이 아니라")은 건너뛴다
+// verify@0.3.0: 꼴 목록(정규식 두 개) 대신 구조로 찾는다(mentions.ts).
+//   ① 문장 안의 모든 천간·지지 언급을 형태 무관하게 뽑는다(甲·甲木·갑(甲)·갑목·丙午·병오(丙午)·"일간 경"·자리 이름 "월지").
+//   ② 십성 이름과 언급 사이 글이 결속 문법(조사·꾸밈말·괄호·오행 한자·기준틀)으로만 채워졌으면 묶는다.
+//      기준틀("庚 일간에게", "庚金인 너에게")은 건너뛰고 그 앞 언급에 묶는다 — 일간 글자가 끼어도 검사를 멈추지 않는다.
+//   ③ 묶인 글자를 규칙 엔진 십성과 대조한다.
+// 판정: 겉 글자 기준과 맞으면 통과 / 지장간·다른 학파로만 맞으면 info / 어느 기준으로도 안 맞으면 block.
+//   기둥(丙午)은 천간·지지 어느 한쪽이 맞으면 통과. 일간 글자는 비견(비겁)으로만 통과. 부정문("정관이 아니라")은 건너뛴다.
 import type { Branch, Stem } from "../../types"
 import type { RuleAnalysis, RuleOptions, TenGod } from "../../rules/types"
+import { bindTenGods, findMentions, TENGOD_NAMES as NAMES } from "../mentions"
 import { hiddenStemsOf } from "../../rules/hidden"
 import { tenGodOfBranch, tenGodOfStem } from "../../rules/basics"
 import { DEFAULT_RULE_OPTIONS } from "../../rules/options"
@@ -17,41 +16,8 @@ import type { Finding, TextSegment } from "../types"
 import { excerptAt, splitSentences } from "../text"
 import { isBranchChar, isStemChar, type ChartLetters } from "../letters"
 
-const TEN_GODS: readonly TenGod[] = ["비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인"]
-/** 십성 이름·묶음 이름 → 해당 십성들 */
-const TENGOD_NAMES: Record<string, readonly TenGod[]> = {
-  ...Object.fromEntries(TEN_GODS.map((t) => [t, [t]])),
-  칠살: ["편관"],
-  효신: ["편인"],
-  비겁: ["비견", "겁재"],
-  식상: ["식신", "상관"],
-  재성: ["편재", "정재"],
-  관성: ["편관", "정관"],
-  관살: ["편관", "정관"],
-  인성: ["편인", "정인"],
-}
-const NAME_ALT = Object.keys(TENGOD_NAMES).sort((a, b) => b.length - a.length).join("|")
-
-/** 한글 오행 읽기(갑목·유금…) → 한자 한 글자. "신금"은 辛·申 둘 다라 쓰지 않는다 */
-const HANGUL_ELEMENT_READINGS: Record<string, string> = {
-  갑목: "甲", 을목: "乙", 병화: "丙", 정화: "丁", 무토: "戊", 기토: "己", 경금: "庚", 임수: "壬", 계수: "癸",
-  자수: "子", 축토: "丑", 인목: "寅", 묘목: "卯", 진토: "辰", 사화: "巳", 오화: "午", 미토: "未", 유금: "酉", 술토: "戌", 해수: "亥",
-}
-const HANGUL_ALT = Object.keys(HANGUL_ELEMENT_READINGS).join("|")
-/** "상관없다", "상관하지 않는다" 같은 일반어 제외 */
-const NAME_END = "(?!\\s?없|하지|하고|않|이\\s?없|념)"
-const HANJA = "[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]"
-
-// A: (한글(?)한자 | 한자 | 한글오행) + (조사) + (꾸밈) + 십성
-const PAT_A = new RegExp(
-  `(?:[가-힣]\\(\\s*(${HANJA})\\s*\\)|([甲乙丙丁戊己庚辛壬癸])?(${HANJA})(?![甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥])|(${HANGUL_ALT}))` +
-    `\\s*(?:[(（][^)）]{0,4}[)）])?\\s*(?:은|는|이|가|=|:|—|-|,)?\\s*(?:곧|바로|네|너의|너한테|네게|너에게|일간에게|일간 기준|일간 기준으로)?\\s*(${NAME_ALT})${NAME_END}`,
-  "g",
-)
-// B: 십성 + (인|이라는|이란|,|() + 글자
-const PAT_B = new RegExp(`(${NAME_ALT})${NAME_END}\\s*(?:인|이라는|이란|으로 오는|으로 온|:)?\\s*[(（]?\\s*(?:[가-힣][(（])?\\s*(${HANJA})`, "g")
-const NEGATION_AFTER = /^\s*(?:이|가)?\s*(?:아니|아냐|아님)/
-
+/** 십성 이름 → 해당 십성(한자·묶음 이름 포함 — mentions.ts) */
+const TENGOD_NAMES = NAMES
 export interface TenGodLookup {
   /** 겉 글자(원국·운의 천간·지지) 기준 */
   surface(c: string): Set<TenGod>
@@ -115,7 +81,7 @@ function judge(chars: string[], name: string, lk: TenGodLookup): { severity: "bl
   return { severity: "block", expected }
 }
 
-export function checkTenGods(segments: TextSegment[], lk: TenGodLookup): Finding[] {
+export function checkTenGods(segments: TextSegment[], lk: TenGodLookup, letters?: ChartLetters): Finding[] {
   const out: Finding[] = []
   for (const seg of segments) {
     if (seg.letterField) continue
@@ -123,34 +89,33 @@ export function checkTenGods(segments: TextSegment[], lk: TenGodLookup): Finding
     sentences.forEach((s, si) => {
       const loc = sentences.length > 1 ? { ...seg.location, sentence: si } : seg.location
       const seen = new Set<string>()
-      const handle = (chars: string[], name: string, idx: number, len: number) => {
-        const char = chars.join("")
-        const k = `${char}:${name}`
-        if (seen.has(k)) return
-        seen.add(k)
-        const tail = s.text.slice(idx + len, idx + len + 6)
-        if (NEGATION_AFTER.test(tail)) return
-        const { severity, expected } = judge(chars, name, lk)
-        if (!severity) return
-        out.push({
-          severity,
-          code: "TENGOD_MISMATCH",
-          location: loc,
-          excerpt: excerptAt(s.text, idx, len),
-          rule: severity === "block" ? "mismatch" : "uncertain",
-          message:
-            severity === "block"
-              ? `${char}를 ${name}(이)라 했으나 규칙 엔진 기준 ${expected}`
-              : `${char}를 ${name}(이)라 했음 — 겉 글자 기준 ${expected}. 일간 자신이거나 지장간·학파 차이로만 맞을 수 있어 사람 확인 필요`,
-        })
+      const mentions = findMentions(s.text, letters)
+      if (mentions.length === 0) return
+      for (const b of bindTenGods(s.text, mentions, lk.dayStem)) {
+        for (const m of b.mentions) {
+          const chars = [...new Set(m.chars)]
+          const char = chars.join("")
+          const k = `${char}:${b.name.name}`
+          if (seen.has(k)) continue
+          seen.add(k)
+          const { severity, expected } = judge(chars, b.name.name, lk)
+          if (!severity) continue
+          const from = Math.min(m.index, b.name.index)
+          const to = Math.max(m.end, b.name.end)
+          out.push({
+            severity,
+            code: "TENGOD_MISMATCH",
+            location: loc,
+            excerpt: excerptAt(s.text, from, to - from),
+            rule: severity === "block" ? "mismatch" : "uncertain",
+            message:
+              severity === "block"
+                ? `${m.slot ? m.slot + "(" + char + ")" : char}를 ${b.name.name}(이)라 했으나 규칙 엔진 기준 ${expected}`
+                : `${char}를 ${b.name.name}(이)라 했음 — 겉 글자 기준 ${expected}. 지장간·학파 차이로만 맞을 수 있어 사람 확인 필요`,
+          })
+        }
       }
-      for (const m of s.text.matchAll(PAT_A)) {
-        const chars = m[1] ? [m[1]] : m[3] ? (m[2] ? [m[2], m[3]] : [m[3]]) : m[4] ? [HANGUL_ELEMENT_READINGS[m[4]]] : []
-        if (chars.length) handle(chars, m[5], m.index ?? 0, m[0].length)
-      }
-      for (const m of s.text.matchAll(PAT_B)) handle([m[2]], m[1], m.index ?? 0, m[0].length)
     })
   }
   return out
 }
-

@@ -43,10 +43,10 @@ export function yearRefs(text: string, thisYear: number | null): YearRef[] {
         }
       }
     }
-  // "이듬해"·"그다음 해" = 바로 앞에 적은 연도 + 1
-  for (const m of text.matchAll(/이듬해|그다음 해|그 이듬해/g)) {
+  // "이듬해"·"그다음 해" = 바로 앞에 적은 연도 + 1, "그해"·"그 해" = 바로 앞에 적은 연도
+  for (const m of text.matchAll(/그 이듬해|이듬해|그다음 해|그해|그 해(?=[\s에의는엔도가])/g)) {
     const prev = out.filter((r) => r.end <= (m.index ?? 0)).sort((a, b) => b.end - a.end)[0]
-    if (prev) out.push({ year: prev.year + 1, index: m.index ?? 0, end: (m.index ?? 0) + m[0].length, kind: "rel" })
+    if (prev) out.push({ year: prev.year + (/이듬|다음/.test(m[0]) ? 1 : 0), index: m.index ?? 0, end: (m.index ?? 0) + m[0].length, kind: "rel" })
   }
   return out.sort((a, b) => a.index - b.index)
 }

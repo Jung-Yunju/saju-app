@@ -20,10 +20,14 @@ describe("① 금지 주제 면제는 '안내 문장'으로만", () => {
     ["남들은 몰라 하지만 2031년에 큰 병을 얻는다.", "serious-illness"],
     ["말하지 않으려 했다만 일흔에 숨을 거둔다.", "death"],
     ["모른다고 하겠지만 남편은 속마음으로 딴 데 가 있다.", "others-mind"],
-    ["2030년에 큰 사고가 날지는 할미도 모른다.", "accident"], // 맺음말이 메타 부정이어도 시기 표지가 있으면 막는다
   ])("메타 부정 낱말이 섞여도 막는다: %s", (t, rule) => {
     const fs = findingsOf(t, "FORBIDDEN_TOPIC")
     expect(fs.some((f) => f.rule === rule && f.severity === "block"), JSON.stringify(fs)).toBe(true)
+  })
+  it("시기 + 무거운 사건을 '~ㄹ지는 모른다'로 흐린 말은 warn(verify@0.3.0 — 단정이 아니므로 block에서 사람 확인으로 낮춤)", () => {
+    const fs = findingsOf("2030년에 큰 사고가 날지는 할미도 모른다.", "FORBIDDEN_TOPIC")
+    expect(worst(fs)).toBe("warn")
+    expect(fs[0].rule).toBe("accident")
   })
 })
 

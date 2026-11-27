@@ -1,17 +1,25 @@
 // 3. FORBIDDEN_TOPIC — SYSTEM_PROMPT "다루지 않는 것" + 원칙 10(부적·물건·이름·방위 권유 금지)
-// 문장 단위 정규식 사전 + 문맥 규칙. (정규식 사전 방식이라 완전한 차단은 불가능하다 — docs/TEST_REPORT.md P4-04 보완 절)
-//   mode always : 나오면 block (사망·수명, 전생·사후, 병명, 타인 속마음 단정)
-//   mode timed  : 시기 표지(연도·나이·대운·올해…)나 앞날 단정 끝맺음이 있으면 block, 없으면 warn (사고, 중병, 이혼·파산)
-//   mode exam   : 시험 + 합격/불합격 단정(현재·미래형 동사만 사전에 둠). 두 사이에 다른 주어("체력이 떨어질")가 끼면 제외
-//   mode invest : 투자 대상 낱말 + 권유·예측(사라·넣어라·오른다·당첨)이면 block, 만류("바라기보다·하지 마라")면 통과, 그 밖은 warn
+// verify@0.3.0 — 죽음·질병/수술·병명·이혼·파산·사고는 낱말 목록 대신 구조 규칙(harm.ts):
+//   해로운 사건 의미 범주(넓은 어간·완곡어·신체 부위+나쁜 상태·가족+잃다·재산+날리다) × 서술 양태(단정·가능성·부정·조건·걱정·인용 반박·과거·되짚기)
+//   × 시기 표지(timing.ts: 연도·상대 연도·나이·대운·"몇 해 뒤"·"그해", 같은 문장 또는 지시어로 이은 인접 문장)
+//   판정 표(시기 있음): 무거운 사건 단정·가능성 → block / 가벼운 사건 단정 → block, 가능성 + 권유(조심해라) → 통과, 그 밖 가능성 → warn
+//                      "~ㄹ지는 모른다"(불확실) + 무거운 사건 → warn / 지난 일 단정 → warn(죽음 추정 "여의었을 것"은 block)
+//   판정 표(시기 없음): 죽음·병명 단정·가능성 → block / 무거운 사건 단정 → block, 가능성 → warn / 가벼운 사건 단정 → warn
+//   부정("갈라설 일은 없다")·조건("아프면 병원에")·걱정("망할까 봐")·인용 반박("죽는다는 말은 믿지 마라")·되짚기("수술했다고 했지")·
+//   주제어("이혼 이야기", "이혼을 고민") → 막지 않는다. 단, 단정 맺음("갈라선다.")이면 뒤에 메타 말이 붙어도 단정.
+// 그 밖(전생·투자·시험·타인 속마음·부적)은 기존 사전 규칙:
+//   mode always : 나오면 block (전생·사후, 타인 속마음 단정)
+//   mode exam   : 시험 + 합격/불합격 단정
+//   mode invest : 투자 대상 낱말 + 권유·예측이면 block, 만류면 통과, 그 밖은 warn
 //   mode warn   : warn (부적·개명·방위 등 개운 물건 권유)
-// 공통 예외: 금지 주제를 "다루지 않겠다"는 안내 문장(isGuidanceSentence — 메타 부정이 맺음말이고 시기 표지가 없음)만 통과.
-//           낱말 경계: "실망·전망·소망"의 '망', "설명이 짧"의 '명이 짧', "귀신같이", "댁으로 돌아가실"은 금지어가 아니다.
+//   공통 예외: 금지 주제를 "다루지 않겠다"는 안내 문장(isGuidanceSentence)
 import type { Finding, TextSegment } from "../types"
 import { excerptAt, splitSentences } from "../text"
-import { FUTURE_RE, isGuidanceSentence, PAST_RE, TIMING_RE } from "../patterns"
+import { isGuidanceSentence } from "../patterns"
+import { findHarms, stripGlosses, type HarmCategory, type HarmHit } from "../harm"
+import { ANAPHOR_RE, hasTiming } from "../timing"
 
-type Mode = "always" | "timed" | "exam" | "invest" | "warn"
+type Mode = "always" | "exam" | "invest" | "warn"
 interface Rule {
   id: string
   label: string
@@ -21,8 +29,6 @@ interface Rule {
   exempt?: (before: string, match: string, after: string) => boolean
 }
 
-/** 앞 글자가 한글이 아니어야 하는 낱말(낱말 머리) — JS 정규식 뒤돌아보기 대신 */
-const H = "(?:^|[^가-힣])"
 const ROMANTIC = "(?:그 사람|그녀|그 남자|그 여자|상대방|상대|남편|아내|애인|남자친구|여자친구|남친|여친|전 남친|전 여친|전 애인|짝|그이)"
 const FAMILY_WORK =
   "(?:친정엄마|친정 엄마|시어머니|시아버지|어머니|엄마|아버지|아빠|장모|장인|며느리|사위|아들|딸|언니|오빠|누나|형|동생|친구|동료|상사|부장|팀장|선배|후배|그 친구|그 아이|그 애|시댁 식구|처가 식구)"
@@ -30,63 +36,10 @@ const OBJ = "(?:너를|널|네게|너에게|너한테|너만)"
 
 export const FORBIDDEN_RULES: readonly Rule[] = [
   {
-    id: "death",
-    label: "죽음·수명",
-    mode: "always",
-    re: new RegExp(
-      [
-        "사망", "죽는다", "죽게 된", "죽게 될", "죽을 (운|해|수|팔자|고비)", "죽음이 (온|닥|찾)",
-        "세상을 (떠난다|떠날|떠나게|뜬다|뜰|뜨게|하직)", `${H}명이 (다하|다한|짧|길지 않)`, `${H}명줄`, "단\\s?명", `${H}요\\s?절(한|하|했|할)`, "수명",
-        "오래 (못 산|못 살|살지 못)", "객사", "횡사", "숨을 거두", "숨을 거둔", "숨을 거둘", "숨이 끊어", "숨이 끊긴", "목숨이 다", "목숨을 잃", "생을 마감", "명을 달리", "이승을 떠", "황천", "저승",
-        "(스물|서른|마흔|쉰|예순|일흔|여든|아흔|\\d{1,3}\\s?(살|세))[가-힣]{0,2}(을|를)?\\s?넘기(지|기) (못|어렵)",
-        "돌아가신다", "돌아가실", "돌아가시게", "여읜다", "여의게", "여읠", "상을 당한다", "상을 당할", "상복을 입",
-      ].join("|"),
-    ),
-    // "댁으로 돌아가실 때"(귀가)는 죽음이 아니다
-    exempt: (before, m) => /^돌아가/.test(m) && /((댁|집|고향|본가|자리|제자리|숙소|회사|학교|일터|방)(으로|로|에)|으로|쪽으로)\s*$/.test(before),
-  },
-  {
     id: "afterlife",
     label: "전생·죽은 뒤의 일",
     mode: "always",
     re: /(전생|前生|前世|지난 생|지난생|전 생애|업보|업장|카르마|윤회|죽은 뒤|죽은 후|사후 세계|저세상|귀신(?!같|처럼|이 곡할)|빙의|천도재|조상 탓|조상이 노해|원혼)/,
-  },
-  {
-    id: "diagnosis",
-    label: "병명 진단",
-    mode: "always",
-    re: new RegExp(
-      [
-        "암에 걸", "암이 생", "암 진단", `[위폐간]\\s?암(?=[이가을에으도\\s.,]|$)`, `${H}암(이|에|을|으로)\\s?(생|걸|나오|찾|발견|진단|온)`,
-        "대장암", "유방암", "자궁암", "갑상선암", "췌장암", "혈액암", "백혈병", "뇌졸중", "중풍", "뇌출혈", "뇌경색", "심근경색", "심장마비", "협심증", "심장병",
-        "당뇨", "고혈압", "치매", "파킨슨", "우울증", "공황장애", "조현병", "조울증", "불임", "난임", "간경화", "신부전", "결핵", "디스크", "관절염", "종양",
-        "癌", "腫瘍", "中風", "糖尿", "癡呆", "痴呆", "白血病",
-        "(폐|간|위|가슴|목|유방|자궁|머리|뇌|장|갑상선)에\\s?(혹|물혹|덩어리|종양)", `${H}(혹|물혹)이 (생|자라|잡|커)`,
-      ].join("|"),
-    ),
-  },
-  {
-    id: "serious-illness",
-    label: "중병·수술 시기",
-    mode: "timed",
-    re: /(중병|큰 병|큰병|난치병|불치병|병에 걸린다|병에 걸릴|병이 든다|병이 들|병을 얻|병이 찾아|수술을 받|수술할|수술을 하게|입원한다|입원할|입원하게)/,
-  },
-  {
-    id: "accident",
-    label: "사고 시기",
-    mode: "timed",
-    re: /(교통사고|사고수|사고를 당|사고가 난다|사고가 날|사고 난다|큰 사고|크게 다친|크게 다칠|칼을 댄|칼을 대|피를 본|피를 볼|혈광|낙상|화재를 당|물에 빠진다|물에 빠질)/,
-  },
-  {
-    id: "divorce-bankruptcy",
-    label: "이혼·파산 시기",
-    mode: "timed",
-    re: new RegExp(
-      [
-        "이혼", "파혼", "파경", "이혼수", "갈라선다", "갈라설", `(남편|아내|배우자|부부|짝|그 사람|애인)(과|와|이|가|는|은)?\\s?(갈라서게|갈라설|갈라선다|헤어지게|헤어질|헤어진다|등을 돌리게|등을 돌린다|남남이 될|남남이 된다)`,
-        "헤어질 운", "파산", "부도", "도산", `${H}망(한다|할|하게|해서|해 버|했)`, "쫄딱", "쪽박", "빈털터리", "알거지", "거덜", "빚더미", "빚잔치", "신용불량",
-      ].join("|"),
-    ),
   },
   {
     id: "investment",
@@ -120,11 +73,8 @@ export const FORBIDDEN_RULES: readonly Rule[] = [
   },
 ]
 
-/** 검사 전에 지우는 관용구·일반어 */
-const IDIOMS = /(죽을 만큼|죽을 힘|죽도록|죽기 살기|죽기살기|사고방식|사고력|사고하|사고의 틀|사고를 넓|시간을 투자|운동 종목|경기 종목)/g
-
-/** 사용자가 알려 준 지난 일을 되짚는 표지 */
-const USER_REPORTED_PAST_RE = /((었|았|였|했|진|난|된)\s?(다고|다는|해라고|해가 [^.!?]{0,12}이라고)\s?(했|하|말)|(이|이라|라)\s?했지|(다|라)고 했지|다니\s|했다니)/
+/** 검사 전에 지우는 관용구·일반어(사전 규칙용) */
+const IDIOMS = /(시간을 투자|운동 종목|경기 종목)/g
 
 // 투자: 권유·예측 / 만류
 const INVEST_PUSH = /(사\s?(라|둬|두어|두|모아|모으|놓|놔|봐|보|볼)|사야|사면 (된|돈)|사 볼|넣어|넣으|몰아|몰빵|투자해|투자하면|들어가라|매수|당첨|오른다|오를 거|값이 뛴|대박|돈이 된|돈이 될|벌 수|번다|불어난다|사들)/
@@ -152,14 +102,76 @@ function examHit(text: string): RegExpExecArray | null {
   return null
 }
 
+const HARM_RULE: Record<HarmCategory, { id: string; label: string }> = {
+  death: { id: "death", label: "죽음·수명" },
+  illness: { id: "serious-illness", label: "중병·수술·입원" },
+  diagnosis: { id: "diagnosis", label: "병명 진단" },
+  divorce: { id: "divorce-bankruptcy", label: "이혼·관계 파탄" },
+  bankruptcy: { id: "divorce-bankruptcy", label: "파산·재산 손실" },
+  accident: { id: "accident", label: "사고" },
+}
+/** 앞 문장의 시기를 이어받는 연결어 */
+const CONNECTIVE_START_RE = /^(?:그러면|그러니|그래서|그러다|그때|이때|거기서|그 해|그해|그 무렵|그즈음|그 시기)/
+/** 권유·당부 맺음(조심해라·챙겨라) — 가벼운 사건의 가능성 + 권유는 생활 조언으로 본다 */
+const ADVICE_RE = /(?:라|거라|렴|자|세요|십시오|해라|하라|마라|말아라|둬라|두어라|챙겨라|살펴라|가라|봐라)\s*[.!]?\s*$|(?:하는 게|하는 것이|두는 게|챙기는 게) (?:좋|낫)/
+
+function harmSeverity(h: HarmHit, timed: boolean, advice: boolean): "block" | "warn" | null {
+  const always = h.cat === "death" || h.cat === "diagnosis"
+  switch (h.modality) {
+    case "assert":
+      if (timed || always || h.severe) return "block"
+      return "warn"
+    case "hedge":
+      if (always) return "block"
+      if (timed) return h.severe ? "block" : advice ? null : "warn"
+      return h.severe ? "warn" : null
+    case "uncertain":
+      return timed && h.severe ? "warn" : null
+    case "pastClaim":
+      return h.cat === "death" ? (timed ? "block" : "warn") : timed ? "warn" : null
+    case "past":
+      return timed && (h.severe || always) ? "warn" : null
+    default:
+      return null
+  }
+}
+
 export function checkForbidden(segments: TextSegment[]): Finding[] {
   const out: Finding[] = []
   for (const seg of segments) {
     const sentences = splitSentences(seg.text)
+    const timedFlags = sentences.map((s) => hasTiming(s.text))
     sentences.forEach((s, si) => {
+      const loc = sentences.length > 1 ? { ...seg.location, sentence: si } : seg.location
+      // ① 해로운 사건 × 시기 × 양태
+      const clean = stripGlosses(s.text)
+      const timedAdj =
+        (ANAPHOR_RE.test(s.text) && ((si > 0 && timedFlags[si - 1]) || (si + 1 < sentences.length && timedFlags[si + 1]))) ||
+        (si > 0 && timedFlags[si - 1] && CONNECTIVE_START_RE.test(s.text))
+      const timed = timedFlags[si] || timedAdj
+      const advice = ADVICE_RE.test(s.text)
+      const seenRule = new Set<string>()
+      for (const h of findHarms(s.text)) {
+        const severity = harmSeverity(h, timed, advice)
+        if (!severity) continue
+        const r = HARM_RULE[h.cat]
+        if (seenRule.has(r.id + severity)) continue
+        seenRule.add(r.id + severity)
+        out.push({
+          severity,
+          code: "FORBIDDEN_TOPIC",
+          location: loc,
+          excerpt: excerptAt(clean, h.index, h.length),
+          rule: r.id,
+          message:
+            severity === "block"
+              ? `금지 주제: ${r.label}${timed ? " 시기 예언" : " 단정"}(${h.modality === "hedge" ? "가능성" : h.modality === "pastClaim" ? "지난 일 추정" : "단정"}${timedAdj && !timedFlags[si] ? ", 인접 문장의 시기" : ""})`
+              : `금지 주제(${r.label}) 표현 — ${h.modality === "uncertain" ? "시기와 함께 '모른다'로 흐린 말" : h.modality === "past" || h.modality === "pastClaim" ? "지난 일을 시기와 함께 단정" : "단정은 약하지만"} 사람 확인 필요`,
+        })
+      }
+      // ② 그 밖 금지 주제(사전 규칙)
       const text = s.text.replace(IDIOMS, (m) => "□".repeat(m.length))
       if (isGuidanceSentence(text)) return
-      const loc = sentences.length > 1 ? { ...seg.location, sentence: si } : seg.location
       for (const r of FORBIDDEN_RULES) {
         let m: RegExpExecArray | null = null
         if (r.mode === "exam") m = examHit(text)
@@ -182,10 +194,6 @@ export function checkForbidden(segments: TextSegment[]): Finding[] {
           case "warn":
             severity = "warn"
             break
-          case "timed":
-            // 사용자가 말한 지난 일을 되짚는 문장("~했다고 했지")은 예언이 아니라 배경 — 사람 확인(warn)
-            severity = USER_REPORTED_PAST_RE.test(text) && PAST_RE.test(text) && !/(ㄹ|을|할|될|날) (거|것)/.test(text) ? "warn" : TIMING_RE.test(text) || FUTURE_RE.test(text) ? "block" : "warn"
-            break
           case "invest":
             severity = INVEST_DISSUADE.test(text) ? null : INVEST_PUSH.test(text) ? "block" : "warn"
             break
@@ -197,10 +205,7 @@ export function checkForbidden(segments: TextSegment[]): Finding[] {
           location: loc,
           excerpt: excerptAt(s.text, m.index, m[0].length),
           rule: r.id,
-          message:
-            severity === "warn" && (r.mode === "timed" || r.mode === "invest")
-              ? `금지 주제(${r.label}) 낱말 — 시기·권유 단정은 없지만 표현 확인 필요`
-              : `금지 주제: ${r.label}`,
+          message: severity === "warn" && r.mode === "invest" ? `금지 주제(${r.label}) 낱말 — 권유 단정은 없지만 표현 확인 필요` : `금지 주제: ${r.label}`,
         })
       }
     })

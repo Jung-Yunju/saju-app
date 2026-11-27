@@ -1,4 +1,5 @@
 // 품질검증 P3-06 — 명세 §7.1 필수 시험(결정성·반올림 경계·옵션 거부·운 무관) + §7.1-7 분포 측정 1만 건
+// rules@0.4.0: §7.1-6-2 옵션 거부 추가. 연구소장 측정 요청(변경표 §3)은 rules040-measure.test.ts
 import { describe, expect, it } from "vitest"
 import { analyzeRules, computeChart, EngineInputError, yearPillarOf, type BirthInput, type CalendarResult, type Pillar } from "@/engine"
 import { rng } from "./compare"
@@ -40,11 +41,28 @@ describe("§7.1 필수 시험", () => {
     ["rokgeopAlternative 문자열", { rokgeopAlternative: "true" }],
     ["specialStructures high", { specialStructures: "full" }],
     ["favorableDefinition 잘못", { favorableDefinition: "x" }],
+    // §7.1-6-2 (rules@0.4.0): 예약값·범위 밖
+    ["earthRokgeop luTable(예약)", { earthRokgeop: "luTable" }],
+    ["earthRokgeop 모르는 값", { earthRokgeop: "x" }],
+    ["tonggwanMinShare 0", { tonggwanMinShare: 0 }],
+    ["tonggwanMinShare 음수", { tonggwanMinShare: -0.1 }],
+    ["tonggwanMinShare 0.5 초과", { tonggwanMinShare: 0.5000001 }],
+    ["tonggwanMinShare NaN", { tonggwanMinShare: Number.NaN }],
+    ["tonggwanMinShare 문자열", { tonggwanMinShare: "0.3" }],
+    ["tonggwanMinRatio 0", { tonggwanMinRatio: 0 }],
+    ["tonggwanMinRatio 1 초과", { tonggwanMinRatio: 1.01 }],
+    ["tonggwanMinRatio Infinity", { tonggwanMinRatio: Number.POSITIVE_INFINITY }],
   ]
   for (const [name, o] of bad) it(`4 옵션 거부: ${name}`, () => {
     let err: unknown = null
     try { analyzeRules(TEMPLATE, o as never) } catch (e) { err = e }
     expect(err instanceof EngineInputError, `${name}: ${(err as Error)?.message ?? "예외 없음"}`).toBe(true)
+  })
+  it("§7.1-6-2 허용 경계값은 받는다: tonggwanMinShare 0.5 · tonggwanMinRatio 1 · earthRokgeop mainQiGate, 옵션 echo", () => {
+    const a = analyzeRules(TEMPLATE, { tonggwanMinShare: 0.5, tonggwanMinRatio: 1, earthRokgeop: "mainQiGate" })
+    expect([a.options.tonggwanMinShare, a.options.tonggwanMinRatio, a.options.earthRokgeop]).toEqual([0.5, 1, "mainQiGate"])
+    const d = analyzeRules(TEMPLATE)
+    expect([d.options.tonggwanMinShare, d.options.tonggwanMinRatio, d.options.earthRokgeop]).toEqual([0.25, 0.5, "mainQiGate"])
   })
   it("관찰: usefulGodMethods 중복·빈 배열 처리", () => {
     for (const m of [["eokbu", "eokbu"], []]) {
@@ -95,7 +113,9 @@ describe("§7.1-7 분포 측정(검증 아님) — 1900~2100 무작위 원국", 
       if (A.nearBoundary) inc("A.nearBoundary")
       if (A.extreme) inc(`A.extreme.${A.extreme}`)
       if (a.strength.tableSensitive) inc("strength.tableSensitive")
+      if (a.strength.tableSensitiveIncludingMainOnly) inc("strength.tableSensitiveIncludingMainOnly")
       if (a.structure.tableSensitive) inc("structure.tableSensitive")
+      if (a.structure.tableSensitiveIncludingMainOnly) inc("structure.tableSensitiveIncludingMainOnly")
       const prim = a.structure.candidates.find((c) => c.role === "primary")!
       inc(`격.${prim.name}`); inc(`격확신도.${prim.confidence}`)
       for (const c of a.structure.candidates.filter((x) => x.kind === "special")) inc(`특수격.${c.name}`)

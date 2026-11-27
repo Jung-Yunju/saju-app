@@ -82,7 +82,7 @@ describe("문제투성이 견본", () => {
   })
   it("요약 한 줄(로그용)에는 본문이 들어가지 않는다", () => {
     const line = summarizeReport(r)
-    expect(line).toMatch(/^verify@0\.2\.0 BLOCK score=0 block=\d+ warn=\d+ info=\d+ codes=/)
+    expect(line).toMatch(/^verify@0\.3\.0 BLOCK score=0 block=\d+ warn=\d+ info=\d+ codes=/)
     expect(line).not.toContain("죽고")
     expect(line).not.toContain("지연")
   })
@@ -120,7 +120,7 @@ describe("결정론 · 입력 불변 · 형식 오류", () => {
   })
   it("보고서 coverage: 고민 글이 없으면 위기 검사 미실행을 밝힌다", () => {
     const r = verifyReading(CLEAN_READING, { sajuInput: SAJU_1990F })
-    expect(r.coverage).toEqual({ crisis: "not-run:no-userText", tenGods: "sajuInput", knownFacts: "not-run:no-facts", verifiedQuotes: 0 })
+    expect(r.coverage).toEqual({ crisis: "not-run:no-userText", crisisLevel: "not-run", tenGods: "sajuInput", knownFacts: "not-run:no-facts", verifiedQuotes: 0 })
     expect(summarizeReport(r)).toContain("crisis=not-run")
     const r2 = verifyReading(CLEAN_READING, { sajuInput: SAJU_1990F, chart, userText: "이직 고민" })
     expect(r2.coverage.crisis).toBe("ran")

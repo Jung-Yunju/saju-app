@@ -48,9 +48,9 @@ describe("FORBIDDEN 차단 예문", () => {
       expect(fs.some((f) => f.rule === rule && f.severity === "block"), JSON.stringify(fs)).toBe(true)
     })
 
-  it("시기·단정 없이 낱말만 나오면 warn(사람 확인)", () => {
-    const fs = findingsOf("사업이 망할까 걱정이 많구나.", F)
-    expect(worst(fs)).toBe("warn")
+  it("걱정을 받아 주는 문장('망할까 걱정')은 막지 않는다(verify@0.3.0 — 위로 문장 오탐 정리), 시기 없는 가벼운 단정은 warn", () => {
+    expect(findingsOf("사업이 망할까 걱정이 많구나.", F)).toEqual([])
+    expect(worst(findingsOf("너는 무리하면 몸이 상한다.", F))).not.toBe("block")
   })
   it("부적·개명 권유는 warn", () => {
     expect(worst(findingsOf("부적을 지니고 다녀라.", F))).toBe("warn")

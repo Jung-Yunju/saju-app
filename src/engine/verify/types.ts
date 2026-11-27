@@ -6,7 +6,7 @@
 import type { CalendarResult } from "../types"
 import type { RuleAnalysis } from "../rules/types"
 
-export const VERIFY_VERSION = "verify@0.2.0"
+export const VERIFY_VERSION = "verify@0.3.0"
 
 export type Severity = "block" | "warn" | "info"
 
@@ -68,10 +68,20 @@ export interface VerifyReport {
    */
   coverage: {
     crisis: "ran" | "not-run:no-userText"
+    /**
+     * 위기 점수 등급(verify@0.3.0). crisis = 풀이 멈춤·상담 안내 필수 / review = 상담 안내 덧붙이고 사람 검토 / none.
+     * 고민 글이 없으면 "not-run"
+     */
+    crisisLevel: "none" | "review" | "crisis" | "not-run"
     tenGods: "rules" | "chart" | "sajuInput"
     knownFacts: "ran" | "not-run:no-facts"
     verifiedQuotes: number
   }
+  /**
+   * 사람 검토가 필요한가(verify@0.3.0). pass와 별개 — pass=true여도 needed=true면 출고 전에 사람이 본다.
+   * reasons: "crisis-review"(위기 의심), "crisis"(위기), "uncertain-harm"(시기+무거운 사건을 흐린 말) 등
+   */
+  review: { needed: boolean; reasons: string[] }
   /** BARNUM 계산 결과 등 요약(장별 근거 없는 문장 비율) */
   stats: {
     texts: number

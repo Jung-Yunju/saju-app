@@ -1,5 +1,6 @@
-// 격국(정격·록겁·특수격 후보) 테스트 — src/engine/rules/structure.ts (rules@0.3.0, P3-06)
+// 격국(정격·록겁·특수격 후보) 테스트 — src/engine/rules/structure.ts (rules@0.3.0, P3-06 → rules@0.4.0 D-022)
 // 기대값: docs/knowledge/strength-structure-spec.md §2 규칙과 §7 사례 1~12의 손계산 값. 구현 결과 복사 아님.
+// 0.4.0(QA 갱신 2026-11-28): 상신 hiddenOnly → hiddenPositions + presence — 명세 §7 사례 2·3·4·5·10·11 정정본 손계산 값으로 기대값 작성
 import { describe, expect, it } from "vitest"
 import { analyzeRules, type CalendarResult, type Pillar, type RuleOptions, type StructureCandidate } from "@/engine"
 
@@ -33,9 +34,10 @@ describe("§7 사례별 정격", () => {
     expect(brief(c)).toBe("정관격:medium:primary")
     expect(c.pivot).toEqual({ stem: "癸", role: "jeonggi", touchul: null, tenGod: "정관" })
     const jae = c.sangsin!.find((x) => x.group === "jaeseong")!
-    expect([jae.element, jae.touchul, jae.hiddenOnly.map(pk)]).toEqual(["metal", [], ["hour.branch"]])
+    expect([jae.element, jae.touchul, jae.hiddenPositions.map(pk), jae.presence]).toEqual(["metal", [], ["hour.branch"], "hiddenOnly"])
     const ins = c.sangsin!.find((x) => x.group === "inseong")!
-    expect([ins.element, ins.touchul.map(pk)]).toEqual(["wood", ["year.stem"]])
+    // 명세 사례 2: 인성(목) touchul [연간 甲] · hiddenPositions [연지 辰(乙)] · stemAndHidden
+    expect([ins.element, ins.touchul.map(pk), ins.hiddenPositions.map(pk), ins.presence]).toEqual(["wood", ["year.stem"], ["year.branch"], "stemAndHidden"])
     // 꺼리는: 상관(식상 중) · 편관 — 십성 제한 표시
     expect(c.avoid!.map((a) => `${a.group}:${(a.tenGods ?? []).join("")}`)).toEqual(["siksang:상관", "gwansal:편관"])
   })
@@ -44,23 +46,25 @@ describe("§7 사례별 정격", () => {
     const s = run("丙寅/丁酉/庚辰/壬午").structure
     expect(s.candidates.map(brief)).toEqual(["양인격:medium:primary"])
     expect(sang(s.candidates[0])).toEqual(["gwansal:fire:T[year.stem,month.stem]"])
+    // 명세 사례 3: hiddenPositions [연지 寅(丙), 시지 午(丙·丁)] · stemAndHidden
+    expect([s.candidates[0].sangsin![0].hiddenPositions.map(pk), s.candidates[0].sangsin![0].presence]).toEqual([["year.branch", "hour.branch"], "stemAndHidden"])
   })
 
   it("사례 4: 子 = 壬의 양인 → 양인격 medium. 상신 관살(토) 투출 없음, 지장간만(寅戊·午己·未己)", () => {
     const [c] = run("丙寅/庚子/壬午/丁未").structure.candidates
     expect(brief(c)).toBe("양인격:medium:primary")
-    expect(c.sangsin!.map((x) => [x.group, x.element, x.touchul, x.hiddenOnly.map(pk)])).toEqual([
-      ["gwansal", "earth", [], ["year.branch", "day.branch", "hour.branch"]],
+    expect(c.sangsin!.map((x) => [x.group, x.element, x.touchul, x.hiddenPositions.map(pk), x.presence])).toEqual([
+      ["gwansal", "earth", [], ["year.branch", "day.branch", "hour.branch"], "hiddenOnly"],
     ])
   })
 
-  it("사례 5: 酉 정기 辛 월간 투출 → 정관격 medium. 상신 재성(토) 투출 [연간 戊], 인성(수) 지장간만 [시지 亥]", () => {
+  it("사례 5: 酉 정기 辛 월간 투출 → 정관격 medium. 상신 재성(토) 투출 [연간 戊]+지장간 stemAndHidden, 인성(수) 지장간만 [시지 亥] hiddenOnly", () => {
     const [c] = run("戊寅/辛酉/甲寅/乙亥").structure.candidates
     expect(brief(c)).toBe("정관격:medium:primary")
     expect(c.pivot).toMatchObject({ stem: "辛", role: "jeonggi", touchul: { pillar: "month", part: "stem" } })
-    expect(c.sangsin!.map((x) => [x.group, x.element, x.touchul.map(pk), x.hiddenOnly.map(pk)])).toEqual([
-      ["jaeseong", "earth", ["year.stem"], ["year.branch", "day.branch", "hour.branch"]],
-      ["inseong", "water", [], ["hour.branch"]],
+    expect(c.sangsin!.map((x) => [x.group, x.element, x.touchul.map(pk), x.hiddenPositions.map(pk), x.presence])).toEqual([
+      ["jaeseong", "earth", ["year.stem"], ["year.branch", "day.branch", "hour.branch"], "stemAndHidden"],
+      ["inseong", "water", [], ["hour.branch"], "hiddenOnly"],
     ])
   })
 
@@ -111,9 +115,9 @@ describe("§7 사례별 정격", () => {
   it("사례 10: 丑 정기 己 월간 투출 → 정재격 medium. 상신 식상(화) 지장간만 [일지 戌의 丁] · 관(금) 투출 [연간 庚]", () => {
     const [c] = run("庚辰/己丑/甲戌/戊辰").structure.candidates
     expect(brief(c)).toBe("정재격:medium:primary")
-    expect(c.sangsin!.map((x) => [x.group, x.element, x.touchul.map(pk), x.hiddenOnly.map(pk)])).toEqual([
-      ["siksang", "fire", [], ["day.branch"]],
-      ["gwansal", "metal", ["year.stem"], ["month.branch", "day.branch"]],
+    expect(c.sangsin!.map((x) => [x.group, x.element, x.touchul.map(pk), x.hiddenPositions.map(pk), x.presence])).toEqual([
+      ["siksang", "fire", [], ["day.branch"], "hiddenOnly"],
+      ["gwansal", "metal", ["year.stem"], ["month.branch", "day.branch"], "stemAndHidden"],
     ])
     expect(c.avoid!.map((a) => a.group)).toEqual(["bigyeop"])
   })
@@ -125,7 +129,9 @@ describe("§7 사례별 정격", () => {
       ["siksang", ["식신"], "fire", []],
       ["inseong", null, "water", ["hour.stem"]],
     ])
-    expect(c.sangsin![0].hiddenOnly.map(pk)).toEqual(["day.branch"])
+    expect([c.sangsin![0].hiddenPositions.map(pk), c.sangsin![0].presence]).toEqual([["day.branch"], "hiddenOnly"])
+    // 명세 사례 11: 인성(수) hiddenPositions [연지 申(壬), 월지 申(壬)] · stemAndHidden
+    expect([c.sangsin![1].hiddenPositions.map(pk), c.sangsin![1].presence]).toEqual([["year.branch", "month.branch"], "stemAndHidden"])
   })
 
   it("사례 12: 亥 = 壬 록 → 건록격 medium. 亥 지장간 戊·甲 투출 없음 → G1-alt 없음. 상신: 투출한 재·관·식상 없음", () => {

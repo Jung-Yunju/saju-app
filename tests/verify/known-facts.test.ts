@@ -12,15 +12,19 @@ const ctx = {
 describe("KNOWN_FACT 통과 예문", () => {
   const ok = [
     "2019년에 결혼한 적이 있느냐?",
-    "2022년에 이사를 했다.",
     "결혼운은 丁丑 대운에 무게가 실린다.",
-    "2019년 己亥에는 일이 바빴다.",
-    "2020년 庚子에 짝을 맺었다.",
   ]
   for (const t of ok)
     it(t, () => {
       expect(findingsOf(t, K, ctx)).toEqual([])
     })
+  it("verify@0.3.0: 같은 사건을 사실과 다른 해로 단정하면 warn(fact-year-mismatch), 사실의 해 + 지난 일 단정은 warn(year-echo)", () => {
+    for (const t of ["2022년에 이사를 했다.", "2020년 庚子에 짝을 맺었다."]) {
+      const fs = findingsOf(t, K, ctx)
+      expect(fs.map((f) => [f.severity, f.rule]), t).toEqual([["warn", "fact-year-mismatch"]])
+    }
+    expect(findingsOf("2019년 己亥에는 일이 바빴다.", K, ctx).map((f) => [f.severity, f.rule])).toEqual([["warn", "year-echo"]])
+  })
   it("알려 준 사실이 없으면 검사하지 않는다", () => {
     expect(findingsOf("2019년에 결혼했다.", K)).toEqual([])
   })
