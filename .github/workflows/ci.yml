@@ -1,0 +1,28 @@
+# 자동 검사(CI) — 모든 push·PR에서 타입 검사·린트·테스트를 돌린다.
+# 운영 배포는 하지 않는다(배포는 대표 승인 사항). 비밀값을 쓰지 않는다.
+name: CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: 의존성 설치
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Prisma 클라이언트 생성(DB 연결 없음)
+        run: npx prisma generate
+      - name: 타입 검사
+        run: npx tsc --noEmit
+      - name: 린트(고객 사이트 코드)
+        run: npx eslint src
+      - name: 테스트
+        run: npx vitest run
