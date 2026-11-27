@@ -15,16 +15,16 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 | 번호 | 직원 | 에이전트 이름 | 가동 시점 | 쓰기 권한(요약) |
 |---|---|---|---|---|
-| 01 | 총괄실장 (프로젝트 매니저) | 메인 세션 | 상시 | 계획·현황판·문서 전반, 업무 배분 |
+| 01 | 총괄실장 (프로젝트 매니저) | 메인 세션 | 상시 | 계획·현황판·문서 전반, 업무 배분, 계약서(`src/engine/types.ts`, `src/engine/content/types.ts`, `office/CONTRACT.md`), `.claude/settings.json`, `.github/workflows/**` |
 | 02 | 명리학 연구소장 | `myeongri-research-director` | **1단계부터 가동** | `docs/knowledge/**` |
-| 03 | 사주엔진 개발자 | `saju-engine-developer` | **1단계부터 가동** | `src/engine/calendar/**`, `src/engine/rules/**` + 테스트 |
-| 04 | 개인화 분석 연구원 | `personalization-researcher` | 4단계 | `src/engine/personalize/**` |
-| 05 | 콘텐츠 작가·캐릭터 기획자 | `content-writer` | 4단계 | `src/engine/content/prompts/**`, 캐릭터·말투 문서 |
-| 06 | 디자인 실장 | `design-director` | 5단계 | `docs/DESIGN_SYSTEM.md`, `src/styles/**`, `src/components/ui/**` |
-| 07 | 프론트엔드 개발자 | `frontend-developer` | 5단계 | `src/app/**`(api 제외), `src/components/**` |
-| 08 | 백엔드·서버 개발자 | `backend-developer` | 6단계(긴급 보안 수정은 승인 시 조기) | `src/app/api/**`, `src/lib/**`, `prisma/**` |
-| 09 | 품질검증·보안 담당자 | `qa-security-lead` | **1단계부터 가동** | `tests/**`, `scripts/qa/**`, `docs/TEST_REPORT.md` |
-| 10 | 사업기획·마케팅 담당자 | `business-strategist` | 필요 시 | `docs/COST_REPORT.md`, `docs/business/**` |
+| 03 | 사주엔진 개발자 | `saju-engine-developer` | **1단계부터 가동** | `src/engine/calendar/**`, `src/engine/rules/**` + 테스트 (`src/engine/types.ts`·`index.ts` 공개 API는 총괄실장 승인) |
+| 04 | 개인화 분석 연구원 | `personalization-researcher` | 4단계(가동 중) | `src/engine/personalize/**`, `docs/knowledge/personalization/**` |
+| 05 | 콘텐츠 작가·캐릭터 기획자 | `content-writer` | 4단계(가동 중) | `src/engine/content/prompts/**`, `content/**`(무료 문안·SEO 원고 공동), `docs/knowledge/{characters,voice-guide,menu-names,shortform-ideas,content-chapters,free-copy}.md` |
+| 06 | 디자인 실장 | `design-director` | 5단계(가동 중) | `docs/DESIGN_SYSTEM.md`, `design/**`(시안·인트로), `office/web/{art,map}.js`, `src/styles/**`, `src/components/ui/**` |
+| 07 | 프론트엔드 개발자 | `frontend-developer` | 5단계(가동 중) | `src/app/**`(api 제외), `src/app/api/free/**`, `src/components/**`, `office/web/{page.html,app.js}` |
+| 08 | 백엔드·서버 개발자 | `backend-developer` | 가동 중 | `src/app/api/**`, `src/lib/**`, `prisma/**`(적용은 대표 승인), `src/engine/content/**`(prompts 제외), `.claude/hooks/**`, `scripts/office/**`, `scripts/content/**` |
+| 09 | 품질검증·보안 담당자 | `qa-security-lead` | **1단계부터 가동** | `tests/**`, `scripts/qa/**`, `docs/TEST_REPORT.md`, `docs/quality/**`, `src/engine/verify/**`(검증기 — 검증은 다른 직원이) |
+| 10 | 사업기획·마케팅 담당자 | `business-strategist` | 가동 중 | `docs/COST_REPORT.md`, `docs/business/**`, `content/seo/**` |
 
 ## 운영 방식
 - **업무 흐름**: 대표 지시 → 총괄실장이 작업계획·파일 소유권 배정 → 담당 직원 실행 → 품질검증 담당자 독립 검증 → 총괄실장 취합 → 현황판 갱신 → 대표 보고.

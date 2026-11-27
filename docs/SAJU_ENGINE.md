@@ -2,13 +2,15 @@
 
 > 계산 명세: 사주엔진 개발자 · 해석 규칙: 명리학 연구소장 · 검증: 품질검증 담당자
 
-## 1. 현행 코드 상태 [현행]
-| 파일 | 용도 | 문제 |
+## 1. 현행 코드 상태 [현행 — 2026-11-27 갱신]
+| 파일 | 용도 | 상태 |
 |---|---|---|
-| `src/lib/saju.ts` | 결과 화면의 여덟 글자·오행 표시 | 절기 무시(양력 월=사주 월), 입춘 무시(1/1에 연도 바뀜) → 감사 결과 42% 오류 |
-| `src/lib/saju-input.ts` | AI에 넘기는 사주 JSON (lunar-javascript) | 절기 시각이 중국 표준시 기준(한국과 1시간 차), 시간 모름=0시 가정, 윤달 입력 불가, 기준 연도 2026 고정, 진태양시·서머타임 미반영 |
-
-상세는 [TEST_REPORT.md](TEST_REPORT.md). 재현: `bash scripts/qa/legacy-engine-audit.sh`
+| `src/engine/calendar/**` (calendar@0.1.1) | 역법 계산: 시간대 이력·서머타임·경도 보정, 절기(UTC), 원국, 한국 음력(UTC+9), 대운 | 골든 테스트(독립 천문 오라클) 통과 |
+| `src/engine/rules/**` (rules@0.2.0 → 0.3.0 작업 중) | 지장간·십성·12운성·합충형파해·공망·오행 분포 (+ 신강약·격국·용신·조후 작업 중) | 독립 오라클 4,000건 일치(0.2.0) |
+| `src/lib/saju-input.ts` | AI 입력(SajuInputData) — 새 엔진 사용, 시진 가운데 시각(D-018) | 화면 표시와 2,000건 일치 |
+| `src/app/reading/[id]/page.tsx` | 결과 화면 — 저장된 sajuInput 글자 그대로 표시 | |
+| `src/lib/saju.ts` | **옛 계산(사용처 없음)** — 42% 오류. 삭제는 대표 승인 사항 | 사용 중지 |
+| `scripts/qa/legacy-engine-audit.sh` | 옛 감사 스크립트 — 폐기, 대체: `npx vitest run tests/verify/consistency.test.ts` | 폐기 |
 
 ## 2. 데이터 구조 초안 (P3-01에서 확정)
 
