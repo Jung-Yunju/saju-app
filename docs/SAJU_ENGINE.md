@@ -113,11 +113,11 @@ interface RuleAnalysis {
 ## 규칙 엔진
 지장간·십성·12운성·합충형파해·공망·신살은 코드 표(table)로 구현하고 각 결과에 근거 글자 위치를 남긴다.
 
-### analyzeRules [계산 명세 — rules@0.3.0, `src/engine/rules/`]
+### analyzeRules [계산 명세 — rules@0.3.1, `src/engine/rules/`]
 - 근거: `docs/knowledge/rules-spec.md`(표·공식), `docs/knowledge/strength-structure-spec.md`(P3-06 신강약·격국·용신·조후·기세), `docs/knowledge/schools.md`(학파 옵션), D-012(해석 옵션은 `RuleOptions`로 분리), D-019(세 글자 관계에 포함된 두 글자 기록은 지우지 않고 표시).
 - 공개 함수: `analyzeRules(chart: CalendarResult, options?: Partial<RuleOptions>, extra?: { luck?: Pillar[]; year?: Pillar }): RuleAnalysis` (`src/engine/index.ts`에서 export). 순수 함수 — AI·DB·네트워크·현재 시각 없음. `chart.pillars`와 `chart.engineVersion`만 읽고 입력을 바꾸지 않는다.
 - 타입: `src/engine/rules/types.ts`(공통 `types.ts`는 그대로). rules@0.3.0부터 `strength`·`structure`·`usefulGods`·`climate`·`qiFlow`를 같은 `RuleAnalysis`에 담는다(아래 "신강약·격국·용신·조후·기세" 절).
-- 결과에 남기는 것: `engineVersion`("rules@0.3.0"), `calendarEngineVersion`, 기본값을 채운 `options` 전체, `omitted`(시주 모름이면 `["hour"]`), `source`(분석한 원국·대운·세운 글자), 판정마다 근거 위치 `Position { pillar: year|month|day|hour|daeun|seun, part: stem|branch, luckIndex? }`.
+- 결과에 남기는 것: `engineVersion`("rules@0.3.1"), `calendarEngineVersion`, 기본값을 채운 `options` 전체, `omitted`(시주 모름이면 `["hour"]`), `source`(분석한 원국·대운·세운 글자), 판정마다 근거 위치 `Position { pillar: year|month|day|hour|daeun|seun, part: stem|branch, luckIndex? }`.
 - 파일: `tables.ts`(표), `basics.ts`(오행·음양·십성), `hidden.ts`(지장간), `twelveStages.ts`, `interactions.ts`, `gongmang.ts`, `elements.ts`, `options.ts`, `version.ts`, `index.ts`. P3-06: `groups.ts`(십성 묶음·반올림 공통), `strength.ts`, `structure.ts`, `usefulGod.ts`, `climate.ts`, `qiFlow.ts`.
 
 **옵션(`RuleOptions`) — 기본값은 연구소장 제안이며 전부 잠정(대표·연구소장 확정 대기)**
@@ -171,13 +171,13 @@ interface RuleAnalysis {
    - `counts`: 천간 + 지지 본래 오행(= 정기 오행) 글자 수. 일간을 포함하고, 시주 모름이면 6글자다.
    - `weighted`: 천간 각 1.0에, 지지는 위치 가중(월지 3.0 · 일지 1.5 · 연지·시지 1.0, schools.md §8 weighted-v1)에 지장간 weight를 곱해 지장간 오행별로 나눠 더한다. 소수 6자리로 반올림한다. 일간도 1.0으로 넣는다(엔진 개발자 판단). 합충 보정은 하지 않는다.
    - `yinYang`: 천간 + 지지(branchYinYang 기준) 음양 개수.
-- 버전: `RULES_ENGINE_VERSION`은 `rules/version.ts`로 옮겼다(`rules/gongmang.ts`는 re-export). 0.3.0(P3-06 + D-019)으로 올리면서 `src/lib/saju-input.ts`의 `engine_version` 문자열도 `…+rules@0.3.0`이 된다(공망 값 자체는 같다).
-- 테스트: `tests/engine/unit/rules-tables.test.ts`, `rules-tengods-stages.test.ts`, `rules-interactions.test.ts`, `rules-analyze.test.ts`, P3-06은 `rules-strength.test.ts`, `rules-structure.test.ts`, `rules-usefulgod.test.ts`, `rules-p306-required.test.ts`.
+- 버전: `RULES_ENGINE_VERSION`은 `rules/version.ts`로 옮겼다(`rules/gongmang.ts`는 re-export). 0.3.0(P3-06 + D-019)으로 올리면서 `src/lib/saju-input.ts`의 `engine_version` 문자열도 `…+rules@0.3.0`이 된다(공망 값 자체는 같다). 0.3.1은 신강약 `score` 표시 반올림 수정(Q-306-1)만 바뀐 패치다.
+- 테스트: `tests/engine/unit/rules-tables.test.ts`, `rules-tengods-stages.test.ts`, `rules-interactions.test.ts`, `rules-analyze.test.ts`, P3-06은 `rules-strength.test.ts`, `rules-structure.test.ts`, `rules-usefulgod.test.ts`, `rules-p306-required.test.ts`. 엔진 개발자 자체 회귀 테스트는 `src/engine/rules/__tests__/strength-score.test.ts`(Q-306-1).
   - 12운성은 120칸 전수 + 변형 3종 + 록 표 검산.
   - 십성은 100칸 + 지지, 관계는 천간 100칸·지지 144칸 전수, 공망 hits는 60갑자 전수다.
   - 손계산 사례는 3건이다. lunar-javascript 대조는 SHI_SHEN·ZHI_HIDE_GAN·12운성 식·HE/CHONG 표로 한다.
 
-### 신강약·격국·용신·조후·기세 [계산 명세 — rules@0.3.0, P3-06]
+### 신강약·격국·용신·조후·기세 [계산 명세 — rules@0.3.0 P3-06, 0.3.1 score 반올림 수정]
 - 근거: `docs/knowledge/strength-structure-spec.md`(연구소장 명세). **점수·경계값·가중치·조후 지수는 모두 연구소장 설계값이며 고전 수치가 아니다.** 판정은 "이 명세 규칙의 결과"이지 명리상 정답이나 과학적 예측이 아니다. 해석 문장은 만들지 않는다.
 - 공개 API 결정: 명세 §6 제안대로 `analyzeRules` 결과(`RuleAnalysis`)에 `strength`·`structure`·`usefulGods`·`climate`·`qiFlow`를 추가했다. 별도 함수(`analyzeStructure`)로 나누지 않은 이유: 호출하는 쪽이 원국·옵션을 두 번 맞출 필요가 없고, 풀이 검증기(P4-04)가 결과 하나만 대조하면 되며, 신강약이 쓰는 지장간·오행 가중·관계를 같은 옵션으로 한 번만 계산하기 위해서다.
 - 범위: **원국만** 본다(운은 1차 범위 밖). 관계는 원국 내부(`scope: "natal"`)만 쓴다. 대운·세운을 넣어도 P3-06 결과는 같다.
@@ -185,7 +185,7 @@ interface RuleAnalysis {
 
 **신강약(`strength`, `strength.ts`)**
 1. 근거 항목(`basis`): 기둥(연→월→일→시)마다 천간 1항목 → 지장간(여기→중기→정기) 항목. `points = positionWeight × hiddenWeight × rootFactor`(6자리). 위치 가중은 weighted-v1(천간 1 · 연지·시지 1 · 월지 3 · 일지 1.5)로 `elements.weighted`와 같고 일간도 1.0으로 들어간다(`group: "self"`). 십성 묶음은 오행으로만 정한다(비겁·인성 = support).
-2. 모형 A `weighted`: `ratio = round6(S/T)`, S = support 합(일간 포함), T = 전체 합(네 기둥 10.5 = 315u, 세 기둥 8.5 = 255u). 신강 r ≥ 0.55, 중화 0.45 ≤ r < 0.55, 신약 r < 0.45. `extreme` strong r ≥ 0.80 / weak r ≤ 0.20. `nearest` = 0.20·0.45·0.55·0.80 중 가장 가까운 경계(거리 6자리, 같으면 작은 경계), `nearBoundary` = 거리 < 0.03. `score` = r×100(1자리).
+2. 모형 A `weighted`: `ratio = round6(S/T)`, S = support 합(일간 포함), T = 전체 합(네 기둥 10.5 = 315u, 세 기둥 8.5 = 255u). 신강 r ≥ 0.55, 중화 0.45 ≤ r < 0.55, 신약 r < 0.45. `extreme` strong r ≥ 0.80 / weak r ≤ 0.20. `nearest` = 0.20·0.45·0.55·0.80 중 가장 가까운 경계(거리 6자리, 같으면 작은 경계), `nearBoundary` = 거리 < 0.03. `score` = r×100(1자리, 절반은 올림). rules@0.3.1(Q-306-1)부터 `scoreOfRatio`(`groups.ts`)가 6자리 r을 백만분율 정수로 바꿔 정수 산술로 반올림한다(0.5125 → 51.3, 0.6375 → 63.8; 이전 `round1(r*100)`은 곱셈 오차로 51.2·63.7). 판정·`extreme`·`nearest`는 r로 비교하므로 바뀌지 않는다.
    - `support`·`total`(S·T)은 반올림 전 합의 6자리 값이다(명세 타입에 없는 검산용 필드). 항목 `points`는 각각 6자리로 반올림하므로 `Σpoints`와 S·T는 최대 약 1e-5까지 다를 수 있다. r은 반올림 전 합으로 계산한다.
 3. 모형 B `threeFactor`: 득령(월지 정기 오행이 비겁·인성) · 득지(`deukjiBasis`) · 득세(연간·월간·시간·연지·시지 정기 중 3자리 이상, 시주 모름이면 연간·월간·연지 중 2자리 이상). 2개 이상이면 신강, 아니면 신약. 중화 없음(`ratio`·`score`·`extreme`·`nearest` null). `basis`는 빈 배열이고 근거 위치는 `factors`에 있다.
 4. 모형 C `rooted`: A와 같되 일간이 아닌 천간 중 같은 오행이 원국 지장간(여기·중기·정기 무관) 어디에도 없으면 `rootFactor` 0.5. T도 줄어든 값.

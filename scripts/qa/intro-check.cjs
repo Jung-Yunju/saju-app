@@ -1,5 +1,5 @@
 // 인트로 시안 독립 검증(품질검증 담당) — design/intro/{lamp,door,door-sewing,pillars}.html (+ index.html)
-// 실행: node scripts/qa/intro-check.cjs [스크린샷 폴더]   (사전 설치 chromium, require('playwright'))
+// 실행: node scripts/qa/intro-check.cjs [스크린샷 폴더] [--contrast-only]   (사전 설치 chromium, require('playwright'))
 // 측정: 휴대폰 390×844. "휴대폰 흉내" = CPU 4배 느림 + 지연 150ms·1.6Mbps(3회 중앙값). 실제 기기 측정이 아니다.
 // 결과는 JSON으로 표준출력에 낸다. 제품 파일은 읽기만 한다.
 const { chromium } = require("playwright")
@@ -9,7 +9,7 @@ const path = require("node:path")
 const zlib = require("node:zlib")
 
 const ROOT = path.join(__dirname, "..", "..", "design", "intro")
-const SHOTS = process.argv[2] || path.join(require("node:os").tmpdir(), "qa-intro")
+const SHOTS = (process.argv[2] && !process.argv[2].startsWith("--") ? process.argv[2] : null) || path.join(require("node:os").tmpdir(), "qa-intro")
 fs.mkdirSync(SHOTS, { recursive: true })
 const PAGES = ["lamp", "door", "door-sewing", "pillars"]
 const VIEW = { width: 390, height: 844 }
@@ -101,7 +101,11 @@ async function contrast(page) {
     const out = []
     const els = [...document.querySelectorAll("body *")].filter((el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()))
     els.forEach((el, i) => {
-      const r = el.getBoundingClientRect(); if (r.width < 2 || r.height < 2 || r.bottom < 0 || r.top > innerHeight) return
+      // 요소 상자 대신 글자 줄 상자(Range)만 잰다 — 버튼 테두리·둥근 모서리·곁들인 아이콘이 배경으로 섞이지 않게
+      const rg = document.createRange(); let x1 = 1e9, y1 = 1e9, x2 = -1e9, y2 = -1e9
+      for (const n of el.childNodes) if (n.nodeType === 3 && n.textContent.trim()) { rg.selectNodeContents(n); for (const q of rg.getClientRects()) { x1 = Math.min(x1, q.left); y1 = Math.min(y1, q.top); x2 = Math.max(x2, q.right); y2 = Math.max(y2, q.bottom) } }
+      const r = { left: x1, top: y1, width: x2 - x1, height: y2 - y1, bottom: y2 }
+      if (r.width < 2 || r.height < 2 || r.bottom < 0 || r.top > innerHeight) return
       const cs = getComputedStyle(el); if (cs.visibility === "hidden" || cs.display === "none") return
       let o = 1; for (let n = el; n && n.nodeType === 1; n = n.parentElement) o *= parseFloat(getComputedStyle(n).opacity)
       if (o < 0.05) return
@@ -114,7 +118,7 @@ async function contrast(page) {
   const res = []
   for (const it of items) {
     if (it.rect.width < 1 || it.rect.height < 1) continue
-    await page.addStyleTag({ content: `[data-qa-c="${it.i}"],[data-qa-c="${it.i}"] *{color:transparent!important;fill:transparent!important;text-shadow:none!important;-webkit-text-stroke:0!important;caret-color:transparent!important}` }).then((h) => h.evaluate((s) => (s.id = "qa-hide")))
+    await page.addStyleTag({ content: `[data-qa-c="${it.i}"],[data-qa-c="${it.i}"] *{color:transparent!important;fill:transparent!important;text-shadow:none!important;-webkit-text-stroke:0!important;caret-color:transparent!important}[data-qa-c="${it.i}"]>svg,[data-qa-c="${it.i}"]>img{visibility:hidden!important}` }).then((h) => h.evaluate((s) => (s.id = "qa-hide")))
     const png = await page.screenshot({ clip: it.rect, animations: "disabled" })
     await page.evaluate(() => document.querySelectorAll("#qa-hide").forEach((s) => s.remove()))
     const stat = await page.evaluate(async ({ b64, color, opacity }) => {
@@ -146,6 +150,19 @@ async function contrast(page) {
   const base = `http://127.0.0.1:${srv.address().port}/`
   const browser = await chromium.launch({ proxy: process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY, bypass: "127.0.0.1" } : undefined })
   const out = { base: "390x844", pages: {} }
+  if (process.argv.includes("--contrast-only")) {
+    // 끝 장면(?at=end)과 재생 첫 장면(?at=0)의 글자 대비만
+    for (const name of PAGES) {
+      out.pages[name] = {}
+      for (const at of ["end", "0", "1400"]) {
+        const ctx = await newCtx(browser); const page = await ctx.newPage()
+        await page.goto(base + name + ".html?at=" + at, { waitUntil: "load" }); await page.evaluate(() => document.fonts.ready); await page.waitForTimeout(200)
+        out.pages[name]["at_" + at] = await contrast(page)
+        await ctx.close()
+      }
+    }
+    await browser.close(); srv.close(); console.log(JSON.stringify(out, null, 1)); return
+  }
   for (const name of PAGES) {
     const raw = fs.readFileSync(path.join(ROOT, name + ".html"))
     const R = (out.pages[name] = { htmlBytes: raw.length, htmlGzip: zlib.gzipSync(raw).length })

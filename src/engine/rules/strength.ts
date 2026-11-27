@@ -1,4 +1,4 @@
-// 신강·신약 (strength-structure-spec §1, rules@0.3.0)
+// 신강·신약 (strength-structure-spec §1, rules@0.3.0, score 반올림 0.3.1)
 //  A weighted : 위치 가중 비율 r = round6(S/T). 경계 0.45/0.55, 극단 0.20/0.80, 근접 폭 0.03 (모두 연구소장 설계값)
 //  B threeFactor: 득령·득지·득세 중 2개 이상이면 신강 (중화 없음)
 //  C rooted   : A와 같되 일간 외 무근 천간 가중 0.5배 (설계값)
@@ -8,7 +8,7 @@ import { BRANCHES, STEMS } from "../calendar/constants"
 import { stemElement } from "./basics"
 import { WEIGHTED_V1 } from "./elements"
 import {
-  GROUPS, branchPos, ei, groupOf, isSupport, mainQiElement, natalHidden, presentKeys, round1, round6, stemPos, type Natal,
+  GROUPS, branchPos, ei, groupOf, isSupport, mainQiElement, natalHidden, presentKeys, round6, scoreOfRatio, stemPos, type Natal,
 } from "./groups"
 import { hiddenStemsOf } from "./hidden"
 import type {
@@ -96,7 +96,7 @@ function ratioModel(n: Natal, dayStem: Stem, table: HiddenStemTableId, model: "w
   return {
     model,
     ratio: r,
-    score: round1(r * 100),
+    score: scoreOfRatio(r),
     verdict: verdictOf(r),
     extreme: extremeOf(r),
     nearBoundary,

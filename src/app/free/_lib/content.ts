@@ -165,6 +165,7 @@ function teaserCopy(raw: unknown, f: CopyFacts, yearLabel: string): TeaserCopy {
   const tokens = {
     dayStem: `${f.dayMaster.ko}(${f.dayMaster.hanja})`, dayBranch: `${f.dayBranch.ko}(${f.dayBranch.hanja})`,
     dayPillar: `${f.dayPillar.ko}(${f.dayPillar.hanja})`, wealth, yearLabel,
+    letters: f.hourUnknown ? "여섯 글자" : "여덟 글자",
   }
   // 유료 상품에 실제로 들어가는지 확인 전(needsConfirm: true)인 항목은 약속이 되므로 숨긴다
   const live = itemsOf(raw).filter((x) => x.needsConfirm !== true)

@@ -6,6 +6,7 @@ import {
   buildShareSpec, canvasToBlob, drawShareCard, prepareCardFonts, readCardColors, type ShareSpec,
 } from "./share-card"
 import { SITE_NAME } from "./theme"
+import { elementTitle } from "./_lib/element-title"
 import type { CopyBlock, ElementKo, FreeResult, GanzhiView } from "./_lib/types"
 
 const EL_HANJA: Record<ElementKo, string> = { 목: "木", 화: "火", 토: "土", 금: "金", 수: "水" }
@@ -119,7 +120,7 @@ export function ResultView({ result: r, onReset }: { result: FreeResult; onReset
                 <div className="fr-halmi" style={{ marginTop: "var(--s-4)" }}>
                   {r.copy.elements.map((c) => (
                     <div key={`${c.kind}-${c.el}`} className="fr-halmi-item">
-                      <h3>{c.kind === "excess" ? `${c.el}(${EL_HANJA[c.el]})이 넘치는 편` : c.kind === "lack" ? `${c.el}(${EL_HANJA[c.el]})이 비어 있어요` : `${c.el}(${EL_HANJA[c.el]})이 알맞아요`}</h3>
+                      <h3>{elementTitle(c.kind, c.el)}</h3>
                       <Text block={c} />
                     </div>
                   ))}

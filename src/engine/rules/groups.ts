@@ -31,6 +31,17 @@ export const round6 = (x: number): number => {
 }
 export const round1 = (x: number): number => Math.round(x * 10) / 10
 
+/**
+ * 표시 점수 = r×100, 소수 1자리(§1 점수). rules@0.3.1(Q-306-1):
+ * r은 이미 round6을 거친 6자리 값이므로 정수(백만분율)로 바꿔 정수 산술로 반올림한다.
+ * `round1(r*100)`은 0.5125×100 = 51.24999…처럼 곱셈 오차로 끝자리 5가 내려가 51.2가 되었다.
+ * 반올림 방향은 round6과 같은 Math.round(절반은 올림, r ≥ 0). 판정 경계 비교는 r로만 하므로 영향 없음.
+ */
+export const scoreOfRatio = (r: number): number => {
+  const micro = Math.round(r * 1e6) // 정확한 정수(r는 6자리)
+  return Math.round(micro / 1000) / 10 // micro/1000의 .5는 정확히 표현되어 반올림이 흔들리지 않는다
+}
+
 export const stemPos = (k: NatalPillarKey): Position => ({ pillar: k, part: "stem" })
 export const branchPos = (k: NatalPillarKey): Position => ({ pillar: k, part: "branch" })
 

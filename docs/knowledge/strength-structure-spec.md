@@ -5,6 +5,7 @@
 > 선행: [rules-spec.md](rules-spec.md)(rules@0.2.0 표), [schools.md](schools.md) §8·§9, `docs/DECISIONS.md` 대표 결정 대기 6번(용신 표시).
 > **이 문서의 고전 관련 서술은 모두 요지(paraphrase)다. 원문 인용은 없다.** 확인 수준 L0/L1/L2는 [sources.md](sources.md) §0 정의를 따른다. 이번에도 L2(본문 대조)는 0건이다(§8).
 > **점수·경계값·가중치는 모두 연구소장이 설계한 값이다. 고전에는 이런 점수표가 없다.** 엔진이 같은 규칙을 일관되게 적용하기 위한 약속일 뿐, 명리 판단을 과학적으로 입증된 예측으로 만드는 것이 아니다.
+> **정정 이력** — 2026-11-28(연구소장, QA rules@0.3.0 독립 검증 반영): 사례 7 청탁 표지 · 사례 11 agreement 범위 · G1 戊·己 록·양인 표 정리(예약 옵션 `earthRokgeop`) · 상신 `hiddenOnly` → `hiddenPositions`+`presence` · 종강 관점 반가운 오행(인성→비겁) · `tableSensitive` 정의 분리 · 통관 기준 옵션화. 엔진 변경 목록: [reviews/2026-11-28-p306-decisions.md](reviews/2026-11-28-p306-decisions.md). 이번 정정도 고전 원문 대조 없이 한 것이다(L0 그대로).
 
 ---
 
@@ -79,7 +80,7 @@ r  = round6(S / T)
 | 신약 | r < 0.45 | |
 | `extreme: "strong"` | r ≥ 0.80 | 종강·종왕·일행득기 후보 검사 조건(§2.4) |
 | `extreme: "weak"` | r ≤ 0.20 | 종격 후보 검사 조건(§2.4) |
-| `nearBoundary: true` | 0.20·0.45·0.55·0.80 중 하나와 차이가 0.03 미만 | "표·옵션에 따라 판정이 바뀔 수 있음" 표시용 |
+| `nearBoundary: true` | 0.20·0.45·0.55·0.80 중 하나와 차이가 0.03 미만 | "표·옵션에 따라 판정이 바뀔 수 있음" 표시용. **내부 근거·QA용이며 고객 화면에 직접 보이지 않는다.** 폭 0.03은 잠정값(2026-11-28): QA가 \|r(kr-monthly-30) − r(cn-lunarjs)\| 분포를 잰 뒤 그 80% 분위값(소수 3자리)으로 다시 정한다. 측정 전까지 0.03 유지 |
 
 - 근거 수준: 공식·경계값 모두 **연구소장 설계(근거 미확보)**. "돕는 힘과 빼는 힘을 견준다"는 발상만 교재 통용(L0)이다.
 - 주의(품질검증 확인 요청): 오행 다섯 중 둘이 돕는 쪽이라 아무렇게나 만든 원국의 기대 비율은 약 0.457이다(일간 포함 효과). 경계값 0.45~0.55는 "절반 근처면 중화"라는 직관 정의이며 분포를 맞춘 값이 아니다. QA가 실제 원국 분포(신강·중화·신약 비율)를 측정해 보고하고, 조정은 사례 검증 후 연구소장이 한다(분포를 억지로 3등분하지 않는다).
@@ -139,8 +140,13 @@ r  = round6(S / T)
 
 ### 1.9 지장간 표 민감도
 
-- 선택한 표 외의 두 표(`kr-monthly-30`, `cn-lunarjs`, `main-only`)로도 A를 계산해 `tableSensitivity`에 둔다. 판정이나 `extreme`이 달라지면 `tableSensitive: true`다.
+- 선택한 표 외의 두 표(`kr-monthly-30`, `cn-lunarjs`, `main-only`)로도 A를 계산해 `tableSensitivity`에 둔다(세 표 모두 계속 담는다).
 - 이유: 지장간 날수가 L0이라 표 선택이 판정을 뒤집는 경계 사례를 숨기지 않기 위함이다(schools.md §6).
+- **정의 분리(2026-11-28 확정)** — `main-only`는 지장간을 정기 하나로 줄인 간이 판정용(rules-spec §3-3)이라 "실제로 쓰이는 표 사이의 차이"로 세면 민감도가 부풀려진다(QA 측정: 세 표 기준 47.2%).
+  - `tableSensitive`(고객 안내 기준): {선택한 표, `kr-monthly-30`, `cn-lunarjs`} 사이에서 판정 또는 `extreme`이 다르면 true. 기본 설정(kr 선택)에서는 kr ↔ cn 비교다.
+  - `tableSensitiveIncludingMainOnly`(내부 참고, 신규): 세 표 모두 비교 — rules@0.3.x의 `tableSensitive`와 같은 값.
+  - 격국 쪽 `structure.tableSensitive`도 같은 규칙으로 나눈다(`byTable`은 세 표 그대로, `tableSensitiveIncludingMainOnly` 추가). 격국에서 main-only는 정기 고정 변형(G2')과 사실상 겹쳐 `variantAgreement`로 이미 드러난다.
+- 콘텐츠 기준: "보는 방식에 따라 달라질 수 있다"는 `tableSensitive`(새 정의) 또는 `hourSensitive`일 때만 쓴다. 새 정의로 잰 비율이 30%를 넘으면 그 문구는 판정 옆이 아니라 근거 화면에만 둔다(절반 가까운 사람에게 같은 경고를 붙이면 누구에게나 맞는 말이 된다). 30%는 설계값이다.
 
 ### 1.10 출력 요건
 - 근거 항목(`basis`): 천간은 글자 하나가 1항목, 지지는 **지장간 단위**로 항목을 나눈다. 각 항목에 위치·글자·지장간 역할·오행·십성 묶음·돕는/빼는 쪽·위치 가중·지장간 비율·통근 계수·점수(가중, 6자리)를 남긴다. 화면에 "어느 글자가 몇 점"을 보여 줄 수 있어야 한다.
@@ -170,6 +176,11 @@ r  = round6(S / T)
 | G4 | 격 이름 = 고른 글자의 십성 + "격": 정관격 · 편관격(칠살격) · 정재격 · 편재격 · 정인격 · 편인격 · 식신격 · 상관격. ⚑ 정인·편인을 '인수격'으로 묶는 체계가 있어 `alias`에 적는다 | — |
 | G5 | 확신도: 두 투출 변형(G2·G2')이 같은 격을 내고 G1-alt 대체 후보와 무관하게 주 후보가 하나로 정해지면 `medium`. 두 변형이 다르면 주 후보·다른 후보 모두 `low`. 1차 구현은 `high`를 쓰지 않는다 | — |
 
+- **G1과 戊·己 록·양인 표 정리(2026-11-28 확정)**
+  - 모순: G1 진입 조건은 "월지 정기가 비견·겁재"인데, ①②의 戊巳·己午(록)·戊午(양인)는 정기가 丙·丁 = 戊·己의 **인성**인 달이다. 그래서 이 세 칸은 **기본 설정에서 격국 판정에 쓰이지 않는다**(도달 불가). 戊·己 일간의 록겁 계열은 辰·戌·丑·未월(정기 戊·己)뿐이고, 그 달들은 LU·양인 표에 없으므로 모두 ③ **월겁격**이다. 기본 설정에서 토 일간에게 건록격·양인격은 나오지 않는다. 戊·己 일간의 巳·午월은 G2로 가서 정인격·편인격(투출에 따라) 등이 된다.
+  - 기본값: **현재 동작(정기 기준 진입)**. 이유 ① 명세 전체가 월령을 정기 기준(`monthCommandBasis="mainQi"`)으로 잡아 득령·왕상휴수사에서 巳·午월은 戊·己에게 인성의 달이다. 격국에서만 비겁의 달로 읽으면 같은 달을 두 가지로 읽는 내부 모순이 생긴다. ② 戊·己 록이 巳·午라는 것 자체가 화토동법(火土同法) 학설에 기댄 것이고 수토동법을 따르면 자리가 바뀐다(schools.md §7 ⚑). 학설 의존 칸을 격 판정의 입구로 쓰면 학파 선택이 격 이름을 뒤집는다. ③ 상신 영향이 작다: 戊 午월은 양인격이든 정인격이든 상신 묶음이 관살(목)으로 같다(건록격 ↔ 편인격 쪽은 다르므로 옵션으로 비교).
+  - 예약 옵션 `earthRokgeop: "mainQiGate"`(기본) `| "luTable"`: `"luTable"`이면 戊·己 일간에 한해 월지가 록(戊巳·己午) 또는 양인(戊午)이면 록겁 계열(건록격·양인격)로 보고 확신도 `low`. **1차 미구현 — 지정하면 `EngineInputError`**(§0 예약값 규칙). 자평진전 록겁·양인 조항을 원문 대조(L2)한 뒤 기본값을 다시 정한다.
+  - 표 칸은 지우지 않는다: 록 표 戊巳·己午와 양인 표 戊午⚑는 `"luTable"` 옵션과 **신살(양인살 등)·12운성 화토동법 표 용도**로 남긴다. 신살 단계를 구현할 때 그쪽 명세에서 다시 확인한다.
 - 辰·戌·丑·未월(잡기, 雜氣): 지장간이 셋이라 투출 규칙(G2)이 특히 중요하다고 알려져 있다(L0). 별도 규칙 없이 G2를 그대로 쓴다.
 - 子·卯·酉월은 표에 따라 여기가 있거나 없다(`kr-monthly-30`의 子 여기 壬 등). 그래서 격국도 지장간 표에 민감하다. 표를 바꾸면 격이 바뀌는 경우 `tableSensitive: true`로 표시한다.
 - **성격·파격(成格·破格, 격이 제대로 섰는가)은 1차에서 판정하지 않는다.** 상신 후보와 꺼리는 글자가 원국에 있는지만 표시한다.
@@ -188,7 +199,11 @@ r  = round6(S / T)
 | 양인격 | 흉신·역용 | 관살(양인을 다스림) | — |
 | 건록·월겁격 | — | 천간에 투출한 재성·관살·식상 | — |
 
-- 출력: 상신 후보 묶음마다 오행, **원국 천간 투출 위치**, 지장간에만 있는 위치를 남긴다. "투출이 있어야 쓸 수 있다"는 판단은 하지 않는다(정보만).
+- 출력: 상신 후보 묶음(과 꺼리는 묶음)마다 오행, **원국 천간 투출 위치**(`touchul`), **그 오행이 지장간에 있는 지지 위치**(`hiddenPositions`), 둘을 합친 존재 상태(`presence`)를 남긴다. "투출이 있어야 쓸 수 있다"는 판단은 하지 않는다(정보만).
+- **필드 정의(2026-11-28 확정, 구 `hiddenOnly` 대체)** — 구 이름 `hiddenOnly`("지장간에만")는 엔진이 투출이 있어도 지장간 위치를 채워서 서술 단계가 "지장간에만 숨어 있다"고 잘못 쓸 위험이 있었다. 위치 정보 자체는 쓸모가 있으므로(투출 글자가 지지에 뿌리가 있는지 보여 줌) 값은 지금 엔진 정의를 유지하고 이름과 상태를 나눈다.
+  - `hiddenPositions: Position[]` — 원국 지지 중 지장간(여기·중기·정기 무관, 선택한 표)에 이 묶음(십성 제한 `tenGods` 적용)의 글자가 있는 위치. **투출 여부와 별개**. 순서 연→월→일→시. 지지 위치만 담는다(지장간 역할은 담지 않음 — 필요하면 `hiddenStems`에서 찾는다).
+  - `presence: "stemAndHidden" | "stemOnly" | "hiddenOnly" | "absent"` — `touchul`·`hiddenPositions`가 각각 비었는지로 정한다(둘 다 있음 / 천간만 / 지장간만 / 둘 다 없음).
+  - 서술 규칙(콘텐츠·검증기): "지장간에만 있다·숨어 있다"는 `presence === "hiddenOnly"`일 때만, "원국에 없다"는 `"absent"`일 때만 쓸 수 있다. 건록·월겁격은 투출한 묶음만 상신으로 내므로 `presence`가 `stemAndHidden`·`stemOnly`뿐이다.
 - 이 표는 기억에 의존한 요지다(L0). 자평진전 원문 대조 후 칸별로 `verified`로 바꾼다.
 
 ### 2.4 특수격(외격) — 1차는 "후보 + 확신도 low"만
@@ -237,9 +252,17 @@ r  = round6(S / T)
 
 ### 3.3 통관(通關) — `ug.tonggwan`
 요지(L0): 서로 극하며 맞서는 두 오행 사이를 이어 주는 오행이다.
-- 오행 X가 Y를 극할 때(Y = (X+2)%5), 둘 다 가중이 **T의 25% 이상**이고 작은 쪽 ÷ 큰 쪽 ≥ 0.5이면 통관 후보 Z = (X+1)%5(X가 Z를 생하고 Z가 Y를 생함)를 낸다(수치 설계).
+- 오행 X가 Y를 극할 때(Y = (X+2)%5), 둘 다 가중이 **T의 `tonggwanMinShare`(기본 25%) 이상**이고 작은 쪽 ÷ 큰 쪽 ≥ `tonggwanMinRatio`(기본 0.5)이면 통관 후보 Z = (X+1)%5(X가 Z를 생하고 Z가 Y를 생함)를 낸다(수치 설계).
 - 근거로 X·Y의 가중·비율, Z의 `presentWeight`를 남긴다. 조건을 만족하는 쌍이 여럿이면 X 가중 합이 큰 쌍부터 모두 낸다.
-- 빈도가 높게 나오면(§7 사례 12건 중 6건에서 성립) 기준을 올릴지 QA 분포 측정 후 연구소장이 정한다.
+- **기준 강화(2026-11-28 결정: 방향 확정, 수치는 측정 후)** — QA 측정에서 원국의 28.8%가 통관 성립이었다. 통관은 두 세력이 맞서 있는(양강 대치) 원국에 쓰는 관점으로 알려져 있어(L0) 너무 흔하다. 기준을 올리는 것은 확정, 값은 아래 후보의 성립 비율을 잰 뒤 정한다. 목표 "원국 열에 하나 안팎"은 설계 목표이며 근거가 아니다.
+
+| 조합 | 두 오행 각각 T 대비 | 작은 쪽 ÷ 큰 쪽 | 명세 사례 중 성립(손계산) |
+|---|---|---|---|
+| 현행(기본값 유지 중) | ≥ 0.25 | ≥ 0.5 | 2·3·4·5·6·11 |
+| 후보 ① (잠정 추천) | ≥ 0.30 | ≥ 0.5 | 4·5 |
+| 후보 ② | ≥ 0.28 | ≥ 0.6 | 2·4·5 |
+
+  - 순서: ① 엔진이 두 옵션을 만든다(기본값은 현행 그대로 → 결과 불변) ② QA가 세 조합 비율을 잰다 ③ 연구소장이 기본값을 고른다(후보 ①이 15%를 넘으면 ②나 더 높은 값 재검토) ④ 기본값을 바꿀 때 사례 2·3·6·11의 통관 기대값과 §7.1-6-1 목록을 명세·테스트에서 함께 고치고 규칙 버전을 올린다.
 
 ### 3.4 병약(病藥) — `ug.byeongyak` (기본 꺼짐)
 - 요지(L0): 사주에서 지나친 것(병)을 고치는 것(약)이 용신이다. 명대 『명리정종』(5대 고전 밖)으로 알려져 있다.
@@ -251,7 +274,19 @@ r  = round6(S / T)
 - 이름은 반드시 "격국으로 보면(상신)"으로 구분한다. 억부 용신과 합치지 않는다.
 
 ### 3.6 특수격 관점 — `ug.special`
-- §2.4 후보가 있을 때만 낸다. 종격·종왕·일행득기는 따르는 묶음(종살이면 관살, 그것을 생하는 재성도 함께), 화격은 합화 오행과 그것을 생하는 오행. `confidence: "low"`, `reversesUsefulGod`를 표시한다.
+- §2.4 후보가 있을 때만 낸다. `confidence: "low"`, `reversesUsefulGod`를 표시한다. 반가운 오행(rank 순서)은 아래 표다(2026-11-28 정정 — 이전 문구 "따르는 묶음 + 그것을 생하는 오행"을 종왕·종강에 그대로 적용하면 종강에 관살이 들어가므로 바로잡음).
+
+| 후보 | 반가운 오행(rank 1 → 2) |
+|---|---|
+| 종살·종재·종아 | 따르는 묶음 → 그것을 생하는 오행 (종살: 관살 → 재성, 종재: 재성 → 식상, 종아: 식상 → 비겁) |
+| 종세 | 빼는 묶음(관살·재성·식상)을 가중 큰 순으로 셋 (동점 관살 > 재성 > 식상) |
+| 종왕 (비겁 ≥ 인성) | 비겁 → 인성 |
+| 종강 (인성 > 비겁) | **인성 → 비겁** |
+| 화격 | 합화 오행 → 그것을 생하는 오행 |
+| 일행득기 | 일간 오행(비겁) → 인성 |
+
+  - 종강 판단 이유: 종왕·종강은 "돕는 세력(비겁·인성)이 원국을 거의 다 차지해 그 기세를 따른다"는 같은 틀이고 둘을 가르는 것은 비겁과 인성 중 어느 쪽이 많은가뿐이다. 진입 조건 E2가 관살 ≤ 5%를 요구하는 격에 관살을 반가운 오행으로 내면 앞뒤가 맞지 않는다. 종강·종왕은 비겁·인성을 반기고 관살·재성을 꺼린다는 것이 통설로 기억된다(L0, 원문 미대조). 그래서 반가운 오행은 **돕는 두 묶음만, 많은 쪽 먼저**로 정한다. 엔진 rules@0.3.x 동작과 같으므로 코드 변경은 없다.
+  - ⚑ 종아·일행득기에서 식상(설기)을 함께 반기는 설이 있으나 확인하지 못해 넣지 않는다.
 
 ### 3.7 희신·기신·구신·한신
 | 이름 | 기본 정의 `favorableDefinition="generationCycle"` (현대 통용, L0) | 오행 식(용신 U) |
@@ -266,6 +301,7 @@ r  = round6(S / T)
 
 ### 3.8 관점이 다를 때 표시 — 기본 제안 "관점별 병기"(대표 결정 대기 6번 (나))
 - 엔진은 `usefulGods.views[]`에 관점별 결과를 모두 내고, `agreement`(어떤 오행이 몇 개 관점의 rank 1인지)를 계산한다.
+  - `agreement`에는 **각 관점(view)의 대표 rank 1만** 센다. 억부 관점의 대표값은 `strengthPrimary` 모형의 결과다(§3.1). 억부 `byModel`(다른 신강약 모형의 결과)은 비교용이라 **세지 않는다** — 세면 억부 한 관점이 모형 수만큼 표를 얻는다(2026-11-28 명확화). 대표값이 `balanced`면 억부는 agreement에 들어가지 않는다.
 - 콘텐츠는 "힘의 균형으로 보면 ○, 계절로 보면 ○, 격국으로 보면 ○"처럼 머리말을 붙여 나란히 쓴다. 특수격 view는 대표 결정 전까지 고객 문장에 쓰지 않는다.
 - **(가) "하나만"으로 결정될 경우의 대표값 규칙(제안):**
   1. 특수격 view는 제외한다.
@@ -334,6 +370,8 @@ M = m(월지) + 0.5 × Σ m(그 밖의 원국 지지) + 0.5 × (壬·癸 천간 
 | 재성파인(財星破印) | 재성 천간과 인성 천간이 이웃한 기둥에 있음 | L0 |
 
 - ⚑ 지지·지장간까지 표지를 볼지는 학파 차이다. 1차는 천간만 본다.
+- 재성파인의 "이웃한 기둥"은 일간을 뺀 천간끼리이므로 실제로는 **연간–월간 쌍만** 해당한다(월간–시간 사이에는 일간이 있다). 엔진 동작과 같다.
+- 표지는 판정이 아니다. 표지를 이루는 두 글자가 합(예: 甲己 천간합)으로 묶여 있으면 합이 극을 누그러뜨린다고 보는 설이 있으므로(L0), 콘텐츠는 표지만으로 "인성이 깨졌다" 같은 결론을 쓰지 않고 그 합을 함께 보인다.
 
 ### 5.2 엔진이 내지 않는 것 (서술 영역)
 - 청탁(淸濁)의 **최종 판정**("이 사주는 맑다/탁하다"), 진가(眞假), 순역(順逆)의 의미, 원류(源流)의 해석, 전체 기세의 "방향" 서술.
@@ -362,6 +400,10 @@ interface RuleOptionsP306 {
   usefulGodMethods: ("eokbu" | "johuClimate" | "tonggwan" | "byeongyak" | "gyeokguk" | "special")[]
                                                                  // 기본 ["eokbu","johuClimate","tonggwan","gyeokguk","special"]
   favorableDefinition: "generationCycle" | "secondCandidate"     // 기본 "generationCycle" ⚑
+  // ── 2026-11-28 추가
+  earthRokgeop: "mainQiGate" | "luTable"                         // 기본 "mainQiGate" ("luTable"은 예약 → EngineInputError) §2.2
+  tonggwanMinShare: number                                       // 기본 0.25, 허용 범위 (0, 0.5] 밖이면 EngineInputError §3.3
+  tonggwanMinRatio: number                                       // 기본 0.5, 허용 범위 (0, 1] 밖이면 EngineInputError §3.3
 }
 
 type StrengthVerdict = "신강" | "중화" | "신약"
@@ -404,7 +446,8 @@ interface StrengthResult {
   dayMasterRoots: { position: Position; stem: Stem; role: HiddenStemRole }[]
   groupTotals: Record<TenGodGroup, number>          // 일간 제외, weighted 모형 가중
   tableSensitivity: { tableId: HiddenStemTableId; ratio: number; verdict: StrengthVerdict; extreme: "strong" | "weak" | null }[]
-  tableSensitive: boolean
+  tableSensitive: boolean            // 2026-11-28: {선택 표, kr, cn} 사이 비교(§1.9)
+  tableSensitiveIncludingMainOnly: boolean  // 세 표 모두 비교(rules@0.3.x의 tableSensitive)
   hourSensitivity: null | { byHour: { hour: Pillar; ratio: number; verdict: StrengthVerdict }[]; verdicts: StrengthVerdict[]; hourSensitive: boolean }
   affectedBy: { ruleId: string; type: string; members: Position[]; critical: boolean }[]
   adjustmentsApplied: []             // 1차 항상 빈 배열
@@ -420,10 +463,21 @@ interface StructureCandidate {
   reversesUsefulGod?: boolean
   conditions?: { id: string; met: boolean; value?: number }[]  // 특수격 F1~F3, H1~H6 등
   obstructions?: { ruleId: string; members: Position[] }[]
-  sangsin?: { group: TenGodGroup; element: Element; touchul: Position[]; hiddenOnly: Position[] }[]
-  avoid?: { group: TenGodGroup; element: Element; touchul: Position[] }[]
+  sangsin?: StructureGroupRef[]
+  avoid?: StructureGroupRef[]
   variantAgreement: "same" | "differs"  // G2·G2' 결과 비교
   ruleId: string
+}
+
+// 2026-11-28: 구 { touchul; hiddenOnly } 대체 (§2.3). avoid도 같은 형식
+interface StructureGroupRef {
+  group: TenGodGroup
+  element: Element
+  tenGods?: TenGod[]                 // 묶음 중 일부 십성만 해당할 때
+  touchul: Position[]                // 일간 제외 천간 위치
+  hiddenPositions: Position[]        // 지장간에 이 묶음 글자가 있는 지지 위치(투출과 별개)
+  presence: "stemAndHidden" | "stemOnly" | "hiddenOnly" | "absent"
+  note?: string
 }
 
 interface UsefulGodCandidate { element: Element; group: TenGodGroup | null; rank: number; presentWeight: number }
@@ -468,7 +522,7 @@ interface QiFlowResult {
 }
 ```
 
-- `RuleAnalysis`에 `strength`, `structure: { candidates: StructureCandidate[]; tableSensitive: boolean }`, `usefulGods`, `climate`, `qiFlow`를 추가한다.
+- `RuleAnalysis`에 `strength`, `structure: { candidates: StructureCandidate[]; tableSensitive: boolean; tableSensitiveIncludingMainOnly: boolean }`, `usefulGods`, `climate`, `qiFlow`를 추가한다.
 - 모든 결과의 근거 위치는 rules@0.2.0 `Position` 형식을 쓴다(AI 서술 검증기 P4-04가 대조).
 - 운(대운·세운)은 1차 범위 밖이다. 원국만 판단한다.
 
@@ -505,7 +559,7 @@ interface QiFlowResult {
 - groupTotals: 비겁 60, 인성 39, 식상 18, 재성 30, 관살 138 → 억부: 관살 최대 → **목 → 화**
 - 희기신(generationCycle, U=목): 희 수 · 기 금 · 구 토 · 한 화 ⚑ — 희신이 문제 오행인 수(관살)가 되고 2순위 후보 화는 한신이 된다. `secondCandidate`면 희 = 화
 - 통관: 수(43.8%)가 화(28.6%)를 극함, 비율 0.652 → **통관 목**
-- 격국: 子 정기 癸 = 정관, 투출 없음 → **정관격 medium**. 상신: 재성(금, 酉 지장간만) · 인성(목, 연간 甲 투출)
+- 격국: 子 정기 癸 = 정관, 투출 없음 → **정관격 medium**. 상신: 재성(금) touchul [] · hiddenPositions [시지 酉] · presence **hiddenOnly** / 인성(목) touchul [연간 甲] · hiddenPositions [연지 辰(乙)] · presence **stemAndHidden**
 - 조후: T = −2 + 0.5×(0−2+0) + 0.5×(3−0) = **−1.5(한)**, M = 2 + 0.5×(1+2+0) + 0.5×(0−3) = **2.0(습·강)** → [warm, dry] → 화
 
 ### 사례 3 — A 중화 vs B 신강, 관살혼잡, 조후 경계값 포함 판정
@@ -517,7 +571,7 @@ interface QiFlowResult {
 - 표 민감도: cn-lunarjs S 159 → 0.504762 중화 · main-only S 165 → 0.523810 중화
 - 억부(A): **balanced**, lean "strong". 억부(B, byModel): 비겁(90) > 인성(43) → 비겁형 → 화 → 수 → 목
 - 통관: 화(27.9%)가 금(38.1%)을 극함, 비율 0.733 → **통관 토**
-- 격국: 酉 = 庚의 양인 → **양인격 medium**, 酉의 지장간 庚·辛이 모두 비겁이라 G1-alt 없음. 상신: 관살(화) 투출 [연간 丙, 월간 丁]
+- 격국: 酉 = 庚의 양인 → **양인격 medium**, 酉의 지장간 庚·辛이 모두 비겁이라 G1-alt 없음. 상신: 관살(화) touchul [연간 丙, 월간 丁] · hiddenPositions [연지 寅(丙), 시지 午(丙·丁)] · presence stemAndHidden
 - 기세 clarityFlags: **관살혼잡**(丙 편관 연간, 丁 정관 월간)
 - 조후: T = 0 + 0.5×(−1+0+2) + 0.5×(2−1) = **1.0 → 난**(경계 포함 확인), M = 0 + 0.5×(0+1−2) + 0.5×(1−2) = **−1.0 → 조**(경계 포함 확인) → [cool, moisten] → 수
 
@@ -530,7 +584,7 @@ interface QiFlowResult {
 - groupTotals: 비겁 90, 인성 30, 식상 19, 재성 107.5, 관살 38.5
 - 억부(A): balanced. 억부(B): 재성 최대 → **수 → 금**
 - 통관: 수(38.1%)가 화(34.1%)를 극함 → **통관 목**
-- 격국: 子 = 壬의 양인 → **양인격 medium**. 상신 관살(토): 투출 없음, 지장간만(寅戊·午己·未己)
+- 격국: 子 = 壬의 양인 → **양인격 medium**. 상신 관살(토): touchul [] · hiddenPositions [연지 寅(戊), 일지 午(己), 시지 未(己)] · presence hiddenOnly
 - 조후: T = −2 + 0.5×(−1+2+2) + 0.5×(2−1) = **0(중)**, M = 2 + 0.5×(0−2−1) + 0.5×(1−2) = **0(중)** → needs 없음. 겨울생이어도 조후 필요 없음 판정을 확인
 - (가) "하나만" 규칙 적용 시: 조후 극단 아님 → 억부 balanced → 조후 없음 → **"뚜렷한 치우침 없음"**
 
@@ -544,7 +598,7 @@ interface QiFlowResult {
 - 억부(A): 관살 최대 → **수 → 목** / 억부(B): 비겁형 → **금 → 화 → 토** → rank 1이 수 vs 금으로 갈림
 - 희기신(A, U=수): 희 금(= 관살, 문제 오행) ⚑
 - 통관: 금(38.1%)이 목(34.0%)을 극함 → **통관 수**(A 억부와 일치)
-- 격국: 酉 정기 辛 월간 투출 → **정관격 medium**. 상신: 재성(토) 투출 [연간 戊], 인성(수) 지장간만 [시지 亥]
+- 격국: 酉 정기 辛 월간 투출 → **정관격 medium**. 상신: 재성(토) touchul [연간 戊] · hiddenPositions [연지 寅(戊), 일지 寅(戊), 시지 亥(戊)] · presence **stemAndHidden** (QA 지적: 이전 본문은 투출만 적어 엔진과 달라 보였음) / 인성(수) touchul [] · hiddenPositions [시지 亥(壬)] · presence hiddenOnly
 - 조후: T = 0 + 0.5×(−1−1−1) + 0 = **−1.5(한)**, M = 0 + 0.5×(0+0+1) + 0 = **0.5(중)** → [warm] → 화
 
 ### 사례 6 — 시주 모름: 세 기둥은 신강, 시진에 따라 중화
@@ -577,7 +631,8 @@ interface QiFlowResult {
 - seasonState 死
 - affectedBy(적어도 아래 항목이 있어야 함): 천간합 甲己(연간·월간, 돕는 천간 己 → critical) · 천간충 甲庚(연간·일간 → 일간 critical) · 지지충 辰戌(연지·일지 → critical) · 반합 子辰(연지·시지 → critical 아님). `adjustmentsApplied: []`
 - 격국: 巳 정기 丙 시간 투출 → **칠살격(편관격) medium**. 일간과 같은 庚(중기)은 투출 판정 대상이 아님을 확인
-- clarityFlags: 없음(천간 甲 편재, 己 정인, 丙 편관 — 혼잡 표지 없음)
+- clarityFlags: **재성파인** — members [연간 甲(편재), 월간 己(정인)], 이웃한 기둥(§5.1). 혼잡류(관살혼잡·상관견관·효신탈식·비겁쟁재) 표지는 없음. (2026-11-28 정정: 이전 본문 "없음"은 재성파인 줄을 빠뜨린 손계산 오류. 엔진·QA 오라클이 맞다.) 같은 두 글자가 甲己 천간합(affectedBy critical)으로 묶여 있음 — 표지는 판정이 아니다
+- 기세: shares 목 0.123810(39u) · 화 0.261905(82.5u) · 토 0.304762(96u) · 금 0.204762(64.5u) · 수 0.104762(33u), 합 315u → 다섯 모두 0.10 이상 → flowChain **circular: true**
 - 통관: 없음(금 20.5%로 25% 미만)
 - 조후: T = 1 + 0.5×(0+0−2) + 0.5×(1−0) = **0.5(중)**, M = −1 + 0.5×(1−1+2) + 0.5×(0−1) = **−0.5(중)** → needs 없음
 
@@ -610,7 +665,7 @@ interface QiFlowResult {
 - B: 0개 → 신약
 - 화격 조건: H1 ✓(일간 甲 + 월간 己, 인접) · H2 ✓(丑 정기 己 = 토) · H3 ✓(일간 말고 목 천간 없음) · H4 ✓(목 지장간은 辰의 乙 여기뿐) · H5 ✓(토 177u = 56.2%) · H6 ✓ → **화토격 후보 low, reversesUsefulGod true**. obstructions: 천간충 甲庚(연간·일간, 비인접)
 - 억부: 재성(토 177) 최대 → **목 → 수** / 특수격 view: 토 · 화
-- 격국: 丑 정기 己 월간 투출 → **정재격 medium**. 상신: 식상(화) 지장간만 [일지 戌의 丁] · 관(금) 투출 [연간 庚]
+- 격국: 丑 정기 己 월간 투출 → **정재격 medium**. 상신: 식상(화) touchul [] · hiddenPositions [일지 戌(丁)] · presence hiddenOnly / 관(금) touchul [연간 庚] · hiddenPositions [월지 丑(辛), 일지 戌(辛)] · presence stemAndHidden
 - 조후: T = **−2(한·강)**(경계 포함), M = 1 + 0.5×(1−1+1) = **1.5(습)** → [warm, dry] → 화
 
 ### 사례 11 — 통관(금↔목) + 월지 충 + 기세 연쇄
@@ -621,10 +676,10 @@ interface QiFlowResult {
 - 억부(A): balanced, lean weak / 억부(B): 관살 최대 → **수 → 목**
 - 통관: 금 124u(39.4%)가 목 84u(26.7%)를 극함, 비율 0.677 → **통관 수**(presentWeight 58)
 - affectedBy: 지지충 寅申(월지·일지, 인접 → critical), 삼형 일부 寅申(partial), 천간충 甲庚(연간·월간 인접)
-- 격국: 申 정기 庚 연간 투출 → **칠살격 medium**. 상신: 식신(화) 지장간만 [일지 寅의 丙] · 인성(수) 투출 [시간 癸]
+- 격국: 申 정기 庚 연간 투출 → **칠살격 medium**. 상신: 식신(화, tenGods [식신]) touchul [] · hiddenPositions [일지 寅(丙)] · presence hiddenOnly / 인성(수) touchul [시간 癸] · hiddenPositions [연지 申(壬), 월지 申(壬)] · presence stemAndHidden
 - 기세: shares 금 0.393651 · 목 0.266667 · 수 0.184127 · 토 0.122222 · 화 0.033333 → flowChain **토→금→수→목(4)**, missing 없음, dominant 금
 - 조후: T = 1 + 0.5×(1−1+0) + 0.5×(0−1) = **0.5(중)**, M = 0 + 0 + 0.5×(1−0) = **0.5(중)** → needs 없음
-- 관점 일치(agreement): 수 = 통관·억부(B) rank 1
+- 관점 일치(agreement): 수 = methods **["tonggwan"]**(통관 rank 1만). 억부 관점의 대표값(모형 A)은 balanced라 agreement에 들어가지 않는다. 격국 상신 rank 1은 식신(화)이라 수와 다르다. (참고 설명: 모형 B로 보면 억부도 수가 1순위지만 이것은 `byModel` 값이라 agreement에 세지 않는다 — §3.8. 2026-11-28 정정)
 
 ### 사례 12 — 겨울 수 일간 건록격: 억부(토)와 조후(화)가 다름, 윤하 후보 아님
 원국: 癸亥 / 癸亥 / 壬子 / 辛丑, 일간 壬(수)
