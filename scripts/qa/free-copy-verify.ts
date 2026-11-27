@@ -6,7 +6,8 @@
 //   day-pillar(60): label→title, oneLiner→sub, detail→body
 //   elements(10 일간 × 5 오행 × 3 종류, 자기 오행 lack 제외 = 140): text→body, tenGodLine(+묶음 문장)→details[].text, prescription→todo
 //   this-year(연도 × 일간 10): line(+해당 일지 덧줄) → body. 일지 덧줄은 그 일지를 가진 일주(일간 같은 것 중 첫째)로 단위 1개씩 더
-//   teaser(60 일주): 보이는 항목(needsConfirm≠true) preview→items[].text, lock→lock
+//   teaser(60 일주): 보이는 항목(needsConfirm≠true) preview→teaser[].text, lock→lock
+//     (verify@0.3.1부터 칸 종류 "teaser" = 상품 소개 칸 → 바넘 비율 계산에서 빠진다. 0.3.0 측정 때는 items[].text였다 — 검사 대상 문장은 같다)
 //   share-card(10): line→body
 // sajuInput: 그 문안이 가리키는 글자만 넣는다(연·월·일주를 같은 기둥으로, 시주 모름) — 다른 글자를 채워 넣어 BASIS 검사를 가리지 않게.
 import { readFileSync } from "node:fs"
@@ -110,7 +111,7 @@ export function buildUnits(dir: string): Unit[] {
     }
     units.push({
       file: "teaser", id: pillar, pillar, thisYear: { year: Number(y0?.year), ganzhi: s(y0?.ganzhi) },
-      reading: one("더 깊은 풀이", { items: live.map((x) => ({ name: s(x.menu), text: fill(s(x.preview), tk) ?? "" })), lock: fill(s(live[0]?.lock), tk) ?? "" }),
+      reading: one("더 깊은 풀이", { teaser: live.map((x) => ({ name: s(x.menu), text: fill(s(x.preview), tk) ?? "" })), lock: fill(s(live[0]?.lock), tk) ?? "" }),
     })
   }
   for (const it of sc.items as J[]) {

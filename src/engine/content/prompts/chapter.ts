@@ -3,8 +3,9 @@
 // 사용자 메시지의 <사실표>는 장 초안의 factParts 목록으로만 만든다 → 문서(content-chapters.md)·테스트와 어긋나지 않는다.
 import type { ChapterSpec, FactSheet } from "../types"
 import {
-  secDaeunList, secDaeunNow, secDayPillar, secElements, secGongmang, secGuards, secInteractions, secNatalTenGods,
+  secDaeunList, secDaeunNow, secDayPillar, secElements, secGaeun, secGongmang, secGuards, secInteractions, secNatalTenGods,
   secNextYear, secNoGuess, secPillars, secStrength, secSubject, secThisYear, secUserFacts, secWarnings, userFactsFor,
+  type GaeunScope,
 } from "./facts"
 import { CATCHPHRASES, type CatchphraseKey } from "./persona"
 import type { JsonSchema } from "./schema"
@@ -30,6 +31,7 @@ export type FactPart =
   | "thisYear"
   | "nextYear"
   | "userFacts"
+  | "gaeun"
   | "noGuessYears"
   | "warnings"
   | "guards"
@@ -43,6 +45,8 @@ export interface SectionOptions {
   luckTouch?: RegExp
   /** daeunAhead에 넣을 대운 수(기본 4) */
   daeunAheadLimit?: number
+  /** gaeun 조각에 싣는 범주 범위(gaeun.md §3.4, facts.ts GaeunScope). 기본 natal */
+  gaeunScope?: GaeunScope
 }
 
 type SectionBuilder = (facts: FactSheet, o: SectionOptions, topics: readonly string[]) => string
@@ -64,6 +68,7 @@ export const SECTION_BUILDERS: Record<FactPart, SectionBuilder> = {
   thisYear: (f) => secThisYear(f),
   nextYear: (f) => secNextYear(f),
   userFacts: (f, _o, topics) => secUserFacts(f, topics),
+  gaeun: (f, o) => secGaeun(f, o.gaeunScope ?? "natal"),
   noGuessYears: (f) => secNoGuess(f),
   warnings: (f) => secWarnings(f),
   guards: (f) => secGuards(f),
@@ -116,13 +121,16 @@ export function renderFlow(d: ChapterDraft, facts: FactSheet): string[] {
   const links = !d.flow.links
     ? null
     : hasUser
-      ? `- 살아온 모습과 잇기: ${d.flow.links} [사용자 사실]의 출처를 밝히고("네가 말해 준 대로"), 글자와 닿으면 확인하는 어조로, 다르면 '글자 밖에서 익힌 힘'으로 존중한다.`
+      ? `- 살아온 모습과 잇기: ${d.flow.links} [사용자 사실]의 출처를 밝히고("네가 말한 ~", "네가 말해 준 대로"), 줄 끝 연결 표지대로만 잇는다: 글자와 닿음 → "네가 말한 ○○이 바로 그 통로다", 글자 밖 → '글자 밖에서 익힌 힘'으로 존중, 글자와 잇지 않음 → 사주로 설명하지 않고 배경으로만.`
       : "- 살아온 모습과 잇기: 이 장에는 사용자 사실이 없다. 이 몫은 건너뛰고, 있을 법한 삶을 지어 채우지 않는다."
+  const gaeun = d.factParts.includes("gaeun")
+    ? " 개운 실천은 [바꿔 볼 것 — 코드가 고른 범주]에 실린 범주에서만 고르고, 그 밖의 개운을 만들지 않는다."
+    : ""
   return [
     "[이 장의 짜임 — 타고난 결 → 살아온 모습과 잇기 → 바꿔 볼 것]",
     `- 타고난 결: ${d.flow.nature}`,
     ...(links ? [links] : []),
-    `- 바꿔 볼 것: ${d.flow.change} 생활 실천(습관·관계·일하는 방식·시기 활용)으로, 효과를 단정하지 않고("해 볼 만하다") 쓴다.`,
+    `- 바꿔 볼 것: ${d.flow.change} 생활 실천(습관·관계·일하는 방식·시기 활용)으로, 효과를 단정하지 않고("해 볼 만하다") 쓴다.${gaeun}`,
   ]
 }
 

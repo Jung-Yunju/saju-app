@@ -1,7 +1,7 @@
 // 유료 기본 풀이 8장 (P4-03) — 본질·성향 / 재능·직업 / 돈의 흐름 / 사람·인연 / 지금 대운 / 올해와 내년 / 갈림길 / 마무리
 // 기본 풀이(BASIC)와 주제·총괄 상품이 같이 쓴다. 장마다 "다른 장 몫"을 밝혀 같은 말이 장마다 되풀이되지 않게 한다.
 import { defineChapter } from "../chapter"
-import { currentDaeun, nextYearOf } from "../facts"
+import { currentDaeun, isShakingYear, nextYearOf } from "../facts"
 import { ASK, CAVEAT, SUB, THREE_FACES, TITLE, TODO, arr, body, chips, int, obj, str } from "../schema"
 
 const LIFE_STAGE_RULE =
@@ -13,18 +13,20 @@ export const nature = defineChapter({
   tier: "paid",
   maxOutputTokens: 1800,
   tokenBasis: "본문 4문단×3.5문장×50자 ≈ 700자 + 제목·부제·칩 4개·할 일·물음·불확실성 ≈ 220자 = 약 920자 → 약 1,060토큰. 풀이의 첫인상이라 문단 수가 가장 많아 여유 1.7배",
-  factParts: ["subject", "pillars", "natalTenGods", "natalInteractions", "gongmang", "elements", "strength", "userFacts", "warnings", "guards"],
+  factParts: ["subject", "pillars", "natalTenGods", "natalInteractions", "gongmang", "elements", "strength", "userFacts", "gaeun", "warnings", "guards"],
+  sectionOptions: { gaeunScope: "natal" },
   userFactTopics: ["mbti", "birthOrder", "concernTopic", "selfStrength", "selfWeakness"],
   flow: {
     nature: "body[0] 겉, body[1] 속 — 태어난 날의 두 글자와 태어난 계절, 오행의 넘침과 모자람에서 고른 한 장면.",
-    links: "body[2] — 스스로 느끼는 강점·아쉬운 점을 타고난 결 옆에 나란히 둔다(일치·불일치를 판정하지 않는다).",
-    change: "body[3] — 어디서 왜 굳는지와 그 굳은 데를 바꿔 볼 실천. todo에 가장 구체적인 실천 하나.",
+    links: "body[2] — 스스로 느끼는 강점·아쉬운 점을 타고난 결 옆에 나란히 둔다(일치·불일치는 줄 끝 연결 표지만 따른다).",
+    change: "body[3] — 어디서 왜 굳는지와 그 굳은 데를 바꿔 볼 실천(채울 것 하나 + 덜 것 하나). todo에 가장 구체적인 실천 하나.",
   },
   tasks: () => [
     "태어난 날의 두 글자(일주)와 태어난 계절(월지), 오행의 넘침과 모자람에서 이 사람만의 장면 하나를 고른다. 그 장면으로 네 문단을 잇는다. 장면은 [여덟 글자]의 그림 말로 그린다.",
     "body[0] 겉: 남이 먼저 보는 얼굴. body[1] 속: 혼자 있을 때의 결.",
     "body[2]: 사용자 사실(스스로 느끼는 강점·아쉬운 점)이 있으면 살아온 모습과 잇는다. 없으면 이 사람을 여는 것(무엇이 이 사람을 풀리게 하고 움직이게 하는지)으로 쓴다.",
     "body[3] 굳는 데와 바꿔 볼 것: 어디서 왜 굳는지를 근거 글자로 쓰고, 그 굳은 데를 바꿔 볼 실천을 바로 준다. 이 문단 첫머리에 말버릇 '글자는 생김새다. 쓰는 건 너다.'를 두고, 문단은 실천으로 끝낸다. 말씨 세기가 허락하면 여기서 한 번 짚는다.",
+    "body[3]의 실천은 [바꿔 볼 것]의 채울 것(모자란 힘 채우기) 하나와 덜 것(넘치는 힘 덜어 내기) 하나를 같이 쓴다. 균형 범주(지금 균형 지키기)뿐이면 지킬 습관 하나로 쓴다. 계절 기운 범주가 있으면 몸·생활 리듬 실천 한 문장을 '계절 기운으로 보면' 머리말로 덧붙인다. todo는 그중 가장 구체적인 하나. [바꿔 볼 것]에 범주가 없다고 적혀 있으면 그 안내를 따른다.",
     "타고난 글자끼리의 관계(합·충 등)가 성격에 걸리면 한 번, 관계 줄의 쉬운 말로 쓴다. 충은 다 깨지는 것이 아니고, 합은 붙기도 하고 묶이기도 한다.",
     "비어 있는 자리(공망)는 타고난 글자에 걸린 곳이 있을 때만, '어떤 사람한텐 아무 일도 안 한다'는 여지와 함께 쓴다.",
     "형제 순서·MBTI 같은 사용자 사실은 비유와 장면을 고를 때만 쓰고, 성격의 근거로 쓰지 않는다.",
@@ -44,7 +46,8 @@ export const talent = defineChapter({
   tier: "paid",
   maxOutputTokens: 1500,
   tokenBasis: "본문 3문단 ≈ 450자 + 자리 3개×80자 = 240자 + 공통 칸 ≈ 180자 = 약 870자 → 약 1,000토큰, 여유 1.5배",
-  factParts: ["subject", "pillars", "natalTenGods", "natalInteractions", "elements", "strength", "userFacts", "warnings", "guards"],
+  factParts: ["subject", "pillars", "natalTenGods", "natalInteractions", "elements", "strength", "userFacts", "gaeun", "warnings", "guards"],
+  sectionOptions: { gaeunScope: "workNatal" },
   userFactTopics: ["occupationStatus", "careerFeeling", "concernTopic", "workStyle", "selfStrength"],
   flow: {
     nature: "body[0] — 가장 큰 재주(사실표 십성이 어느 자리에 있는지에서).",
@@ -52,8 +55,8 @@ export const talent = defineChapter({
     change: "body[2] — 모자란 쪽을 메우는 법(남의 손 빌리기·연장 갖추기·일하는 순서 바꾸기). todo에 가장 구체적인 실천 하나.",
   },
   tasks: () => [
-    "사실표 십성을 다섯 묶음으로 본다: 식신·상관=드러내고 만드는 재주, 편재·정재=다루고 굴리는 재주, 편관·정관=맡고 책임지는 재주, 편인·정인=배우고 채우는 재주, 비견·겁재=제 힘으로 밀고 가는 재주. 사실표에 있는 묶음만, 몇 개가 어느 자리에 있는지를 근거로 쓴다. 고객 문장에는 묶음 이름보다 이 쉬운 말을 먼저 쓴다.",
-    "body[0] 가장 큰 재주. body[1] 일하는 방식(혼자/함께, 빠르게/깊게 등 근거 글자에서 나온 것) — 사용자 사실이 있으면 살아온 모습과 잇는다. body[2] 모자란 쪽 메우기(없는 묶음은 '없어서 못 한다'가 아니라 남의 손을 빌리거나 연장을 갖추는 법으로)와 바꿔 볼 실천.",
+    "사실표 십성을 다섯 묶음으로 본다: 식신·상관=드러내고 만드는 재주, 편재·정재=다루고 굴리는 재주, 편관·정관=맡고 책임지는 재주, 편인·정인=배우고 채우는 재주, 비견·겁재=제 힘으로 밀고 가는 재주. 사실표에 있는 묶음만, 어느 자리에 있는지를 근거로 쓴다. 묶음이 몇 개인지는 [바꿔 볼 것]의 '드러난 글자 묶음 개수' 값만 옮기고 스스로 세지 않는다(그 값이 없으면 개수를 말하지 않는다). 고객 문장에는 묶음 이름보다 이 쉬운 말을 먼저 쓴다.",
+    "body[0] 가장 큰 재주. body[1] 일하는 방식(혼자/함께, 빠르게/깊게 등 근거 글자에서 나온 것) — 사용자 사실이 있으면 살아온 모습과 잇는다. body[2] 모자란 쪽 메우기(개수 값이 0인 묶음만 '드러나 있지 않다'고 쓰고, '없어서 못 한다'가 아니라 남의 손을 빌리거나 연장을 갖추는 법으로)와 바꿔 볼 실천. 바꿔 볼 실천은 [바꿔 볼 것]의 일하는 방식 범주에서 하나.",
     "fits: 값이 오르는 자리 2~3개. place는 직업 이름 단정이 아니라 일의 모양(예: '남의 글을 고치는 자리'), text는 근거(그림 말)와 이유 한두 문장.",
     "사용자 사실의 지금 하는 일이 있으면 그 자리에서 재주를 쓰는 법으로 옮긴다. 학생이면 공부·진로, 은퇴했으면 재주를 나누는 일로.",
     "직업을 사주로 정해 주지 않는다. 시험 합격·승진을 단정하지 않는다.",
@@ -79,7 +82,8 @@ export const money = defineChapter({
   tier: "paid",
   maxOutputTokens: 1400,
   tokenBasis: "본문 3문단 ≈ 450자 + 버는·모으는·새는 3줄×60자 = 180자 + 공통 칸 ≈ 160자 = 약 790자 → 약 900토큰, 여유 1.5배",
-  factParts: ["subject", "pillars", "natalTenGods", "natalInteractions", "elements", "userFacts", "warnings", "guards"],
+  factParts: ["subject", "pillars", "natalTenGods", "natalInteractions", "elements", "userFacts", "gaeun", "warnings", "guards"],
+  sectionOptions: { gaeunScope: "workNatal" },
   userFactTopics: ["occupationStatus", "moneyFocus", "hasChildren", "selfWeakness"],
   flow: {
     nature: "body[0] — 돈이 드는 문(돈과 살림을 뜻하는 글자가 어디 몇 개 있는지).",
@@ -87,7 +91,7 @@ export const money = defineChapter({
     change: "body[2]와 habits.leak — 새는 구멍과 막는 습관. todo에 가장 구체적인 실천 하나(금액·종목 없이).",
   },
   tasks: () => [
-    "재성(편재·정재 = 돈과 살림을 뜻하는 글자)이 사실표에 어디 몇 개 있는지 그대로 쓴다. 없으면 없다고 쓰되 '돈이 없는 사주'로 판정하지 않는다. 재성을 다루는 힘(식상=돈을 만드는 손, 비겁=나누고 겨루는 손)과의 관계는 사실표에 있는 글자로만 본다. 고객 문장에는 쉬운 말을 먼저 쓴다.",
+    "재성(편재·정재 = 돈과 살림을 뜻하는 글자)이 어디 있는지는 원국 십성 줄 그대로, 몇 개인지는 [바꿔 볼 것]의 '드러난 글자 묶음 개수' 재성 값만 쓴다(그 값이 없으면 개수를 말하지 않는다). 그 값이 0일 때만 '드러난 글자엔 없다'고 쓰되 '돈이 없는 사주'로 판정하지 않는다. 재성을 다루는 힘(식상=돈을 만드는 손, 비겁=나누고 겨루는 손)과의 관계는 사실표에 있는 글자로만 본다. 고객 문장에는 쉬운 말을 먼저 쓴다.",
     "body[0] 돈이 드는 문, body[1] 돈이 머무는 법(사용자 사실이 있으면 잇기), body[2] 새는 구멍과 막는 습관(바꿔 볼 것).",
     "habits: earn·keep·leak 한 문장씩, 각각 근거 포함. leak는 막는 습관으로 끝낸다.",
     "사용자 사실의 지금 하는 일에 맞춰 장면을 옮긴다: 직장=월급·주거, 사업=매출·자금 회전, 학생=용돈·아르바이트, 은퇴=연금·지출 관리.",
@@ -118,7 +122,8 @@ export const people = defineChapter({
   tier: "paid",
   maxOutputTokens: 1400,
   tokenBasis: "본문 3~4문단 ≈ 600자 + 공통 칸 ≈ 160자 = 약 760자 → 약 870토큰, 여유 1.6배",
-  factParts: ["subject", "pillars", "natalTenGods", "natalInteractions", "gongmang", "userFacts", "warnings", "guards"],
+  factParts: ["subject", "pillars", "natalTenGods", "natalInteractions", "gongmang", "userFacts", "gaeun", "warnings", "guards"],
+  sectionOptions: { gaeunScope: "relationNatal" },
   userFactTopics: ["relationshipStatus", "birthOrder", "hasChildren", "concernTopic", "changeWish"],
   flow: {
     nature: "body 앞 문단들 — 네가 앉은 자리(곁자리)의 글자, 친구·동료·윗사람과의 거리.",
@@ -130,6 +135,7 @@ export const people = defineChapter({
     "비겁은 동료·친구·형제와 몫을 나누는 방식, 관성·인성은 윗사람·돌봐 주는 사람과의 거리로 쓴다. '부모 덕이 없다' 같은 가족 판정은 쓰지 않는다.",
     "body는 3~4문단: [가장 가까운 자리, 친구·동료와 윗사람, (사용자 사실이 있으면) 살아온 모습과 잇기, 사람 사이에서 바꿔 볼 것]. 마지막 문단은 늘 바꿔 볼 것이다.",
     "바꾸고 싶은 것이 '사람과의 관계'·'가족 사이'·'연애·부부 사이'면 마지막 문단을 그 주제로 쓴다. 닿는 근거 글자가 없으면 억지로 잇지 않는다.",
+    "마지막 문단의 실천은 [바꿔 볼 것]의 관계 역할 범주(같이 가는 사람·책임과 울타리·배움과 돌봄 받는 자리)에서 하나를 관계 장면으로 옮긴다. 범주가 없으면 그 조각의 안내를 따른다.",
     "연애·혼인 상태 사용자 사실이 있으면 장면 고를 때만 쓴다. 말하지 않았으면 짝이나 결혼을 전제하지 않는다. 곁 사람은 성별 없이 '곁 사람', '짝'으로 쓴다.",
     "다른 사람의 속마음을 짐작해 단정하지 않는다.",
   ],
@@ -154,8 +160,8 @@ export const daeunNow = defineChapter({
   tier: "paid",
   maxOutputTokens: 1600,
   tokenBasis: "본문 2문단 ≈ 300자 + 세 얼굴 3줄×50자 = 150자 + 다음 대운 120자 + 공통 칸 ≈ 200자 = 약 770자 → 약 900토큰, 숫자 칸·중첩 객체가 있어 여유 1.8배",
-  factParts: ["subject", "pillars", "natalTenGods", "daeunNow", "daeunInteractions", "userFacts", "noGuessYears", "warnings", "guards"],
-  sectionOptions: { tenGodsHidden: false },
+  factParts: ["subject", "pillars", "natalTenGods", "daeunNow", "daeunInteractions", "userFacts", "gaeun", "noGuessYears", "warnings", "guards"],
+  sectionOptions: { tenGodsHidden: false, gaeunScope: "daeun" },
   userFactTopics: ["horizon", "occupationStatus", "careerFeeling", "relationshipStatus", "life_event:", "recent_change:"],
   flow: {
     nature: "body[0]·body[1] — 지금 입은 열 해 옷(대운)의 두 글자를 그림 말로, 타고난 글자를 어떻게 건드리는지.",
@@ -170,6 +176,7 @@ export const daeunNow = defineChapter({
     "faces: 이 대운이 올 수 있는 얼굴 세 가지. 장면으로 쓴다.",
     "next: 다음 대운이 사실표에 있으면 간지·시작 나이·시작 해를 그대로 옮기고, 갈아입는 해에 할 일을 쓴다(예: 첫 반년은 새 옷에 몸을 맞춘다). 없으면 칸을 비운다.",
     "사용자가 말해 준 지나온 큰 일·최근 변화는 배경으로만 쓰고, [맞히지 않는 해]는 맞히지 않는다.",
+    "이 열 해를 쓰는 실천(faces.worst의 미리 할 일, next.text, todo)은 [바꿔 볼 것]의 때 쓰기·열 해 옷 갈아입기·처신 범주에서 고른다. 보는 법이 갈린다고 적힌 범주면 움직이라·다지라 중 하나를 고르지 않는다.",
     LIFE_STAGE_RULE,
   ],
   notHere: "올해 한 해 이야기(올해 장), 대운 전체 목록(인생 총괄 장)",
@@ -194,8 +201,8 @@ export const yearAhead = defineChapter({
   tier: "paid",
   maxOutputTokens: 1600,
   tokenBasis: "본문 1문단 150자 + 해 2개×(이름 10+본문 150+줄일 것 50+할 것 50) = 520자 + 공통 칸 ≈ 160자 = 약 830자 → 약 950토큰, 여유 1.7배",
-  factParts: ["subject", "pillars", "natalTenGods", "daeunNow", "thisYear", "nextYear", "seunInteractions", "userFacts", "noGuessYears", "warnings", "guards"],
-  sectionOptions: { tenGodsHidden: false },
+  factParts: ["subject", "pillars", "natalTenGods", "daeunNow", "thisYear", "nextYear", "seunInteractions", "userFacts", "gaeun", "noGuessYears", "warnings", "guards"],
+  sectionOptions: { tenGodsHidden: false, gaeunScope: "seun" },
   userFactTopics: ["horizon", "occupationStatus", "relationshipStatus", "careerFeeling", "life_event:", "recent_change:"],
   flow: {
     nature: "body 앞 — 지금 입은 열 해 옷 안에서 올해 들어오는 글자가 어떤 해를 만드는지.",
@@ -211,7 +218,10 @@ export const yearAhead = defineChapter({
         ? `years[1]: 내년 ${ny.year}년(${ny.ganzhi}). 사실표 그대로. 내년 글자와 원국의 관계는 사실표에 없으니 십성(있을 때만)과 오행으로만 말한다.`
         : "내년 간지는 사실표에 없다. years에는 올해 하나만 넣고, 내년은 body 끝에 올해 할 일이 어떻게 이어지는지로만 한 문장 쓴다. 내년 간지를 셈해서 쓰지 않는다.",
       "각 해: title(8자 안팎 이름), text(무엇이 움직이기 쉬운지 + 이 해를 쓰는 법, 2문장), reduce(줄일 것), keep(그래도 할 것).",
-      "흔들리는 해면 '흔들리는 해'라고 쓰고 말버릇 '되돌릴 수 있는 크기로 해라.'를 한 번 쓴다. 시험·승진·결혼·이사 시기를 단정하지 않는다.",
+      "올해의 keep(할 것)과 reduce(줄일 것), todo는 [바꿔 볼 것]의 올해 범주(때 쓰기·처신)에서 옮긴다. 보는 법이 갈린다고 적힌 범주면 '들어갈 문과 나올 문을 같이 확인' 같은 중립 실천만 쓴다.",
+      isShakingYear(f)
+        ? "[올해 세운]에 흔들리는 해 표지가 있다. 올해를 '흔들리는 해'라고 쓰고 말버릇 '되돌릴 수 있는 크기로 해라.'를 한 번 쓴다. 내년은 표지가 없으니 '흔들리는 해'라고 부르지 않는다. 시험·승진·결혼·이사 시기를 단정하지 않는다."
+        : "[올해 세운]에 흔들리는 해 표지가 없다. 올해도 내년도 '흔들리는 해'라고 부르지 않는다. 시험·승진·결혼·이사 시기를 단정하지 않는다.",
       "달마다의 이야기는 하지 않는다(월운은 사실표에 없다).",
     ]
   },
@@ -219,7 +229,7 @@ export const yearAhead = defineChapter({
   length: "body 1문단, years 1~2개(내년이 사실표에 있을 때만 2개). chips 2~3개",
   catchphrases: [
     { key: "weather", where: "body 첫머리" },
-    { key: "reversible", where: "흔들리는 해의 reduce 또는 text" },
+    { key: "reversible", where: "흔들리는 해 표지가 있을 때만, 그해의 reduce 또는 text" },
   ],
   outputSchema: obj({
     title: TITLE,
@@ -298,8 +308,8 @@ export const closing = defineChapter({
   tier: "paid",
   maxOutputTokens: 1200,
   tokenBasis: "당부 3개×(제목 15+본문 100) = 345자 + 일 년 뒤 가려 볼 말 2개×100자 = 200자 + 공통 칸 ≈ 100자 = 약 650자 → 약 750토큰, 여유 1.6배. 마지막 말은 고정 문구라 파이프라인이 붙여 출력에서 뺐다",
-  factParts: ["subject", "pillars", "natalTenGods", "elements", "strength", "daeunNow", "thisYear", "userFacts", "noGuessYears", "warnings", "guards"],
-  sectionOptions: { tenGodsHidden: false },
+  factParts: ["subject", "pillars", "natalTenGods", "elements", "strength", "daeunNow", "thisYear", "userFacts", "gaeun", "noGuessYears", "warnings", "guards"],
+  sectionOptions: { tenGodsHidden: false, gaeunScope: "closing" },
   userFactTopics: ["concernTopic", "horizon", "changeWish", "selfStrength", "selfWeakness", "recent_change:"],
   flow: {
     nature: "points[].text 앞 문장 — 그 당부가 걸린 글자(타고난 글자 하나, 지금 열 해 운 하나, 올해 하나).",
@@ -308,9 +318,11 @@ export const closing = defineChapter({
   },
   tasks: (f) => [
     "points: 이 풀이에서 가져갈 '바꿔 볼 것' 세 가지. 각각 다른 근거 글자에 건다(타고난 글자 하나, 지금 열 해 운 하나, 올해 하나를 권한다). 사용자 사실에 바꾸고 싶은 것이나 요즘 마음이 가는 주제가 있으면 그 주제와 닿는 것을 첫 번째로 둔다(닿는 근거가 없으면 억지로 잇지 않는다).",
-    "각 point의 text: 앞 문장은 근거(그림 말 + 이게 약하다/넘친다), 뒷 문장은 생활 실천(습관·관계·일하는 방식·시기 활용 중 하나, 언제·무엇을이 보이게). '해 볼 만하다'로 맺고 효과를 단정하지 않는다.",
-    "[신강약·용신]에 용신 줄이 있으면 세 가지 중 하나는 그 기운('보태 쓰면 좋다고 보는 기운')을 생활에서 보태는 실천으로 쓰고, 관점 머리말을 밝힌다. 없으면 오행 치수의 넘침·모자람으로 방향을 잡고 '용신'이라는 말을 쓰지 않는다.",
-    "옛 방식 참고 한 번은 이 장에서만 허락한다: 그 기운을 '옛 방식은 색이나 방향에 빗대 보기도 한다'고 한 문장 덧붙일 수 있다. 특정 색·방향 이름을 대거나 권하지 않고, 물건·이사·개명으로 잇지 않는다. 쓰지 않아도 된다.",
+    "각 point의 text: 앞 문장은 근거(그림 말 + 그 범주의 첫 문장 꼴), 뒷 문장은 생활 실천(습관·관계·일하는 방식·시기 활용 중 하나, 언제·무엇을이 보이게). '해 볼 만하다'로 맺고 효과를 단정하지 않는다. '약하다·없다'는 [바꿔 볼 것]의 묶음 개수 값이 0인 묶음에만 쓴다.",
+    f.chart.gaeun
+      ? "이 장은 새 범주를 꺼내지 않는다. points 중 1~3개는 [바꿔 볼 것]의 되짚기 후보(앞 장들에 실린 범주)를 앞 장과 다른 말로 짧게 되짚는다. 후보가 셋보다 적으면 나머지는 앞 장들이 이미 다룬 근거 글자(타고난 결·지금 열 해·올해)를 되짚는 당부로 채우고, 새 채우기·덜기·기운 맞추기를 만들지 않는다."
+      : "[신강약·용신]에 용신 줄이 있으면 세 가지 중 하나는 그 기운('보태 쓰면 좋다고 보는 기운')을 생활에서 보태는 실천으로 쓰고, 관점 머리말을 밝힌다. 없으면 오행 치수의 넘침·모자람으로 방향을 잡고 '용신'이라는 말을 쓰지 않는다.",
+    "색·방향·숫자·맛으로 기운을 빗대는 옛 방식 참고는 쓰지 않는다(대표 결정 전). 물건·이사·개명으로 잇지 않는다.",
     `review: 일 년 뒤 스스로 가려 볼 말 1~2개. after는 '${f.luck.thisYear.year}년을 보내고', claim은 올해 세운 글자에 건, 맞다·아니다로 답할 수 있는 한 문장(시기·사건을 못 박지 말고 '~쪽에서 움직임이 있었는지 보자'처럼), basis는 근거 글자.`,
     "review에는 금지 주제(사고·병·이별·돈 잃기·합격)를 걸지 않고, 사용자가 말해 준 사실과 [맞히지 않는 해]를 쓰지 않는다.",
     "풀이 맨 끝 마지막 말은 화면이 따로 붙이니 쓰지 않는다. '틀릴 수 있다'는 안내도 따로 붙으니 되풀이하지 않는다.",

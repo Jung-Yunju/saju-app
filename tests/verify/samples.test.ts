@@ -82,7 +82,7 @@ describe("문제투성이 견본", () => {
   })
   it("요약 한 줄(로그용)에는 본문이 들어가지 않는다", () => {
     const line = summarizeReport(r)
-    expect(line).toMatch(/^verify@0\.3\.0 BLOCK score=0 block=\d+ warn=\d+ info=\d+ codes=/)
+    expect(line).toMatch(/^verify@0\.3\.1 BLOCK score=0 block=\d+ warn=\d+ info=\d+ codes=/)
     expect(line).not.toContain("죽고")
     expect(line).not.toContain("지연")
   })

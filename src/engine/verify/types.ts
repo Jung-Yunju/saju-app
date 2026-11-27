@@ -6,7 +6,7 @@
 import type { CalendarResult } from "../types"
 import type { RuleAnalysis } from "../rules/types"
 
-export const VERIFY_VERSION = "verify@0.3.0"
+export const VERIFY_VERSION = "verify@0.3.1"
 
 export type Severity = "block" | "warn" | "info"
 
@@ -86,7 +86,8 @@ export interface VerifyReport {
   stats: {
     texts: number
     sentences: number
-    barnumByChapter: { path: string; title?: string; sentences: number; unmarked: number; ratio: number }[]
+    /** sentences·unmarked·ratio는 비율 계산에 넣은 문장만. exempt = 상품 소개 칸이라 비율에서 뺀 문장 수(verify@0.3.1, 0이면 생략) */
+    barnumByChapter: { path: string; title?: string; sentences: number; unmarked: number; ratio: number; exempt?: number }[]
   }
 }
 
@@ -136,6 +137,11 @@ export interface VerifyContext {
     barnumRatio?: number
     /** 바넘 비율을 볼 최소 문장 수(기본 1) */
     barnumMinSentences?: number
+    /**
+     * 바넘 비율 계산에서 뺄 칸 종류(JSON 경로의 상위 키 이름). 기본 BARNUM_EXEMPT_KEYS(teaser·toc·preview …, verify@0.3.1).
+     * 상품 소개처럼 그 사람에 대한 단정이 아닌 칸만 넣는다. []이면 예외 없음. 상투 문장 사전 검사는 예외 칸에도 돈다
+     */
+    barnumExemptKeys?: readonly string[]
   }
 }
 

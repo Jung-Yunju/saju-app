@@ -8,6 +8,11 @@
 // todo·ask·제목·마지막 말은 행동·질문·장식이라 비율 계산에서 뺀다(사전 검사는 body·text·claim만).
 // verify@0.3.0 — 근거 글자가 "부르는 말"로만 쓰인 문장("庚金인 너는 …", "癸水 상관을 가진 너도 …")은 근거로 치지 않는다:
 //   그 꾸밈 구간을 지운 뒤에도 근거 표지가 남아야 근거 있는 문장이다. 지우고 나서 상투 문장이면 warn(rule phrase-decorated).
+// verify@0.3.1 — 칸 단위 예외: 상품 소개 칸(teaser·toc·preview …)은 그 사람에 대한 단정이 아니라 메뉴 소개라 비율 계산에서 뺀다.
+//   판단은 칸 종류(JSON 경로의 상위 키)로만 한다. 키 이름은 BARNUM_EXEMPT_KEYS(기본값)이고 ctx.options.barnumExemptKeys로 바꾼다.
+//   뺀 칸도 상투 문장 사전 검사(phrase·phrase-always·phrase-decorated)는 그대로 받는다 — 비율에서만 빠진다.
+//   그림 말(plain-words.ts)은 근거 표지로 세지 않는다(QA 측정: 경고 감소 0, 상투 문장에 그림 말만 붙이는 우회가 열림).
+//   한계: 비율 경고는 warn이라 출고를 막지 않는다. AI가 본문을 예외 키 아래에 넣어도 사전 검사는 돈다.
 import type { Finding, TextSegment, VerifyReport } from "../types"
 import { excerptOf, splitSentences } from "../text"
 import { findGanzhiTokens } from "../letters"
@@ -73,6 +78,20 @@ export function hasBasisMarker(sentence: string): boolean {
   return BASIS_MARKER_RE.test(sentence) || findGanzhiTokens(sentence).length > 0
 }
 
+/** 비율 계산에서 빼는 칸 종류(상품 소개·목차·미리보기). 경로의 어느 상위 키든 이 이름이면 그 아래 서술 칸은 비율에서 빠진다 */
+export const BARNUM_EXEMPT_KEYS: readonly string[] = ["teaser", "teasers", "toc", "preview", "previews", "promo"]
+
+/** "parts[0].chapters[1].toc[2].text" → ["parts","chapters","toc","text"] */
+function keysOfPath(path: string): string[] {
+  return path.split(".").map((k) => k.replace(/\[\d+\]/g, ""))
+}
+
+export function isBarnumExempt(seg: Pick<TextSegment, "path">, exemptKeys: readonly string[] = BARNUM_EXEMPT_KEYS): boolean {
+  if (exemptKeys.length === 0) return false
+  const set = new Set(exemptKeys)
+  return keysOfPath(seg.path).some((k) => set.has(k))
+}
+
 function groupKey(seg: TextSegment): { key: string; title?: string } {
   const m = /^(parts\[\d+\]\.chapters\[\d+\])/.exec(seg.path)
   if (m) return { key: m[1], title: seg.location.chapterTitle }
@@ -84,17 +103,24 @@ export function checkBarnum(
   segments: TextSegment[],
   ratioLimit = 0.5,
   minSentences = 1,
+  exemptKeys: readonly string[] = BARNUM_EXEMPT_KEYS,
 ): { findings: Finding[]; stats: VerifyReport["stats"]["barnumByChapter"] } {
   const findings: Finding[] = []
-  const groups = new Map<string, { title?: string; total: number; unmarked: { text: string; seg: TextSegment; i: number }[] }>()
+  const groups = new Map<string, { title?: string; total: number; exempt: number; unmarked: { text: string; seg: TextSegment; i: number }[] }>()
   for (const seg of segments) {
     if (!seg.narrative) continue
     const { key, title } = groupKey(seg)
-    const g = groups.get(key) ?? { title, total: 0, unmarked: [] }
+    const g = groups.get(key) ?? { title, total: 0, exempt: 0, unmarked: [] }
     groups.set(key, g)
+    const exempt = isBarnumExempt(seg, exemptKeys)
+    // 예외 칸 문장은 비율의 분자·분모 어디에도 넣지 않는다(사전 검사는 아래에서 그대로)
+    const addUnmarked = (u: { text: string; seg: TextSegment; i: number }) => {
+      if (!exempt) g.unmarked.push(u)
+    }
     const sentences = splitSentences(seg.text)
     sentences.forEach((s, i) => {
-      g.total++
+      if (exempt) g.exempt++
+      else g.total++
       const always = BARNUM_ALWAYS.find((re) => re.test(s.text))
       if (always) {
         findings.push({
@@ -123,10 +149,10 @@ export function checkBarnum(
         return
       }
       if (always) {
-        g.unmarked.push({ text: s.text, seg, i })
+        addUnmarked({ text: s.text, seg, i })
         return
       }
-      g.unmarked.push({ text: s.text, seg, i })
+      addUnmarked({ text: s.text, seg, i })
       const hit = [...BARNUM_PHRASES, ...BARNUM_EXTRA].find((re) => re.test(s.text))
       if (hit)
         findings.push({
@@ -142,7 +168,14 @@ export function checkBarnum(
   const stats: VerifyReport["stats"]["barnumByChapter"] = []
   for (const [key, g] of groups) {
     const ratio = g.total ? g.unmarked.length / g.total : 0
-    stats.push({ path: key, ...(g.title ? { title: g.title } : {}), sentences: g.total, unmarked: g.unmarked.length, ratio: Math.round(ratio * 1000) / 1000 })
+    stats.push({
+      path: key,
+      ...(g.title ? { title: g.title } : {}),
+      sentences: g.total,
+      unmarked: g.unmarked.length,
+      ratio: Math.round(ratio * 1000) / 1000,
+      ...(g.exempt ? { exempt: g.exempt } : {}),
+    })
     if (g.total >= minSentences && ratio > ratioLimit) {
       const first = g.unmarked[0].seg
       findings.push({

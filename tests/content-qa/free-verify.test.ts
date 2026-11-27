@@ -26,16 +26,16 @@ describe("무료 문안 → 검증기", () => {
     expect(units.length).toBeGreaterThan(300)
     const r = tally(units)
     print("현재 content/free", r)
-    // 알려진 검증기 오탐(QA-FV-1)만 빼고 block 0. 오탐이 고쳐지면 이 목록에서 지운다.
-    const KNOWN_FP = [/^this-year#2027\/丁 FORBIDDEN_TOPIC\/accident:/]
-    const real = r["전체"]!.blocks.filter((b) => !KNOWN_FP.some((re) => re.test(b)))
-    expect(real).toEqual([])
-    expect(r["전체"]!.block).toBeLessThanOrEqual(KNOWN_FP.length)
+    // verify@0.3.1: QA-FV-1(등불이 나란히) 고침 → 알려진 오탐 없이 block 0
+    expect(r["전체"]!.blocks).toEqual([])
+    expect(r["전체"]!.block).toBe(0)
+    // 상품 소개 칸(teaser) 예외: teaser 단위의 바넘 비율 경고 0(0.3.0에서는 60)
+    expect(r["teaser"]!.barnumRatioUnits).toBe(0)
   })
 
-  // 결함 QA-FV-1(검증기, 알려진 결함 — 고쳐지면 it.fails → it): 사고 패턴 `불이 ?(?:나|난|날|났)`이 낱말 경계 없이
-  // "등불이 나란히"의 "불이 나"에 걸려 FORBIDDEN_TOPIC/accident block. 그림 말 사전(丁 = 등불)을 쓰면 AI 본 풀이에서도 생긴다.
-  it.fails("[알려진 결함 QA-FV-1] '등불이 나란히 서는 해'는 사고 예언이 아니다(block 없어야 함)", () => {
+  // 결함 QA-FV-1(검증기) — verify@0.3.1에서 고침(it.fails → it): 사고 패턴 `불이 ?(?:나|난|날|났)`이 낱말 경계 없이
+  // "등불이 나란히"의 "불이 나"에 걸려 FORBIDDEN_TOPIC/accident block이던 것. 사전 전수 점검: tests/verify/plain-words-fp.test.ts
+  it("[결함 QA-FV-1 고침] '등불이 나란히 서는 해'는 사고 예언이 아니다(block 없어야 함)", () => {
     const r = verifyReading(
       { parts: [{ title: "올해", chapters: [{ title: "올해", body: ["2027년엔 등불인 너 곁에 같은 등불이 나란히 서는 해다."] }] }] },
       { sajuInput: { pillars: { year: "丁亥", month: "丁亥", day: "丁亥" }, hour_unknown: true, this_year: 2027, this_year_ganzhi: "丁未" } },

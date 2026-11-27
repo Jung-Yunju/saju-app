@@ -1,4 +1,4 @@
-// 풀이 결과 자동 검증기 (P4-04, verify@0.3.0 — 2차 블라인드 검토 불합격 후 구조 규칙으로 재설계) — 담당: 품질검증·보안 담당자
+// 풀이 결과 자동 검증기 (P4-04, verify@0.3.1 — 0.3.0: 2차 블라인드 검토 불합격 후 구조 규칙으로 재설계 / 0.3.1: 화재 패턴 경계(QA-FV-1)·바넘 상품 소개 칸 예외) — 담당: 품질검증·보안 담당자
 // verifyReading(reading, ctx) → VerifyReport. 순수 함수: AI·DB·네트워크·파일·현재 시각을 쓰지 않는다.
 // 같은 입력이면 같은 보고서(발견 순서 포함). block이 하나라도 있으면 pass = false → 고객에게 보내지 않는다.
 // 검사 항목(코드값): BASIS_NOT_IN_CHART·YEAR_GANZHI_MISMATCH / TENGOD_MISMATCH / FORBIDDEN_TOPIC / FAKE_CLASSIC_QUOTE /
@@ -15,7 +15,7 @@ import { checkBasis, checkStructuredGanzhi } from "./checks/basis"
 import { buildTenGodLookup, checkTenGods } from "./checks/tengod"
 import { checkForbidden } from "./checks/forbidden"
 import { checkClassicQuotes } from "./checks/classic"
-import { checkBarnum } from "./checks/barnum"
+import { BARNUM_EXEMPT_KEYS, checkBarnum } from "./checks/barnum"
 import { checkMoral } from "./checks/moral"
 import { checkScience } from "./checks/science"
 import { checkKnownFacts } from "./checks/known-facts"
@@ -28,6 +28,7 @@ export { buildChartLetters, findGanzhiTokens, GENERAL_HANJA_WORDS } from "./lett
 export { assessCrisis, detectCrisis, CRISIS_RE, COUNSEL_RE, type CrisisAssessment } from "./checks/crisis"
 export { findMentions, bindTenGods, findTenGodNames } from "./mentions"
 export { findHarms, modalityOf } from "./harm"
+export { BARNUM_EXEMPT_KEYS, isBarnumExempt } from "./checks/barnum"
 export { yearRefs, hasTiming } from "./timing"
 
 const SEVERITY_ORDER: Record<Severity, number> = { block: 0, warn: 1, info: 2 }
@@ -83,10 +84,11 @@ export function verifyReading(reading: ReadingLike | unknown, ctx: VerifyContext
   findings.push(...checkTenGods(segments, buildTenGodLookup(letters, rulesFor(ctx)), letters))
   findings.push(...checkForbidden(segments))
   findings.push(...checkClassicQuotes(segments, ctx.verifiedQuotes ?? []))
-  const barnum = checkBarnum(segments, ctx.options?.barnumRatio ?? 0.5, ctx.options?.barnumMinSentences ?? 1)
+  const barnum = checkBarnum(segments, ctx.options?.barnumRatio ?? 0.5, ctx.options?.barnumMinSentences ?? 1, ctx.options?.barnumExemptKeys ?? BARNUM_EXEMPT_KEYS)
   findings.push(...barnum.findings)
   stats.barnumByChapter = barnum.stats
-  stats.sentences = barnum.stats.reduce((n, s) => n + s.sentences, 0)
+  // 전체 서술 문장 수(비율에서 뺀 상품 소개 칸 문장 포함 — 0.3.0과 같은 뜻)
+  stats.sentences = barnum.stats.reduce((n, s) => n + s.sentences + (s.exempt ?? 0), 0)
   findings.push(...checkMoral(segments))
   findings.push(...checkScience(segments))
   const d0 = (ctx.sajuInput?.daeun ?? [])[0]

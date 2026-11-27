@@ -3,19 +3,29 @@
 //  1. 사실표(FactSheet)의 값을 "옮겨 적기"만 한다. 십성·합충·공망·신강약을 새로 계산하지 않는다.
 //     - 한자 → 한글 읽기, 위치 코드 → 우리말 이름, 오행 코드 → 일상말은 표기 변환이다(판정 아님).
 //     - 대운 끝 나이·끝 해는 "다음 대운 시작 − 1"(없으면 시작 + 9)로 적는다(life-stages.md §1의 구간 정의).
-//     - 운 글자의 십성은 사실표 tenGods에서 "같은 글자"를 찾아 옮긴다. 없으면 "사실표에 없음"으로 적고 AI가 이름을 붙이지 못하게 한다.
+//     - 운 글자의 십성은 사실표 luck.glyphs(facts@0.3.0, 규칙 엔진이 그 운 슬롯을 직접 판정한 값)를 옮긴다(prompts@0.3.0).
+//       glyphs에 그 슬롯이 없을 때만(지난·다음 대운, 내년, 0.3.0 이전 사실표) 예전처럼 tenGods에서 "같은 글자"를 찾아 옮긴다.
+//       그래도 없으면 "사실표에 없음"으로 적고 AI가 이름을 붙이지 못하게 한다.
+//  5. 개운(D-023 ②, prompts@0.3.0): 범주는 코드(gaeun.ts)가 고른 chart.gaeun만 싣는다(secGaeun). 장마다 싣는 범주는 GAEUN_SCOPES(gaeun.md §3.4).
+//     참고 등급(색·방향·숫자·맛)은 대표 결정 전이라 싣지 않는다. 묶음 개수는 gaeunBasis.groupCounts 값만 옮긴다(감수 P1·P2).
 //  2. 필요한 조각만 골라 넣는다(입력 토큰 절약). JSON.stringify(facts)를 통째로 넣지 않는다.
 //  3. 개인정보 최소화: 성별(subject.gender)·기준 시각(asOf)·엔진 버전은 AI에 넘기지 않는다.
 //     성별은 대운 방향 계산에 이미 쓰였고, 풀이에서 성별로 해석을 바꾸지 않기 때문이다(voice-guide §9 성별 고정관념).
 //     사실표 밖에 실수로 붙은 칸(이름·생년월일 등)이 있어도 여기서는 정해진 칸만 읽으므로 새지 않는다.
 //  4. 쉬운 말(D-023 ③, prompts@0.2.0): 글자·십성·관계 줄 끝에 "| 쉬운 말: …"로 그림 말 사전(plain-words.ts = voice-guide §6-1)을 붙인다.
 //     기존 줄의 앞부분("申(신) = 정관", "乙酉(을유)")은 그대로 두고 뒤에만 덧붙인다(검증기·테스트가 그 꼴을 읽는다).
-import type { FactSheet } from "../types"
+import { GAEUN_CATALOG, GAEUN_FORBIDDEN_WORDS } from "../gaeun"
+import type { FactSheet, GaeunGroup, GaeunPick, LuckGlyphFacts } from "../types"
+import {
+  EASE_SIDE, GE_PICTURE, GI_PICTURE, GJ_PICTURE, GROUP_KO, GT_PICTURE, HALF_KO, LUCK_SIDE, VERDICT_KO, VIEW_HEAD,
+  familyPlain, groupPicture, plainPractice,
+} from "./gaeun-words"
 import { pictureOfChar, pictureOfGanzhi, pictureOfRelation, pictureOfTenGod } from "./plain-words"
 
 type TenGodRow = FactSheet["chart"]["tenGods"][number]
 type InteractionRow = FactSheet["chart"]["interactions"][number]
 type DaeunRow = FactSheet["luck"]["daeun"][number]
+type UserFactRow = FactSheet["personal"]["userFacts"][number]
 
 /**
  * 계약(types.ts)에 아직 없는 선택 칸 — 백엔드가 채우면 읽고, 없으면 무시한다(계약 변경 제안 참고).
@@ -187,11 +197,24 @@ export function secNatalTenGods(facts: FactSheet, opts: { includeHidden?: boolea
   return section("원국 십성(규칙 엔진 판정, 일간 기준 — 여기 없는 글자에 십성 이름을 붙이지 않는다)", rows.map(tenGodLine))
 }
 
-/** 운 글자(대운·세운 간지)의 십성 — 사실표에서 같은 글자를 찾아 옮긴다 */
-function luckCharsLine(facts: FactSheet, ganzhi: string): string {
+/** luck.glyphs(facts@0.3.0)에서 운 슬롯 하나를 찾는다. 간지가 다르면 쓰지 않는다(다른 운의 값을 옮기지 않게) */
+export function glyphSlotOf(facts: FactSheet, ref: { slot: "daeun"; daeunIndex: number } | { slot: "seun"; year: number }, ganzhi: string): LuckGlyphFacts | null {
+  const found = (facts.luck.glyphs ?? []).find((g) =>
+    g.slot === ref.slot && (ref.slot === "daeun" ? g.daeunIndex === ref.daeunIndex : g.year === ref.year),
+  )
+  return found && found.ganzhi === ganzhi ? found : null
+}
+
+/**
+ * 운 글자(대운·세운 간지)의 십성. glyphs 슬롯이 있으면 그 값(규칙 엔진 판정)을 옮기고,
+ * 없으면 사실표 tenGods에서 같은 글자를 찾아 옮긴다(맨 위 원칙 1).
+ */
+function luckCharsLine(facts: FactSheet, ganzhi: string, slot: LuckGlyphFacts | null = null): string {
   return [...ganzhi]
     .map((c, i) => {
-      const tg = tenGodOfChar(facts, c)
+      const part = i === 0 ? "stem" : "branch"
+      const g = slot?.glyphs.find((x) => x.part === part && x.char === c)
+      const tg = g ? g.tenGod : tenGodOfChar(facts, c)
       const pc = pictureOfChar(c, false)
       const pt = tg ? pictureOfTenGod(tg) : null
       const plain = [pc, pt].filter(Boolean).join(" · ")
@@ -266,7 +289,8 @@ export function secStrength(facts: FactSheet): string {
 
 function daeunLine(facts: FactSheet, d: DaeunRow, tag = ""): string {
   const { endAge, endYear } = daeunEnd(facts, d)
-  return `- ${d.index}번째 대운 ${withReading(d.ganzhi)}: 만 ${d.startAge}~${endAge}세, ${d.startYear}~${endYear}년${tag} | ${luckCharsLine(facts, d.ganzhi)}`
+  const slot = glyphSlotOf(facts, { slot: "daeun", daeunIndex: d.index }, d.ganzhi)
+  return `- ${d.index}번째 대운 ${withReading(d.ganzhi)}: 만 ${d.startAge}~${endAge}세, ${d.startYear}~${endYear}년${tag} | ${luckCharsLine(facts, d.ganzhi, slot)}`
 }
 
 export function secDaeunNow(facts: FactSheet): string {
@@ -306,9 +330,20 @@ export function secDaeunList(facts: FactSheet, which: "past" | "ahead", limit = 
   return section(title, lines)
 }
 
+/** 올해가 "흔들리는 해"인가 — 규칙 엔진 표지 seunFlags.shaking === true일 때만(gaeun.md §3.2, 감수 P6) */
+export function isShakingYear(facts: FactSheet): boolean {
+  return facts.luck.seunFlags?.shaking === true
+}
+
 export function secThisYear(facts: FactSheet): string {
   const ty = facts.luck.thisYear
-  return section("올해 세운", [`${ty.year}년 ${withReading(ty.ganzhi)}년 | ${luckCharsLine(facts, ty.ganzhi)}`])
+  const slot = glyphSlotOf(facts, { slot: "seun", year: ty.year }, ty.ganzhi)
+  return section("올해 세운", [
+    `${ty.year}년 ${withReading(ty.ganzhi)}년 | ${luckCharsLine(facts, ty.ganzhi, slot)}`,
+    isShakingYear(facts)
+      ? "흔들리는 해 표지: 있음(규칙 엔진 — 올해 땅 글자가 네가 앉은 자리나 태어난 달 자리와 마주 밀치거나 긁는 사이). '흔들리는 해'라고 쓸 수 있다"
+      : "흔들리는 해 표지: 없음 — 올해를 '흔들리는 해'라고 부르지 않는다",
+  ])
 }
 
 export function secNextYear(facts: FactSheet): string {
@@ -359,15 +394,25 @@ const EVENT_KO: Record<string, string> = {
   breakup: "이별", new_relationship: "새 인연의 시작", business_end: "사업·장사를 접음",
 }
 
-function userFactLine(f: FactSheet["personal"]["userFacts"][number]): string {
+/**
+ * 사용자 사실 한 줄 = 사실 + 출처 + 글자와의 연결 표지(facts@0.3.0 link, personalize/lived-link.ts).
+ * 연결은 백엔드가 드러난 글자 묶음 개수로 정한 값이다. 여기서는 그 값대로 문형만 붙인다(판정하지 않는다).
+ *  - match    → "네가 말한 ○○이 바로 그 통로다"(확인하는 어조)
+ *  - mismatch → "글자 밖에서 익힌 힘"(드러난 글자엔 그 묶음이 없다 — 개수 0)
+ *  - 없음     → 사주로 설명하지 않는다, 배경으로만
+ */
+function userFactLine(f: UserFactRow): string {
   const ev = /^life_event:(.+)$/.exec(f.topic)
   const rc = /^recent_change:(.+)$/.exec(f.topic)
-  const name = ev
-    ? `지나온 큰 일: ${EVENT_KO[ev[1]] ?? ev[1]}`
-    : rc
-      ? `최근 3년 사이 변화: ${EVENT_KO[rc[1]] ?? rc[1]}`
-      : `${TOPIC_KO[f.topic] ?? f.topic}: ${VALUE_KO[f.value] ?? f.value}`
-  return `- ${name}${f.period ? ` (${f.period})` : ""}`
+  const value = ev ? (EVENT_KO[ev[1]] ?? ev[1]) : rc ? (EVENT_KO[rc[1]] ?? rc[1]) : (VALUE_KO[f.value] ?? f.value)
+  const name = ev ? `지나온 큰 일: ${value}` : rc ? `최근 3년 사이 변화: ${value}` : `${TOPIC_KO[f.topic] ?? f.topic}: ${value}`
+  const link = f.link
+  const tail = !link
+    ? "글자와 잇지 않음 → 사주로 설명하지 않는다, 배경으로만 둔다"
+    : link.kind === "match"
+      ? `글자와 닿음(${groupPicture(link.group)}(${GROUP_KO[link.group]})이 드러난 글자에 있다) → '네가 말한 「${value}」이 바로 그 통로다' 꼴로 잇는다(조사는 맞춘다). 사주가 맞혔다고 쓰지 않는다`
+      : `글자 밖(드러난 글자엔 ${groupPicture(link.group)}(${GROUP_KO[link.group]})이 없다) → '네가 해 왔다면 그건 글자 밖에서 익힌 힘이다' 꼴로 존중한다. 글자를 근거로 그 삶을 고치라 하지 않는다`
+  return `- ${name}${f.period ? ` (${f.period})` : ""} [출처: 네가 말한 것] | ${tail}`
 }
 
 /**
@@ -382,7 +427,10 @@ export function userFactsFor(facts: FactSheet, topics: readonly string[]): FactS
 
 export function secUserFacts(facts: FactSheet, topics: readonly string[]): string {
   const rows = userFactsFor(facts, topics)
-  return section("사용자 사실 — 읽는 사람이 직접 말한 것. 사주 경향 옆에 출처를 밝혀 나란히 두되 맞혔다고 쓰지 않는다", rows.map(userFactLine))
+  return section(
+    "사용자 사실 — 읽는 사람이 직접 말한 것. 고객 문장에서도 '네가 말한 ~', '네가 말해 준 대로'처럼 출처를 밝히고, 줄 끝 연결 표지대로만 글자와 잇는다",
+    rows.map(userFactLine),
+  )
 }
 
 export function secNoGuess(facts: FactSheet): string {
@@ -398,4 +446,220 @@ export function secWarnings(facts: FactSheet): string {
 
 export function secGuards(facts: FactSheet): string {
   return section("지켜야 할 규칙(개인화 엔진)", facts.personal.guards.map((g) => `- ${g}`))
+}
+
+// ─────────────────────────────── 개운(바꿔 볼 것) — 코드가 고른 범주만 (D-023 ②, gaeun.md §3.3·§3.4·§4)
+
+/**
+ * 장별로 싣는 범주(gaeun.md §3.4). 장 → 범위 이름은 chapters/*.ts의 sectionOptions.gaeunScope.
+ *  - natal        타고난 옷감: GA.fill + GA.ease(또는 GA.balanced), GJ 1개
+ *  - daeun        지금 대운·열 해 장: 지금 대운 슬롯의 GT.* + GT.turn + GI.*
+ *  - seun         올해 장: 올해(·내년) 슬롯의 GT.* + GI.*
+ *  - relation     연애 등 관계 장(운 이야기 있음): GI.chungDay·GI.hap + GA.fill/ease 중 비겁·관성·인성
+ *  - relationNatal 사람 장(운 이야기는 올해 장 몫): GA.fill/ease 중 비겁·관성·인성만
+ *  - work         일·돈 특화 장(운 이야기 있음): GA.fill/ease 중 식상·재성·관성 + GT.*
+ *  - workNatal    재능·돈 기본 장(운 이야기는 운 장 몫): GA.fill/ease 중 식상·재성·관성만
+ *  - closing      마무리: 새 범주 없이 앞 장들이 쓴 범주(natal ∪ daeun ∪ seun) 중 1~3개 되짚기
+ * GA.bridge·GE.*(오행 생활 결 실천 줄)는 §3.4 표에 자리가 없어 지금은 어느 장에도 싣지 않는다.
+ */
+export type GaeunScope = "natal" | "daeun" | "seun" | "relation" | "relationNatal" | "work" | "workNatal" | "closing"
+
+const REL_GROUPS: readonly GaeunGroup[] = ["bigyeop", "gwansal", "inseong"]
+const WORK_GROUPS: readonly GaeunGroup[] = ["siksang", "jaeseong", "gwansal"]
+const LUCK_SLOTS: readonly GaeunPick["slot"][] = ["daeun", "seun", "nextSeun"]
+
+const isFillEase = (p: GaeunPick) => /^GA\.(fill|ease)\./.test(p.id)
+const natalGroupIn = (p: GaeunPick, gs: readonly GaeunGroup[]) => p.slot === "natal" && isFillEase(p) && !!p.group && gs.includes(p.group)
+
+const SCOPE_RULE: Record<Exclude<GaeunScope, "closing">, (p: GaeunPick) => boolean> = {
+  natal: (p) => p.slot === "natal" && (isFillEase(p) || p.id === "GA.balanced" || p.id.startsWith("GJ.")),
+  daeun: (p) => p.slot === "daeun" && /^(GT|GI)\./.test(p.id),
+  seun: (p) => (p.slot === "seun" || p.slot === "nextSeun") && /^(GT|GI)\./.test(p.id),
+  relation: (p) => natalGroupIn(p, REL_GROUPS) || (LUCK_SLOTS.includes(p.slot) && (p.id === "GI.chungDay" || p.id === "GI.hap")),
+  relationNatal: (p) => natalGroupIn(p, REL_GROUPS),
+  work: (p) => natalGroupIn(p, WORK_GROUPS) || (LUCK_SLOTS.includes(p.slot) && p.id.startsWith("GT.")),
+  workNatal: (p) => natalGroupIn(p, WORK_GROUPS),
+}
+
+/** 장 끝맺음(gaeun.md §3.4 "끝맺음" 열) */
+const SCOPE_ENDING: Record<GaeunScope, string> = {
+  natal: "채울 것 하나 + 덜 것 하나(균형 범주면 지킬 습관 하나)",
+  daeun: "이 열 해에 할 것 하나",
+  seun: "올해 할 것 하나, 줄일 것 하나",
+  relation: "관계에서 바꿔 볼 것 하나",
+  relationNatal: "관계에서 바꿔 볼 것 하나",
+  work: "일하는 방식 하나",
+  workNatal: "일하는 방식 하나",
+  closing: "아래 후보 중 1~3개를 되짚는다. 새 범주를 꺼내지 않는다",
+}
+
+/** 이 범위에 싣는 pick(실천 등급만, 코드가 준 순서 그대로). 마무리는 앞 장 범위의 합집합 */
+export function gaeunPicksFor(facts: FactSheet, scope: GaeunScope): GaeunPick[] {
+  const all = (facts.chart.gaeun ?? []).filter((p) => p.tier === "practice" && !!GAEUN_CATALOG[p.id])
+  const rule = scope === "closing" ? (p: GaeunPick) => SCOPE_RULE.natal(p) || SCOPE_RULE.daeun(p) || SCOPE_RULE.seun(p) : SCOPE_RULE[scope]
+  const out: GaeunPick[] = []
+  let gj = 0
+  for (const p of all) {
+    if (!rule(p)) continue
+    if (p.id.startsWith("GJ.")) {
+      if (gj >= 1) continue // 타고난 옷감 장: GJ 1개(§3.4)
+      gj += 1
+    }
+    out.push(p)
+  }
+  return out
+}
+
+function slotGlyphs(facts: FactSheet, p: GaeunPick): LuckGlyphFacts | null {
+  const gs = facts.luck.glyphs ?? []
+  if (p.slot === "daeun") {
+    const cur = currentDaeun(facts)
+    return gs.find((g) => g.slot === "daeun" && (cur ? g.daeunIndex === cur.index : true)) ?? null
+  }
+  if (p.slot === "seun") return gs.find((g) => g.slot === "seun" && g.year === facts.luck.thisYear.year) ?? null
+  return null
+}
+
+/** 운 슬롯 이름: "지금 열 해 옷(대운) 丙申(병신)", "올해 2026년 丙午(병오)" */
+function slotLabel(facts: FactSheet, p: GaeunPick): string {
+  if (p.slot === "daeun") {
+    const cur = currentDaeun(facts)
+    return cur ? `지금 열 해 옷(대운) ${withReading(cur.ganzhi)}` : "열 해 옷(대운)"
+  }
+  if (p.slot === "seun") return `올해 ${facts.luck.thisYear.year}년 ${withReading(facts.luck.thisYear.ganzhi)}`
+  const ny = nextYearOf(facts)
+  return ny ? `내년 ${ny.year}년 ${withReading(ny.ganzhi)}` : "내년"
+}
+
+/** 운 글자 그림 말: "丙 하늘 한가운데 뜬 해 · 申 초가을 단단한 쇠와 바위" */
+function glyphPictures(slot: LuckGlyphFacts | null, half?: "early" | "late"): string {
+  if (!slot) return ""
+  const rows = slot.glyphs.filter((g) => !half || (half === "early" ? g.part === "stem" : g.part === "branch"))
+  return rows.map((g) => `${g.char} ${pictureOfChar(g.char, false) ?? g.char}`).join(" · ")
+}
+
+const firstSentence = (p: GaeunPick): string | null => {
+  if (!p.id.startsWith("GA.fill.") || !p.framing) return null
+  if (p.framing === "missingSurface")
+    return `첫 문장 꼴: "드러난 글자엔 ~가 없다"(~ = 위 그림 말, 규칙 엔진 개수 0)${p.hiddenPresent ? ' + "속에 조금 숨어 있다"' : ""}`
+  if (p.framing === "thin") return '첫 문장 꼴: "~가 얇다"(드러나 있되 얇다. \'없다\'고 쓰지 않는다)'
+  return '첫 문장 꼴: "~가 있는데 덜 꺼내 쓰기 쉽다"(있는 걸 더 꺼내 쓰라는 쪽. \'모자라다\'고 쓰지 않는다)'
+}
+
+/** pick 한 줄 = 범주 + 바꿔 볼 것(practice) + 근거 그림 말, 그 아래 문형·말투 줄 */
+function gaeunPickLines(facts: FactSheet, p: GaeunPick, all: readonly GaeunPick[]): string[] {
+  const cat = GAEUN_CATALOG[p.id]
+  const g = p.group
+  const el = p.element ? `${elementLabel(p.element)} 기운` : null
+  let root: string
+  if ((p.id.startsWith("GA.fill.") || p.id.startsWith("GA.ease.")) && g) {
+    root = `${groupPicture(g)}(${GROUP_KO[g]})${el ? ` · ${el}` : ""}${p.id.startsWith("GA.ease.") ? " — 넘치기 쉬운 쪽" : " — 채울 쪽"}`
+  } else if (p.id === "GA.balanced") {
+    root = "한쪽으로 크게 기울지 않은 판"
+  } else if (p.id === "GA.bridge") {
+    const b = facts.chart.gaeunBasis?.views.find((v) => v.method === "tonggwan")?.bridge
+    root = `${b ? `맞선 두 기운 ${elementLabel(b.from)}·${elementLabel(b.to)} 사이를 ` : "맞선 두 힘 사이를 "}${el ?? "다른 기운"}이 잇는다`
+  } else if (p.id.startsWith("GJ.")) {
+    root = `${GJ_PICTURE[p.id]?.picture ?? "계절 기운이 한쪽으로 기운 판"}${el ? ` · ${el}` : ""}`
+  } else if (p.id.startsWith("GE.")) {
+    root = `${(p.element && GE_PICTURE[p.element]) || "반가운 기운"}${el ? `(${el})` : ""}`
+  } else if (p.id === "GT.turn") {
+    const y = p.basis.find((b) => b.ruleId === "gaeun.L5")?.values?.startYear
+    const m = /^daeun\[(\d+)\]/.exec(p.basis[0]?.positions[0] ?? "")
+    const d = m ? facts.luck.daeun.find((x) => x.index === Number(m[1])) : undefined
+    root = `${typeof y === "number" ? `${y}년에 ` : ""}${d ? `새 열 해 옷 ${withReading(d.ganzhi)}(${pictureOfGanzhi(d.ganzhi) ?? "그림 말 없음"})으로 ` : ""}갈아입는다 — ${GT_PICTURE["GT.turn"]}`
+  } else if (p.id.startsWith("GT.")) {
+    const pics = glyphPictures(slotGlyphs(facts, p), p.half)
+    root = `${slotLabel(facts, p)}${p.half ? ` ${HALF_KO[p.half]}` : ""}${pics ? ` — ${pics}` : ""} | ${GT_PICTURE[p.id] ?? ""}`
+  } else if (p.id.startsWith("GI.")) {
+    const slot = slotGlyphs(facts, p)
+    const rels = p.basis.map((b) => {
+      const kind = b.ruleId.replace(/^gaeun\.L6\./, "")
+      const r = slot?.relations.find((x) => x.id === p.id.slice(3) && x.positions.join("+") === b.positions.join("+"))
+      const pr = pictureOfRelation(kind)
+      return `${kind}${r ? ` ${withReading(r.chars)}` : ""}: ${b.positions.map(posLabel).join("·")}${pr ? `(${pr})` : ""}`
+    })
+    root = `${slotLabel(facts, p)} — ${GI_PICTURE[p.id] ?? ""}${rels.length ? ` | ${rels.join(" / ")}` : ""}`
+  } else {
+    root = el ?? ""
+  }
+  const lines = [`- ${familyPlain(p.id)} [${p.id}] — 바꿔 볼 것: ${plainPractice(cat.practice)} | 근거 그림 말: ${root}`]
+  const sub = (s: string) => lines.push(`  · ${s}`)
+
+  if (p.view !== "luck") sub(`머리말: ${VIEW_HEAD[p.view]}`)
+  const fs = firstSentence(p)
+  if (fs) sub(fs)
+  if (p.luckGroups?.length && p.id.startsWith("GT.")) sub(`그 시기 일이 몰리는 쪽: ${p.luckGroups.map((x) => LUCK_SIDE[x]).join(" / ")}에서`)
+  if (p.tone === "soft") {
+    sub(`말투: 단정하지 않는다 — "~쪽으로 볼 수도 있다. 네 겪은 걸로 가려 봐라"${p.softBy?.includes("C2") ? '. "태어난 시를 몰라 갈릴 수 있다"를 한 번 밝힌다' : ""}`)
+  }
+  if (p.split) {
+    sub(
+      `보는 법이 갈린다(힘의 균형으로는 ${VERDICT_KO[p.split.eokbu] ?? p.split.eokbu}, 계절 기운으로는 ${VERDICT_KO[p.split.johuClimate] ?? p.split.johuClimate}) — ` +
+        '움직여라·다져라 중 하나를 고르지 않는다. "들어갈 문과 나올 문을 같이 확인" 같은 중립 실천만 쓴다',
+    )
+  }
+  if (p.conflict === "compatible") sub('함께 쓰는 힘의 균형 범주와 머리말을 나눈다: "힘의 균형으로 보면 ~, 계절 기운으로 보면 ~"')
+  if (p.conflict === "tension" || p.conflict === "opposed") {
+    sub("이 계절 기운은 몸·생활 리듬 실천으로만 쓰고 그 기운을 '반갑다'고 부르지 않는다. 한 장에 두 방향의 '반갑다'를 쓰지 않는다")
+  }
+  if (p.conflict === "opposed") {
+    const ease = all.find((x) => x.slot === "natal" && x.id.startsWith("GA.ease.") && x.group)
+    const easeSide = ease?.group ? EASE_SIDE[ease.group] : "덜어 내는 쪽"
+    const gjSide = GJ_PICTURE[p.id]?.side ?? "몸을 맞추는 쪽"
+    sub(
+      "힘의 균형으로 덜자는 기운과 같은 기운이다. 같은 기운에 '채워라'와 '덜어라'를 함께 말하지 않는다. " +
+        `덜 것은 누르기 말고 흘려보내기(벌인 것 끝내기·나누기) 말투로 쓰고, 고르는 기준을 준다: "보는 법에 따라 이 판은 두 갈래로 읽힌다. 네가 지쳐 있을 땐 ${gjSide}, 일이 막힐 땐 ${easeSide}부터 해 봐라."`,
+    )
+  }
+  if (p.id.startsWith("GA.ease.") && all.some((x) => x.slot === "natal" && x.conflict === "opposed")) {
+    sub("이 판은 계절 기운이 이 기운을 반긴다 — 덜 것을 누르기 말고 흘려보내기(벌인 것 끝내기·나누기) 말투로 쓴다")
+  }
+  if (p.id.startsWith("GE.") && p.basis.some((b) => b.ruleId === "gaeun.N6.N4") && p.basis.some((b) => b.ruleId === "gaeun.N6.N1")) {
+    sub('두 관점이 같은 기운을 반긴다 — "어느 쪽으로 봐도 ~가 반갑다"로 한 줄에 합쳐 쓴다')
+  }
+  return lines
+}
+
+/** 드러난 글자 묶음 개수(감수 P1·P2) — AI가 세지 않고 이 값만 옮긴다 */
+function groupCountsLine(facts: FactSheet): string[] {
+  const c = facts.chart.gaeunBasis?.groupCounts
+  if (!c) return ["드러난 글자 묶음 개수: 사실표에 없음 — 묶음 개수를 말하지 않고, '○○이 없다·약하다'는 조건 문장을 쓰지 않는다"]
+  const order: GaeunGroup[] = ["bigyeop", "siksang", "jaeseong", "gwansal", "inseong"]
+  const zero = order.filter((g) => (c[g] ?? 0) === 0)
+  return [
+    `드러난 글자 묶음 개수(규칙 엔진 값, 천간과 땅 글자 겉 기운만, 너 자신을 뜻하는 글자 제외): ${order.map((g) => `${GROUP_KO[g]}(${groupPicture(g)}) ${c[g] ?? 0}`).join(", ")}`,
+    `'○○이 없다·드러나 있지 않다·약하면' 같은 조건은 값이 0인 묶음에만 쓴다(지금: ${zero.length ? zero.map((g) => GROUP_KO[g]).join("·") : "없음"}). 1 이상인 묶음은 범주 줄의 첫 문장 꼴('얇다'·'덜 꺼내 쓴다')을 따르고 '없다·약하다'고 쓰지 않는다. 개수는 이 값만 옮기고 글자를 세어 새 개수를 만들지 않는다`,
+  ]
+}
+
+export function secGaeun(facts: FactSheet, slots: GaeunScope): string {
+  const title = "바꿔 볼 것 — 코드가 고른 범주. 이 밖의 개운은 만들지 않는다"
+  const counts = groupCountsLine(facts)
+  if (!facts.chart.gaeun) {
+    return section(title, [
+      ...counts,
+      "코드가 고른 범주가 이 사실표에 없다. 바꿔 볼 것은 [이 장에서 할 일]대로 이 장 사실표 글자에서만 끌어내고, 채우기·덜기·기운 맞추기 같은 개운 처방을 스스로 골라 붙이지 않는다",
+    ])
+  }
+  const picks = gaeunPicksFor(facts, slots)
+  const all = facts.chart.gaeun
+  const lines = [...counts]
+  if (!picks.length) {
+    lines.push(
+      slots === "closing"
+        ? "되짚을 범주가 없다. 마무리 당부는 앞 장들이 이미 다룬 근거 글자를 되짚어 쓰고 새 개운 처방을 만들지 않는다"
+        : "이 장에 실을 범주가 없다. 바꿔 볼 것은 이 장 사실표 글자에서 나온 생활 실천 하나로만 쓰고, 채우기·덜기·기운 맞추기 같은 개운 처방을 새로 만들지 않는다",
+    )
+  } else {
+    lines.push(`이 장 끝맺음: ${SCOPE_ENDING[slots]}`)
+    if (slots === "closing") lines.push("아래는 앞 장들에 실린 범주다(되짚기 후보). 새 범주가 아니다")
+    for (const p of picks) lines.push(...gaeunPickLines(facts, p, all))
+    lines.push(
+      "쓰는 법: 범주 하나를 이 사람 장면으로 옮겨 언제·무엇을·얼마나가 보이는 행동 1~2개로 쓴다. 근거는 '근거 그림 말'로 문장 안에 넣고 효과는 약속하지 않는다('해 볼 만하다'). 대괄호 안 범주 이름표(영문)는 고객 문장에 쓰지 않는다",
+    )
+  }
+  lines.push("색·방향·숫자·맛으로 기운을 빗대는 옛 방식 참고는 싣지 않았다 — 쓰지 않는다")
+  lines.push(`이 범주에 쓰지 않는 말: ${GAEUN_FORBIDDEN_WORDS.join("·")}`)
+  return section(title, lines)
 }
