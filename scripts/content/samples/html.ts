@@ -137,7 +137,7 @@ function renderPersona(r: SampleRecord): string {
     : "(없음)"
   const useful = f?.chart.usefulGod?.length ? f.chart.usefulGod.map((u) => `${esc(u.method)}: ${esc(u.element)}`).join(" / ") : "(없음)"
   const userFacts = f?.personal.userFacts.length
-    ? `<p><b>설문 답(${esc(r.persona.surveyNote ?? "예시")}):</b> ${f.personal.userFacts.map((u) => `${esc(u.topic)}=${esc(u.value)}${u.period ? `(${esc(u.period)})` : ""}`).join(" · ")}</p>`
+    ? `<p><b>설문 답</b> <small>[${esc(r.persona.surveyNote ?? "예시 응답")}]</small> ${f.personal.userFacts.map((u) => `${esc(u.topic)}=${esc(u.value)}${u.period ? `(${esc(u.period)})` : ""}`).join(" · ")}</p>`
     : '<p class="muted">설문 답 없음</p>'
   const warnings = f?.warnings.length ? `<ul class="warn">${f.warnings.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>` : ""
   const t = r.totals
