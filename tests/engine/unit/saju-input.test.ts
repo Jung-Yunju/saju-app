@@ -216,3 +216,44 @@ describe("결과 화면 표시 = AI가 본 글자", () => {
     expect(d.fiveElements.every((x) => x.count === 0)).toBe(true)
   })
 })
+
+describe("화면 표시 ↔ AI 입력 일치(감사 스크립트 대체 확인)", () => {
+  // 1900~2100 결정론적 표본 2,000건(양력·음력, 시각 있음·모름, 남·여): 새 풀이 저장값 경로와 재계산 경로 모두 AI 글자와 같아야 한다
+  it("2,000건 전부 일치", () => {
+    // 한자 → 한글 독립 표(구현과 별도로 적음)
+    const H = "甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥"
+    const K = "갑을병정무기경신임계자축인묘진사오미신유술해"
+    const ko = (s: string) => [...s].map((c) => K[H.indexOf(c)]).join("")
+    let seed = 20261127
+    const rnd = (n: number) => {
+      seed = (seed * 1103515245 + 12345) % 2147483648
+      return seed % n
+    }
+    const mismatches: string[] = []
+    let n = 0
+    while (n < 2000) {
+      const y = 1900 + rnd(201)
+      const m = 1 + rnd(12)
+      const d = 1 + rnd(28)
+      const h = rnd(5) === 0 ? null : rnd(24)
+      const g = rnd(2) === 0 ? "M" : "F"
+      const cal = rnd(4) === 0 ? "LUNAR" : "SOLAR"
+      let s
+      try {
+        s = buildSajuInput(y, m, d, h, g, cal, undefined, false, { now: NOW })
+      } catch (e) {
+        if (e instanceof EngineInputError) continue // 범위 밖(음력 2100년 말 등)
+        throw e
+      }
+      n++
+      const ai = [s.pillars.year, s.pillars.month, s.pillars.day, ...(s.pillars.hour ? [s.pillars.hour] : [])].map(ko)
+      const stored = resolveDisplaySaju({ sajuInput: s, birthYear: y, birthMonth: m, birthDay: d, birthHour: h, gender: g, calType: cal })
+      const recomputed = resolveDisplaySaju({ sajuInput: null, birthYear: y, birthMonth: m, birthDay: d, birthHour: h, gender: g, calType: cal })
+      for (const [label, r] of [["stored", stored], ["engine", recomputed]] as const) {
+        const shown = r.pillars.map((p) => p.stem + p.branch)
+        if (r.source !== label || shown.join() !== ai.join()) mismatches.push(`${cal} ${y}-${m}-${d} ${h}시 ${g} ${label}: 화면 ${shown} / AI ${ai}`)
+      }
+    }
+    expect(mismatches.slice(0, 10)).toEqual([])
+  })
+})
