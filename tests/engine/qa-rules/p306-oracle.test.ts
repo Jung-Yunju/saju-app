@@ -227,7 +227,7 @@ describe("경미 결함 추적 — score(r×100) 반올림", () => {
     const bad: string[] = []
     for (let micro = 0; micro <= 1_000_000; micro++) {
       const r = Number((micro / 1e6).toFixed(6))
-      const want = Math.floor((micro + 50) / 100) / 10 // 정수에서 절반 올림 후 한 번만 나눈다
+      const want = Math.floor((micro + 500) / 1000) / 10 // score = r×100의 소수 첫째 자리 = micro/1000 정수 사사오입 후 한 번만 나눈다
       if (scoreOfRatio(r) !== want) { bad.push(`${r}: ${scoreOfRatio(r)} != ${want}`); if (bad.length > 5) break }
     }
     expect(bad).toEqual([])

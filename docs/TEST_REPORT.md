@@ -325,6 +325,14 @@
 - 미검증: 특수격(종격·화격·일행득기) 조건 F1~F4·E1~E2·H1~H6 하나하나를 무작위로 독립 대조하지는 않았다(사례 8·9·10·12의 후보 유무와 분포만 확인). 희기신(secondCandidate 포함)·flowChain·dayMasterFlow·concentration도 독립 대조하지 않았다. 고전 원문 대조는 범위 밖(명세 L2 0건).
 - 범위 밖에서 본 것: `tests/verify-independent/*`·`tests/verify/*`의 실패(검증기 미탐 결함 기록)는 다른 작업이 진행 중인 파일이라 이번 판정에 넣지 않았다.
 
+## 2026-11-27 · 테스트 갱신 — 결함 D2·Q-306-1 종결, 사실표 용신 머리말(facts@0.2.0), 무료 미리보기 F10
+
+- **D2 종결**: `src/app/input/birth-card.tsx` 생년 입력칸이 `max={currentMaxBirthYear()}`(= min(2100, 올해), 검증 `buildRequest`와 같은 함수)로 바뀐 것을 코드로 확인. `tests/input-qa/screen-range.test.ts`의 `it.fails` → `it`(고정 숫자 max가 다시 생기면 올해 이상인지, 아니면 같은 함수를 쓰는지 검사). — 통과
+- **facts@0.2.0 (P10)**: 용신 줄 머리가 고정 머리말(`USEFUL_GOD_HEADER`, 예 "힘의 균형으로 보면(억부)")로 바뀌고 특수격(special) 관점은 사실표에서 빠짐. 명세 `docs/knowledge/strength-structure-spec.md` §2.4(특수격은 억부와 용신이 정반대가 되는 low 후보)·§3.8("특수격 view는 대표 결정 전까지 고객 문장에 쓰지 않는다")와 일치함을 확인. 독립 확인: 실제 엔진이 특수격 후보를 내는 가상 사주(1952-03-19 01시 남, 전수 탐색으로 찾음 — 특수격 1순위 수 vs 억부 1순위 토)에서 사실표 JSON에 특수격·special이 없고, 나머지 ok 관점 수와 줄 수가 같음 — `tests/content/facts.test.ts` 추가. — 통과
+- **무료 미리보기(F10)**: `content/free/teaser.json` P6 "둘이 한 상에 앉으면"(궁합 — 상품 보류)이 needsConfirm: true로 바뀜 → 숨김 P3·P6·P8, 보이는 칸 5개. `tests/free/copy.test.ts` 기대값을 원본 파일과 맞물리게 갱신. — 통과
+- **Q-306-1 종결(rules@0.3.1)**: `src/engine/rules/groups.ts` `scoreOfRatio`(정수 산술 반올림) 확인. 추적용 `it.fails` → `it`(오라클 대조 4,000건+변형에서 score 불일치 0건). 추가로 6자리 ratio 0~1 전부(1,000,001개)를 정수 사사오입과 대조 — 불일치 0(0.5125 → 51.3 재현 값 포함). 판정 경계 불변 확인: 버전 문자열만 0.3.1로 올린 뒤 `oracle-vs-engine`(원국 2,000+합성 2,000+옵션 변형)·`p306-oracle` 전수 대조 불일치 0. 엔진 단위 테스트 2곳(`rules-analyze`, `rules-p306-required`)의 버전 고정값도 0.3.1로.
+- 전체 `npx vitest run`: **89개 파일, 1,827 통과 · 1 todo · 실패 0** (2026-11-27 실행). 테스트 파일 타입 검사(`npx tsc --noEmit`) 오류 0.
+
 ## 2026-11-27 · 인트로 시안 독립 검증 (design/intro)
 
 - 대상: `design/intro/{index,lamp,door,door-sewing,pillars}.html` (디자인 실장 자체 평가 `design/intro/REVIEW.md`의 주장 재측정)
