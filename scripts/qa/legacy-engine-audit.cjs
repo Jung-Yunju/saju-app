@@ -1,3 +1,4 @@
+// 폐기 (2026-11-27, P4-04) — 대체: npx vitest run tests/verify/consistency.test.ts (legacy-engine-audit.sh 머리말 참조). 삭제는 대표 승인 사항.
 // legacy-engine-audit.sh 가 호출한다. 단독 실행하지 않는다.
 const path = require("path")
 const OUT = process.env.AUDIT_OUT

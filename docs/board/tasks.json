@@ -1469,7 +1469,7 @@
         "P4-01",
         "P4-02"
       ],
-      "status": "개발 대기",
+      "status": "개발 중",
       "subtasks": [
         {
           "t": "장별 생성 구조 (스트리밍·재시도)",
@@ -1505,6 +1505,11 @@
           "date": "2026-11-27",
           "status": "개발 대기",
           "note": "계획 수립"
+        },
+        {
+          "date": "2026-11-27",
+          "status": "개발 중",
+          "note": "콘텐츠 작가(장별 프롬프트)·백엔드(사실표·생성 파이프라인) 동시 투입, 운영 연결은 별도"
         }
       ]
     },
@@ -1570,22 +1575,22 @@
       "depends": [
         "P4-02"
       ],
-      "status": "개발 중",
+      "status": "대표 승인 대기",
       "subtasks": [
         {
           "t": "로고·캐릭터 시안",
-          "done": false
+          "done": true
         },
         {
           "t": "색·글꼴·간격 토큰",
-          "done": false
+          "done": true
         },
         {
           "t": "결과 카드·오행·대운 시각화 규격",
-          "done": false
+          "done": true
         }
       ],
-      "result": "",
+      "result": "시안 A 「달밤 서재」(남색·금, 현행 톤) / B 「등잔 아래 찻상」(한지·먹선·복자색, 추천). 토큰·로고 SVG·휴대폰 시안 4화면+공유 카드. 비교 페이지: https://claude.ai/artifact/6WuvUp1iGwz7fbip5ZBBb9",
       "verification": {
         "result": "미검증",
         "note": ""
@@ -1593,7 +1598,7 @@
       "issues": "",
       "approval": {
         "needed": true,
-        "item": "브랜드 시안 승인"
+        "item": "시안 A/B 선택·로고 방향·공유 카드 개인정보 원칙"
       },
       "docs": [
         "docs/DESIGN_SYSTEM.md"
@@ -1611,6 +1616,11 @@
           "date": "2026-11-27",
           "status": "개발 중",
           "note": "야근 지시 — 디자인 실장 투입(시안 A·B 제안, 승인 전 단계)"
+        },
+        {
+          "date": "2026-11-27",
+          "status": "대표 승인 대기",
+          "note": "시안 완료, 비교 페이지 게시"
         }
       ]
     },

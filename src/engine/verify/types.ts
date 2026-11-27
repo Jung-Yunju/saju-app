@@ -133,10 +133,19 @@ export interface ReadingChapterLike {
 /**
  * 검증 대상. FullReading(본 풀이)·ClaimsResult(지나온 길 단정)·둘을 합친 객체 모두 받는다.
  * 알려진 필드 외의 문자열 필드도 전부 훑는다(스키마가 바뀌어도 검사가 빠지지 않게).
+ * (인덱스 시그니처를 두지 않는다 — interface인 FullReading이 그대로 대입되게)
  */
 export interface ReadingLike {
   parts?: { title?: string; chapters?: ReadingChapterLike[] }[]
-  [key: string]: unknown
+  years?: unknown
+  daeun_overview?: unknown
+  life_graph?: unknown
+  claims?: unknown
+  dictionary?: unknown
+  chart_summary?: unknown
+  cover_title?: unknown
+  reliability_note?: unknown
+  quote?: unknown
 }
 
 /** 검사 모듈이 받는 텍스트 조각 */

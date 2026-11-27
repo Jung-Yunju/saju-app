@@ -13,7 +13,7 @@ office/web을 정적 서버로 열고 `dev-preview.html?mode=live|real|stale|emp
 cdnjs가 막혀 있으면 `&libs=/libs` 로 로컬 react.js/react-dom.js/phaser.js 경로를 지정(저장소엔 설치하지 않음).
 
 ## 동작 요약
-- 데이터는 `claude.use("db")` → 문서 `office/state` 구독 1회. null·10초 무응답·오류·형식 불일치·30분 초과 → 전원 상태 확인 불가.
+- 데이터는 `claude.use("db")` → 문서 `office/state` 구독 1회. null·10초 무응답·오류·형식 불일치·10분(staleAfterSec) 초과·미래 시각 → 전원 상태 확인 불가.
 - 예시 보기는 실제 문서가 없을 때만. 예시 상태에서는 상단 고정 배너.
 - 복자는 장식(업무와 무관). reduced-motion이면 걷기·산책·아이콘 흔들림 정지.
 

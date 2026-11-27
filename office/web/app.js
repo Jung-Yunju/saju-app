@@ -4,7 +4,8 @@
   "use strict";
 
   /* ───────── 상수 ───────── */
-  var STALE_MS = 30 * 60 * 1000;
+  var STALE_MS = 10 * 60 * 1000; /* 문서에 staleAfterSec 가 있으면 그 값을 쓴다 */
+  var FUTURE_MS = 5 * 60 * 1000;
   var TIMEOUT_MS = 10000;
   var ROOMS = [
     { id: "all", name: "전체" }, { id: "ceo", name: "대표실" }, { id: "dev", name: "개발실" },
@@ -1162,16 +1163,16 @@
     var SceneClass = class extends window.Phaser.Scene {
       constructor() { super("office"); this.ents = {}; this.first = true; this.catEnt = null; }
       create() {
-        var self = this, cam = this.cameras.main, p = pal();
+        var cam = this.cameras.main, p = pal();
         cam.setBackgroundColor("#14172b");
         /* 타일 */
-        Object.keys(O(art.tiles)).forEach(function (k) { var t = art.tiles[k]; drawFrame(self, "t:" + k, t.frames && t.frames[0], p, t.w || 16, t.h || 16); });
+        Object.keys(O(art.tiles)).forEach((k) => { var t = art.tiles[k]; drawFrame(this, "t:" + k, t.frames && t.frames[0], p, t.w || 16, t.h || 16); });
         if (map.layers && !map.fallback) {
-          ["floor", "furniture"].forEach(function (ln, li) {
-            A(map.layers[ln], 100).forEach(function (row, y) {
+          ["floor", "furniture"].forEach((ln, li) => {
+            A(map.layers[ln], 100).forEach((row, y) => {
               for (var x = 0; x < row.length; x++) {
-                var tk = map.legend[row.charAt(x)]; if (!tk || !self.textures.exists("t:" + tk)) continue;
-                var tl = art.tiles[tk], im = self.add.image(x * TILE, y * TILE, "t:" + tk).setOrigin(0, 0);
+                var tk = map.legend[row.charAt(x)]; if (!tk || !this.textures.exists("t:" + tk)) continue;
+                var tl = art.tiles[tk], im = this.add.image(x * TILE, y * TILE, "t:" + tk).setOrigin(0, 0);
                 im.setDepth(li === 0 ? -1000 : y * TILE + TILE);
               }
             });
@@ -1180,27 +1181,27 @@
           var g = this.add.graphics().setDepth(-1000);
           var tone = { ceo: 0x3a2f4f, dev: 0x25365a, research: 0x2c4a45, design: 0x4a3355, meeting: 0x4d3b2a, lounge: 0x3d4a35 };
           g.fillStyle(0x1b1f36, 1).fillRect(0, 0, map.cols * TILE, map.rows * TILE);
-          map.rooms.forEach(function (r) { g.fillStyle(tone[r.id] || 0x333333, 1).fillRect(r.x * TILE, r.y * TILE, r.w * TILE, r.h * TILE); g.lineStyle(1, 0xc9a24b, 1).strokeRect(r.x * TILE + .5, r.y * TILE + .5, r.w * TILE - 1, r.h * TILE - 1); });
-          Object.keys(map.desks).forEach(function (id) { var d = map.desks[id]; g.fillStyle(0x7a5230, 1).fillRect(d.x * TILE - 4, (d.y - 1) * TILE + 2, TILE + 8, TILE - 4); });
+          map.rooms.forEach((r) => { g.fillStyle(tone[r.id] || 0x333333, 1).fillRect(r.x * TILE, r.y * TILE, r.w * TILE, r.h * TILE); g.lineStyle(1, 0xc9a24b, 1).strokeRect(r.x * TILE + .5, r.y * TILE + .5, r.w * TILE - 1, r.h * TILE - 1); });
+          Object.keys(map.desks).forEach((id) => { var d = map.desks[id]; g.fillStyle(0x7a5230, 1).fillRect(d.x * TILE - 4, (d.y - 1) * TILE + 2, TILE + 8, TILE - 4); });
           g.setDepth(-999);
         }
-        map.rooms.forEach(function (r) {
+        map.rooms.forEach((r) => {
           /* 방 이름은 방 바로 위(아래 방은 위쪽 벽 줄) 벽 띠 한가운데에 둔다 — 가구와 겹치지 않는 줄 */
           var ly = r.y <= 1 ? 0 : (r.y - 1) * TILE;
           var lx = r.y <= 1 ? (r.x + r.w / 2) * TILE : r.x * TILE + 8;
-          self.add.text(lx, ly + 8, r.name, { fontFamily: "system-ui,sans-serif", fontSize: "11px", fontStyle: "bold", color: "#f5e2a6", stroke: "#0f1430", strokeThickness: 3, resolution: 3 }).setOrigin(r.y <= 1 ? .5 : 0, .5).setDepth(9000);
+          this.add.text(lx, ly + 8, r.name, { fontFamily: "system-ui,sans-serif", fontSize: "11px", fontStyle: "bold", color: "#f5e2a6", stroke: "#0f1430", strokeThickness: 3, resolution: 3 }).setOrigin(r.y <= 1 ? .5 : 0, .5).setDepth(9000);
         });
         /* 캐릭터 */
         this.ring = this.add.ellipse(0, 0, 20, 8, 0xffd54a, .55).setStrokeStyle(1, 0xffffff, .9).setVisible(false);
         this.bellFrames = [];
         var bt = art.tiles && art.tiles.bell;
-        if (bt && bt.frames) bt.frames.forEach(function (F, i) { var k = "bell:" + i; drawFrame(self, k, F, p, bt.w || 16, bt.h || 16); self.bellFrames.push(k); });
+        if (bt && bt.frames) bt.frames.forEach((F, i) => { var k = "bell:" + i; drawFrame(this, k, F, p, bt.w || 16, bt.h || 16); this.bellFrames.push(k); });
         this.bellTile = this.bellFrames.length ? this.add.image(0, 0, this.bellFrames[0]).setOrigin(0, 0).setVisible(false) : null;
         this.bell = this.add.image(0, 0, iconTexture(this, "approval")).setOrigin(.5, 1).setDepth(9500).setVisible(false);
         this.bellTxt = this.add.text(0, 0, "", { fontFamily: "system-ui,sans-serif", fontSize: "9px", color: "#fff", backgroundColor: "#b3261e", padding: { x: 2, y: 0 }, resolution: 2 }).setDepth(9501).setVisible(false);
-        ROSTER.concat(bridge.model ? bridge.model.staff.filter(function (s) { return !ROSTER.some(function (r) { return r.id === s.id; }); }) : []).forEach(function (r) { self.ensureEnt(r.id); });
+        ROSTER.concat(bridge.model ? bridge.model.staff.filter((s) => { return !ROSTER.some((r) => { return r.id === s.id; }); }) : []).forEach((r) => { this.ensureEnt(r.id); });
         this.setupCat();
-        this.scale.on("resize", function () { self.focus(bridge.room, false); });
+        this.scale.on("resize", () => { this.focus(bridge.room, false); });
         this.focus(bridge.room, false);
         bridge.scene = this;
         if (bridge.model) this.applyModel(bridge.model);
@@ -1216,7 +1217,7 @@
         sp.input.cursor = "pointer";
         var ent = { id: id, sp: sp, h: h, spec: spec, icon: null, cur: null, tok: 0, hidden: true, seated: false, facing: "down", status: "unknown", target: null };
         ent.icon = this.add.image(0, 0, iconTexture(this, "unknown")).setOrigin(.5, 1).setVisible(false);
-        sp.on("pointerup", function () { if (bridge.onSelect) bridge.onSelect(id); });
+        sp.on("pointerup", () => { if (bridge.onSelect) bridge.onSelect(id); });
         this.ents[id] = ent; return ent;
       }
       play(sp, prefix, spec, an, flip) {
@@ -1227,11 +1228,13 @@
         if (reduce) sp.anims.pause();
       }
       applyModel(model) {
-        var self = this, meet = 0, lounge = 0;
-        model.staff.forEach(function (s) {
-          var e = self.ensureEnt(s.id), tgt = null, kind = "desk";
+        var meet = 0, lounge = 0;
+        model.staff.forEach((s) => {
+          var e = this.ensureEnt(s.id), tgt = null, kind = "desk";
           e.status = s.status; e.unknownLook = s.status === "unknown";
-          if (s.untracked || s.status !== "off") {
+          if (s.status === "unknown" && !s.untracked && s.rawStatus === "off") { /* 퇴근 사실은 이미 기록됨: 계속 숨김 */ }
+          else if (s.status === "unknown" && !s.untracked && e.cur && !e.hidden) { tgt = "freeze"; }
+          else if (s.untracked || s.status !== "off") {
             var loc = s.location;
             if (s.status === "meeting") kind = "meeting"; else if (s.status === "resting") kind = "lounge";
             if (loc === "meeting" || loc === "lounge") kind = loc;
@@ -1241,7 +1244,7 @@
             if (kind === "desk") tgt = { x: desk.x, y: desk.y, facing: desk.facing || "up", seated: true };
             else { var arr = A(map.spots && map.spots[kind], 20); var sp = arr.length ? arr[(kind === "meeting" ? meet++ : lounge++) % arr.length] : { x: 2, y: 2 }; tgt = { x: sp.x, y: sp.y, facing: "down", seated: true }; }
           }
-          self.place(e, tgt, s);
+          this.place(e, tgt, s);
         });
         var b = map.spots && map.spots.ceoBell;
         if (b && model.bell > 0) {
@@ -1254,63 +1257,67 @@
         if (model.summary.known) this.first = false;
       }
       place(e, tgt, s) {
-        var self = this, sp = e.sp;
+        var sp = e.sp;
         var dim = s.status === "unknown" && !s.untracked;
         e.sp.setAlpha(dim ? .5 : 1); if (dim) sp.setTint(0x9a9aa8); else sp.clearTint();
         var iname = s.untracked ? null : STATUS[s.status] && STATUS[s.status].icon;
         if (iname) { e.icon.setTexture(iconTexture(this, iname)); e.iconOn = true; } else e.iconOn = false;
         e.icon.setAlpha(s.status === "unknown" ? .85 : 1);
+        if (tgt === "freeze") { /* 상태 확인 불가: 그 자리에서 정지(이동 금지) */
+          e.tok++; this.tweens.killTweensOf(sp); e.moving = false; sp.anims.stop();
+          e.cur = { x: Math.round((sp.x - TILE / 2) / TILE), y: Math.round((sp.y - TILE) / TILE) }; e.target = null; return;
+        }
         if (!tgt) { e.tok++; this.tweens.killTweensOf(sp); sp.setVisible(false); e.icon.setVisible(false); e.hidden = true; e.cur = null; e.target = null; return; }
         var same = e.target && e.target.x === tgt.x && e.target.y === tgt.y;
         e.target = tgt;
         var anim = animForStatus(s.status, tgt.seated);
-        var arrive = function () {
+        var arrive = () => {
           e.seated = tgt.seated; e.cur = { x: tgt.x, y: tgt.y }; var pp = px(e.cur); sp.setPosition(pp.x, pp.y);
-          self.play(sp, "c:" + e.id, e.spec, anim, false);
+          this.play(sp, "c:" + e.id, e.spec, anim, false);
           if (s.status === "unknown") { sp.anims.stop(); }
         };
         if (same && !e.hidden && e.tok >= 0 && !e.moving) { arrive(); return; }
         var wasHidden = e.hidden; e.hidden = false; sp.setVisible(true);
         e.tok++; var tok = e.tok; this.tweens.killTweensOf(sp);
         var start = e.cur;
-        if (this.first || reduce || (!start && !wasHidden)) { arrive(); return; }
+        if (this.first || reduce || s.status === "unknown" || (!start && !wasHidden)) { arrive(); return; }
         if (!start) start = map.spots && map.spots.door || { x: tgt.x, y: tgt.y };
         if (wasHidden) { var d = px(start); sp.setPosition(d.x, d.y); }
         else { var cp = { x: Math.round((sp.x - TILE / 2) / TILE), y: Math.round((sp.y - TILE) / TILE) }; start = cp; }
         var path = bfs({ x: start.x, y: start.y }, { x: tgt.x, y: tgt.y });
         if (!path || path.length < 2) { arrive(); return; }
         e.moving = true; e.seated = false;
-        var step = function (i) {
+        var step = (i) => {
           if (tok !== e.tok) return;
           if (i >= path.length) { e.moving = false; arrive(); return; }
           var a = path[i - 1], b = path[i], dx = b.x - a.x, dy = b.y - a.y;
           var an = dy < 0 ? (e.spec.anims.walkUp ? "walkUp" : "walk") : dy > 0 ? "walk" : (e.spec.anims.walkSide ? "walkSide" : "walk");
-          self.play(sp, "c:" + e.id, e.spec, an, dx < 0);
+          this.play(sp, "c:" + e.id, e.spec, an, dx < 0);
           var q = px(b);
-          self.tweens.add({ targets: sp, x: q.x, y: q.y, duration: 210, ease: "Linear", onComplete: function () { e.cur = { x: b.x, y: b.y }; step(i + 1); } });
+          this.tweens.add({ targets: sp, x: q.x, y: q.y, duration: 210, ease: "Linear", onComplete: () => { e.cur = { x: b.x, y: b.y }; step(i + 1); } });
         };
         step(1);
       }
       setupCat() {
-        var self = this, spec = catArt(), routes = A(map.catRoutes, 10).filter(function (r) { return Array.isArray(r) && r.length > 1; });
+        var spec = catArt(), routes = A(map.catRoutes, 10).filter((r) => { return Array.isArray(r) && r.length > 1; });
         if (!routes.length) return;
         var names = buildAnims(this, "cat", spec, pal());
         var route = routes[0], idx = 0, pos = route[0], pp = px(pos);
         var sp = this.add.sprite(pp.x, pp.y, names.sit || names.idle).setOrigin(.5, 1);
         this.catEnt = { sp: sp };
-        var cat = function (an, flip) { var k = "cat:" + an; if (!self.anims.exists(k)) k = "cat:" + (names.sit ? "sit" : "idle"); sp.setFlipX(!!flip); sp.play(k, true); };
+        var cat = (an, flip) => { var k = "cat:" + an; if (!this.anims.exists(k)) k = "cat:" + (names.sit ? "sit" : "idle"); sp.setFlipX(!!flip); sp.play(k, true); };
         if (reduce) { cat("sit"); sp.anims.pause(); return; }
-        var loop = function () {
+        var loop = () => {
           var nxt = (idx + 1) % route.length, path = bfs(pos, route[nxt]) || [pos, route[nxt]], tok = {};
-          var step = function (i) {
+          var step = (i) => {
             if (i >= path.length) {
               idx = nxt; pos = route[nxt];
               var pose = ["sit", "sleep", "groom", "sit"][Math.floor(Math.random() * 4)];
-              cat(pose); self.time.delayedCall(6000 + Math.random() * 6000, loop); return;
+              cat(pose); this.time.delayedCall(6000 + Math.random() * 6000, loop); return;
             }
             var a = path[i - 1], b = path[i], dx = b.x - a.x, q = px(b);
             cat(b.y !== a.y && dx === 0 ? "walk" : (spec.anims.walkSide ? "walkSide" : "walk"), dx < 0);
-            self.tweens.add({ targets: sp, x: q.x, y: q.y, duration: 520, onComplete: function () { step(i + 1); } });
+            this.tweens.add({ targets: sp, x: q.x, y: q.y, duration: 520, onComplete: () => { step(i + 1); } });
           };
           step(1);
         };
@@ -1319,7 +1326,7 @@
       setSelected(id) { this.selId = id || null; }
       focus(roomId, animate) {
         var cam = this.cameras.main, r = null;
-        if (roomId && roomId !== "all") r = map.rooms.filter(function (x) { return x.id === roomId; })[0] || null;
+        if (roomId && roomId !== "all") r = map.rooms.filter((x) => { return x.id === roomId; })[0] || null;
         var reg = r ? { x: (r.x - 1) * TILE, y: (r.y - 1) * TILE, w: (r.w + 2) * TILE, h: (r.h + 2) * TILE } : { x: 0, y: 0, w: map.cols * TILE, h: map.rows * TILE };
         var W = this.scale.width, H = this.scale.height; if (!W || !H) return;
         var z = Math.min(W / reg.w, H / reg.h); z = z >= 1 ? Math.floor(z * 4) / 4 : z;
@@ -1328,12 +1335,12 @@
         else { cam.setZoom(z); cam.centerOn(cx, cy); }
       }
       update(time) {
-        var self = this, sel = null, bob = reduce ? 0 : Math.sin(time / 300);
-        Object.keys(this.ents).forEach(function (id) {
-          var e = self.ents[id]; if (!e.sp.visible) { e.icon.setVisible(false); return; }
+        var sel = null, bob = reduce ? 0 : Math.sin(time / 300);
+        Object.keys(this.ents).forEach((id) => {
+          var e = this.ents[id]; if (!e.sp.visible) { e.icon.setVisible(false); return; }
           e.sp.setDepth(e.sp.y + (e.seated ? 8 : 0));
           e.icon.setVisible(!!e.iconOn).setPosition(e.sp.x, e.sp.y - e.h - 2 + bob).setDepth(9400);
-          if (id === self.selId) sel = e;
+          if (id === this.selId) sel = e;
         });
         if (sel) this.ring.setVisible(true).setPosition(sel.sp.x, sel.sp.y - 1).setDepth(sel.sp.depth - 1); else this.ring.setVisible(false);
         if (this.catEnt) this.catEnt.sp.setDepth(this.catEnt.sp.y);
@@ -1493,7 +1500,10 @@
 
     var active = sampleDoc || doc;
     var docAt = active ? T(active.generatedAt) : null;
-    var stale = !active || docAt == null || now - docAt > STALE_MS;
+    var sa = active && typeof active.staleAfterSec === "number" && isFinite(active.staleAfterSec) && active.staleAfterSec >= 60 && active.staleAfterSec <= 86400 ? active.staleAfterSec * 1000 : STALE_MS;
+    var future = docAt != null && docAt - now > FUTURE_MS;
+    var stale = !active || docAt == null || future || now - docAt > sa;
+    var staleMin = Math.max(1, Math.round(sa / 60000));
     var model = useMemo(function () { return derive(active, stale); }, [active, stale]);
     var sel = selId ? model.staff.filter(function (s) { return s.id === selId; })[0] : null;
     // 예시 버튼을 눌렀거나, 들어온 문서 자체에 sample 표시가 있으면 반드시 예시 배너를 띄운다
@@ -1510,7 +1520,8 @@
     else if (conn.kind === "error") banner = { c: "bad", t: "수집 문서를 읽지 못했습니다 (" + conn.code + ")", d: "모든 직원을 '상태 확인 불가'로 표시합니다." };
     else if (conn.kind === "badschema") banner = { c: "bad", t: "알 수 없는 문서 형식", d: "상태 문서 형식(schemaVersion)이 달라 읽을 수 없습니다. 모든 직원을 '상태 확인 불가'로 표시합니다." };
     else if (conn.kind === "empty") banner = { c: "", t: "아직 수집된 기록이 없습니다 — 총괄실장이 작업 단계마다 갱신합니다", d: "기록이 생기기 전에는 아무도 일하는 모습으로 그리지 않고 모두 '상태 확인 불가'로 둡니다." };
-    else if (stale) banner = { c: "warn", t: "마지막 갱신 " + (docAt != null ? fmtAgo(now - docAt) : "시각 불명"), d: "30분 넘게 갱신되지 않아 모든 직원을 '상태 확인 불가'로 표시합니다. 총괄실장이 다음 작업 단계에서 갱신합니다." };
+    else if (future) banner = { c: "bad", t: "시각 오류", d: "문서의 갱신 시각이 현재보다 5분 넘게 미래입니다. 믿을 수 없어 모든 직원을 '상태 확인 불가'로 표시합니다." };
+    else if (stale) banner = { c: "warn", t: "마지막 갱신 " + (docAt != null ? fmtAgo(now - docAt) : "시각 불명") + " — 상태 확인 불가", d: staleMin + "분 넘게 갱신되지 않아 모든 직원을 '상태 확인 불가'로 표시합니다. 총괄실장이 다음 작업 단계에서 갱신합니다." };
     else if (conn.cache) banner = { c: "", t: "저장된 사본을 먼저 보여 주는 중", d: "서버 확인이 끝나면 자동으로 최신 값으로 바뀝니다." };
 
     var sm = model.summary, ago = docAt != null ? fmtAgo(Math.max(0, now - docAt)) : "기록 없음";
