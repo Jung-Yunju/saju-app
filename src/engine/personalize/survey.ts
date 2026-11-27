@@ -184,6 +184,103 @@ export const SURVEY_QUESTIONS: readonly SurveyQuestion[] = [
     products: { basic: "optional", love: "optional", money: "optional", career: "optional", concern: "optional" },
     skippable: true,
   },
+  // ── D-023 ① 살아온 모습. 객관식만, 이름·회사명·지명은 받지 않는다. 사용자 사실은 항상 source:"user".
+  {
+    id: "workStyle",
+    kind: "single",
+    prompt: "일하실 때 어떤 방식이 제일 편하세요?",
+    options: [
+      { value: "solo_deep", label: "혼자 깊이 파고드는 쪽" },
+      { value: "team", label: "여럿이 함께 맞춰 가는 쪽" },
+      { value: "people_facing", label: "사람을 직접 만나 풀어 가는 쪽" },
+      { value: "leading", label: "이끌고 정리하는 쪽" },
+      { value: "flexible", label: "그때그때 달라요" },
+    ],
+    maxSelect: 1,
+    chapters: ["직업·진로", "재물", "성격·기질"],
+    usage: "식상·관성·비겁·인성 해석을 일하는 장면(혼자/팀/대면/지휘)으로 옮긴다. 글자와 다르면 '글자 밖에서 익힌 방식'으로 존중해 쓴다(lived-life.md).",
+    products: { money: "optional", career: "required", concern: "optional" },
+    skippable: true,
+  },
+  {
+    id: "recentChanges",
+    kind: "multiYear",
+    prompt: "최근 3년 사이에 있었던 큰 변화가 있으면 골라 주세요. 해를 아시면 함께 골라 주세요.",
+    options: [
+      { value: "relocation", label: "이사·거처가 바뀜" },
+      { value: "job_change", label: "이직·전직·퇴사" },
+      { value: "breakup", label: "이별" },
+      { value: "new_relationship", label: "새로운 인연의 시작" },
+      { value: "childbirth", label: "출산·입양" },
+      { value: "business_start", label: "사업·장사를 시작함" },
+      { value: "business_end", label: "사업·장사를 접음" },
+    ],
+    maxSelect: 7,
+    chapters: ["올해·세운", "대운 흐름", "마무리 조언"],
+    usage: "최근 흐름을 '이미 겪은 배경'으로 깔고 그 해는 맞히기 문장에서 뺀다. 변화의 원인·결과를 사주로 단정하지 않는다.",
+    products: { basic: "optional", love: "optional", money: "optional", career: "optional", concern: "optional" },
+    skippable: true,
+    yearWindow: 3,
+    factPrefix: "recent_change",
+  },
+  {
+    id: "selfStrength",
+    kind: "multi",
+    prompt: "스스로 생각하는 나의 강점을 골라 주세요. (최대 2개)",
+    options: [
+      { value: "persistence", label: "끈기 있게 이어 가요" },
+      { value: "communication", label: "사람과 말이 잘 통해요" },
+      { value: "planning", label: "계획하고 정리를 잘해요" },
+      { value: "creativity", label: "새로운 걸 떠올려요" },
+      { value: "caring", label: "주변을 잘 챙겨요" },
+      { value: "decisiveness", label: "결단이 빨라요" },
+      { value: "learning", label: "배우는 속도가 빨라요" },
+    ],
+    maxSelect: 2,
+    chapters: ["성격·기질", "직업·진로", "마무리 조언"],
+    usage: "사주 기질 서술 옆에 '본인이 느끼는 강점'으로 나란히 둔다. 같으면 확인, 다르면 '글자 밖의 힘'으로 존중(판정 금지).",
+    products: { basic: "optional", money: "optional", career: "optional", concern: "optional" },
+    skippable: true,
+  },
+  {
+    id: "selfWeakness",
+    kind: "multi",
+    prompt: "스스로 아쉽다고 느끼는 점을 골라 주세요. (최대 2개)",
+    options: [
+      { value: "indecision", label: "결정을 미루는 편이에요" },
+      { value: "overwork", label: "너무 무리해요" },
+      { value: "impatience", label: "성급하게 굴어요" },
+      { value: "saving", label: "모으는 게 어려워요" },
+      { value: "asking_help", label: "도움 청하기가 어려워요" },
+      { value: "perfectionism", label: "완벽하게 하려다 지쳐요" },
+      { value: "worry", label: "걱정이 앞서요" },
+    ],
+    maxSelect: 2,
+    chapters: ["성격·기질", "마무리 조언"],
+    usage: "약점을 꾸짖지 않고 조언의 눈높이를 맞추는 데만 쓴다. 사주로 '그래서 그렇다'고 원인을 단정하지 않는다.",
+    products: { money: "optional", career: "optional", concern: "optional" },
+    skippable: true,
+  },
+  {
+    id: "changeWish",
+    kind: "single",
+    prompt: "요즘 가장 바꾸고 싶은 것 하나를 골라 주세요.",
+    options: [
+      { value: "money_stability", label: "돈 문제를 안정시키고 싶어요" },
+      { value: "job_direction", label: "일의 방향을 정하고 싶어요" },
+      { value: "people_relations", label: "사람과의 관계를 편하게 하고 싶어요" },
+      { value: "love_partner", label: "연애·부부 사이를 바꾸고 싶어요" },
+      { value: "family_peace", label: "가족 사이를 풀고 싶어요" },
+      { value: "habits_routine", label: "생활 습관·리듬을 바꾸고 싶어요" },
+      { value: "confidence", label: "나에 대한 믿음을 키우고 싶어요" },
+      { value: "rest_balance", label: "쉼과 일의 균형을 찾고 싶어요" },
+    ],
+    maxSelect: 1,
+    chapters: ["마무리 조언", "개운"],
+    usage: "개운(운을 여는 실천)의 출발점. 사주 글자가 말하는 보완 방향 중 이 주제와 닿는 것을 먼저 풀어 준다. 성공·결과를 약속하지 않는다.",
+    products: { basic: "optional", love: "optional", money: "optional", career: "optional", concern: "required" },
+    skippable: true,
+  },
   {
     id: "mbti",
     kind: "single",
@@ -296,6 +393,8 @@ export function validateAnswers(answers: unknown, opts: ValidateOptions = {}): V
     if (q.kind === "single" && values.length !== 1) local.push(issue(q.id, "single_requires_one", "단일 선택 문항은 값이 1개"))
     if (q.kind !== "single" && values.length > q.maxSelect) local.push(issue(q.id, "too_many", `최대 ${q.maxSelect}개까지 선택`))
 
+    // 최근 N년 문항은 기준 연도에서 N년 전까지만 받는다(nowYear를 모르면 기본 범위)
+    const qMinYear = q.yearWindow !== undefined && opts.nowYear !== undefined ? Math.max(minYear, opts.nowYear - q.yearWindow) : minYear
     let years: Record<string, number> | undefined
     if (a.years !== undefined) {
       if (q.kind !== "multiYear") {
@@ -307,7 +406,7 @@ export function validateAnswers(answers: unknown, opts: ValidateOptions = {}): V
         for (const [k, y] of Object.entries(a.years)) {
           if (!values.includes(k)) {
             local.push(issue(q.id, "year_for_unselected", "선택하지 않은 항목의 연도"))
-          } else if (typeof y !== "number" || !Number.isInteger(y) || y < minYear || y > maxYear) {
+          } else if (typeof y !== "number" || !Number.isInteger(y) || y < qMinYear || y > maxYear) {
             local.push(issue(q.id, "year_invalid", "연도가 범위를 벗어남"))
           } else {
             years[k] = y

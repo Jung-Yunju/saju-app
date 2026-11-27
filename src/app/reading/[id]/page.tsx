@@ -7,6 +7,11 @@ import { prisma } from "@/lib/prisma"
 import { resolveDisplaySaju } from "@/lib/saju-input"
 import ReadingViewer from "./ReadingViewer"
 import ReadingPending from "./ReadingPending"
+import V3Reader from "./v3/V3Reader"
+import "../../../../design/tokens.css"
+import "./v3/v3.css"
+import { fontClassName } from "../../free/fonts"
+import { isStoredReadingV3 } from "@/lib/generate-reading-v3"
 import type { FullReading } from "@/lib/generate-reading-v2"
 
 const READING_LABELS: Record<string, string> = {
@@ -49,6 +54,22 @@ export default async function ReadingPage({ params }: { params: Promise<{ id: st
   const createdAt = new Date(reading.createdAt).toLocaleDateString("ko-KR", {
     year: "numeric", month: "long", day: "numeric",
   })
+
+  // v3 저장본: partial은 상태가 FAILED로 저장되므로 대기 화면보다 먼저 판정해 통과한 장을 미리 보여 준다
+  if (isStoredReadingV3(reading.fullReading)) {
+    return (
+      <div className={fontClassName}>
+        <V3Reader
+          readingId={id}
+          stored={reading.fullReading}
+          userName={reading.name || session.user.name || "사용자"}
+          readingName={READING_LABELS[reading.readingType] || "사주풀이"}
+          birthInfo={birthInfo}
+          createdAt={createdAt}
+        />
+      </div>
+    )
+  }
 
   if (reading.status === "PENDING" || reading.status === "GENERATING" || reading.status === "FAILED") {
     return <ReadingPending readingId={id} status={reading.status} />

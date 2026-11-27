@@ -3,8 +3,9 @@ import { SURVEY_QUESTIONS, getQuestion, questionsForProduct, validateAnswers } f
 import { PRODUCTS } from "../../src/engine/personalize/types"
 
 describe("설문 정의", () => {
-  it("문항은 15개 이내, id 중복 없음, 모두 건너뛰기 가능", () => {
-    expect(SURVEY_QUESTIONS.length).toBeLessThanOrEqual(15)
+  it("전체 18개 이내, 상품별 12개 이내, id 중복 없음, 모두 건너뛰기 가능", () => {
+    expect(SURVEY_QUESTIONS.length).toBeLessThanOrEqual(18)
+    for (const p of PRODUCTS) expect(questionsForProduct(p).length, p).toBeLessThanOrEqual(12)
     expect(new Set(SURVEY_QUESTIONS.map((q) => q.id)).size).toBe(SURVEY_QUESTIONS.length)
     expect(SURVEY_QUESTIONS.every((q) => q.skippable)).toBe(true)
   })

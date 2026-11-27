@@ -36,15 +36,15 @@ export function obj(properties: Record<string, JsonSchema>, description?: string
 
 // ─────────────────────────────── 장마다 쓰는 공통 칸
 
-export const TITLE = str("이 사람의 글자로 그린 장 제목. 20자 이내. 근거 글자 한자를 넣어도 된다. 공포·과장 낱말 금지")
-export const SUB = str("부제. 30자 이내. 어떤 글자를 보고 쓴 장인지 한 줄")
+export const TITLE = str("이 사람의 글자로 그린 장 제목. 20자 이내. 그림 말로 쓰고, 근거 글자 한자는 괄호로만. 공포·과장 낱말 금지")
+export const SUB = str("부제. 30자 이내. 어떤 글자를 보고 쓴 장인지 그림 말로 한 줄")
 
 export function chips(howMany: string): JsonSchema {
   return arr(
     obj({
       letter: str("사실표에 있는 한자 글자만. 한 글자(예: 酉), 기둥(예: 乙酉), 관계 두 글자(예: 子午)"),
       pos: str("사실표의 위치 코드 그대로(예: day.branch). 관계면 +로 잇는다(예: year.branch+day.branch). 운 글자면 사실표에 적힌 운 위치 코드"),
-      label: str("쉬운 말 한 줄. 20자 이내. 예: '일지 유(酉) · 나를 단련하는 자'"),
+      label: str("그림 말 한 줄. 20자 이내. 용어보다 그림 말이 먼저. 예: '곁자리 한가을 쇠 · 나를 다듬는 가위'"),
     }),
     `근거 칩 ${howMany}개. 본문에서 실제로 근거로 쓴 글자만`,
   )
@@ -52,12 +52,12 @@ export function chips(howMany: string): JsonSchema {
 
 export function body(paragraphs: string): JsonSchema {
   return arr(
-    str("문단 하나. 2~4문장, 문장은 50자 안팎(길어도 70자). 판정 문장마다 근거 글자를 '유(酉)'처럼 문장 안에 밝힌다. 강조는 <b></b>만"),
+    str("문단 하나. 2~4문장, 문장은 50자 안팎(길어도 70자). 그림 말이 먼저, 명리 용어는 문단에 하나까지 뒤 괄호로. 판정 문장마다 근거를 문장 안에 남긴다(처음엔 '한가을 쇠(유 酉)', 다시 나오면 '그 쇠 기운'). 강조는 <b></b>만"),
     `본문 문단 ${paragraphs}`,
   )
 }
 
-export const TODO = str("오늘부터 할 일 한 문장. 40자 이내. 이 사람의 근거 글자에서 나온 구체적 행동")
+export const TODO = str("바꿔 볼 것 — 오늘부터 해 볼 실천 한 문장. 40자 이내. 이 사람의 근거 글자에서 나온 구체적 행동(언제·무엇을). 효과 단정·물건·색·방향 없이")
 export const ASK = str("너에게 묻는 말 한 문장. 40자 이내. 읽는 사람이 자기 삶에 비춰 답할 수 있는 물음")
 export const CAVEAT = str("이 장에서 밝힐 불확실성 한 줄(엔진 경고·태어난 시 모름 등). 밝힐 것이 없으면 빈 문자열")
 

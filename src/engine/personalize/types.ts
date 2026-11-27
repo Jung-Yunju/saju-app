@@ -24,6 +24,11 @@ export type QuestionId =
   | "moneyFocus"
   | "birthOrder"
   | "lifeEvents"
+  | "workStyle"
+  | "recentChanges"
+  | "selfStrength"
+  | "selfWeakness"
+  | "changeWish"
   | "mbti"
   | "toneStrength"
 
@@ -53,6 +58,10 @@ export interface SurveyQuestion {
   products: Partial<Record<Product, ProductNeed>>
   /** 항상 true — 모든 문항은 건너뛸 수 있다 */
   skippable: true
+  /** multiYear 전용: 기준 연도에서 몇 년 전까지의 연도만 받는지(예: 3 = 최근 3년). 없으면 출생 연도부터 */
+  yearWindow?: number
+  /** multiYear 전용: userFact id 접두어(기본 "life_event") */
+  factPrefix?: string
 }
 
 /**

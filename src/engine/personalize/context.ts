@@ -7,14 +7,14 @@
 import type { CalendarResult } from "../types"
 import type { RuleAnalysis } from "../rules/types"
 import { eraBackgroundOf, koreanDateOf, lifeStageOfAge, locateDaeun, manAge } from "./life-stage"
-import { getQuestion, validateAnswers } from "./survey"
+import { validateAnswers } from "./survey"
+import { buildUserFacts } from "./user-facts"
 import {
   PERSONALIZE_VERSION,
   type ChartBasis,
   type ChartTendency,
   type DaeunSlot,
   type PersonalContext,
-  type SurveyAnswer,
   type UserFact,
 } from "./types"
 
@@ -108,33 +108,6 @@ function buildChartTendencies(chart: CalendarResult, age: number, analysis?: Rul
     }
   }
   return out
-}
-
-function buildUserFacts(valid: readonly SurveyAnswer[]): UserFact[] {
-  const facts: UserFact[] = []
-  for (const a of valid) {
-    const q = getQuestion(a.questionId)
-    if (!q) continue
-    for (const v of a.values) {
-      const opt = q.options.find((o) => o.value === v)
-      if (!opt) continue
-      const isEvent = q.kind === "multiYear"
-      const fact: UserFact = {
-        source: "user",
-        id: isEvent ? `life_event:${v}` : q.kind === "multi" ? `${q.id}:${v}` : q.id,
-        topic: isEvent ? `life_event:${v}` : q.id,
-        value: v,
-        label: opt.label,
-        questionId: q.id,
-        useAs: "background-only",
-        selfReported: true,
-      }
-      const y = a.years?.[v]
-      if (isEvent && typeof y === "number") fact.period = { fromYear: y, toYear: y }
-      facts.push(fact)
-    }
-  }
-  return facts
 }
 
 /**

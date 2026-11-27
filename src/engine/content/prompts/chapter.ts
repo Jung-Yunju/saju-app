@@ -4,7 +4,7 @@
 import type { ChapterSpec, FactSheet } from "../types"
 import {
   secDaeunList, secDaeunNow, secDayPillar, secElements, secGongmang, secGuards, secInteractions, secNatalTenGods,
-  secNextYear, secNoGuess, secPillars, secStrength, secSubject, secThisYear, secUserFacts, secWarnings,
+  secNextYear, secNoGuess, secPillars, secStrength, secSubject, secThisYear, secUserFacts, secWarnings, userFactsFor,
 } from "./facts"
 import { CATCHPHRASES, type CatchphraseKey } from "./persona"
 import type { JsonSchema } from "./schema"
@@ -91,6 +91,11 @@ export interface ChapterDraft {
   sectionOptions?: SectionOptions
   /** 이 장에서 할 일(번호 목록으로 나간다) */
   tasks(facts: FactSheet): string[]
+  /**
+   * 장 짜임(D-023): 이 장의 어느 칸이 [타고난 결 / 살아온 모습과 잇기 / 바꿔 볼 것] 몫인지.
+   * links는 이 장에 사용자 사실이 있을 때만 나간다(없으면 "건너뛰고 지어내지 않는다"로 바뀐다).
+   */
+  flow: { nature: string; links?: string; change: string }
   /** 다른 장 몫이라 이 장에서 쓰지 않는 것 */
   notHere?: string
   /** 분량 지시 */
@@ -105,6 +110,22 @@ export function renderSections(d: ChapterDraft, facts: FactSheet): string[] {
   return d.factParts.map((p) => SECTION_BUILDERS[p](facts, o, d.userFactTopics))
 }
 
+/** [이 장의 짜임] — 타고난 결 → (사용자 사실이 있으면) 살아온 모습과 잇기 → 바꿔 볼 것 */
+export function renderFlow(d: ChapterDraft, facts: FactSheet): string[] {
+  const hasUser = d.userFactTopics.length > 0 && userFactsFor(facts, d.userFactTopics).length > 0
+  const links = !d.flow.links
+    ? null
+    : hasUser
+      ? `- 살아온 모습과 잇기: ${d.flow.links} [사용자 사실]의 출처를 밝히고("네가 말해 준 대로"), 글자와 닿으면 확인하는 어조로, 다르면 '글자 밖에서 익힌 힘'으로 존중한다.`
+      : "- 살아온 모습과 잇기: 이 장에는 사용자 사실이 없다. 이 몫은 건너뛰고, 있을 법한 삶을 지어 채우지 않는다."
+  return [
+    "[이 장의 짜임 — 타고난 결 → 살아온 모습과 잇기 → 바꿔 볼 것]",
+    `- 타고난 결: ${d.flow.nature}`,
+    ...(links ? [links] : []),
+    `- 바꿔 볼 것: ${d.flow.change} 생활 실천(습관·관계·일하는 방식·시기 활용)으로, 효과를 단정하지 않고("해 볼 만하다") 쓴다.`,
+  ]
+}
+
 export function renderUser(d: ChapterDraft, facts: FactSheet): string {
   const tasks = d.tasks(facts).map((t, i) => `${i + 1}. ${t}`)
   const phrases = d.catchphrases?.length
@@ -117,6 +138,8 @@ export function renderUser(d: ChapterDraft, facts: FactSheet): string {
     renderSections(d, facts).join("\n\n"),
     "</사실표>",
     "",
+    ...renderFlow(d, facts),
+    "",
     "[이 장에서 할 일]",
     ...tasks,
     ...(d.notHere ? ["", `[이 장에서 쓰지 않는 것 — 다른 장 몫] ${d.notHere}`] : []),
@@ -125,6 +148,8 @@ export function renderUser(d: ChapterDraft, facts: FactSheet): string {
     "",
     "[이 장에서 쓸 수 있는 말버릇]",
     phrases,
+    "",
+    "[쉬운 말] 그림 말을 먼저, 용어는 뒤 괄호에 두거나 뺀다. 한 문단에 명리 용어는 하나까지, 한자는 이 장에서 처음 나올 때만.",
     "",
     "[출력] 지정된 JSON 스키마로만 답한다. 위 사실표에 없는 글자·관계·연도는 이 장에서 쓰지 않는다.",
   ].join("\n")

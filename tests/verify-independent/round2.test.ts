@@ -2,6 +2,8 @@
 // (a) MISS: 실제 AI 풀이에서 나올 법한 자연스러운 우회·미탐 시도 — 기대 코드가 기대 심각도 이상으로 나와야 한다.
 // (b) LEGIT: 할미 말투의 정상 문단 — pass === true 여야 한다.
 // it.fails = 현재 검증기의 실제 결함(제목에 [미탐 결함]/[오탐 결함]). 고쳐지면 it으로 바꿀 것.
+// 3차 검토(verify@0.3.0): 고쳐진 42건은 FIXED에 버전을 적어 it으로 바꿨다(결함 설명은 이력으로 남김). 새로 깨진 정상 문단은 REGRESSED(it.fails).
+// 주의: 작성자가 수정 중 이 파일의 실패 테스트 이름 17건(연도·간지·십성·상대 연도 정상 등)을 화면에서 봤다고 자진 보고 → CONTAMINATED 범주 수치는 오염으로 취급.
 // 사주 사실값은 아래 "엔진 사실값" 테스트가 엔진(buildSajuInput·yearGanzhi·tenGodOf*)으로 다시 계산해 고정한다.
 import { describe, expect, it } from "vitest"
 import { buildSajuInput } from "@/lib/saju-input"
@@ -201,6 +203,22 @@ const MISS_DEFECTS: Record<string, string> = {
   B01: "근거 글자가 있으면 상투 사전 검사 생략", B02: "'사람이 다 그렇듯'이 BARNUM_ALWAYS 밖",
   F01: "동의어 사전 밖(보금자리)", F02: "사용자 사실 왜곡(연도 바꿈)은 검사 범위 밖", F03: "나이 표현을 연도로 환산하지 않음",
 }
+/** 3차 검토에서 실제 실행으로 고쳐진 것을 확인한 결함(id 앞 3자 → 버전). 결함 설명(MISS_DEFECTS·LEGIT_DEFECTS)은 지우지 않는다 */
+const FIXED: Record<string, string> = Object.fromEntries(
+  [
+    "D01", "D02", "D03", "D05", "I02", "I03", "I05", "I06", "X01", "X02",
+    "G01", "G02", "G03", "G04", "G05", "T01", "T02", "T03", "T04", "T05", "T06", "T07", "T09",
+    "C01", "C02", "C03", "C04", "C06", "K02", "K05", "K06", "S01", "F01", "F03",
+    "N03", "N05", "N13", "N14", "N27", "N29", "N32", "N35",
+  ].map((k) => [k, "verify@0.3.0"]),
+)
+/** 이전에 통과하던 정상 문단이 새 버전에서 깨진 것(퇴행) — it.fails */
+const REGRESSED: Record<string, string> = {
+  N04: "verify@0.3.0 퇴행 — 일반 안전 조언('큰 사고는 늘 서두를 때 나는 법')을 시기 없는 사고 단정으로 block",
+}
+/** 작성자에게 실패 이름이 노출된 범주(수치 오염) */
+const CONTAMINATED_CATS = new Set(["year-ganzhi", "tengod"])
+const CONTAMINATED_LEGIT = new Set(["N13", "N14"])
 const LEGIT_DEFECTS: Record<string, string> = {
   N01: "death '단\\s?명'이 '간단명료'에 걸림", N02: "death '수명'이 사물 수명 비유에 걸림", N03: "'큰 병'+올해 — '큰 병 없이'(부정)도 block",
   N05: "'부도'가 '부도덕'에 걸림(낱말 경계 없음)", N06: "exam — 위로 문장(떨어진다고 … 아니란다)도 block", N07: "안내 문장이 쉼표로 이어지면 맺음말로 못 봄",
@@ -312,8 +330,10 @@ describe("2차 독립 검토 — 엔진 사실값(손으로 지어내지 않았�
 describe("2차 독립 검토 — 블라인드 우회·미탐", () => {
   for (const m of MISS) {
     const defect = m.defect ?? MISS_DEFECTS[m.id.slice(0, 3)]
-    const t = defect ? it.fails : it
-    t(`[${m.cat}] ${m.id}${defect ? " [미탐 결함]" : ""}`, () => {
+    const fixed = FIXED[m.id.slice(0, 3)]
+    const open = !!defect && !fixed
+    const t = open ? it.fails : it
+    t(`[${m.cat}] ${m.id}${open ? " [미탐 결함]" : fixed ? ` [수정 확인 ${fixed}]` : ""}`, () => {
       const rep = evalMiss(m)
       expect(caught(m, rep), `기대 ${m.want} ${m.codes.join("/")} · 실제 ${worst(rep, m.codes)} :: ${brief(rep)}`).toBe(true)
     })
@@ -322,9 +342,13 @@ describe("2차 독립 검토 — 블라인드 우회·미탐", () => {
 
 describe("2차 독립 검토 — 블라인드 정상 문단 오탐", () => {
   for (const c of LEGIT) {
-    const defect = c.defect ?? LEGIT_DEFECTS[c.id.slice(0, 3)]
-    const t = defect ? it.fails : it
-    t(`${c.id}${defect ? " [오탐 결함]" : ""}`, () => {
+    const k = c.id.slice(0, 3)
+    const defect = c.defect ?? LEGIT_DEFECTS[k]
+    const fixed = FIXED[k]
+    const regressed = REGRESSED[k]
+    const open = (!!defect && !fixed) || !!regressed
+    const t = open ? it.fails : it
+    t(`${c.id}${regressed ? " [퇴행 결함]" : open ? " [오탐 결함]" : fixed ? ` [수정 확인 ${fixed}]` : ""}`, () => {
       const rep = evalLegit(c)
       expect(rep.pass, brief(rep)).toBe(true)
     })
@@ -349,14 +373,20 @@ describe("2차 독립 검토 — 집계(항상 통과, 숫자 기록용)", () =>
       rows.push(`${ok ? "CAUGHT" : "MISSED"} ${m.id} → ${worst(rep, m.codes)}`)
     }
     const totalMiss = [...byCat.values()].reduce((s, g) => s + g.miss, 0)
+    const clean = [...byCat.entries()].filter(([k]) => !CONTAMINATED_CATS.has(k))
+    const cleanMiss = clean.reduce((s, [, g]) => s + g.miss, 0)
+    const cleanN = clean.reduce((s, [, g]) => s + g.n, 0)
+    console.log(`[round2] 오염 범주(${[...CONTAMINATED_CATS].join(",")}) 뺀 미탐 ${cleanMiss}/${cleanN}`)
     let fp = 0
     let fpStrict = 0
+    let fpClean = 0
     let warned = 0
     for (const c of LEGIT) {
       const rep = evalLegit(c)
       if (!rep.pass) {
         fp++
         if (!c.borderline) fpStrict++
+        if (!CONTAMINATED_LEGIT.has(c.id.slice(0, 3))) fpClean++
       }
       if (rep.counts.warn > 0) warned++
       rows.push(`${rep.pass ? "PASS" : "BLOCK"} warn=${rep.counts.warn} ${c.id} :: ${brief(rep)}`)
@@ -367,6 +397,7 @@ describe("2차 독립 검토 — 집계(항상 통과, 숫자 기록용)", () =>
         "\n" +
         rows.join("\n"),
     )
+    console.log(`[round2] 오염 정상 문단(${[...CONTAMINATED_LEGIT].join(",")}) 뺀 오탐 block ${fpClean}/${LEGIT.length - CONTAMINATED_LEGIT.size}`)
     expect(blind.length).toBeGreaterThanOrEqual(40)
     expect(ctlOk).toBe(ctl.length)
     expect(LEGIT.length).toBeGreaterThanOrEqual(30)

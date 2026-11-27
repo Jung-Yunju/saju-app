@@ -8,7 +8,10 @@
 //  3. 개인정보 최소화: 성별(subject.gender)·기준 시각(asOf)·엔진 버전은 AI에 넘기지 않는다.
 //     성별은 대운 방향 계산에 이미 쓰였고, 풀이에서 성별로 해석을 바꾸지 않기 때문이다(voice-guide §9 성별 고정관념).
 //     사실표 밖에 실수로 붙은 칸(이름·생년월일 등)이 있어도 여기서는 정해진 칸만 읽으므로 새지 않는다.
+//  4. 쉬운 말(D-023 ③, prompts@0.2.0): 글자·십성·관계 줄 끝에 "| 쉬운 말: …"로 그림 말 사전(plain-words.ts = voice-guide §6-1)을 붙인다.
+//     기존 줄의 앞부분("申(신) = 정관", "乙酉(을유)")은 그대로 두고 뒤에만 덧붙인다(검증기·테스트가 그 꼴을 읽는다).
 import type { FactSheet } from "../types"
+import { pictureOfChar, pictureOfGanzhi, pictureOfRelation, pictureOfTenGod } from "./plain-words"
 
 type TenGodRow = FactSheet["chart"]["tenGods"][number]
 type InteractionRow = FactSheet["chart"]["interactions"][number]
@@ -48,6 +51,19 @@ const ELEMENT_LABEL: Record<string, string> = {
 
 export function elementLabel(key: string): string {
   return ELEMENT_LABEL[key] ?? key
+}
+
+/** 줄 끝에 붙이는 쉬운 말 꼬리. 붙일 것이 없으면 빈 문자열 */
+function plainTail(parts: (string | null | undefined)[]): string {
+  const ps = parts.filter((p): p is string => !!p)
+  return ps.length ? ` | 쉬운 말: ${ps.join(" · ")}` : ""
+}
+
+/** 한 글자 + 그 글자의 십성 쉬운 말: "酉 한가을 잘 벼린 쇠, 거두는 가위 · 편관 = 나를 세게 다그쳐 단련하는 힘" */
+function charTenGodPlain(char: string, tenGod: string | null): string {
+  const pc = pictureOfChar(char, false)
+  const pt = tenGod ? pictureOfTenGod(tenGod) : null
+  return plainTail([pc ? `${char} ${pc}` : null, pt ? `${tenGod} = ${pt}` : null])
 }
 
 const PILLAR_KO: Record<string, string> = { year: "연", month: "월", day: "일", hour: "시" }
@@ -138,23 +154,28 @@ export function secSubject(facts: FactSheet): string {
 export function secPillars(facts: FactSheet): string {
   const p = facts.chart.pillars
   const dm = facts.chart.dayMaster
+  const pics: [string, string | null][] = [["연주", p.year], ["월주", p.month], ["일주", p.day], ["시주", p.hour]]
   return section("여덟 글자(원국)", [
     `연주 ${withReading(p.year)} / 월주 ${withReading(p.month)} / 일주 ${withReading(p.day)} / 시주 ${p.hour ? withReading(p.hour) : "모름"}`,
-    `일간: ${withReading(dm.stem)} · ${elementLabel(dm.element)} · ${dm.yinYang === "yang" ? "양" : "음"}`,
-    `일지(가장 가까운 사람의 자리): ${withReading(dayBranch(facts))}`,
+    `일간(너 자신을 뜻하는 글자): ${withReading(dm.stem)} · ${elementLabel(dm.element)} · ${dm.yinYang === "yang" ? "양" : "음"}`,
+    `일지(네가 앉은 자리, 가장 가까운 사람의 자리): ${withReading(dayBranch(facts))}`,
+    "그림 말(고객 문장에는 이 말을 먼저 쓰고 간지는 뒤 괄호로):",
+    ...pics.filter((x): x is [string, string] => !!x[1]).map(([k, g]) => `- ${k} ${g}: ${pictureOfGanzhi(g) ?? "(그림 말 없음)"}`),
   ])
 }
 
 /** 일주만(무료 생김새 장) */
 export function secDayPillar(facts: FactSheet): string {
   const dm = facts.chart.dayMaster
+  const day = facts.chart.pillars.day
   return section("일주", [
-    `일주 ${withReading(facts.chart.pillars.day)} — 일간 ${withReading(dm.stem)}(${elementLabel(dm.element)}, ${dm.yinYang === "yang" ? "양" : "음"}), 일지 ${withReading(dayBranch(facts))}`,
+    `일주 ${withReading(day)} — 일간 ${withReading(dm.stem)}(${elementLabel(dm.element)}, ${dm.yinYang === "yang" ? "양" : "음"}), 일지 ${withReading(dayBranch(facts))}`,
+    `그림 말(고객 문장에는 이 말을 먼저): ${pictureOfGanzhi(day) ?? "(그림 말 없음)"}`,
   ])
 }
 
 function tenGodLine(t: TenGodRow): string {
-  return `- ${posLabel(t.pos)} ${withReading(t.char)} = ${t.tenGod} [${t.pos}]`
+  return `- ${posLabel(t.pos)} ${withReading(t.char)} = ${t.tenGod} [${t.pos}]${charTenGodPlain(t.char, t.tenGod)}`
 }
 
 /** 원국 십성(규칙 엔진 판정). includeHidden=false면 지장간 항목을 빼고, onlyPos가 있으면 그 위치만 */
@@ -171,7 +192,10 @@ function luckCharsLine(facts: FactSheet, ganzhi: string): string {
   return [...ganzhi]
     .map((c, i) => {
       const tg = tenGodOfChar(facts, c)
-      return `${i === 0 ? "천간" : "지지"} ${withReading(c)} = ${tg ?? "십성 사실표에 없음(이름을 붙이지 않는다)"}`
+      const pc = pictureOfChar(c, false)
+      const pt = tg ? pictureOfTenGod(tg) : null
+      const plain = [pc, pt].filter(Boolean).join(" · ")
+      return `${i === 0 ? "천간" : "지지"} ${withReading(c)} = ${tg ?? "십성 사실표에 없음(이름을 붙이지 않는다)"}${plain ? ` (쉬운 말: ${plain})` : ""}`
     })
     .join(", ")
 }
@@ -179,7 +203,7 @@ function luckCharsLine(facts: FactSheet, ganzhi: string): string {
 function interactionLine(x: InteractionRow): string {
   const where = x.positions.map(posLabel).join("·")
   const adj = x.positions.every(isNatalPos) ? (x.adjacent ? ", 붙어 있음" : ", 떨어져 있음") : ""
-  return `- ${x.kind} ${withReading(x.chars)}: ${where}${adj} [${x.positions.join("+")}]${x.note ? ` — ${x.note}` : ""}`
+  return `- ${x.kind} ${withReading(x.chars)}: ${where}${adj} [${x.positions.join("+")}]${x.note ? ` — ${x.note}` : ""}${plainTail([pictureOfRelation(x.kind)])}`
 }
 
 export type InteractionScope = "natal" | "daeun" | "seun" | "all"
@@ -203,7 +227,7 @@ export function secInteractions(facts: FactSheet, scope: InteractionScope, title
 export function secGongmang(facts: FactSheet): string {
   const g = facts.chart.gongmang
   if (!g.branches.length) return section("공망(비어 있는 자리)", [])
-  return section("공망(비어 있는 자리)", [
+  return section("공망(비어 있는 자리 — 고객에게는 '비어 있는 자리'라고 먼저 쓴다)", [
     `공망 지지: ${g.branches.map(withReading).join("·")}`,
     `원국·운에서 걸린 곳: ${g.hits.length ? g.hits.map((h) => (/^[a-z]/.test(h) ? `${posLabel(h)} [${h}]` : withReading(h))).join(", ") : "없음"}`,
     "공망은 어떤 사람에게는 아무 일도 안 한다. 허무·조상 덕 판정으로 쓰지 않는다",
@@ -232,7 +256,10 @@ export function secStrength(facts: FactSheet): string {
   if (!lines.length) lines.push("판정 없음 — 신강·신약·용신·조후를 말하지 않는다")
   else {
     lines.push("방식마다 판정이 다를 수 있다. 쓸 때는 방식 이름을 밝히고 한 판정으로 못 박지 않는다")
-    if (useful.length) lines.push("용신 줄은 관점마다 적힌 머리말(예: '힘의 균형으로 보면(억부)')을 그대로 붙여 쓴다. 관점들을 하나로 합치거나 '진짜 용신'을 고르지 않는다")
+    if (useful.length) {
+      lines.push("용신 줄은 관점마다 적힌 머리말(예: '힘의 균형으로 보면(억부)')을 그대로 붙여 쓴다. 관점들을 하나로 합치거나 '진짜 용신'을 고르지 않는다")
+      lines.push("쉬운 말: 용신 = '이 사주에 보태 쓰면 좋다고 보는 기운'. 고객 문장에서는 '용신'보다 이 말을 먼저 쓰고, 바꿔 볼 것(개운)의 근거로 생활 실천에 옮긴다")
+    }
   }
   return section("신강약·용신(규칙 엔진)", lines)
 }
@@ -302,6 +329,11 @@ const TOPIC_KO: Record<string, string> = {
   birthOrder: "형제 중 순서",
   mbti: "MBTI(자기보고 — 비유·말씨 고를 때만)",
   toneStrength: "말씀의 느낌",
+  // D-023 ① 살아온 모습(personalize/survey.ts 신규 문항)
+  workStyle: "스스로 말한 일하는 방식",
+  selfStrength: "스스로 느끼는 강점",
+  selfWeakness: "스스로 아쉽다고 느끼는 점(꾸짖지 말고 조언 눈높이에만)",
+  changeWish: "요즘 가장 바꾸고 싶은 것(바꿔 볼 것의 출발점)",
 }
 
 const VALUE_KO: Record<string, string> = {
@@ -315,15 +347,26 @@ const VALUE_KO: Record<string, string> = {
   stable_income: "꾸준한 수입 지키기", raise_income: "수입 늘리기", start_business: "내 일·사업 시작", saving_assets: "모으고 지키는 습관", no_pref: "특별히 없음",
   only: "외동", eldest: "첫째", middle: "중간", youngest: "막내",
   gentle: "부드럽게 돌려서", balanced: "적당히", direct: "솔직하게 짚어서",
+  // 신규 문항 코드값(실제 파이프라인은 화면 선택지 이름을 넘기므로 대개 그대로 쓰인다)
+  solo_deep: "혼자 깊이 파고드는 쪽", team: "여럿이 함께 맞춰 가는 쪽", people_facing: "사람을 직접 만나 풀어 가는 쪽", leading: "이끌고 정리하는 쪽", flexible: "그때그때 다름",
+  persistence: "끈기 있게 이어 감", communication: "사람과 말이 잘 통함", planning: "계획하고 정리를 잘함", creativity: "새로운 걸 떠올림", caring: "주변을 잘 챙김", decisiveness: "결단이 빠름", learning: "배우는 속도가 빠름",
+  indecision: "결정을 미룸", overwork: "너무 무리함", impatience: "성급해짐", saving: "모으는 게 어려움", asking_help: "도움 청하기가 어려움", perfectionism: "완벽하게 하려다 지침", worry: "걱정이 앞섬",
+  money_stability: "돈 문제를 안정시키기", job_direction: "일의 방향 정하기", people_relations: "사람과의 관계를 편하게", love_partner: "연애·부부 사이 바꾸기", family_peace: "가족 사이 풀기", habits_routine: "생활 습관·리듬 바꾸기", confidence: "나에 대한 믿음 키우기", rest_balance: "쉼과 일의 균형 찾기",
 }
 
 const EVENT_KO: Record<string, string> = {
   marriage: "결혼", childbirth: "출산·입양", job_change: "취업·이직·전직", school_milestone: "입학·졸업·진학", relocation: "이사·이민", business_start: "사업 시작",
+  breakup: "이별", new_relationship: "새 인연의 시작", business_end: "사업·장사를 접음",
 }
 
 function userFactLine(f: FactSheet["personal"]["userFacts"][number]): string {
   const ev = /^life_event:(.+)$/.exec(f.topic)
-  const name = ev ? `지나온 큰 일: ${EVENT_KO[ev[1]] ?? ev[1]}` : `${TOPIC_KO[f.topic] ?? f.topic}: ${VALUE_KO[f.value] ?? f.value}`
+  const rc = /^recent_change:(.+)$/.exec(f.topic)
+  const name = ev
+    ? `지나온 큰 일: ${EVENT_KO[ev[1]] ?? ev[1]}`
+    : rc
+      ? `최근 3년 사이 변화: ${EVENT_KO[rc[1]] ?? rc[1]}`
+      : `${TOPIC_KO[f.topic] ?? f.topic}: ${VALUE_KO[f.value] ?? f.value}`
   return `- ${name}${f.period ? ` (${f.period})` : ""}`
 }
 
@@ -331,11 +374,15 @@ function userFactLine(f: FactSheet["personal"]["userFacts"][number]): string {
  * 사용자 사실 중 이 장에 필요한 주제만. topics의 항목이 ":"로 끝나면 접두어로 본다(예: "life_event:").
  * toneStrength는 시스템 프롬프트에서 쓰므로 여기서는 뺀다.
  */
-export function secUserFacts(facts: FactSheet, topics: readonly string[]): string {
-  const rows = facts.personal.userFacts.filter(
+export function userFactsFor(facts: FactSheet, topics: readonly string[]): FactSheet["personal"]["userFacts"] {
+  return facts.personal.userFacts.filter(
     (f) => f.topic !== "toneStrength" && topics.some((t) => (t.endsWith(":") ? f.topic.startsWith(t) : f.topic === t)),
   )
-  return section("사용자 사실 — 읽는 사람이 직접 말한 것. 배경으로만 쓰고 맞혔다고 쓰지 않는다", rows.map(userFactLine))
+}
+
+export function secUserFacts(facts: FactSheet, topics: readonly string[]): string {
+  const rows = userFactsFor(facts, topics)
+  return section("사용자 사실 — 읽는 사람이 직접 말한 것. 사주 경향 옆에 출처를 밝혀 나란히 두되 맞혔다고 쓰지 않는다", rows.map(userFactLine))
 }
 
 export function secNoGuess(facts: FactSheet): string {
