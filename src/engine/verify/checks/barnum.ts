@@ -42,6 +42,14 @@ export const BARNUM_PHRASES: readonly RegExp[] = [
   /(잠재력|가능성)이 (크|많|무궁)|(큰|무한한|숨은) (잠재력|가능성)/,
 ]
 
+/**
+ * 근거 글자가 있어도 경고하는 상투 표현 — "庚金인 너도 누구나 그렇듯 인정받고 싶어 한다"처럼
+ * 글자 하나를 끼워 넣어 바넘 문장을 숨기는 꼴(독립 검토 4-03·4-04)
+ */
+export const BARNUM_ALWAYS: readonly RegExp[] = [
+  /누구나 그렇듯|다들 그렇듯|남들처럼 너도|누구에게나|사람이라면 (다|누구나|누구든)|모든 사람이|세상 사람 (다|누구나)|누구든 (다|그렇)/,
+]
+
 export function hasBasisMarker(sentence: string): boolean {
   return BASIS_MARKER_RE.test(sentence) || findGanzhiTokens(sentence).length > 0
 }
@@ -68,7 +76,22 @@ export function checkBarnum(
     const sentences = splitSentences(seg.text)
     sentences.forEach((s, i) => {
       g.total++
+      const always = BARNUM_ALWAYS.find((re) => re.test(s.text))
+      if (always) {
+        findings.push({
+          severity: "warn",
+          code: "BARNUM",
+          location: sentences.length > 1 ? { ...seg.location, sentence: i } : seg.location,
+          excerpt: excerptOf(s.text),
+          rule: "phrase-always",
+          message: "'누구나 그렇듯'처럼 누구에게나 맞는 말임을 스스로 밝힌 문장 — 근거 글자가 있어도 이 사람만의 말로 바꿀 것",
+        })
+      }
       if (hasBasisMarker(s.text)) return
+      if (always) {
+        g.unmarked.push({ text: s.text, seg, i })
+        return
+      }
       g.unmarked.push({ text: s.text, seg, i })
       const hit = BARNUM_PHRASES.find((re) => re.test(s.text))
       if (hit)

@@ -2,6 +2,11 @@
 // 허용 글자 = 원국 네 기둥 + sajuInput.daeun 전부 + 올해 간지
 //           + (같은 문장·같은 항목에 적힌 연도의 세운 간지 — 예: "2015년 乙未", years[].year, dictionary.years)
 //           + 공망 지지(한 글자) + 원국 지지의 지장간(문장에 "지장간·속에" 등이 있으면 통과, 없으면 warn)
+// 보완(verify@0.2.0, 독립 검토 반영):
+//   - "일주는 辛未", "辛未일주", "네 일주 壬子"처럼 원국 자리를 붙여 말하면 그 자리의 실제 기둥과 대조(자리 불일치 block)
+//   - 문장에 연도가 있어도 그해 세운 기둥은 그 연도 가까이(15자 안) 쓰였거나 "○○년/해"로 쓸 때만 허용
+//   - "壬水가 한 글자도 없다"처럼 없는 글자를 없다고 말하는 문장은 info(부재 진술)
+//   - 띄어 쓴 기둥("辛 未")·한글 간지("일주는 신미", "갑자생")·한글 오행 읽기("임수")도 토큰으로 센다(letters.ts)
 import type { Finding, ReadingLike, TextSegment } from "../types"
 import { excerptAt, excerptOf, splitSentences, yearsInText } from "../text"
 import { findGanzhiTokens, hangulToGanzhi, HIDDEN_MARKER_RE, LUCK_MARKER_RE, parsePillar, yearGanzhi, type ChartLetters } from "../letters"
@@ -13,19 +18,32 @@ const STRUCTURED_GANZHI_RE = /^(years|daeun_overview|life_graph\.periods)\[\d+\]
 
 const YEAR_LABEL_RE = /(1[89]\d{2}|20\d{2})\s*년?\s*[(（]?\s*([甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]|[갑을병정무기경신임계][자축인묘진사오미신유술해](?=\s?년))/g
 
+const ABSENCE_AFTER_RE = /^[木火土金水]?\s?(가|이|는|은|도)?\s?(한 글자도|하나도|한 자도|전혀|아예|원국에|네 사주에|여덟 글자에)?\s?(없|안 보|빠져)/
+const POSITION_KO = { year: "연주", month: "월주", day: "일주", hour: "시주" } as const
+
 function checkText(
   seg: TextSegment,
   text: string,
   offsetSentence: number | undefined,
   letters: ChartLetters,
-  years: number[],
+  objYears: number[],
   strict: boolean,
   out: Finding[],
   contextText = "",
 ) {
   const loc = offsetSentence === undefined ? seg.location : { ...seg.location, sentence: offsetSentence }
+  // 항목 단위 연도(years[].year, claims.when 등)는 항목 전체에서 허용, 문장 속 연도는 가까이 쓴 기둥만 허용
   const localPillars = new Map<string, number>()
-  for (const y of years) localPillars.set(yearGanzhi(y), y)
+  for (const y of objYears) localPillars.set(yearGanzhi(y), y)
+  const sentenceYears = [...text.matchAll(/(1[89]\d{2}|20\d{2})/g)].map((m) => ({ y: Number(m[1]), at: m.index ?? 0 }))
+  for (const { y } of sentenceYears) if (!localPillars.has(yearGanzhi(y))) localPillars.set(yearGanzhi(y), -y) // 음수 = 문장 속 연도(거리 확인 필요)
+  const pillarAllowedByYear = (g: string, at: number, len: number): boolean => {
+    const y = localPillars.get(g)
+    if (y === undefined) return false
+    if (y > 0) return true
+    if (/^\s?(년|해)/.test(text.slice(at + len, at + len + 3))) return true
+    return sentenceYears.some((s) => s.y === -y && Math.abs(s.at - at) <= 15)
+  }
   const seen = new Set<string>()
 
   // "2015년 丙申" 처럼 연도에 바로 붙인 간지가 그해 간지와 다른가
@@ -53,8 +71,30 @@ function checkText(
     const key = `${t.kind === "char" ? "C" : "P"}:${t.value}`
     if (seen.has(key) || seen.has(`Y:${t.value}`)) continue
     if (t.kind !== "char") {
-      if (letters.pillars.has(t.value) || localPillars.has(t.value)) continue
+      // 원국 자리를 붙여 말했으면 그 자리의 실제 기둥이어야 한다
+      if (t.position) {
+        const real = letters.natal[t.position]
+        const realGz = real ? real.stem + real.branch : null
+        if (realGz !== t.value) {
+          seen.add(key)
+          out.push({
+            severity: "block",
+            code: "BASIS_NOT_IN_CHART",
+            location: loc,
+            excerpt: excerptAt(text, t.index, t.length),
+            rule: "position-mismatch",
+            message: `${POSITION_KO[t.position]}를 ${t.value}라 했으나 실제 ${POSITION_KO[t.position]}는 ${realGz ?? "없음(시각 모름)"}`,
+          })
+          continue
+        }
+        continue
+      }
+      if (letters.pillars.has(t.value) || pillarAllowedByYear(t.value, t.index, t.length)) continue
       seen.add(key)
+      if (ABSENCE_AFTER_RE.test(text.slice(t.index + t.length, t.index + t.length + 14))) {
+        out.push({ severity: "info", code: "BASIS_NOT_IN_CHART", location: loc, excerpt: excerptAt(text, t.index, t.length), rule: "absence", message: `${t.value}가 없다고 말한 문장(부재 진술) — 사람 확인용 기록` })
+        continue
+      }
       const p = parsePillar(t.value)
       const partsKnown = p ? [p.stem, p.branch].filter((c) => letters.chars.has(c)) : []
       out.push({
@@ -62,7 +102,7 @@ function checkText(
         code: "BASIS_NOT_IN_CHART",
         location: loc,
         excerpt: excerptAt(text, t.index, t.length),
-        rule: t.kind === "hangulPillar" ? "hangul-pillar" : "pillar",
+        rule: t.kind === "hangulPillar" ? "hangul-pillar" : t.split ? "split-pillar" : "pillar",
         message:
           `간지 ${t.value}는 원국·대운·올해(또는 문장에 적힌 해)의 어느 기둥에도 없음` +
           (partsKnown.length === 2 ? " (두 글자는 각각 다른 기둥에 있음 — 없는 기둥을 지어낸 것)" : ""),
@@ -92,12 +132,16 @@ function checkText(
       })
       continue
     }
+    if (ABSENCE_AFTER_RE.test(text.slice(t.index + t.length, t.index + t.length + 14))) {
+      out.push({ severity: "info", code: "BASIS_NOT_IN_CHART", location: loc, excerpt: excerptAt(text, t.index, t.length), rule: "absence", message: `${c}가 없다고 말한 문장(부재 진술) — 사람 확인용 기록` })
+      continue
+    }
     out.push({
       severity: "block",
       code: "BASIS_NOT_IN_CHART",
       location: loc,
-      excerpt: excerptAt(text, t.index, 1),
-      rule: "char",
+      excerpt: excerptAt(text, t.index, t.length),
+      rule: t.reading ? "char-reading" : "char",
       message: `${c}는 원국·대운·올해(또는 문장에 적힌 해)·공망·지장간 어디에도 없는 글자`,
     })
   }
@@ -115,7 +159,7 @@ export function checkBasis(segments: TextSegment[], letters: ChartLetters): Find
     // 운 표지 문맥: 같은 문단 전체 + 담은 객체(장 제목·부제 등)
     const ctxText = seg.text + " " + seg.contextText
     sentences.forEach((s, i) => {
-      checkText(seg, s.text, sentences.length > 1 ? i : undefined, letters, [...seg.contextYears, ...yearsInText(s.text)], false, out, ctxText)
+      checkText(seg, s.text, sentences.length > 1 ? i : undefined, letters, seg.contextYears, false, out, ctxText)
     })
   }
   return out

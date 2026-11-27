@@ -187,7 +187,7 @@ export interface DaeunSlot {
 }
 
 export interface DaeunPosition {
-  /** before = 대운 시작 전(월주 기운의 시기) / in = 대운 안 / after = 계산된 10개 대운 이후 */
+  /** before = 대운 시작 전(원국·월주 중심으로 읽는 것은 학파 견해, 소운으로 보는 방법도 있음) / in = 대운 안 / after = 계산된 10개 대운 이후 */
   phase: "before" | "in" | "after"
   current: DaeunSlot | null
   next: DaeunSlot | null

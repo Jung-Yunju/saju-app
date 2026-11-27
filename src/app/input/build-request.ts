@@ -2,6 +2,8 @@
 
 export const MIN_BIRTH_YEAR = 1900
 export const MAX_BIRTH_YEAR = 2100
+/** 생년 상한(올해). 입력칸 max와 검증이 같은 값을 쓴다 */
+export const currentMaxBirthYear = () => Math.min(MAX_BIRTH_YEAR, new Date().getFullYear())
 
 export type TimeMode = "exact" | "sijin" | "unknown"
 // ziNight 선택값: "night" = 밤 11시~12시(태어난 날 밤), "dawn" = 자정~새벽 1시, "" = 모름(보내지 않음)
@@ -129,7 +131,7 @@ export function buildRequest(type: string, me: BirthForm, other: BirthForm | nul
   }
   const y = parseInt(me.birthYear, 10)
   // 서버 검증(src/lib/validate.ts MIN_YEAR~MAX_YEAR)과 같은 범위. 미래 연도는 현재 연도까지만 받는다
-  const maxYear = Math.min(MAX_BIRTH_YEAR, new Date().getFullYear())
+  const maxYear = currentMaxBirthYear()
   if (!(y >= MIN_BIRTH_YEAR && y <= maxYear)) return { error: `생년을 ${MIN_BIRTH_YEAR}~${maxYear} 사이로 입력해 주세요.` }
 
   const mine = personFields(me)

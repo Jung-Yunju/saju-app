@@ -30,7 +30,9 @@ describe("CRISIS 차단 예문", () => {
       // 보고서에 사용자 글 전문을 싣지 않는다(위기 낱말만)
       expect(fs[0].excerpt.length).toBeLessThanOrEqual(12)
     })
-  it("상담 안내는 있지만 풀이 본문이 그대로 나가면 warn", () => {
-    expect(worst(of("그냥 사라지고 싶다", { ...CLEAN_READING, ...crisisReply }))).toBe("warn")
+  it("상담 안내는 있지만 풀이 본문이 그대로 나가면 block(verify@0.2.0 — 위기 사용자에게 풀이 전문이 가면 안 됨)", () => {
+    const fs = of("그냥 사라지고 싶다", { ...CLEAN_READING, ...crisisReply })
+    expect(worst(fs)).toBe("block")
+    expect(fs[0].rule).toBe("not-stopped")
   })
 })

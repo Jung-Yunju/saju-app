@@ -9,7 +9,7 @@
 //           낱말 경계: "실망·전망·소망"의 '망', "설명이 짧"의 '명이 짧', "귀신같이", "댁으로 돌아가실"은 금지어가 아니다.
 import type { Finding, TextSegment } from "../types"
 import { excerptAt, splitSentences } from "../text"
-import { FUTURE_RE, isGuidanceSentence, TIMING_RE } from "../patterns"
+import { FUTURE_RE, isGuidanceSentence, PAST_RE, TIMING_RE } from "../patterns"
 
 type Mode = "always" | "timed" | "exam" | "invest" | "warn"
 interface Rule {
@@ -83,7 +83,7 @@ export const FORBIDDEN_RULES: readonly Rule[] = [
     mode: "timed",
     re: new RegExp(
       [
-        "이혼", "파혼", "파경", "이혼수", "갈라선다", "갈라설", `(남편|아내|배우자|부부|짝|그 사람|애인)(과|와|이|가|는|은)?\\s?(갈라서|헤어지|헤어진|등을 돌리|남남이 되)`,
+        "이혼", "파혼", "파경", "이혼수", "갈라선다", "갈라설", `(남편|아내|배우자|부부|짝|그 사람|애인)(과|와|이|가|는|은)?\\s?(갈라서게|갈라설|갈라선다|헤어지게|헤어질|헤어진다|등을 돌리게|등을 돌린다|남남이 될|남남이 된다)`,
         "헤어질 운", "파산", "부도", "도산", `${H}망(한다|할|하게|해서|해 버|했)`, "쫄딱", "쪽박", "빈털터리", "알거지", "거덜", "빚더미", "빚잔치", "신용불량",
       ].join("|"),
     ),
@@ -122,6 +122,9 @@ export const FORBIDDEN_RULES: readonly Rule[] = [
 
 /** 검사 전에 지우는 관용구·일반어 */
 const IDIOMS = /(죽을 만큼|죽을 힘|죽도록|죽기 살기|죽기살기|사고방식|사고력|사고하|사고의 틀|사고를 넓|시간을 투자|운동 종목|경기 종목)/g
+
+/** 사용자가 알려 준 지난 일을 되짚는 표지 */
+const USER_REPORTED_PAST_RE = /((었|았|였|했|진|난|된)\s?(다고|다는|해라고|해가 [^.!?]{0,12}이라고)\s?(했|하|말)|(이|이라|라)\s?했지|(다|라)고 했지|다니\s|했다니)/
 
 // 투자: 권유·예측 / 만류
 const INVEST_PUSH = /(사\s?(라|둬|두어|두|모아|모으|놓|놔|봐|보|볼)|사야|사면 (된|돈)|사 볼|넣어|넣으|몰아|몰빵|투자해|투자하면|들어가라|매수|당첨|오른다|오를 거|값이 뛴|대박|돈이 된|돈이 될|벌 수|번다|불어난다|사들)/
@@ -180,7 +183,8 @@ export function checkForbidden(segments: TextSegment[]): Finding[] {
             severity = "warn"
             break
           case "timed":
-            severity = TIMING_RE.test(text) || FUTURE_RE.test(text) ? "block" : "warn"
+            // 사용자가 말한 지난 일을 되짚는 문장("~했다고 했지")은 예언이 아니라 배경 — 사람 확인(warn)
+            severity = USER_REPORTED_PAST_RE.test(text) && PAST_RE.test(text) && !/(ㄹ|을|할|될|날) (거|것)/.test(text) ? "warn" : TIMING_RE.test(text) || FUTURE_RE.test(text) ? "block" : "warn"
             break
           case "invest":
             severity = INVEST_DISSUADE.test(text) ? null : INVEST_PUSH.test(text) ? "block" : "warn"

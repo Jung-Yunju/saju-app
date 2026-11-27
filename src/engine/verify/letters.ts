@@ -160,15 +160,46 @@ export const GENERAL_HANJA_WORDS: readonly string[] = [
 /** 이 말 앞의 간지는 역사 사건 이름(壬辰倭亂 등)으로 보고 세지 않는다 */
 const HISTORY_SUFFIX = ["倭亂", "胡亂", "改革", "士禍", "政變", "換局", "獄事", "事變", "條約", "勒約", "戰爭", "革命", "農民", "運動", "國恥", "洋擾", "軍亂", "再亂"]
 
-const HANGUL_SUFFIX_RE = /^\s?(년생|년|일주(?!일)|월주|연주|년주|시주|대운|세운)/
+/** 한글 간지 뒤에 붙으면 간지로 세는 말. '생'은 생활·생각 등 일반어를 뺀다("갑자생") */
+const HANGUL_SUFFIX_RE = /^\s?(년생|년|생(?!활|각|산|명|일|겼|긴|기|겨|길|물|선|존|김|략|전|애|업|계|소|경|사|성)|일주(?!일)|월주|연주|년주|시주|대운|세운|띠)/
+/** 이 말 바로 뒤에 오는 간지(한글·띄어 쓴 한자)는 기둥을 가리킨다 */
+const POSITION_BEFORE_RE = /(일주|월주|연주|년주|시주|기둥|대운|세운)\s?(는|은|가|이|도|의|:|로|란|라는|가 바로|는 바로)?\s*$/
+const POSITION_AFTER_RE = /^\s?(일주|월주|연주|년주|시주|대운|세운|년|해)/
+const NATAL_POSITION: Record<string, "year" | "month" | "day" | "hour"> = { 일주: "day", 월주: "month", 연주: "year", 년주: "year", 시주: "hour" }
+/** 띄어 쓰거나 가운뎃점으로 쪼갠 기둥("辛 未", "辛·未") — 기둥 문맥이 있을 때만 기둥으로 센다 */
+const SPLIT_SEPARATORS = new Set([" ", "·", "・", "‧", "∙", "-", "/"])
+
+/**
+ * 한글 오행 읽기(임수·자수…) → 한자. 일반어와 겹치는 것(정화 淨化·계수 係數·자수 刺繡·해수 海水·묘목 苗木·사화 士禍·신금 辛/申)은
+ * 자리 이름(일간·월지…)이 바로 앞에 있을 때만 근거 글자로 센다.
+ */
+const HANGUL_READING_SAFE: Record<string, string> = {
+  갑목: "甲", 을목: "乙", 병화: "丙", 무토: "戊", 기토: "己", 경금: "庚", 임수: "壬",
+  축토: "丑", 인목: "寅", 진토: "辰", 오화: "午", 미토: "未", 유금: "酉", 술토: "戌",
+}
+const HANGUL_READING_AMBIGUOUS: Record<string, string> = { 정화: "丁", 계수: "癸", 자수: "子", 해수: "亥", 묘목: "卯", 사화: "巳" }
+const SLOT_BEFORE_RE = /(일간|월간|연간|년간|시간|일지|월지|연지|년지|시지|천간|지지|원국|일주의|시주의|월주의|연주의)\s?(의|에|은|는|이|가)?\s?$/
 
 export interface GanzhiToken {
   kind: "pillar" | "char" | "hangulPillar"
-  /** 한자 간지 또는 한 글자(한글 간지는 한자로 바꾼 값) */
+  /** 한자 간지 또는 한 글자(한글 간지·한글 오행 읽기는 한자로 바꾼 값) */
   value: string
   /** 글 안 위치 */
   index: number
   length: number
+  /** "일주는 辛未", "辛未일주"처럼 원국 자리를 붙여 말한 경우 그 자리 */
+  position?: "year" | "month" | "day" | "hour"
+  /** 기둥 문맥으로 잡은 띄어 쓴 기둥("辛 未") */
+  split?: boolean
+  /** 한글 오행 읽기("임수")로 잡은 글자 */
+  reading?: boolean
+}
+
+function positionOf(text: string, index: number, length: number): GanzhiToken["position"] {
+  const before = /(일주|월주|연주|년주|시주)\s?(는|은|가|이|도|의|:|란|라는)?\s*$/.exec(text.slice(Math.max(0, index - 8), index))
+  if (before) return NATAL_POSITION[before[1]]
+  const after = /^\s?(일주|월주|연주|년주|시주)/.exec(text.slice(index + length, index + length + 4))
+  return after ? NATAL_POSITION[after[1]] : undefined
 }
 
 function bracketMask(text: string): boolean[] {
@@ -216,22 +247,41 @@ export function findGanzhiTokens(text: string, strict = false): GanzhiToken[] {
         i++
         continue
       }
-      out.push({ kind: "pillar", value: c + n, index: i, length: 2 })
+      out.push({ kind: "pillar", value: c + n, index: i, length: 2, position: positionOf(text, i, 2) })
       i++
       continue
     }
+    // 쪼갠 기둥: 천간 + 구분자 하나 + 지지, 앞뒤에 기둥 문맥이 있을 때만
+    const n2 = text[i + 2]
+    if (!strict && isStemChar(c) && n !== undefined && SPLIT_SEPARATORS.has(n) && n2 !== undefined && isBranchChar(n2) && !general[i + 2] && parsePillar(c + n2)) {
+      const ctxBefore = POSITION_BEFORE_RE.test(text.slice(Math.max(0, i - 8), i))
+      const ctxAfter = POSITION_AFTER_RE.test(text.slice(i + 3, i + 7))
+      if (ctxBefore || ctxAfter) {
+        out.push({ kind: "pillar", value: c + n2, index: i, length: 3, position: positionOf(text, i, 3), split: true })
+        i += 2
+        continue
+      }
+    }
     out.push({ kind: "char", value: c, index: i, length: 1 })
   }
-  // 한글 간지 + 접미어
   if (!strict) {
     for (let i = 0; i + 1 < text.length; i++) {
       const prev = i > 0 ? text[i - 1] : ""
       if (prev && /[가-힣]/.test(prev)) continue
-      const g = hangulToGanzhi(text.slice(i, i + 2))
-      if (!g) continue
-      if (!HANGUL_SUFFIX_RE.test(text.slice(i + 2, i + 6))) continue
-      // "병오(丙午)년"처럼 바로 뒤에 한자가 같이 오면 한자 쪽에서 이미 센다
-      out.push({ kind: "hangulPillar", value: g, index: i, length: 2 })
+      const two = text.slice(i, i + 2)
+      // 한글 간지: 접미어("신미일주", "갑자생", "병오년")가 붙거나 기둥 자리 말 뒤("일주는 신미")
+      const g = hangulToGanzhi(two)
+      if (g && (HANGUL_SUFFIX_RE.test(text.slice(i + 2, i + 6)) || POSITION_BEFORE_RE.test(text.slice(Math.max(0, i - 8), i)))) {
+        out.push({ kind: "hangulPillar", value: g, index: i, length: 2, position: positionOf(text, i, 2) })
+        continue
+      }
+      // 한글 오행 읽기("임수가", "월지 자수가")
+      const safe = HANGUL_READING_SAFE[two]
+      const amb = HANGUL_READING_AMBIGUOUS[two]
+      const nx = text[i + 2]
+      const wordEnd = nx === undefined || !/[가-힣]/.test(nx) || /[은는이가을를의와과도로에]/.test(nx)
+      if (safe && wordEnd) out.push({ kind: "char", value: safe, index: i, length: 2, reading: true })
+      else if (amb && wordEnd && SLOT_BEFORE_RE.test(text.slice(Math.max(0, i - 6), i))) out.push({ kind: "char", value: amb, index: i, length: 2, reading: true })
     }
   }
   return out.sort((a, b) => a.index - b.index)

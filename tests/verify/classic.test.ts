@@ -50,10 +50,13 @@ describe("FAKE_CLASSIC_QUOTE 차단 예문", () => {
     expect(worst(fs)).toBe("warn")
     expect(fs[0].rule).toBe("title-only")
   })
-  it("출처 없이 쓴 한문 구절은 warn", () => {
-    const fs = findingsOf("陽生陰死라는 말이 있다.", C)
-    expect(worst(fs)).toBe("warn")
-    expect(fs[0].rule).toBe("unsourced-hanja-phrase")
+  it("출처 없이 쓴 한문 구절은 warn, 인용 맺음말('라는 말', '라 했으니')이 붙으면 block", () => {
+    const w = findingsOf("陽生陰死의 기운이 비친다.", C)
+    expect(worst(w)).toBe("warn")
+    expect(w[0].rule).toBe("unsourced-hanja-phrase")
+    const b = findingsOf("陽生陰死라는 말이 있다.", C)
+    expect(worst(b)).toBe("block")
+    expect(b[0].rule).toBe("unsourced-hanja-saying")
   })
 })
 

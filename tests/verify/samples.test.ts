@@ -111,7 +111,19 @@ describe("결정론 · 입력 불변 · 형식 오류", () => {
     expect(r.pass).toBe(false)
     expect(r.findings.some((f) => f.code === "MALFORMED_READING")).toBe(true)
   })
-  it("빈 풀이 객체는 통과(검사할 글이 없음) — 형식 검사는 콘텐츠 엔진 몫", () => {
-    expect(verifyReading({}, { sajuInput: SAJU_1990F }).pass).toBe(true)
+  it("본문이 없는 풀이({}·parts 비었음·body 비었음)는 MALFORMED_READING/empty block(verify@0.2.0)", () => {
+    for (const empty of [{}, { parts: [] }, { parts: [{ chapters: [{ title: "제목만", body: [] }] }] }, { parts: [{ chapters: [{ body: ["   "] }] }] }]) {
+      const r = verifyReading(empty, { sajuInput: SAJU_1990F })
+      expect(r.pass, JSON.stringify(empty)).toBe(false)
+      expect(r.findings.some((f) => f.code === "MALFORMED_READING" && f.rule === "empty")).toBe(true)
+    }
+  })
+  it("보고서 coverage: 고민 글이 없으면 위기 검사 미실행을 밝힌다", () => {
+    const r = verifyReading(CLEAN_READING, { sajuInput: SAJU_1990F })
+    expect(r.coverage).toEqual({ crisis: "not-run:no-userText", tenGods: "sajuInput", knownFacts: "not-run:no-facts", verifiedQuotes: 0 })
+    expect(summarizeReport(r)).toContain("crisis=not-run")
+    const r2 = verifyReading(CLEAN_READING, { sajuInput: SAJU_1990F, chart, userText: "이직 고민" })
+    expect(r2.coverage.crisis).toBe("ran")
+    expect(r2.coverage.tenGods).toBe("chart")
   })
 })

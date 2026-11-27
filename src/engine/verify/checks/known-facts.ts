@@ -6,15 +6,16 @@
 import type { Finding, TextSegment, VerifyUserFact } from "../types"
 import { excerptOf, splitSentences, yearsInText } from "../text"
 import { PAST_RE, QUESTION_RE } from "../patterns"
+import { BRANCH_KO, BRANCHES, STEM_KO, STEMS, yearGanzhi } from "../letters"
 
 /** 생활 사건 동의어 묶음 — 사실 글에 앞쪽 낱말이 있으면 묶음 전체를 핵심어로 본다 */
 const SYNONYMS: readonly string[][] = [
-  ["결혼", "혼인", "짝을 맺", "식을 올", "시집", "장가"],
+  ["결혼", "혼인", "짝을 맺", "식을 올", "시집", "장가", "가정을 꾸리", "가정을 꾸렸", "가정을 이루", "가정을 이뤘", "살림을 차리", "살림을 차렸", "부부가 되", "부부가 됐"],
   ["이혼", "갈라서", "헤어"],
   ["이사", "이주", "사는 곳", "거처", "집을 옮"],
   ["취업", "입사", "직장을 얻", "일자리"],
   ["이직", "직장을 옮", "회사를 옮", "자리를 옮"],
-  ["퇴사", "회사를 그만", "직장을 그만", "일을 그만"],
+  ["퇴사", "회사를 그만", "직장을 그만", "일을 그만", "사표", "사직", "회사를 나왔", "회사를 나오"],
   ["창업", "사업을 시작", "가게를 열"],
   ["출산", "아이를 낳", "자식을 얻", "아이를 얻"],
   ["입학", "진학", "학교가 바뀌", "학교를 옮", "전학"],
@@ -63,6 +64,13 @@ function probesOf(knownFacts: readonly string[], userFacts: readonly VerifyUserF
   return out.filter((p) => p.keywords.length > 0)
 }
 
+/** 그해 간지를 한자·한글 둘 다로("己亥", "기해년") — 연도를 간지로 바꿔 쓴 문장도 잡는다(독립 검토 7-02) */
+function yearNamesOf(y: number): string[] {
+  const g = yearGanzhi(y)
+  const ko = STEM_KO[(STEMS as readonly string[]).indexOf(g[0])] + BRANCH_KO[(BRANCHES as readonly string[]).indexOf(g[1])]
+  return [g, `${ko}년`, `${ko} 년`]
+}
+
 export function checkKnownFacts(segments: TextSegment[], knownFacts: readonly string[], userFacts: readonly VerifyUserFact[]): Finding[] {
   const probes = probesOf(knownFacts, userFacts)
   if (probes.length === 0) return []
@@ -76,7 +84,7 @@ export function checkKnownFacts(segments: TextSegment[], knownFacts: readonly st
       for (const p of probes) {
         const kw = p.keywords.find((k) => s.text.includes(k))
         if (!kw) continue
-        const hit = p.years.length > 0 ? p.years.some((y) => sy.has(y)) : PAST_RE.test(s.text)
+        const hit = p.years.length > 0 ? p.years.some((y) => sy.has(y) || yearNamesOf(y).some((n) => s.text.includes(n))) : PAST_RE.test(s.text)
         if (!hit) continue
         out.push({
           severity: "warn",
