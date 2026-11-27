@@ -186,6 +186,8 @@ export interface OInteraction {
   withKing?: boolean
   adjacent: boolean
   scope: "natal" | "luck"
+  /** D-019: 이 두 글자 기록을 포함하는 세 글자 관계의 QA 키 `${type}@${위치들}` (없으면 undefined) */
+  subsumedBy?: string[]
 }
 
 export interface OInput {
@@ -230,10 +232,10 @@ function triples<T>(arr: T[]): [T, T, T][] {
 }
 
 /**
- * 관계 오라클. 명세 문자 그대로: 모든 쌍/세 글자 조합을 기록한다(포섭 없음).
- * subsumeHalfInThree 등 포섭 규칙은 명세에 없으므로 기본 false. 불일치 분석 때만 켠다.
+ * 관계 오라클. 명세 문자 그대로 모든 쌍/세 글자 조합을 기록하고(삭제 없음),
+ * D-019(총괄실장 확정)에 따라 두 글자 기록에 포함하는 세 글자 관계 키를 subsumedBy로 단다(원국·운 대칭).
  */
-export function interactionsOf(inp: OInput, o: OOpts, flags: { subsume?: boolean } = {}): OInteraction[] {
+export function interactionsOf(inp: OInput, o: OOpts): OInteraction[] {
   const sl = slotsOf(inp)
   const out: OInteraction[] = []
   const base = (type: string, sls: Slot[], part: "stem" | "branch"): OInteraction => ({
@@ -296,37 +298,30 @@ export function interactionsOf(inp: OInput, o: OOpts, flags: { subsume?: boolean
     for (const g of DIRECTIONAL) if (isSet(g.chars)) out.push({ ...base("directionalCombine", t, "branch"), resultElement: g.el, complete: true, ...(o.partialDirectional ? { partial: false } : {}) })
     for (const g of THREE_PUNISH) if (isSet(g)) out.push({ ...base("punishment", t, "branch"), punishmentKind: "three", complete: true, partial: false })
   }
-  if (flags.subsume) return applySubsume(out)
+  markSubsumed(out)
   return out
 }
 
+/** 세 글자 관계 QA 키: `${type}@${위치들}` — 엔진 interactionId의 위치 부분과 같은 표기(posKey를 +로 이음) */
+export const tripleKey = (x: { type: string; members: OPos[] }) => `${x.type}@${x.members.map(posKey).join("+")}`
+
 /**
- * 포섭 규칙 — 명세에 없음. 엔진 개발자가 정한 규칙(src/engine/rules/interactions.ts 머리 주석)을 QA가 따로 다시 구현한 것.
- * 세 글자 관계(삼합·방합·삼형)가 완성되면 그 안의 두 글자 기록(반합·두 글자 방합·두 글자 삼형)은
- * "남은 한 글자가 원국 글자일 때"만 뺀다. (남은 글자가 운이면 원국 두 글자 기록은 남긴다)
- * flags.subsume=false면 명세 문자 그대로(포섭 없음).
+ * D-019: 반합 ⊂ 삼합, 두 글자 방합 ⊂ 방합, 두 글자 삼형 ⊂ 삼형. 같은 위치 두 개를 모두 포함하고 글자 집합이 같은 계열이면 표시.
+ * 남은 한 글자가 원국이든 운이든 똑같이 붙인다. 기록은 지우지 않는다.
  */
-export function applySubsume(list: OInteraction[]): OInteraction[] {
-  const key = (p: OPos) => `${p.pillar}${p.luckIndex ?? ""}`
-  const natal = (p: OPos) => p.pillar !== "daeun" && p.pillar !== "seun"
+function markSubsumed(list: OInteraction[]): void {
   const full = list.filter((x) => x.members.length === 3)
-  return list.filter((x) => {
-    if (x.members.length !== 2) return true
+  for (const x of list) {
+    if (x.members.length !== 2) continue
     const fam = x.type === "halfCombine" ? "threeCombine"
       : x.type === "directionalCombine" ? "directionalCombine"
       : x.type === "punishment" && x.punishmentKind === "three" ? "punishment" : null
-    if (!fam) return true
-    const mine = x.members.map(key)
-    return !full.some((t) => {
-      if (t.type !== fam) return false
-      const tk = t.members.map(key)
-      if (!mine.every((m) => tk.includes(m))) return false
-      const rest = t.members.filter((m) => !mine.includes(key(m)))
-      // 같은 계열인지(예: 寅巳申 삼형만 寅巳 두 글자 삼형을 포섭) — 글자 집합 포함 확인
-      if (!x.chars.every((c) => t.chars.includes(c))) return false
-      return rest.every(natal)
-    })
-  })
+    if (!fam) continue
+    const mine = x.members.map(posKey)
+    const by = full.filter((t) => t.type === fam && (fam !== "punishment" || t.punishmentKind === "three")
+      && mine.every((m) => t.members.some((tm) => posKey(tm) === m)) && x.chars.every((c) => t.chars.includes(c)))
+    if (by.length) x.subsumedBy = by.map(tripleKey).sort()
+  }
 }
 
 // ── §8 공망
