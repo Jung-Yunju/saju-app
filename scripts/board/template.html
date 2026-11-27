@@ -146,6 +146,7 @@ const STYLE = {
 };
 const VCOL = { "통과": "--ok", "조건부 통과": "--warn", "불합격": "--bad", "미검증": "--muted" };
 const $ = s => document.querySelector(s);
+const PLABEL = k => k === "U" ? "긴급" : k === "O" ? "관리" : k + "단계";
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const v = name => `var(${name})`;
 
@@ -170,13 +171,13 @@ function render() {
     const done = list.reduce((a, t) => a + t.progress.done, 0), total = list.reduce((a, t) => a + t.progress.total, 0);
     const pct = total ? Math.round((done / total) * 100) : 0;
     const cls = ["ph", String(meta.currentPhase) === k ? "current" : "", k === "U" ? "urgent" : ""].join(" ");
-    return `<div class="${cls}"><span class="n">${k === "U" ? "긴급" : k + "단계"} · ${list.length}건</span><span class="name">${esc(meta.phases[k])}</span><span class="mini" aria-label="세부 작업 ${done}/${total}"><i style="width:${pct}%"></i></span></div>`;
+    return `<div class="${cls}"><span class="n">${PLABEL(k)} · ${list.length}건</span><span class="name">${esc(meta.phases[k])}</span><span class="mini" aria-label="세부 작업 ${done}/${total}"><i style="width:${pct}%"></i></span></div>`;
   }).join("");
 
   // 필터 옵션
   const fp = $("#f-phase"), fo = $("#f-owner"), fa = $("#f-approval");
   if (!fp.options.length) {
-    fp.innerHTML = `<option value="">전체</option>` + phaseKeys.map(k => `<option value="${k}">${k === "U" ? "긴급 조치" : k + "단계 " + esc(meta.phases[k])}</option>`).join("");
+    fp.innerHTML = `<option value="">전체</option>` + phaseKeys.map(k => `<option value="${k}">${k === "U" || k === "O" ? esc(meta.phases[k]) : k + "단계 " + esc(meta.phases[k])}</option>`).join("");
     const owners = [...new Set(tasks.map(t => t.owner))];
     fo.innerHTML = `<option value="">전체</option>` + owners.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join("");
     fp.value = store("board.phase") || ""; fo.value = store("board.owner") || ""; fa.checked = store("board.approval") === "1";
@@ -195,7 +196,7 @@ function render() {
 
 function card(t) {
   const [fg, bg] = STYLE[t.status];
-  const phaseLabel = t.phase === "U" ? "긴급" : t.phase + "단계";
+  const phaseLabel = PLABEL(t.phase);
   const li = t.subtasks.map(s => `<li class="${s.done ? "done" : "todo"}">${esc(s.t)}</li>`).join("");
   const list = a => a.length ? a.map(x => `<code>${esc(x)}</code>`).join(" ") : "-";
   return `<article class="card">
