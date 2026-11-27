@@ -13,7 +13,8 @@ const SID = "example-session"
 const T = hms => `2026-11-27T${hms}.000Z`
 
 const base = { desc: null, cardId: null, ok: null, notif: null, tokens: null }
-const ev = (ts, event, staff, agentId, extra = {}) => ({ v: 1, ts, event, staff, agentId, sessionId: SID, tool: null, kind: null, file: null, ...base, ...extra })
+// 모든 예시 이벤트에 sample:true — --sample 없이 이 파일을 넣어도 상태 문서가 예시로 표시된다(L7)
+const ev = (ts, event, staff, agentId, extra = {}) => ({ v: 1, ts, event, staff, agentId, sessionId: SID, tool: null, kind: null, file: null, ...base, ...extra, sample: true })
 let n = 0
 const tid = () => `example-tool-${String(++n).padStart(3, "0")}`
 const KIND = { Edit: "typing", Write: "typing", Read: "research", Grep: "research", Glob: "research", WebSearch: "research", Bash: "running", Agent: "delegating", SubagentHandback: "reporting" }
@@ -139,8 +140,10 @@ const board = {
 mkdirSync(dir, { recursive: true })
 const evFile = join(dir, "sample-events.jsonl")
 const boardFile = join(dir, "sample-board.json")
-writeFileSync(evFile, [JSON.stringify({ v: 1, _comment: "예시 데이터 — 실제 업무 아님 (scripts/office/make-sample.mjs 가 생성)" }), ...E.map(e => JSON.stringify(e))].join("\n") + "\n")
+writeFileSync(evFile, [JSON.stringify({ v: 1, sample: true, _comment: "예시 데이터 — 실제 업무 아님 (scripts/office/make-sample.mjs 가 생성)" }), ...E.map(e => JSON.stringify(e))].join("\n") + "\n")
 writeFileSync(boardFile, JSON.stringify(board, null, 2) + "\n")
-const state = buildSnapshot({ events: evFile, board: boardFile, now: SAMPLE_NOW, sample: true })
+// sample 옵션 없이 만들어도 예시 문서가 되는지가 L7 의 확인 지점이므로 옵션을 넘기지 않는다
+const state = buildSnapshot({ events: evFile, board: boardFile, now: SAMPLE_NOW })
+if (state.sample !== true) throw new Error("예시 이벤트의 sample 표시가 상태 문서에 반영되지 않음")
 writeFileSync(join(dir, "sample-state.json"), JSON.stringify(state, null, 2) + "\n")
 console.log("예시 데이터 생성: " + state.staff.map(s => `${s.id}=${s.status}`).join(", "))

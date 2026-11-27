@@ -5,7 +5,7 @@
 // 합화·충 보정은 하지 않고 affectedBy로 표시만 한다(§1.7). 12운성은 점수에 넣지 않는다.
 import type { Element, Pillar, Stem } from "../types"
 import { BRANCHES, STEMS } from "../calendar/constants"
-import { stemElement, stemYinYang } from "./basics"
+import { stemElement } from "./basics"
 import { WEIGHTED_V1 } from "./elements"
 import {
   GROUPS, branchPos, ei, groupOf, isSupport, mainQiElement, natalHidden, presentKeys, round1, round6, stemPos, type Natal,
@@ -142,7 +142,7 @@ function threeFactorModel(n: Natal, dayStem: Stem, o: Pick<RuleOptions, "hiddenS
     support: null,
     total: null,
     factors: {
-      deukryeong: { met: deukryeongMet, basis: [branchPos("month")], ruleId: `strength.threeFactor.deukryeong.${o.hiddenStemTable === "main-only" ? "mainQi" : "mainQi"}` },
+      deukryeong: { met: deukryeongMet, basis: [branchPos("month")], ruleId: "strength.threeFactor.deukryeong.mainQi" },
       deukji: { met: deukjiMet, basis: [branchPos("day")], ruleId: `strength.threeFactor.deukji.${o.deukjiBasis}` },
       deukse: { met: deukseMet, basis: supporting.map((s) => s.pos), ruleId: `strength.threeFactor.deukse.${need}of${of}`, count, of },
     },
@@ -250,5 +250,3 @@ export function analyzeStrength(n: Natal, o: RuleOptions, interactions: readonly
 export function primaryModel(s: StrengthResult): StrengthModelResult {
   return s.models.find((m) => m.model === s.primary) as StrengthModelResult
 }
-
-export const _yinYangUnused = stemYinYang // (tree-shaking 무관 — 향후 음양 변형용 자리 아님)
