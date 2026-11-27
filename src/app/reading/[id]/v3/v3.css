@@ -24,7 +24,7 @@
 .v3-root :focus-visible { outline: none; box-shadow: var(--sh-focus); }
 .v3-hanja { font-family: var(--f-hanja); font-weight: 700; }
 .v3-wrap { width: 100%; max-width: var(--content-max); margin: 0 auto; padding: 0 var(--screen-pad); }
-.v3-root main.v3-wrap { padding-bottom: calc(var(--btn-h) + var(--s-12)); display: flex; flex-direction: column; gap: var(--s-5); }
+.v3-root main.v3-wrap { padding-bottom: calc(var(--btn-h) + var(--s-6) + var(--s-16) + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: var(--s-5); }
 
 .v3-top { display: flex; justify-content: space-between; padding-top: var(--s-2); }
 .v3-top-link { min-height: var(--touch-min); min-width: var(--touch-min); display: inline-flex; align-items: center; background: none; border: 0; padding: 0 var(--s-2); color: var(--c-text-muted); font-family: var(--f-ui); font-weight: var(--fw-ui); font-size: var(--t-sm); text-decoration: none; }

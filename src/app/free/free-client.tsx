@@ -53,7 +53,7 @@ export function FreeClient() {
             <section className="fr-hero">
               <Bokja className="fr-hero-cat" />
               <h1>생년월일만 넣으면,<br />바로 나와요</h1>
-              <p>가입도 결제도 없이. <b>계산은 만세력 엔진</b>이 하고, 한마디는 할미가 얹어 줘요.</p>
+              <p>가입도 결제도 없이. <b>계산은 옛 달력(만세력)</b>으로 정확히 하고, 한마디는 할미가 얹어 줘요.</p>
             </section>
             <form onSubmit={submit} noValidate>
               <div className="fr-birth">

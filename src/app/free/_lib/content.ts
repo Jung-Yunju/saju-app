@@ -144,7 +144,7 @@ function elementsCopy(raw: unknown, f: CopyFacts): ElementCopy[] {
     // 일간 기준 십성 묶음: 같은 오행이라도 일간마다 다른 문장이 되게 한다(원본 규칙: 템플릿과 떼어 쓰지 않는다)
     const line = fillTokens(str(get(raw, "tenGodLineTemplate")) ?? "", tokens)
     const gText = kind === "balanced" ? undefined : str(get(g, kind))
-    if (line) details.push({ label: "십성으로 보면", text: gText ? `${line} ${gText}` : line })
+    if (line) details.push({ label: "나와의 사이로 보면", text: gText ? `${line} ${gText}` : line })
     return { text, details, kind, el, placeholder: false }
   })
 }

@@ -15,7 +15,7 @@ export function BirthCard({
   const borderColor = accent ? "border-[#a5603f]" : "border-[#e4ddd3]"
   const modes: { v: TimeMode; l: string }[] = [
     { v: "exact", l: "정확한 시각" },
-    { v: "sijin", l: "시진만 알아요" },
+    { v: "sijin", l: "대략 몇 시쯤만 알아요" },
     { v: "unknown", l: "모름" },
   ]
   return (
@@ -88,25 +88,26 @@ export function BirthCard({
                 value={form.birthMinute} onChange={e => setField("birthMinute", e.target.value)}
                 className={inputCls} />
             </div>
-            <Help>24시간제로 적어 주세요(오후 3시 20분은 15시 20분). 분까지 알면 시주 경계가 더 정확해져요. 밤 11시 30분 전후 출생도 날짜가 바르게 계산돼요.</Help>
+            <Help>24시간제로 적어 주세요(오후 3시 20분은 15시 20분). 분까지 알면 태어난 시(時)를 더 정확히 가를 수 있어요. 밤 11시 30분 전후 출생도 날짜가 바르게 계산돼요.</Help>
           </>
         )}
 
         {form.timeMode === "sijin" && (
           <>
             <div className="grid grid-cols-3 gap-1.5 mt-2">
-              {SIJIN_OPTIONS.map(({ v, l, t }) => (
+              {SIJIN_OPTIONS.map(({ v, l, t, e }) => (
                 <button key={v} type="button"
                   onClick={() => { setField("birthHour", v); if (v !== "0") setField("ziChoice", "") }}
                   className={`py-2 rounded-lg border transition-colors text-center ${form.birthHour === v ? "bg-[#1b2a3a] text-white border-[#1b2a3a]" : "bg-white text-[#6b7280] border-[#e4ddd3] hover:border-[#1b2a3a]"}`}>
-                  <span className="block text-[11px] font-semibold">{l}</span>
+                  <span className="block text-[11px] font-semibold">{e}</span>
+                  <span className={`block text-[9px] mt-0.5 ${form.birthHour === v ? "text-[#c8d8e8]" : "text-[#b9b2a6]"}`}>{l}</span>
                   <span className={`block text-[9px] mt-0.5 ${form.birthHour === v ? "text-[#c8d8e8]" : "text-[#b9b2a6]"}`}>{t}</span>
                 </button>
               ))}
             </div>
             {form.birthHour === "0" && (
               <div className="mt-3">
-                <p className="text-xs font-semibold text-[#1b2a3a]">자시 중 언제 태어났나요? <span className="text-[#b9b2a6] font-normal">(선택)</span></p>
+                <p className="text-xs font-semibold text-[#1b2a3a]">한밤중 칸(자시) 안에서 언제 태어났나요? <span className="text-[#b9b2a6] font-normal">(선택)</span></p>
                 <div className="grid grid-cols-1 gap-1.5 mt-2">
                   {ZI_CHOICES.map(({ v, l }) => (
                     <button key={v} type="button"
@@ -123,7 +124,7 @@ export function BirthCard({
         )}
 
         {form.timeMode === "unknown" && (
-          <Help>시간을 모르면 연·월·일 기둥만으로 풀이합니다.</Help>
+          <Help>시간을 모르면 태어난 해·달·날만으로 풀이해요. 시간 칸은 빈 채로 두고 읽어 드려요.</Help>
         )}
 
         {isDstYear(form.birthYear) && form.timeMode !== "unknown" && (

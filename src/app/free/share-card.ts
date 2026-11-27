@@ -1,8 +1,9 @@
-// 공유 카드: 일간 별명 + 한 줄 + 복자 + 사이트 이름만 담은 1080×1350 이미지(브라우저 캔버스).
+// 공유 카드: 별명 + 한 줄 + 복자 + 사이트 이름만 담은 1080×1350 이미지(브라우저 캔버스).
 // 이름·생년월일·성별·시주 등 개인 정보는 카드에도 공유 문구에도 넣지 않는다 — 입력으로 받는 값이 일간 단위(spec)뿐이다.
 import { bokjaSvgDocument, BOKJA_RATIO } from "./bokja-svg"
 import { SITE_NAME } from "./theme"
 import type { ElementKo, FreeResult } from "./_lib/types"
+import { dmCaption } from "./_lib/plain"
 
 export const CARD_W = 1080
 export const CARD_H = 1350
@@ -148,8 +149,8 @@ export async function drawShareCard(canvas: HTMLCanvasElement, spec: ShareSpec, 
   const bw = 270, bh = bw / BOKJA_RATIO
   ctx.drawImage(bokja, cx + 100, cy - R - bh + 78, bw, bh)
 
-  // 일간 이름표 + 별명
-  const dmLabel = `${spec.dmKo}${spec.element} 일간`
+  // 글자 이름표(그림 말 먼저: "큰 강 · 임수") + 별명
+  const dmLabel = dmCaption(spec.dmHanja, spec.dmKo, spec.element)
   if (spec.nickname !== dmLabel) {
     ctx.fillStyle = c.muted
     ctx.font = `400 38px ${c.body}`
@@ -181,7 +182,7 @@ export async function drawShareCard(canvas: HTMLCanvasElement, spec: ShareSpec, 
 /** 캔버스에서 쓸 글꼴 조각을 미리 받는다. 실패해도 대체 글꼴로 그려진다 */
 export async function prepareCardFonts(c: CardColors, spec: ShareSpec): Promise<void> {
   if (typeof document === "undefined" || !document.fonts) return
-  const all = `${spec.site}${spec.nickname}${spec.line}${spec.dmKo}${spec.element} 일간 무료로 해 보기 ·`
+  const all = `${spec.site}${spec.nickname}${spec.line}${dmCaption(spec.dmHanja, spec.dmKo, spec.element)} 무료로 해 보기 ·`
   try {
     await Promise.all([
       document.fonts.load(`700 40px ${c.display}`, all),

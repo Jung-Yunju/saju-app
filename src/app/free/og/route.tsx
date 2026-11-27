@@ -5,6 +5,7 @@ import { ImageResponse } from "next/og"
 import type { NextRequest } from "next/server"
 import { bokjaSvgDocument } from "../bokja-svg"
 import { dayMasterOf } from "../_lib/ganzhi"
+import { dmCaption } from "../_lib/plain"
 import { loadRawContent, shareCopyForDayMaster } from "../_lib/content"
 import { SITE_NAME } from "../theme"
 
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
   const el = EL[dm?.element ?? "토"]
   const glyph = dm?.hanja ?? "命"
 
-  const font = await loadFont(`${SITE_NAME}${nickname}${line}${glyph}${dm ? `${dm.ko}${dm.element} 일간` : ""}무료로 해 보기 · `)
+  const font = await loadFont(`${SITE_NAME}${nickname}${line}${glyph}${dm ? dmCaption(dm.hanja, dm.ko, dm.element) : ""}무료로 해 보기 · `)
   if (!font) return new Response("font unavailable", { status: 503, headers: { "Cache-Control": "no-store" } })
 
   const cat = `data:image/svg+xml;base64,${Buffer.from(bokjaSvgDocument(C.surface)).toString("base64")}`
@@ -54,7 +55,7 @@ export async function GET(req: NextRequest) {
           </div>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", marginLeft: 56 }}>
             <div style={{ fontSize: 30, color: C.muted }}>{SITE_NAME}</div>
-            {dm && nickname !== `${dm.ko}${dm.element} 일간` && <div style={{ fontSize: 32, color: C.muted, marginTop: 28 }}>{`${dm.ko}${dm.element} 일간`}</div>}
+            {dm && nickname !== dmCaption(dm.hanja, dm.ko, dm.element) && <div style={{ fontSize: 32, color: C.muted, marginTop: 28 }}>{`${dmCaption(dm.hanja, dm.ko, dm.element)}`}</div>}
             <div style={{ fontSize: nickname.length > 10 ? 54 : 68, color: C.text, marginTop: 8, lineHeight: 1.2 }}>{nickname}</div>
             <div style={{ fontSize: 34, color: C.text, marginTop: 20, lineHeight: 1.4 }}>{line}</div>
             <div style={{ fontSize: 28, color: C.muted, marginTop: 28 }}>무료로 해 보기 · 가입 없이</div>
