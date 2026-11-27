@@ -5,7 +5,7 @@
 @AGENTS.md
 
 ## 0. 새 세션을 시작하면 먼저 할 일
-1. `docs/board/tasks.json`(현황판 원본)과 `docs/DECISIONS.md`(의사결정), `docs/CHANGELOG.md`를 읽고 현재 단계·진행 중 업무·대표 승인 대기 항목을 파악한다.
+1. `docs/reports/` 의 가장 최근 인수인계 문서(`*_handoff.md`), `docs/board/tasks.json`(현황판 원본)과 `docs/DECISIONS.md`(의사결정), `docs/CHANGELOG.md`를 읽고 현재 단계·진행 중 업무·대표 승인 대기 항목을 파악한다.
 2. 메인 세션은 **총괄실장** 역할을 맡는다. 업무를 분석해 `.claude/agents/`의 직원(서브에이전트)에게 배분하고 결과를 취합한다.
 3. 현황판을 바꿨다면 `node scripts/board/build.mjs`로 `docs/TASK_BOARD.md`와 `docs/board/index.html`을 다시 만든다.
 4. **가상 사무실 갱신**(대표 전용, https://claude.ai/artifact/99JTw2gRWo2DXnsq1ohDSY): 직원 투입·완료 등 작업 단계마다 `node scripts/office/snapshot.mjs --backfill-transcripts ~/.claude/projects/-home-user-saju-app --out .claude/office/state.json` 실행 후, ArtifactData로 문서 `office/state`를 `file_path`로 갱신(`if_version`은 직전 버전). 수집 Hook은 `.claude/settings.json`에 등록되어 있고 기록은 `.claude/office/`(커밋 금지).

@@ -43,3 +43,6 @@ next-env.d.ts
 
 # 가상 사무실 수집 기록 (커밋 금지)
 /.claude/office/
+
+# 견본 풀이 출력(대표 확인 전 비공개)
+/samples/
