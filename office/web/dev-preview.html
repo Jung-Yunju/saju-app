@@ -8,7 +8,7 @@
 <body>
 <!--
   로컬 미리보기 전용. 게시용이 아님. 사용법: office/web 폴더를 정적 서버로 열고
-    dev-preview.html?mode=live|stale|empty|null|hang   (db 가짜 구현)
+    dev-preview.html?mode=live|real|stale|empty|null|hang   (db 가짜 구현)
     &theme=light|dark                                  (data-theme 강제)
     &libs=/libs                                        (cdnjs 대신 로컬 경로: react.js, react-dom.js, phaser.js)
   page.html 내용을 불러와 <head>/<body>에 풀어 놓고 스크립트를 순서대로 실행한다.
@@ -28,6 +28,7 @@
           if (mode === "hang") return function () {};
           var t = setTimeout(function () {
             if (mode === "empty") return next(snap(false));
+            if (mode === "real") return fetch((libs || "") + "/real-state.json").then(function (r) { return r.json(); }).then(function (d) { next(snap(true, d)); });
             var d = window.OfficeApp.makeSample(NOW); delete d.sample;
             if (mode === "stale") d = JSON.parse(JSON.stringify(d), function (k, v) { return typeof v === "string" && /^\d{4}-\d\d-\d\dT/.test(v) ? new Date(Date.parse(v) - 45 * 60000).toISOString() : v; });
             next(snap(true, d));

@@ -12,6 +12,7 @@
     { id: "meeting", name: "회의실" }, { id: "lounge", name: "휴게실" }
   ];
   var ROSTER = [
+    { id: "ceo", name: "대표", title: "대표", room: "ceo" },
     { id: "main", name: "총괄실장", title: "프로젝트 매니저", room: "ceo" },
     { id: "business-strategist", name: "사업기획 담당", title: "사업기획·마케팅", room: "ceo" },
     { id: "saju-engine-developer", name: "엔진 개발자", title: "사주엔진 개발", room: "dev" },
@@ -30,10 +31,10 @@
     typing: { label: "코드 작성", cls: "work", icon: "typing" },
     research: { label: "자료 조사", cls: "work", icon: "research" },
     running: { label: "실행·테스트", cls: "work", icon: "running" },
-    working: { label: "업무 중", cls: "work", icon: null },
+    working: { label: "업무 중", cls: "work", icon: "working" },
     meeting: { label: "회의", cls: "done", icon: "meeting" },
     done: { label: "완료", cls: "done", icon: "done" },
-    resting: { label: "휴식", cls: "gray", icon: null },
+    resting: { label: "휴식", cls: "gray", icon: "resting" },
     off: { label: "퇴근", cls: "gray", icon: null },
     unknown: { label: "상태 확인 불가", cls: "gray", icon: "unknown" }
   };
@@ -42,64 +43,872 @@
   /* ───────── 예시 데이터 (office/fixtures/sample-state.json 내용) ───────── */
   /*SAMPLE_BEGIN*/
   var SAMPLE = {
-    schemaVersion: 1, generatedAt: "2026-11-27T12:10:00Z", staleAfterSec: 600, sample: true,
-    source: { eventCount: 412, firstEventAt: "2026-11-27T09:02:00Z", lastEventAt: "2026-11-27T12:09:30Z", sessionActive: true },
-    ceo: {
-      pendingApprovals: [{ at: "2026-11-27T12:08:00Z", staff: "design-director", tool: "Bash", message: "명령 실행 승인 요청" }],
-      boardApprovals: [{ cardId: "U-01", title: "긴급 보안 수정", item: "운영 DB 변경 승인" }]
-    },
-    staff: [
-      { id: "main", name: "총괄실장", title: "프로젝트 매니저", room: "ceo", status: "meeting", statusLabel: "회의", statusSince: "2026-11-27T12:08:00Z", rule: true,
-        task: { description: "직원 보고 검토", cardId: "O-02", startedAt: "2026-11-27T12:08:00Z", endedAt: null }, elapsedSec: 120,
-        currentFile: null, activity: [{ at: "2026-11-27T12:08:00Z", kind: "reporting", tool: "Agent", file: null, ok: true }],
-        toolCounts: { Agent: 6, Read: 14 }, filesTouched: 3, cards: [], completed: [{ id: "P2-01", title: "엔진 규격 확정" }], errors: [], approvals: [], sessions: [] },
-      { id: "backend-developer", name: "백엔드 개발자", title: "백엔드·서버", room: "dev", status: "typing", statusLabel: "코드 작성", statusSince: "2026-11-27T11:58:00Z", rule: false,
-        task: { description: "U-01 긴급 보안 수정", cardId: "U-01", startedAt: "2026-11-27T11:58:00Z", endedAt: null }, elapsedSec: 732,
-        currentFile: "src/app/api/reading/[id]/generate/route.ts",
-        activity: [
-          { at: "2026-11-27T12:09:40Z", kind: "typing", tool: "Edit", file: "src/app/api/reading/[id]/generate/route.ts", ok: true },
-          { at: "2026-11-27T12:09:10Z", kind: "research", tool: "Read", file: "src/lib/auth.ts", ok: true },
-          { at: "2026-11-27T12:08:20Z", kind: "running", tool: "Bash", file: null, ok: false }
-        ],
-        toolCounts: { Edit: 4, Bash: 28, Read: 11 }, filesTouched: 19,
-        tokens: { input: 210, output: 200631, cacheRead: 8912896, cacheWrite: 0, total: 9113737, source: "hook" },
-        costUsdEstimate: { usd: 9.4, basis: "API 단가 환산 추정(구독 사용 — 실제 청구 아님)" },
-        cards: [{ id: "U-01", title: "긴급 보안 수정", status: "수정 필요", progress: { done: 5, total: 6 }, verification: "조건부 통과", issues: "예시: 권한 확인 보완 필요", approval: null }],
-        completed: [{ id: "P1-03", title: "API 규격 초안" }], errors: [{ at: "2026-11-27T12:08:20Z", tool: "Bash", message: "도구 실행 실패" }],
-        approvals: [], sessions: [{ description: "U-01 긴급 보안 수정", cardId: "U-01", startedAt: "2026-11-27T11:58:00Z", endedAt: null }] },
-      { id: "frontend-developer", name: "프론트엔드 개발자", title: "프론트엔드", room: "dev", status: "research", statusLabel: "자료 조사", statusSince: "2026-11-27T12:05:00Z", rule: false,
-        task: { description: "O-02 가상 사무실 화면", cardId: "O-02", startedAt: "2026-11-27T12:05:00Z", endedAt: null }, elapsedSec: 300,
-        currentFile: "office/web/app.js", activity: [{ at: "2026-11-27T12:09:00Z", kind: "research", tool: "Read", file: "office/CONTRACT.md", ok: true }],
-        toolCounts: { Read: 9, Write: 2 }, filesTouched: 2,
-        tokens: { input: 90, output: 40000, cacheRead: 1200000, cacheWrite: 0, total: 1240090, source: "hook" },
-        costUsdEstimate: { usd: 1.1, basis: "API 단가 환산 추정(구독 사용 — 실제 청구 아님)" },
-        cards: [{ id: "O-02", title: "가상 사무실 1단계", status: "개발 중", progress: { done: 2, total: 5 }, verification: null, issues: null, approval: null }],
-        completed: [], errors: [], approvals: [], sessions: [] },
-      { id: "qa-security-lead", name: "품질검증 담당", title: "품질검증·보안", room: "dev", status: "running", statusLabel: "실행·테스트", statusSince: "2026-11-27T12:07:00Z", rule: false,
-        task: { description: "엔진 감사 스크립트 실행", cardId: "P1-05", startedAt: "2026-11-27T12:07:00Z", endedAt: null }, elapsedSec: 180,
-        currentFile: null, activity: [{ at: "2026-11-27T12:09:20Z", kind: "running", tool: "Bash", file: null, ok: true }],
-        toolCounts: { Bash: 12 }, filesTouched: 0, cards: [{ id: "P1-05", title: "엔진 독립 검증", status: "검증 중", progress: { done: 3, total: 4 }, verification: "진행 중", issues: null, approval: null }],
-        completed: [], errors: [], approvals: [], sessions: [] },
-      { id: "saju-engine-developer", name: "엔진 개발자", title: "사주엔진 개발", room: "dev", status: "working", statusLabel: "업무 중", statusSince: "2026-11-27T12:00:00Z", rule: false,
-        task: { description: "절기 경계 테스트 보강", cardId: "P1-04", startedAt: "2026-11-27T12:00:00Z", endedAt: null }, elapsedSec: 600,
-        currentFile: "src/engine/calendar/term.ts", activity: [{ at: "2026-11-27T12:04:00Z", kind: "typing", tool: "Edit", file: "src/engine/calendar/term.ts", ok: true }],
-        toolCounts: { Edit: 7 }, filesTouched: 3, cards: [], completed: [], errors: [], approvals: [], sessions: [] },
-      { id: "design-director", name: "디자인 실장", title: "디자인", room: "design", status: "awaiting_approval", statusLabel: "승인 대기", statusSince: "2026-11-27T12:08:00Z", rule: false,
-        task: { description: "O-02 픽셀 그림 제작", cardId: "O-02", startedAt: "2026-11-27T11:50:00Z", endedAt: null }, elapsedSec: 1200,
-        currentFile: "office/web/art.js", activity: [{ at: "2026-11-27T12:08:00Z", kind: "running", tool: "Bash", file: null, ok: null }],
-        toolCounts: { Write: 3, Bash: 2 }, filesTouched: 2, cards: [], completed: [], errors: [], approvals: ["명령 실행 승인 요청 (Bash)"], sessions: [] },
-      { id: "content-writer", name: "콘텐츠 작가", title: "콘텐츠·캐릭터", room: "design", status: "done", statusLabel: "완료", statusSince: "2026-11-27T12:04:00Z", rule: false,
-        task: { description: "할머니 말투 가이드 정리", cardId: "P4-02", startedAt: "2026-11-27T11:40:00Z", endedAt: "2026-11-27T12:04:00Z" }, elapsedSec: 1440,
-        currentFile: null, activity: [], toolCounts: { Write: 2 }, filesTouched: 2, cards: [], completed: [{ id: "P4-02", title: "말투 가이드" }], errors: [], approvals: [], sessions: [] },
-      { id: "myeongri-research-director", name: "명리학 연구소장", title: "명리학 연구", room: "research", status: "resting", statusLabel: "휴식", statusSince: "2026-11-27T11:30:00Z", rule: false,
-        task: null, elapsedSec: 0, currentFile: null, activity: [], toolCounts: {}, filesTouched: 0, cards: [], completed: [], errors: [], approvals: [], sessions: [] },
-      { id: "business-strategist", name: "사업기획 담당", title: "사업기획·마케팅", room: "ceo", status: "off", statusLabel: "퇴근", statusSince: null, rule: false,
-        task: null, elapsedSec: 0, currentFile: null, activity: [], toolCounts: {}, filesTouched: 0, cards: [], completed: [], errors: [], approvals: [], sessions: [] },
-      { id: "personalization-researcher", name: "개인화 연구원", title: "개인화 분석", room: "research", status: "unknown", statusLabel: "상태 확인 불가", statusSince: null, rule: false,
-        task: { description: "고객 맥락 분류", cardId: null, startedAt: "2026-11-27T10:00:00Z", endedAt: null }, elapsedSec: 0, currentFile: null, activity: [], toolCounts: {}, filesTouched: 0, cards: [], completed: [], errors: [], approvals: [], sessions: [] },
-      { id: "guest", name: "외부 지원 인력", title: "임시(조사·검토 보조)", room: "lounge", status: "resting", statusLabel: "휴식", statusSince: "2026-11-27T12:00:00Z", rule: false, count: 2,
-        task: null, elapsedSec: 0, currentFile: null, activity: [], toolCounts: {}, filesTouched: 0, cards: [], completed: [], errors: [], approvals: [], sessions: [] }
+   "schemaVersion": 1,
+   "sample": true,
+   "sampleNote": "예시 데이터 — 실제 업무 아님",
+   "generatedAt": "2026-11-27T12:30:00.000Z",
+   "staleAfterSec": 600,
+   "source": {
+    "eventCount": 84,
+    "firstEventAt": "2026-11-26T05:00:00.000Z",
+    "lastEventAt": "2026-11-27T12:29:40.000Z",
+    "sessionActive": true,
+    "period": {
+     "from": "2026-11-26T15:00:00.000Z",
+     "to": "2026-11-27T12:30:00.000Z",
+     "timezone": "Asia/Seoul"
+    }
+   },
+   "ceo": {
+    "pendingApprovals": [
+     {
+      "at": "2026-11-27T12:20:00.000Z",
+      "staff": "personalization-researcher",
+      "tool": "Bash",
+      "message": "명령 실행 승인 요청"
+     }
+    ],
+    "boardApprovals": [
+     {
+      "cardId": "P9-09",
+      "title": "예시 — 말투 문서",
+      "item": "예시: 캐릭터 말투 승인",
+      "status": "대표 승인 대기"
+     },
+     {
+      "cardId": "P9-10",
+      "title": "예시 — 운영 계획",
+      "item": "예시: 일정 승인",
+      "status": "대표 승인 대기"
+     }
     ]
+   },
+   "staff": [
+    {
+     "id": "ceo",
+     "name": "대표",
+     "title": "대표",
+     "room": "ceo",
+     "tracked": false,
+     "status": "off",
+     "statusLabel": "추적 대상 아님",
+     "statusSince": null,
+     "rule": false,
+     "location": "ceo",
+     "task": null,
+     "elapsedSec": null,
+     "currentFile": null,
+     "activity": [],
+     "toolCounts": {},
+     "filesTouched": 0,
+     "tokens": null,
+     "costUsdEstimate": null,
+     "cards": [],
+     "completed": [],
+     "errors": [],
+     "approvals": [],
+     "sessions": []
+    },
+    {
+     "id": "main",
+     "name": "총괄실장",
+     "title": "프로젝트 매니저",
+     "room": "ceo",
+     "status": "meeting",
+     "statusLabel": "회의(규칙 기반)",
+     "statusSince": "2026-11-27T12:29:00.000Z",
+     "rule": true,
+     "location": "meeting",
+     "task": null,
+     "elapsedSec": null,
+     "currentFile": null,
+     "activity": [
+      {
+       "at": "2026-11-27T11:40:05.000Z",
+       "kind": "research",
+       "tool": "Read",
+       "file": "docs/board/tasks.json",
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T11:50:00.000Z",
+       "kind": "delegating",
+       "tool": "Agent",
+       "file": null,
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T11:55:00.000Z",
+       "kind": "delegating",
+       "tool": "Agent",
+       "file": null,
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:00:00.000Z",
+       "kind": "delegating",
+       "tool": "Agent",
+       "file": null,
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:05:00.000Z",
+       "kind": "delegating",
+       "tool": "Agent",
+       "file": null,
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:10:00.000Z",
+       "kind": "delegating",
+       "tool": "Agent",
+       "file": null,
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:12:00.000Z",
+       "kind": "delegating",
+       "tool": "Agent",
+       "file": null,
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:14:00.000Z",
+       "kind": "delegating",
+       "tool": "Agent",
+       "file": null,
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:15:00.000Z",
+       "kind": "delegating",
+       "tool": "Agent",
+       "file": null,
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:16:00.000Z",
+       "kind": "delegating",
+       "tool": "Agent",
+       "file": null,
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:29:00.000Z",
+       "kind": "delegating",
+       "tool": "Agent",
+       "file": null,
+       "ok": true
+      }
+     ],
+     "toolCounts": {
+      "Read": 1,
+      "Agent": 10
+     },
+     "filesTouched": 0,
+     "tokens": null,
+     "costUsdEstimate": null,
+     "cards": [
+      {
+       "id": "P9-10",
+       "title": "예시 — 운영 계획",
+       "status": "대표 승인 대기",
+       "progress": {
+        "done": 3,
+        "total": 3
+       },
+       "verification": "미검증",
+       "issues": null,
+       "approval": "예시: 일정 승인"
+      }
+     ],
+     "completed": [],
+     "errors": [],
+     "approvals": [
+      "P9-10 예시: 일정 승인"
+     ],
+     "sessions": []
+    },
+    {
+     "id": "business-strategist",
+     "name": "사업기획 담당",
+     "title": "사업기획·마케팅",
+     "room": "ceo",
+     "status": "resting",
+     "statusLabel": "휴식",
+     "statusSince": "2026-11-27T12:15:00.000Z",
+     "rule": false,
+     "location": "lounge",
+     "task": {
+      "description": "예시: 비용 표 정리 P9-08",
+      "cardId": "P9-08",
+      "startedAt": "2026-11-27T11:55:02.000Z",
+      "endedAt": "2026-11-27T12:05:00.000Z"
+     },
+     "elapsedSec": 598,
+     "currentFile": null,
+     "activity": [
+      {
+       "at": "2026-11-27T11:56:00.000Z",
+       "kind": "research",
+       "tool": "Read",
+       "file": "docs/example/cost.md",
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:00:00.000Z",
+       "kind": "typing",
+       "tool": "Write",
+       "file": "docs/example/cost.md",
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:04:30.000Z",
+       "kind": "reporting",
+       "tool": "SubagentHandback",
+       "file": null,
+       "ok": true
+      }
+     ],
+     "toolCounts": {
+      "Read": 1,
+      "Write": 1,
+      "SubagentHandback": 1
+     },
+     "filesTouched": 1,
+     "tokens": null,
+     "costUsdEstimate": null,
+     "cards": [],
+     "completed": [
+      {
+       "id": "P9-08",
+       "title": "예시 — 비용 표 정리"
+      }
+     ],
+     "errors": [],
+     "approvals": [],
+     "sessions": [
+      {
+       "description": "예시: 비용 표 정리 P9-08",
+       "cardId": "P9-08",
+       "startedAt": "2026-11-27T11:55:02.000Z",
+       "endedAt": "2026-11-27T12:05:00.000Z"
+      }
+     ]
+    },
+    {
+     "id": "saju-engine-developer",
+     "name": "엔진 개발자",
+     "title": "사주엔진 개발",
+     "room": "dev",
+     "status": "working",
+     "statusLabel": "업무 중",
+     "statusSince": "2026-11-27T12:27:00.000Z",
+     "rule": false,
+     "location": "dev",
+     "task": {
+      "description": "예시: 절기 계산 점검 P9-02",
+      "cardId": "P9-02",
+      "startedAt": "2026-11-27T12:10:02.000Z",
+      "endedAt": null
+     },
+     "elapsedSec": 1198,
+     "currentFile": "src/example/solar-terms.ts",
+     "activity": [
+      {
+       "at": "2026-11-27T12:15:00.000Z",
+       "kind": "typing",
+       "tool": "Edit",
+       "file": "src/example/solar-terms.ts",
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:25:00.000Z",
+       "kind": "running",
+       "tool": "Bash",
+       "file": null,
+       "ok": true
+      }
+     ],
+     "toolCounts": {
+      "Edit": 1,
+      "Bash": 1
+     },
+     "filesTouched": 1,
+     "tokens": null,
+     "costUsdEstimate": null,
+     "cards": [
+      {
+       "id": "P9-02",
+       "title": "예시 — 절기 계산 점검",
+       "status": "개발 중",
+       "progress": {
+        "done": 3,
+        "total": 4
+       },
+       "verification": "미검증",
+       "issues": null,
+       "approval": null
+      }
+     ],
+     "completed": [],
+     "errors": [],
+     "approvals": [],
+     "sessions": [
+      {
+       "description": "예시: 절기 계산 점검 P9-02",
+       "cardId": "P9-02",
+       "startedAt": "2026-11-27T12:10:02.000Z",
+       "endedAt": null
+      }
+     ]
+    },
+    {
+     "id": "frontend-developer",
+     "name": "프론트엔드 개발자",
+     "title": "프론트엔드",
+     "room": "dev",
+     "status": "error",
+     "statusLabel": "오류",
+     "statusSince": "2026-11-27T12:29:20.000Z",
+     "rule": false,
+     "location": "dev",
+     "task": {
+      "description": "예시: 사무실 화면 P9-03",
+      "cardId": "P9-03",
+      "startedAt": "2026-11-27T12:16:02.000Z",
+      "endedAt": null
+     },
+     "elapsedSec": 838,
+     "currentFile": "office/example/app.js",
+     "activity": [
+      {
+       "at": "2026-11-27T12:25:00.000Z",
+       "kind": "typing",
+       "tool": "Write",
+       "file": "office/example/app.js",
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:29:15.000Z",
+       "kind": "running",
+       "tool": "Bash",
+       "file": null,
+       "ok": false
+      }
+     ],
+     "toolCounts": {
+      "Write": 1,
+      "Bash": 1
+     },
+     "filesTouched": 1,
+     "tokens": null,
+     "costUsdEstimate": null,
+     "cards": [
+      {
+       "id": "P9-03",
+       "title": "예시 — 사무실 화면",
+       "status": "수정 필요",
+       "progress": {
+        "done": 4,
+        "total": 6
+       },
+       "verification": "미검증",
+       "issues": "예시 문제: 모바일에서 버튼이 겹침",
+       "approval": null
+      }
+     ],
+     "completed": [],
+     "errors": [
+      {
+       "at": "2026-11-27T12:29:20.000Z",
+       "tool": "Bash",
+       "message": "도구 실행 실패"
+      }
+     ],
+     "approvals": [],
+     "sessions": [
+      {
+       "description": "예시: 사무실 화면 P9-03",
+       "cardId": "P9-03",
+       "startedAt": "2026-11-27T12:16:02.000Z",
+       "endedAt": null
+      }
+     ]
+    },
+    {
+     "id": "backend-developer",
+     "name": "백엔드 개발자",
+     "title": "백엔드·서버",
+     "room": "dev",
+     "status": "typing",
+     "statusLabel": "코드 작성",
+     "statusSince": "2026-11-27T12:29:30.000Z",
+     "rule": false,
+     "location": "dev",
+     "task": {
+      "description": "예시: 결제 API 점검 P9-01",
+      "cardId": "P9-01",
+      "startedAt": "2026-11-27T12:29:02.000Z",
+      "endedAt": null
+     },
+     "elapsedSec": 58,
+     "currentFile": "src/example/payment.ts",
+     "activity": [
+      {
+       "at": "2026-11-27T12:29:10.000Z",
+       "kind": "research",
+       "tool": "Read",
+       "file": "src/example/payment.ts",
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:29:30.000Z",
+       "kind": "typing",
+       "tool": "Edit",
+       "file": "src/example/payment.ts",
+       "ok": true
+      }
+     ],
+     "toolCounts": {
+      "Read": 1,
+      "Edit": 1
+     },
+     "filesTouched": 1,
+     "tokens": null,
+     "costUsdEstimate": null,
+     "cards": [
+      {
+       "id": "P9-01",
+       "title": "예시 — 결제 API 점검",
+       "status": "개발 중",
+       "progress": {
+        "done": 2,
+        "total": 5
+       },
+       "verification": "미검증",
+       "issues": null,
+       "approval": null
+      }
+     ],
+     "completed": [],
+     "errors": [],
+     "approvals": [],
+     "sessions": [
+      {
+       "description": "예시: 결제 API 점검 P9-01",
+       "cardId": "P9-01",
+       "startedAt": "2026-11-27T12:29:02.000Z",
+       "endedAt": null
+      }
+     ]
+    },
+    {
+     "id": "qa-security-lead",
+     "name": "품질검증 담당",
+     "title": "품질검증·보안",
+     "room": "dev",
+     "status": "running",
+     "statusLabel": "실행·테스트",
+     "statusSince": "2026-11-27T12:29:00.000Z",
+     "rule": false,
+     "location": "dev",
+     "task": {
+      "description": "예시: 테스트 실행 P9-07",
+      "cardId": "P9-07",
+      "startedAt": "2026-11-27T12:15:02.000Z",
+      "endedAt": null
+     },
+     "elapsedSec": 898,
+     "currentFile": "[비공개 파일]",
+     "activity": [
+      {
+       "at": "2026-11-27T12:18:00.000Z",
+       "kind": "research",
+       "tool": "Grep",
+       "file": "[비공개 파일]",
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:29:00.000Z",
+       "kind": "running",
+       "tool": "Bash",
+       "file": null,
+       "ok": true
+      }
+     ],
+     "toolCounts": {
+      "Grep": 1,
+      "Bash": 1
+     },
+     "filesTouched": 0,
+     "tokens": null,
+     "costUsdEstimate": null,
+     "cards": [
+      {
+       "id": "P9-07",
+       "title": "예시 — 테스트 실행",
+       "status": "개발 중",
+       "progress": {
+        "done": 1,
+        "total": 5
+       },
+       "verification": "미검증",
+       "issues": null,
+       "approval": null
+      }
+     ],
+     "completed": [],
+     "errors": [],
+     "approvals": [],
+     "sessions": [
+      {
+       "description": "예시: 테스트 실행 P9-07",
+       "cardId": "P9-07",
+       "startedAt": "2026-11-27T12:15:02.000Z",
+       "endedAt": null
+      }
+     ]
+    },
+    {
+     "id": "myeongri-research-director",
+     "name": "명리학 연구소장",
+     "title": "명리학 연구",
+     "room": "research",
+     "status": "research",
+     "statusLabel": "자료 조사",
+     "statusSince": "2026-11-27T12:29:10.000Z",
+     "rule": false,
+     "location": "research",
+     "task": {
+      "description": "예시: 고전 문헌 조사 P9-05",
+      "cardId": "P9-05",
+      "startedAt": "2026-11-27T12:14:02.000Z",
+      "endedAt": null
+     },
+     "elapsedSec": 958,
+     "currentFile": "docs/example/classics.md",
+     "activity": [
+      {
+       "at": "2026-11-27T12:20:00.000Z",
+       "kind": "typing",
+       "tool": "Write",
+       "file": "docs/example/classics.md",
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:29:10.000Z",
+       "kind": "research",
+       "tool": "WebSearch",
+       "file": null,
+       "ok": null
+      }
+     ],
+     "toolCounts": {
+      "Write": 1,
+      "WebSearch": 1
+     },
+     "filesTouched": 1,
+     "tokens": null,
+     "costUsdEstimate": null,
+     "cards": [
+      {
+       "id": "P9-05",
+       "title": "예시 — 고전 문헌 조사",
+       "status": "개발 중",
+       "progress": {
+        "done": 2,
+        "total": 4
+       },
+       "verification": "미검증",
+       "issues": null,
+       "approval": null
+      }
+     ],
+     "completed": [],
+     "errors": [],
+     "approvals": [],
+     "sessions": [
+      {
+       "description": "예시: 고전 문헌 조사 P9-05",
+       "cardId": "P9-05",
+       "startedAt": "2026-11-27T12:14:02.000Z",
+       "endedAt": null
+      }
+     ]
+    },
+    {
+     "id": "personalization-researcher",
+     "name": "개인화 연구원",
+     "title": "개인화 분석",
+     "room": "research",
+     "status": "awaiting_approval",
+     "statusLabel": "승인 대기",
+     "statusSince": "2026-11-27T12:20:00.000Z",
+     "rule": false,
+     "location": "research",
+     "task": {
+      "description": "예시: 질문 분류 P9-04",
+      "cardId": "P9-04",
+      "startedAt": "2026-11-27T12:12:02.000Z",
+      "endedAt": null
+     },
+     "elapsedSec": 1078,
+     "currentFile": "docs/example/questions.md",
+     "activity": [
+      {
+       "at": "2026-11-27T12:15:00.000Z",
+       "kind": "research",
+       "tool": "Read",
+       "file": "docs/example/questions.md",
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:19:59.000Z",
+       "kind": "running",
+       "tool": "Bash",
+       "file": null,
+       "ok": null
+      }
+     ],
+     "toolCounts": {
+      "Read": 1,
+      "Bash": 1
+     },
+     "filesTouched": 0,
+     "tokens": null,
+     "costUsdEstimate": null,
+     "cards": [
+      {
+       "id": "P9-04",
+       "title": "예시 — 질문 분류",
+       "status": "개발 중",
+       "progress": {
+        "done": 1,
+        "total": 3
+       },
+       "verification": "미검증",
+       "issues": null,
+       "approval": null
+      }
+     ],
+     "completed": [],
+     "errors": [],
+     "approvals": [
+      "명령 실행 승인 요청 (Bash)"
+     ],
+     "sessions": [
+      {
+       "description": "예시: 질문 분류 P9-04",
+       "cardId": "P9-04",
+       "startedAt": "2026-11-27T12:12:02.000Z",
+       "endedAt": null
+      }
+     ]
+    },
+    {
+     "id": "design-director",
+     "name": "디자인 실장",
+     "title": "디자인",
+     "room": "design",
+     "status": "done",
+     "statusLabel": "완료",
+     "statusSince": "2026-11-27T12:27:00.000Z",
+     "rule": false,
+     "location": "design",
+     "task": {
+      "description": "예시: 사무실 그림 P9-06",
+      "cardId": "P9-06",
+      "startedAt": "2026-11-27T12:05:02.000Z",
+      "endedAt": "2026-11-27T12:24:00.000Z"
+     },
+     "elapsedSec": 1138,
+     "currentFile": null,
+     "activity": [
+      {
+       "at": "2026-11-27T12:10:00.000Z",
+       "kind": "typing",
+       "tool": "Write",
+       "file": "office/example/art.js",
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:20:00.000Z",
+       "kind": "typing",
+       "tool": "Edit",
+       "file": "office/example/art.js",
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:23:50.000Z",
+       "kind": "reporting",
+       "tool": "SubagentHandback",
+       "file": null,
+       "ok": true
+      }
+     ],
+     "toolCounts": {
+      "Write": 1,
+      "Edit": 1,
+      "SubagentHandback": 1
+     },
+     "filesTouched": 1,
+     "tokens": {
+      "input": 1200,
+      "output": 45000,
+      "cacheRead": 900000,
+      "cacheWrite": 30000,
+      "total": 976200,
+      "source": "hook"
+     },
+     "costUsdEstimate": {
+      "usd": 1.23,
+      "basis": "API 단가 환산 추정(구독 사용 — 실제 청구 아님) · 모델 미확인분은 Opus 단가 적용"
+     },
+     "cards": [
+      {
+       "id": "P9-06",
+       "title": "예시 — 사무실 그림",
+       "status": "검증 중",
+       "progress": {
+        "done": 3,
+        "total": 3
+       },
+       "verification": "조건부 통과",
+       "issues": null,
+       "approval": null
+      }
+     ],
+     "completed": [],
+     "errors": [],
+     "approvals": [],
+     "sessions": [
+      {
+       "description": "예시: 사무실 그림 P9-06",
+       "cardId": "P9-06",
+       "startedAt": "2026-11-27T12:05:02.000Z",
+       "endedAt": "2026-11-27T12:24:00.000Z"
+      }
+     ]
+    },
+    {
+     "id": "content-writer",
+     "name": "콘텐츠 작가",
+     "title": "콘텐츠·캐릭터",
+     "room": "design",
+     "status": "off",
+     "statusLabel": "퇴근",
+     "statusSince": null,
+     "rule": false,
+     "location": "design",
+     "task": null,
+     "elapsedSec": null,
+     "currentFile": null,
+     "activity": [],
+     "toolCounts": {},
+     "filesTouched": 0,
+     "tokens": null,
+     "costUsdEstimate": null,
+     "cards": [
+      {
+       "id": "P9-09",
+       "title": "예시 — 말투 문서",
+       "status": "대표 승인 대기",
+       "progress": {
+        "done": 2,
+        "total": 2
+       },
+       "verification": "미검증",
+       "issues": null,
+       "approval": "예시: 캐릭터 말투 승인"
+      }
+     ],
+     "completed": [],
+     "errors": [],
+     "approvals": [
+      "P9-09 예시: 캐릭터 말투 승인"
+     ],
+     "sessions": []
+    },
+    {
+     "id": "guest",
+     "name": "외부 지원 인력",
+     "title": "임시(조사·검토 보조)",
+     "room": "lounge",
+     "status": "unknown",
+     "statusLabel": "상태 확인 불가",
+     "statusSince": "2026-11-27T12:20:00.000Z",
+     "rule": false,
+     "location": "lounge",
+     "task": {
+      "description": "예시: 자료 조사 보조",
+      "cardId": null,
+      "startedAt": "2026-11-27T12:00:02.000Z",
+      "endedAt": null
+     },
+     "elapsedSec": 1798,
+     "currentFile": null,
+     "activity": [
+      {
+       "at": "2026-11-27T11:52:00.000Z",
+       "kind": "research",
+       "tool": "Grep",
+       "file": "src/example",
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T11:57:00.000Z",
+       "kind": "reporting",
+       "tool": "SubagentHandback",
+       "file": null,
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:05:00.000Z",
+       "kind": "research",
+       "tool": "WebSearch",
+       "file": null,
+       "ok": true
+      },
+      {
+       "at": "2026-11-27T12:10:00.000Z",
+       "kind": "research",
+       "tool": "Read",
+       "file": "[외부 경로]",
+       "ok": true
+      }
+     ],
+     "toolCounts": {
+      "Grep": 1,
+      "SubagentHandback": 1,
+      "WebSearch": 1,
+      "Read": 1
+     },
+     "filesTouched": 0,
+     "tokens": null,
+     "costUsdEstimate": null,
+     "cards": [],
+     "completed": [],
+     "errors": [],
+     "approvals": [],
+     "sessions": [
+      {
+       "description": "예시: 외부 검토 보조",
+       "cardId": null,
+       "startedAt": "2026-11-27T11:50:02.000Z",
+       "endedAt": "2026-11-27T11:58:00.000Z"
+      },
+      {
+       "description": "예시: 자료 조사 보조",
+       "cardId": null,
+       "startedAt": "2026-11-27T12:00:02.000Z",
+       "endedAt": null
+      }
+     ],
+     "headcount": 2,
+     "activeCount": 0
+    }
+   ]
   };
   /*SAMPLE_END*/
 
@@ -154,15 +963,18 @@
       cacheWrite: N(raw.tokens.cacheWrite), total: N(raw.tokens.total), source: S(raw.tokens.source, 30)
     } : null;
     var cost = raw.costUsdEstimate && typeof raw.costUsdEstimate === "object" ? { usd: N(raw.costUsdEstimate.usd), basis: S(raw.costUsdEstimate.basis, 200) } : null;
+    var untracked = raw.tracked === false || base.id === "ceo";
+    if (untracked) { st = "off"; rawStatus = "off"; }
     return {
+      untracked: untracked, location: S(raw.location, 20) || null, headcount: N(raw.headcount), activeCount: N(raw.activeCount),
       id: base.id, name: S(raw.name, 40) || base.name, title: S(raw.title, 60) || base.title, room: S(raw.room, 20) || base.room,
       status: st, rawStatus: rawStatus,
-      statusLabel: forceUnknown ? STATUS.unknown.label : (S(raw.statusLabel, 30) || STATUS[st].label),
-      rule: !forceUnknown && (raw.rule === true || st === "meeting" && raw.rule !== false),
+      statusLabel: untracked ? "추적 대상 아님" : forceUnknown ? STATUS.unknown.label : (S(raw.statusLabel, 30) || STATUS[st].label),
+      rule: !forceUnknown && !untracked && (raw.rule === true || st === "meeting" && raw.rule !== false),
       statusSince: S(raw.statusSince, 40) || null, task: task, elapsedSec: N(raw.elapsedSec),
       currentFile: S(raw.currentFile, 200) || null,
       activity: A(raw.activity, 30).map(function (a) { a = O(a); return { at: S(a.at, 40), kind: S(a.kind, 20), tool: S(a.tool, 40), file: S(a.file, 200) || null, ok: typeof a.ok === "boolean" ? a.ok : null }; }),
-      filesTouched: N(raw.filesTouched), tokens: tk, cost: cost, count: N(raw.count),
+      filesTouched: N(raw.filesTouched), tokens: tk, cost: cost,
       cards: A(raw.cards, 20).map(function (c) {
         c = O(c); var p = O(c.progress);
         return { id: S(c.id, 20), title: S(c.title, 120), status: S(c.status, 30), done: N(p.done), total: N(p.total), verification: S(c.verification, 120) || null, issues: S(c.issues, 300) || null, approval: S(c.approval, 200) || null };
@@ -182,9 +994,10 @@
     });
     var ceo = doc && !forceUnknown ? O(doc.ceo) : {};
     var pend = A(ceo.pendingApprovals, 30).map(function (p) { p = O(p); return { at: S(p.at, 40), staff: S(p.staff, 60), tool: S(p.tool, 40), message: S(p.message, 200) }; });
-    var board = A(ceo.boardApprovals, 30).map(function (p) { p = O(p); return { cardId: S(p.cardId, 20), title: S(p.title, 120), item: S(p.item, 200) }; });
+    var board = A(ceo.boardApprovals, 30).map(function (p) { p = O(p); return { cardId: S(p.cardId, 20), title: S(p.title, 120), item: S(p.item, 200), status: S(p.status, 40) }; });
     var present = 0, working = 0, waiting = 0;
     list.forEach(function (s) {
+      if (s.untracked) return;
       if (s.status !== "off" && s.status !== "unknown") present++;
       if (WORKING[s.status]) working++;
       if (s.status === "awaiting_approval") waiting++;
@@ -359,7 +1172,7 @@
               for (var x = 0; x < row.length; x++) {
                 var tk = map.legend[row.charAt(x)]; if (!tk || !self.textures.exists("t:" + tk)) continue;
                 var tl = art.tiles[tk], im = self.add.image(x * TILE, y * TILE, "t:" + tk).setOrigin(0, 0);
-                im.setDepth(li === 0 ? -1000 : y * TILE + (tl.h || TILE) - TILE);
+                im.setDepth(li === 0 ? -1000 : y * TILE + TILE);
               }
             });
           });
@@ -372,10 +1185,16 @@
           g.setDepth(-999);
         }
         map.rooms.forEach(function (r) {
-          self.add.text(r.x * TILE + 4, r.y * TILE + 3, r.name, { fontFamily: "system-ui,sans-serif", fontSize: "9px", color: "#f4e6b8", stroke: "#10121e", strokeThickness: 2, resolution: 2 }).setDepth(9000).setAlpha(.9);
+          /* 방 이름은 방 바로 위(아래 방은 위쪽 벽 줄) 벽 띠 한가운데에 둔다 — 가구와 겹치지 않는 줄 */
+          var ly = r.y <= 1 ? 0 : (r.y - 1) * TILE;
+          self.add.text((r.x + r.w / 2) * TILE, ly + 8, r.name, { fontFamily: "system-ui,sans-serif", fontSize: "11px", fontStyle: "bold", color: "#f5e2a6", stroke: "#0f1430", strokeThickness: 3, resolution: 3 }).setOrigin(.5, .5).setDepth(9000);
         });
         /* 캐릭터 */
         this.ring = this.add.ellipse(0, 0, 20, 8, 0xffd54a, .55).setStrokeStyle(1, 0xffffff, .9).setVisible(false);
+        this.bellFrames = [];
+        var bt = art.tiles && art.tiles.bell;
+        if (bt && bt.frames) bt.frames.forEach(function (F, i) { var k = "bell:" + i; drawFrame(self, k, F, p, bt.w || 16, bt.h || 16); self.bellFrames.push(k); });
+        this.bellTile = this.bellFrames.length ? this.add.image(0, 0, this.bellFrames[0]).setOrigin(0, 0).setVisible(false) : null;
         this.bell = this.add.image(0, 0, iconTexture(this, "approval")).setOrigin(.5, 1).setDepth(9500).setVisible(false);
         this.bellTxt = this.add.text(0, 0, "", { fontFamily: "system-ui,sans-serif", fontSize: "9px", color: "#fff", backgroundColor: "#b3261e", padding: { x: 2, y: 0 }, resolution: 2 }).setDepth(9501).setVisible(false);
         ROSTER.concat(bridge.model ? bridge.model.staff.filter(function (s) { return !ROSTER.some(function (r) { return r.id === s.id; }); }) : []).forEach(function (r) { self.ensureEnt(r.id); });
@@ -411,27 +1230,33 @@
         model.staff.forEach(function (s) {
           var e = self.ensureEnt(s.id), tgt = null, kind = "desk";
           e.status = s.status; e.unknownLook = s.status === "unknown";
-          if (s.status !== "off") {
+          if (s.untracked || s.status !== "off") {
+            var loc = s.location;
             if (s.status === "meeting") kind = "meeting"; else if (s.status === "resting") kind = "lounge";
+            if (loc === "meeting" || loc === "lounge") kind = loc;
+            if (s.untracked || s.id === "guest" || s.status === "unknown") kind = "desk";
             var desk = map.desks && map.desks[s.id];
             if (kind === "desk" && !desk) kind = "lounge";
             if (kind === "desk") tgt = { x: desk.x, y: desk.y, facing: desk.facing || "up", seated: true };
-            else { var arr = A(map.spots && map.spots[kind], 20); var sp = arr.length ? arr[(kind === "meeting" ? meet++ : lounge++) % arr.length] : { x: 2, y: 2 }; tgt = { x: sp.x, y: sp.y, facing: "down", seated: false }; }
+            else { var arr = A(map.spots && map.spots[kind], 20); var sp = arr.length ? arr[(kind === "meeting" ? meet++ : lounge++) % arr.length] : { x: 2, y: 2 }; tgt = { x: sp.x, y: sp.y, facing: "down", seated: true }; }
           }
           self.place(e, tgt, s);
         });
         var b = map.spots && map.spots.ceoBell;
         if (b && model.bell > 0) {
-          var pp = px(b); this.bell.setPosition(pp.x, pp.y).setVisible(true);
-          this.bellTxt.setText(model.bell > 1 ? String(model.bell) : "").setPosition(pp.x + 3, pp.y - 14).setVisible(model.bell > 1);
+          var pp = px(b); this.bell.setPosition(pp.x, pp.y - TILE - 2).setVisible(true);
+          if (this.bellTile) this.bellTile.setPosition(b.x * TILE, b.y * TILE).setDepth(b.y * TILE + TILE + 1).setVisible(true);
+          this.bellTxt.setText(model.bell > 1 ? String(model.bell) : "").setPosition(pp.x + 2, pp.y - TILE - 14).setVisible(model.bell > 1);
+          this.bellOn = true;
           if (!this.bellTween && !reduce) this.bellTween = this.tweens.add({ targets: this.bell, angle: { from: -14, to: 14 }, duration: 160, yoyo: true, repeat: -1, repeatDelay: 700 });
-        } else { this.bell.setVisible(false); this.bellTxt.setVisible(false); }
+        } else { this.bellOn = false; this.bell.setVisible(false); this.bellTxt.setVisible(false); if (this.bellTile) this.bellTile.setVisible(false); }
         if (model.summary.known) this.first = false;
       }
       place(e, tgt, s) {
         var self = this, sp = e.sp;
-        e.sp.setAlpha(s.status === "unknown" ? .5 : 1); if (s.status === "unknown") sp.setTint(0x9a9aa8); else sp.clearTint();
-        var iname = STATUS[s.status] && STATUS[s.status].icon;
+        var dim = s.status === "unknown" && !s.untracked;
+        e.sp.setAlpha(dim ? .5 : 1); if (dim) sp.setTint(0x9a9aa8); else sp.clearTint();
+        var iname = s.untracked ? null : STATUS[s.status] && STATUS[s.status].icon;
         if (iname) { e.icon.setTexture(iconTexture(this, iname)); e.iconOn = true; } else e.iconOn = false;
         e.icon.setAlpha(s.status === "unknown" ? .85 : 1);
         if (!tgt) { e.tok++; this.tweens.killTweensOf(sp); sp.setVisible(false); e.icon.setVisible(false); e.hidden = true; e.cur = null; e.target = null; return; }
@@ -439,8 +1264,8 @@
         e.target = tgt;
         var anim = animForStatus(s.status, tgt.seated);
         var arrive = function () {
-          e.seated = tgt.seated; e.cur = { x: tgt.x, y: tgt.y }; var pp = px(e.cur); sp.setPosition(pp.x, pp.y + (tgt.seated ? 2 : 0));
-          self.play(sp, "c:" + e.id, e.spec, anim, tgt.facing === "left");
+          e.seated = tgt.seated; e.cur = { x: tgt.x, y: tgt.y }; var pp = px(e.cur); sp.setPosition(pp.x, pp.y);
+          self.play(sp, "c:" + e.id, e.spec, anim, false);
           if (s.status === "unknown") { sp.anims.stop(); }
         };
         if (same && !e.hidden && e.tok >= 0 && !e.moving) { arrive(); return; }
@@ -505,12 +1330,13 @@
         var self = this, sel = null, bob = reduce ? 0 : Math.sin(time / 300);
         Object.keys(this.ents).forEach(function (id) {
           var e = self.ents[id]; if (!e.sp.visible) { e.icon.setVisible(false); return; }
-          e.sp.setDepth(e.sp.y + (e.seated ? 16 : 0));
+          e.sp.setDepth(e.sp.y + (e.seated ? 8 : 0));
           e.icon.setVisible(!!e.iconOn).setPosition(e.sp.x, e.sp.y - e.h - 2 + bob).setDepth(9400);
           if (id === self.selId) sel = e;
         });
         if (sel) this.ring.setVisible(true).setPosition(sel.sp.x, sel.sp.y - 1).setDepth(sel.sp.depth - 1); else this.ring.setVisible(false);
         if (this.catEnt) this.catEnt.sp.setDepth(this.catEnt.sp.y);
+        if (this.bellTile && this.bellOn && this.bellFrames.length > 1) this.bellTile.setTexture(this.bellFrames[reduce ? 0 : (Math.floor(time / 350) % this.bellFrames.length)]);
       }
     };
 
@@ -572,12 +1398,20 @@
     else if (s.elapsedSec != null) { el = s.elapsedSec + (WORKING[s.status] && p.docAt ? (now - p.docAt) / 1000 : 0); }
     var tok = s.tokens;
     var pend = p.pending.filter(function (x) { return x.staff === s.id; });
+    if (s.untracked) {
+      return h("aside", { className: "side", role: "dialog", "aria-label": s.name + " 상세 정보", "aria-modal": "false" },
+        h("div", { className: "side-head" }, h("div", null, h("h2", null, s.name), h("div", { className: "sub" }, s.title), h("div", { style: { marginTop: 6 } }, h(Chip, { status: "off", label: "추적 대상 아님" }))),
+          h("button", { className: "close", onClick: p.onClose, ref: closeRef, "aria-label": "상세 패널 닫기 (Esc)" }, "닫기")),
+        h("p", { className: "note" }, "대표는 업무 기록 수집 대상이 아닙니다. 자리에 앉아 있는 모습은 항상 정지 상태이며 실제 업무와 무관합니다."),
+        Sec("승인 요청 (직원 → 대표)", p.pending.length ? h("ul", null, p.pending.map(function (x, i) { return h("li", { key: i }, fmtTime(x.at) + " · " + x.staff + " · " + x.tool + " · " + x.message); })) : Empty("대표 승인을 기다리는 직원 요청이 없습니다.")),
+        Sec("현황판 승인 대기", p.board.length ? h("ul", null, p.board.map(function (x, i) { return h("li", { key: i }, x.cardId + " " + x.title + (x.item ? " — " + x.item : "") + (x.status ? " (" + x.status + ")" : "")); })) : Empty("현황판 승인 대기 항목이 없습니다.")));
+    }
     return h("aside", { className: "side", role: "dialog", "aria-label": s.name + " 상세 정보", "aria-modal": "false" },
       h("div", { className: "side-head" },
         h("div", null, h("h2", null, s.name), h("div", { className: "sub" }, s.title || "직책 정보 없음"),
           h("div", { style: { marginTop: 6 } }, h(Chip, { status: s.status, label: s.statusLabel }),
             s.rule ? h("span", { className: "rule", style: { marginLeft: 8 } }, "규칙 기반 표시") : null,
-            s.count && s.count > 1 ? h("span", { className: "sub", style: { marginLeft: 8 } }, "· " + s.count + "명") : null)),
+            s.headcount ? h("span", { className: "sub", style: { marginLeft: 8 } }, "· 오늘 " + s.headcount + "명, 업무 중 " + (s.activeCount || 0) + "명") : null)),
         h("button", { className: "close", onClick: p.onClose, ref: closeRef, "aria-label": "상세 패널 닫기 (Esc)" }, "닫기")),
       s.status === "unknown" && s.rawStatus !== "unknown" ? h("p", { className: "note" }, "문서가 오래되어 상태를 확인할 수 없습니다. 마지막 기록 상태: " + (STATUS[s.rawStatus] || STATUS.unknown).label) : null,
       s.rule ? h("p", { className: "note" }, "회의 표시는 실제 기록이 아니라 규칙(직원 호출 직후·보고 검토)으로 추정한 값입니다.") : null,
@@ -691,6 +1525,13 @@
           h("li", null, h("span", { className: "k" }, "업무 중"), h("span", { className: "v" }, sm.known ? sm.working : "—", h("small", null, sm.known ? " 명" : ""))),
           h("li", { className: sm.waiting > 0 ? "alert" : "" }, h("span", { className: "k" }, "승인 대기 (대표 벨)"), h("span", { className: "v" }, sm.known ? sm.waiting : "—", h("small", null, sm.known ? " 건" : ""))),
           h("li", null, h("span", { className: "k" }, "마지막 갱신"), h("span", { className: "v", style: { fontSize: 18 } }, ago))),
+        (function () {
+          var src = active && active.source ? active.source : null, notes = [];
+          if (src && src.period && src.period.from) notes.push("집계 기간: " + fmtTime(src.period.from) + " ~ " + fmtTime(src.period.to) + (src.period.timezone ? " (" + src.period.timezone + ")" : ""));
+          if (src && src.backfill) notes.push("작업기록 보조 데이터 포함" + (src.backfill.note ? " — " + String(src.backfill.note).slice(0, 120) : ""));
+          if (active && active.truncated) notes.push("일부 기록이 잘려 있을 수 있습니다.");
+          return notes.length ? h("p", { className: "note", style: { margin: "0 0 10px" } }, notes.join(" · ")) : null;
+        })(),
         banner ? h("div", { className: "banner " + banner.c, role: "status" }, h("b", null, banner.t), banner.d,
           noReal && !isSample && conn.kind !== "loading" ? h("div", null, h("button", { onClick: function () { setSampleDoc(makeSample(Date.now())); setSelId(null); } }, "예시 화면 보기")) : null) : null,
         h("div", { className: "layout" },
@@ -702,19 +1543,22 @@
               h("h2", null, "직원 목록"),
               h("ul", { className: "slist" }, model.staff.map(function (s) {
                 return h("li", { key: s.id }, h("button", { className: "srow", "aria-current": selId === s.id ? "true" : undefined, onClick: function () { select(s.id); } },
-                  h("span", null, h("span", { className: "nm" }, s.name + (s.count && s.count > 1 ? " ×" + s.count : "")), h("span", { className: "tt" }, s.title)),
+                  h("span", null, h("span", { className: "nm" }, s.name + (s.headcount ? " (오늘 " + s.headcount + "명)" : "")), h("span", { className: "tt" }, s.title)),
                   h(Chip, { status: s.status, label: s.statusLabel + (s.rule ? " (규칙 기반)" : "") })));
               })),
               h("p", { className: "note" }, "직원을 누르면 상세 정보가 열립니다. 캔버스 안의 캐릭터를 눌러도 같습니다.")),
+            !stale && model.board.length ? h("section", { className: "panel", "aria-label": "대표 승인 대기" },
+              h("h2", null, "현황판 승인 대기 " + model.board.length + "건"),
+              h("ul", { style: { margin: 0, paddingLeft: 18 } }, model.board.map(function (x, i) { return h("li", { key: i }, x.cardId + " " + x.title + (x.item ? " — " + x.item : "") + (x.status ? " (" + x.status + ")" : "")); }))) : null,
             h("section", { className: "panel", "aria-label": "도움말" },
               h("h2", null, "범례·도움말"),
               h("ul", { className: "legend" },
-                ["typing", "research", "running", "error", "awaiting_approval", "done", "unknown", "meeting"].map(function (k) {
-                  return h("li", { key: k }, h(Chip, { status: k }), h("span", null, { typing: "책상에서 코드 작성", research: "책상에서 자료 조사", running: "실행·테스트", error: "붉은 느낌표", awaiting_approval: "벨 + 대표실 벨 흔들림", done: "체크 표시", unknown: "회색 반투명 + ?", meeting: "회의실(규칙 기반)" }[k]));
+                ["typing", "research", "running", "working", "error", "awaiting_approval", "done", "resting", "unknown", "meeting"].map(function (k) {
+                  return h("li", { key: k }, h(Chip, { status: k }), h("span", null, { typing: "책상에서 코드 작성", research: "책상에서 자료 조사", running: "실행·테스트", working: "모래시계(도구 기록은 잠시 없음)", resting: "찻잔(휴게실)", error: "붉은 느낌표", awaiting_approval: "벨 + 대표실 벨 흔들림", done: "체크 표시", unknown: "회색 반투명 + ?", meeting: "회의실(규칙 기반)" }[k]));
                 })),
               h("p", { className: "note" }, "복자(턱시도 고양이)는 장식이며 업무와 무관합니다. 마음대로 돌아다니는 모습은 일과 아무 관계가 없습니다."),
               h("p", { className: "note" }, "실제 이벤트가 없으면 일하는 모습을 그리지 않습니다. 퇴근한 직원은 화면에서 자리를 비웁니다. 기록에는 파일 이름·도구 이름·시각만 있고 파일 내용이나 명령문은 담지 않습니다."))),
-          sel ? h(Detail, { s: sel, now: now, pending: model.pending, docAt: docAt, onClose: function () { setSelId(null); } }) : null)));
+          sel ? h(Detail, { s: sel, now: now, pending: model.pending, board: model.board, docAt: docAt, onClose: function () { setSelId(null); } }) : null)));
   }
 
   window.OfficeApp = { sample: SAMPLE, makeSample: makeSample };
