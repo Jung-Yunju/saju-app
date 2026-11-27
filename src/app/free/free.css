@@ -23,6 +23,8 @@
   line-height: var(--lh-body);
   padding-bottom: var(--s-16);
   -webkit-text-size-adjust: 100%;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 .fr-root h1, .fr-root h2, .fr-root h3 { font-family: var(--f-display); font-weight: var(--fw-display); letter-spacing: var(--ls-display); line-height: var(--lh-tight); margin: 0; }
 .fr-root p { margin: 0; }

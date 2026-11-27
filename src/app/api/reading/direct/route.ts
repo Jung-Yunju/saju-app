@@ -13,6 +13,7 @@ import {
 } from "@/lib/validate"
 import { MSG, jsonError, serverError } from "../../_lib/http"
 import { READING_STATUS } from "../_lib/reading-lock"
+import { isDbSchemaV3, otherPrecisionColumns, precisionColumns } from "../_lib/schema-v3"
 
 export const maxDuration = 30
 
@@ -41,7 +42,8 @@ export async function POST(req: NextRequest) {
 
   // 만세력 계산이 실패하는 입력(예: 그 해에 없는 음력 30일·윤달)은 레코드를 만들기 전에 거른다.
   // 입력 오류(EngineInputError)만 400, 그 밖의 예외는 엔진 결함이므로 500.
-  // 윤달·분·시각 입력 방식·출생지는 DB 열이 없어 sajuInput(JSON)에만 남는다(결과 화면은 저장된 pillars를 표시).
+  // 윤달·분·시각 입력 방식·출생지는 sajuInput(JSON)에 남는다(결과 화면은 저장된 pillars를 표시).
+  // DB_SCHEMA_V3=true이면 같은 값을 Reading 열(isLeapMonth·birthMinute·timeMode·ziNight·birthplaceLongitude, other*)에도 기록한다.
   let sajuInput: SajuInputData
   try {
     sajuInput = buildSajuInputFromRequest(
@@ -52,7 +54,8 @@ export async function POST(req: NextRequest) {
     if (!(err instanceof EngineInputError)) return serverError(TAG, err)
     return jsonError(SAJU_INPUT_ERROR_MESSAGE, 400)
   }
-  // 상대방: 계산 가능 여부만 확인한다(현재 풀이 생성은 상대방 원국을 쓰지 않고, 상대방 양력·음력 구분·윤달·분·출생지를 둘 DB 열이 없다)
+  // 상대방: 계산 가능 여부만 확인한다(현재 풀이 생성은 상대방 원국을 쓰지 않는다).
+  // 상대방 양력·음력 구분·윤달·분·출생지는 스위치가 켜져 있을 때만 other* 열에 남는다.
   if (v.other) {
     try {
       buildSajuInputFromRequest({ ...v.other, calType: v.other.calType ?? v.calType })
@@ -63,6 +66,9 @@ export async function POST(req: NextRequest) {
   }
 
   const limit = getFreeReadingDailyLimit()
+  const v3Columns = isDbSchemaV3()
+    ? { ...precisionColumns({ ...v, hour: v.birthHour }), ...otherPrecisionColumns(v.other) }
+    : {}
 
   try {
     const readingId = await prisma.$transaction(async tx => {
@@ -101,6 +107,7 @@ export async function POST(req: NextRequest) {
           otherBirthDay: v.other?.day ?? null,
           otherBirthHour: v.other?.hour ?? null,
           otherGender: v.other?.gender ?? null,
+          ...v3Columns,
           status: READING_STATUS.PENDING,
           sajuInput: sajuInput as object,
           content: "",
