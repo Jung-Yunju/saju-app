@@ -90,11 +90,11 @@ export function analyzeRules(chart: CalendarResult, options?: Partial<RuleOption
   const tenGods: TenGodHit[] = []
   for (const s of slots) {
     const isDay = s.stemPos.pillar === "day"
-    if (!isDay) tenGods.push({ position: s.stemPos, char: s.pillar.stem, tenGod: tenGodOfStem(dayStem, s.pillar.stem) })
-    tenGods.push({ position: s.branchPos, char: s.pillar.branch, tenGod: tenGodOfBranch(dayStem, s.pillar.branch, o.branchYinYang) })
+    if (!isDay) tenGods.push({ position: { ...s.stemPos }, char: s.pillar.stem, tenGod: tenGodOfStem(dayStem, s.pillar.stem) })
+    tenGods.push({ position: { ...s.branchPos }, char: s.pillar.branch, tenGod: tenGodOfBranch(dayStem, s.pillar.branch, o.branchYinYang) })
     if (s.natalIndex !== null)
       for (const h of hiddenStemsOf(s.pillar.branch, o.hiddenStemTable))
-        tenGods.push({ position: s.branchPos, char: h.stem, tenGod: tenGodOfStem(dayStem, h.stem), viaHiddenStem: h.role })
+        tenGods.push({ position: { ...s.branchPos }, char: h.stem, tenGod: tenGodOfStem(dayStem, h.stem), viaHiddenStem: h.role })
   }
 
   // 12운성: 기둥마다 일간 기준(봉법) → 그 기둥 천간 기준(좌법)
@@ -102,8 +102,8 @@ export function analyzeRules(chart: CalendarResult, options?: Partial<RuleOption
   const twelveStages: TwelveStageHit[] = []
   for (const s of slots) {
     const b = s.pillar.branch
-    twelveStages.push({ basis: "dayStem", stem: dayStem, position: s.branchPos, branch: b, stage: twelveStageOf(dayStem, b, o), tableId })
-    twelveStages.push({ basis: "ownPillar", stem: s.pillar.stem, position: s.branchPos, branch: b, stage: twelveStageOf(s.pillar.stem, b, o), tableId })
+    twelveStages.push({ basis: "dayStem", stem: dayStem, position: { ...s.branchPos }, branch: b, stage: twelveStageOf(dayStem, b, o), tableId })
+    twelveStages.push({ basis: "ownPillar", stem: s.pillar.stem, position: { ...s.branchPos }, branch: b, stage: twelveStageOf(s.pillar.stem, b, o), tableId })
   }
 
   // 합충형파해
@@ -119,7 +119,7 @@ export function analyzeRules(chart: CalendarResult, options?: Partial<RuleOption
   const interactions = findInteractions(relSlots, o)
 
   // 공망
-  const targets: GongmangTarget[] = slots.map((s) => ({ position: s.branchPos, branch: s.pillar.branch }))
+  const targets: GongmangTarget[] = slots.map((s) => ({ position: { ...s.branchPos }, branch: s.pillar.branch }))
   const gongmang = analyzeGongmang(o.gongmangBasis, src.natal, targets)
 
   return {

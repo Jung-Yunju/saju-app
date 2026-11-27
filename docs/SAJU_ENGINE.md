@@ -111,11 +111,62 @@ interface RuleAnalysis {
 ## 규칙 엔진
 지장간·십성·12운성·합충형파해·공망·신살은 코드 표(table)로 구현하고 각 결과에 근거 글자 위치를 남긴다.
 
+### analyzeRules [계산 명세 — rules@0.2.0, `src/engine/rules/`]
+- 근거: `docs/knowledge/rules-spec.md`(표·공식), `docs/knowledge/schools.md`(학파 옵션), D-012(해석 옵션은 `RuleOptions`로 분리).
+- 공개 함수: `analyzeRules(chart: CalendarResult, options?: Partial<RuleOptions>, extra?: { luck?: Pillar[]; year?: Pillar }): RuleAnalysis` (`src/engine/index.ts`에서 export). 순수 함수 — AI·DB·네트워크·현재 시각 없음. `chart.pillars`와 `chart.engineVersion`만 읽고 입력을 바꾸지 않는다.
+- 타입: `src/engine/rules/types.ts`(공통 `types.ts`는 그대로). §2 초안의 `strength`·`structureCandidates`·`usefulGodCandidates`는 P3-06 범위라 **넣지 않았다**.
+- 결과에 남기는 것: `engineVersion`("rules@0.2.0"), `calendarEngineVersion`, 기본값을 채운 `options` 전체, `omitted`(시주 모름이면 `["hour"]`), `source`(분석한 원국·대운·세운 글자), 판정마다 근거 위치 `Position { pillar: year|month|day|hour|daeun|seun, part: stem|branch, luckIndex? }`.
+- 파일: `tables.ts`(표), `basics.ts`(오행·음양·십성), `hidden.ts`(지장간), `twelveStages.ts`, `interactions.ts`, `gongmang.ts`, `elements.ts`, `options.ts`, `version.ts`, `index.ts`.
+
+**옵션(`RuleOptions`) — 기본값은 연구소장 제안이며 전부 잠정(대표·연구소장 확정 대기)**
+
+| 키 | 값 | 기본 | 비고 |
+|---|---|---|---|
+| hiddenStemTable | kr-monthly-30 / cn-lunarjs / main-only | kr-monthly-30 | 날수 L0 |
+| branchYinYang | byMainQi / byOrder | byMainQi | 子午巳亥만 다름. 십성·음양 개수에 씀 |
+| twelveStagesYin | reverse / sameAsYang | reverse | |
+| earthStages | withFire / withWater | withFire | |
+| strengthModel | weighted-v1 | weighted-v1 | 0.2.0에서는 오행 가중 분포에만 씀 |
+| gongmangBasis | day / year / both | day | schools.md §10은 "both 저장" 언급 — 확인 필요 |
+| halfCombine | withKingOnly / allPairs | withKingOnly | |
+| partialPunishment | boolean | true | 두 글자 삼형을 `partial: true`로 기록 |
+| wuWeiCombine | fire / earth / none | none | 午未 육합 결과 오행(none = null) |
+| partialDirectional | boolean | false | **엔진 개발자 추가 키**(rules-spec §7 "두 글자 방합 ⚑, 기본 세 글자만") |
+
+모르는 키, 지원하지 않는 값, 알 수 없는 간지 글자, 음양이 맞지 않는 간지(甲丑), 배열이 아닌 `extra.luck`은 `EngineInputError`를 던진다. 조용히 기본값으로 바꾸지 않는다. 값이 `undefined`인 키는 생략으로 본다.
+
+**계산 규칙**
+1. **지장간**(`hiddenStems`): 원국 지지마다 여기 → 중기 → 정기 순서로 `{stem, role, days, weight}`를 둔다. kr-monthly-30은 `weight = days/30`이다. cn-lunarjs는 날수가 없어 임시 비율을 쓴다(세 글자 0.6/0.3/0.1, 두 글자 0.7/0.3, 연구소장 설계값). main-only는 1이다.
+   - cn-lunarjs의 역할(여기·중기)은 라이브러리에 없다. 그래서 같은 글자가 kr-monthly-30에서 맡는 역할을 붙였다(예: 丑[己,癸,辛] → 癸 여기, 辛 중기).
+2. **십성**(`tenGods`): `rel = (대상오행 − 일간오행 + 5) % 5`이고, 음양이 같으면 비견·식신·편재·편관·편인, 다르면 겁재·상관·정재·정관·정인이다.
+   - 대상: 원국 천간(일간 제외 — `dayMaster`에 따로 둔다), 지지(branchYinYang 기준), 원국 지장간 전부(`viaHiddenStem`=역할), 대운·세운의 천간·지지(지장간 제외).
+   - 순서: 기둥(연→월→일→시→대운→세운)마다 천간 → 지지 → 지장간.
+3. **12운성**(`twelveStages`): 기둥마다 일간 기준(`basis: "dayStem"`, 봉법)과 그 기둥 천간 기준(`"ownPillar"`, 좌법) 두 건을 둔다(일주는 두 건이 같다). `tableId = "twelve-stages:{twelveStagesYin}/{earthStages}"`.
+   - 행 고르기: 戊·己는 earthStages에 따라 丙·丁 또는 壬·癸 행을 빌린다. 그다음 sameAsYang이면 음간이 같은 오행 양간의 행을 쓴다(己+sameAsYang+withWater = 壬 행).
+   - 단계: 순행은 `(b − 장생)%12`, 역행은 `(장생 − b)%12`이다.
+   - 록 표(`LU`)는 옵션과 무관하게 고정한다(신살용).
+4. **관계**(`interactions`): rules-spec §6·§7 표에 있는 관계만 기록한다. 같은 쌍이 여러 관계에 해당하면 모두 기록한다(寅申 충·형, 寅亥 합·파, 寅巳 형·해, 巳申 합·형·파).
+   - 거리와 상관없이 모든 쌍을 기록하고 `adjacent`를 둔다(붙은 기둥 또는 연속 세 기둥이면 true, 운이 끼면 false).
+   - 합 계열은 `resultElement`를 둔다. 천간합·육합의 `transformed`는 항상 null이다(합화 판정 안 함).
+   - **포섭 규칙(엔진 개발자 정의 — rules-spec에 없음)**: 세 글자 관계(삼합·방합·삼형)가 성립하면, 그 안의 두 글자 기록(반합·두 글자 방합·두 글자 삼형)은 나머지 한 글자가 원국 글자일 때만 생략한다. 원국 두 글자 + 운 한 글자로 된 삼합은 원국 반합 기록을 지우지 않는다.
+   - 운: `extra.luck`의 대운은 각각 원국·세운과만 비교한다(대운끼리는 비교하지 않음). 운이 낀 관계는 `scope: "luck"`이다.
+   - 정렬: 관계 종류(천간합, 천간충, 육합, 삼합, 반합, 방합, 충, 형, 파, 해) → 근거 위치 → ruleId.
+5. **공망**(`gongmang`): `xunKongOf`(rules@0.1.0)를 기준 기둥(일주·연주)에 적용한다. `hits`는 기준 기둥을 뺀 원국 지지와 대운·세운 지지 중 공망 두 지지에 든 위치다. `both`면 [일주 기준, 연주 기준] 순서다. 해공은 판정하지 않는다.
+6. **오행 분포**(`elements`):
+   - `counts`: 천간 + 지지 본래 오행(= 정기 오행) 글자 수. 일간을 포함하고, 시주 모름이면 6글자다.
+   - `weighted`: 천간 각 1.0에, 지지는 위치 가중(월지 3.0 · 일지 1.5 · 연지·시지 1.0, schools.md §8 weighted-v1)에 지장간 weight를 곱해 지장간 오행별로 나눠 더한다. 소수 6자리로 반올림한다. 일간도 1.0으로 넣는다(엔진 개발자 판단). 합충 보정은 하지 않는다.
+   - `yinYang`: 천간 + 지지(branchYinYang 기준) 음양 개수.
+- 버전: `RULES_ENGINE_VERSION`은 `rules/version.ts`로 옮겼다(`rules/gongmang.ts`는 re-export). 0.2.0으로 올리면서 `src/lib/saju-input.ts`의 `engine_version` 문자열도 `…+rules@0.2.0`이 된다(공망 값 자체는 같다).
+- 테스트: `tests/engine/unit/rules-tables.test.ts`, `rules-tengods-stages.test.ts`, `rules-interactions.test.ts`, `rules-analyze.test.ts`.
+  - 12운성은 120칸 전수 + 변형 3종 + 록 표 검산.
+  - 십성은 100칸 + 지지, 관계는 천간 100칸·지지 144칸 전수, 공망 hits는 60갑자 전수다.
+  - 손계산 사례는 3건이다. lunar-javascript 대조는 SHI_SHEN·ZHI_HIDE_GAN·12운성 식·HE/CHONG 표로 한다.
+
 ### 공망 [계산 명세 — rules@0.1.0, `src/engine/rules/gongmang.ts`]
 - 근거: `docs/knowledge/rules-spec.md` §8.
 - 60갑자 번호 i(甲子=0 … 癸亥=59)의 순두 h = i − (i mod 10), 공망 지지 번호 = (h+10) mod 12, (h+11) mod 12. rules-spec의 식 x = (b − s + 12) mod 12, {(x+10)%12, (x+11)%12}와 같다(h mod 12 = x).
 - `xunKongOf(pillar)` → `{ xunHead, empty: [Branch, Branch] }`, `gongmangString(pillar)` → "寅卯"처럼 두 글자.
-- 아직 구현하지 않은 것: rules-spec §8의 `gongmangBasis` 옵션과 `hits`(원국·대운·세운 지지 중 공망에 든 위치) — `RuleAnalysis` 작업 때 구현한다.
+- `gongmangBasis` 옵션과 `hits`는 rules@0.2.0 `analyzeRules`에서 구현했다(위 5번).
 - 테스트: `tests/engine/unit/gongmang.test.ts`(rules-spec 표·식, lunar-javascript `getXunKong` 60갑자 전수 대조).
 
 ### AI 입력·결과 화면 연결 [계산 명세 — `src/lib/saju-input.ts`]

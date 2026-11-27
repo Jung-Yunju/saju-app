@@ -71,7 +71,7 @@ function make(
 ): Draft {
   return {
     type,
-    members: slots.map((s) => (part === "stem" ? s.stemPos : s.branchPos)),
+    members: slots.map((s) => ({ ...(part === "stem" ? s.stemPos : s.branchPos) })),
     chars: slots.map((s) => (part === "stem" ? s.stem : s.branch)),
     ...extra,
     adjacent: adjacentOf(slots),
