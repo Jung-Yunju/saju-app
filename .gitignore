@@ -40,3 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .neon
+
+# 가상 사무실 수집 기록 (커밋 금지)
+/.claude/office/
