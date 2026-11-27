@@ -204,27 +204,32 @@ export async function POST(req: Request) {
     // 금액은 서버에 저장된 주문 금액이 기준. 결제창이 돌려준 금액이 다르면 승인하지 않는다.
     if (amount !== order.amount) return jsonError("결제 금액이 일치하지 않습니다.", 400)
 
-    /** 이 주문에 쓸 생년월일. Response면 그대로 응답하고 끝낸다(오류 또는 이미 있는 풀이 id) */
-    const resolveBirth = async (): Promise<PreparedBirth | Response> => {
-      if (!v3) return clientPrepared!
-      const stored = (order as { birthInfo?: unknown }).birthInfo
-      if (stored !== null && stored !== undefined) return prepareBirth(stored, "server")
-      if (order.status !== "PAID") {
-        return jsonError("주문 정보가 만료되었습니다. 처음부터 다시 결제해 주세요.", 400)
-      }
-      const existing = await prisma.reading.findUnique({ where: { orderId: order.id }, select: { id: true } })
-      if (existing) return NextResponse.json({ readingId: existing.id })
-      // 결제는 끝났는데 풀이가 없고 서버 저장값도 없는 예전 주문 → 예외적으로 클라이언트 값으로 복구
-      console.warn(`[${TAG}] 저장된 생년월일 없는 결제 완료 주문 — 클라이언트 값으로 풀이 복구`, { orderId })
-      return prepareBirth(birthInfo, "client")
-    }
-
     /** 풀이 레코드를 확보한 뒤(v3) 주문에 둔 생년월일을 지운다. 실패해도 응답에는 영향 없음 */
     const clearStoredBirth = async () => {
-      if (!v3 || (order as { birthInfo?: unknown }).birthInfo == null) return
+      if (!v3 || order.birthInfo == null) return
       await prisma.order
         .updateMany({ where: { id: order.id, status: "PAID" }, data: { birthInfo: Prisma.DbNull } })
         .catch(e => console.error(`[${TAG}] 주문 birthInfo 정리 실패`, e))
+    }
+
+    /** 이 주문에 쓸 생년월일. Response면 그대로 응답하고 끝낸다(오류 또는 이미 있는 풀이 id) */
+    const resolveBirth = async (): Promise<PreparedBirth | Response> => {
+      if (!v3) return clientPrepared!
+      if (order.status === "PAID") {
+        // 이미 풀이가 있으면 생년월일을 다시 볼 필요가 없다
+        const existing = await prisma.reading.findUnique({ where: { orderId: order.id }, select: { id: true } })
+        if (existing) {
+          await clearStoredBirth()
+          return NextResponse.json({ readingId: existing.id })
+        }
+      }
+      if (order.birthInfo != null) return prepareBirth(order.birthInfo, "server")
+      if (order.status !== "PAID") {
+        return jsonError("주문 정보가 만료되었습니다. 처음부터 다시 결제해 주세요.", 400)
+      }
+      // 결제는 끝났는데 풀이가 없고 서버 저장값도 없는 예전 주문 → 예외적으로 클라이언트 값으로 복구
+      console.warn(`[${TAG}] 저장된 생년월일 없는 결제 완료 주문 — 클라이언트 값으로 풀이 복구`, { orderId })
+      return prepareBirth(birthInfo, "client")
     }
 
     if (order.status === "PAID") {
