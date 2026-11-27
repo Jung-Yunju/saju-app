@@ -16,10 +16,14 @@ import type { Interaction, InteractionType, Position, RuleAnalysis } from "../ru
 import type { PersonalContext } from "../personalize/types"
 import { GUARDS } from "../personalize/context"
 import { koreanDateOf, lifeStageOfAge, locateDaeun, manAge } from "../personalize/life-stage"
+import { linkFactToChart, type GroupCounts, type TenGodGroup as LivedGroup } from "../personalize/lived-link"
 import { yearPillarOfGanzhiYear } from "../calendar/pillars"
-import type { FactSheet } from "./types"
+import { buildGaeunBasis, luckGlyphsOf, pickGaeun, seunShaking, surfaceGroupCounts, type GaeunOptions } from "./gaeun"
+import type { FactSheet, GaeunGroup, LuckGlyphFacts } from "./types"
 
-export const FACTS_VERSION = "facts@0.2.0" // 0.2.0: P10 용신 관점 머리말 고정·특수격 관점 제외
+// 0.2.0: P10 용신 관점 머리말 고정·특수격 관점 제외
+// 0.3.0: D-023 개운 — chart.gaeunBasis·chart.gaeun, luck.glyphs·luck.seunFlags, personal.userFacts[].link (추가 필드만)
+export const FACTS_VERSION = "facts@0.3.0"
 
 /** 호칭 기본값 */
 export const DEFAULT_ADDRESS_AS = "손주"
@@ -34,7 +38,13 @@ export interface BuildFactSheetInput {
   asOf: Date
   /** 호칭(예: "손주", "우리 강아지"). 실명을 넣지 않는다. 없으면 "손주" */
   addressAs?: string
+  /** 개운 선택 옵션(gaeun.md §3.2). 기본: 억부·조후·통관, 대운 통째, 참고 등급 숨김 */
+  gaeunOptions?: GaeunOptions
 }
+
+/** 규칙 엔진 묶음 이름 → 개인화 lived-link 묶음 이름(bigyeop↔bigeop, gwansal↔gwanseong — 같은 뜻, 철자만 다름) */
+const TO_LIVED: Readonly<Record<GaeunGroup, LivedGroup>> = { bigyeop: "bigeop", siksang: "siksang", jaeseong: "jaeseong", gwansal: "gwanseong", inseong: "inseong" }
+const FROM_LIVED: Readonly<Record<LivedGroup, GaeunGroup>> = { bigeop: "bigyeop", siksang: "siksang", jaeseong: "jaeseong", gwanseong: "gwansal", inseong: "inseong" }
 
 // ─────────────────────────────────────────── 표기
 
@@ -304,6 +314,43 @@ export function buildFactSheet(input: BuildFactSheetInput): FactSheet {
   const climate = readClimate(rules)
 
   const thisYear = today.year
+  const thisYearGanzhi = ganzhi(yearPillarOfGanzhiYear(thisYear))
+
+  // ── 개운(D-023 ②): 근거값 → 운 슬롯(지금 대운·올해 세운, 규칙 엔진에 넘긴 운만) → 범주 선택(gaeun.ts)
+  const gaeunFull = buildGaeunBasis(rules)
+  const glyphs: LuckGlyphFacts[] = []
+  if (currentIndex !== null) {
+    const li = rules.source.luck.findIndex((_, i) => daeunIndexOf(i) === currentIndex)
+    const g = li >= 0 ? luckGlyphsOf(rules, { slot: "daeun", luckIndex: li, daeunIndex: currentIndex }) : null
+    if (g) glyphs.push(g)
+  }
+  // 세운은 규칙 엔진에 넘긴 간지가 사실표의 "올해"와 같을 때만 쓴다(다르면 다른 해의 관계를 올해로 적게 된다)
+  const seunGlyphs = rules.source.seun && ganzhi(rules.source.seun) === thisYearGanzhi ? luckGlyphsOf(rules, { slot: "seun", year: thisYear }) : null
+  if (seunGlyphs) glyphs.push(seunGlyphs)
+  const turnDaeun = chart.luck.daeun.find((d) => d.startYear === thisYear)
+  let gaeunBasis: FactSheet["chart"]["gaeunBasis"]
+  let gaeun: FactSheet["chart"]["gaeun"]
+  if (gaeunFull) {
+    const b: Partial<typeof gaeunFull> = { ...gaeunFull }
+    delete b.groupPositions // 위치 목록은 pick basis에만 싣는다(사실표 크기)
+    gaeunBasis = b as FactSheet["chart"]["gaeunBasis"]
+    gaeun = pickGaeun(
+      {
+        basis: gaeunFull,
+        dayElement: rules.dayMaster.element,
+        hourKnown: chart.hourKnown,
+        luck: glyphs,
+        turn: turnDaeun ? { daeunIndex: turnDaeun.index, startYear: turnDaeun.startYear, ganzhi: ganzhi(turnDaeun.pillar) } : null,
+      },
+      input.gaeunOptions,
+    )
+  }
+
+  // ── 사용자 사실 ↔ 글자 연결(lived-link): 드러난 글자 묶음 개수로만 분류한다(사실을 바꾸거나 덧붙이지 않음)
+  const surface = gaeunFull?.groupCounts ?? surfaceGroupCounts(rules)
+  const livedCounts: GroupCounts = {}
+  for (const k of Object.keys(surface) as GaeunGroup[]) livedCounts[TO_LIVED[k]] = surface[k]
+
   const versions = [chart.engineVersion, rules.engineVersion, personal?.version, FACTS_VERSION].filter(Boolean).join("+")
 
   const warnings = [
@@ -335,6 +382,8 @@ export function buildFactSheet(input: BuildFactSheetInput): FactSheet {
       ...(strength ? { strength } : {}),
       ...(usefulGod ? { usefulGod } : {}),
       ...(climate ? { climate } : {}),
+      ...(gaeunBasis ? { gaeunBasis } : {}),
+      ...(gaeun ? { gaeun } : {}),
     },
     luck: {
       direction: chart.luck.direction,
@@ -345,12 +394,17 @@ export function buildFactSheet(input: BuildFactSheetInput): FactSheet {
         ganzhi: ganzhi(d.pillar),
         current: currentDaeun ? d.index === currentDaeun.index : false,
       })),
-      thisYear: { year: thisYear, ganzhi: ganzhi(yearPillarOfGanzhiYear(thisYear)) },
+      thisYear: { year: thisYear, ganzhi: thisYearGanzhi },
+      ...(glyphs.length ? { glyphs } : {}),
+      ...(seunGlyphs ? { seunFlags: { shaking: seunShaking(seunGlyphs) } } : {}),
     },
     personal: {
       userFacts: (personal?.userFacts ?? []).map((f) => {
         const period = fmtPeriod(f.period)
-        return { topic: f.topic, value: f.label, ...(period ? { period } : {}) }
+        // link는 match·mismatch일 때만 붙인다. 없으면 unlinked(사주로 설명하지 않는 사실)
+        const l = linkFactToChart(f, livedCounts)
+        const link = l.kind !== "unlinked" && l.group ? { link: { kind: l.kind, group: FROM_LIVED[l.group] } } : {}
+        return { topic: f.topic, value: f.label, ...(period ? { period } : {}), ...link }
       }),
       noGuessYears: (personal?.noGuessYears ?? []).map((y) => y.year),
       guards: [...(personal?.guards ?? GUARDS)],

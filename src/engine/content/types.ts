@@ -47,10 +47,10 @@ export interface FactSheet {
   personal: {
     /**
      * 사용자가 직접 말한 사실 — 배경으로만, 맞히기 금지.
-     * link(facts@0.3.0): 사주 글자와의 연결(personalize/lived-link.ts). match = 글자에도 있음, mismatch = 글자엔 약한데 살아 냄,
-     * unlinked = 사주로 설명하지 않음. group은 십성 묶음 코드
+     * link(facts@0.3.0): 사주 글자와의 연결(personalize/lived-link.ts, 드러난 글자 묶음 개수 기준). match = 글자에도 있음,
+     * mismatch = 글자엔 약한데 살아 냄. **link가 없으면 unlinked** = 사주로 설명하지 않고 배경으로만. group은 십성 묶음 코드
      */
-    userFacts: { topic: string; value: string; period?: string; link?: { kind: "match" | "mismatch" | "unlinked"; group?: GaeunGroup } }[]
+    userFacts: { topic: string; value: string; period?: string; link?: { kind: "match" | "mismatch"; group: GaeunGroup } }[]
     /** 이 해들은 "맞히는" 문장을 쓰지 않는다 */
     noGuessYears: number[]
     guards: string[]
@@ -80,7 +80,7 @@ export interface GaeunBasis {
     tableSensitive: boolean
     /** 시주 모름일 때만 true/false, 시주를 알면 null */
     hourSensitive: boolean | null
-    /** 모형 A 전체 가중 합 T */
+    /** 모형 A 전체 가중 합 T(천간 1.0 단위 — views[].presentWeight와 같은 단위. 명세의 u 단위 ÷ 30) */
     total: number | null
     /** 억부 덜 대상 묶음 h(N2). 중화면 null */
     easeGroup: GaeunGroup | null
@@ -134,7 +134,7 @@ export interface GaeunPick {
   hiddenPresent?: boolean
   tone: "firm" | "soft"
   /** soft로 만든 문(門) — C2면 "태어난 시를 몰라 갈릴 수 있다" 안내 */
-  softBy?: ("C1" | "C2" | "C3" | "C5" | "L3")[]
+  softBy?: ("C1" | "C2" | "C3" | "C5")[]
   tier: "practice" | "reference"
   /** L3: 억부·조후 운 판정이 갈림 */
   split?: { eokbu: string; johuClimate: string }
