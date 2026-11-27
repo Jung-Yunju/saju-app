@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { buildRequest, emptyForm, isDstYear, PLACES, type BirthForm } from "@/app/input/build-request"
+import { buildRequest, emptyForm, isDstYear, PLACES, SIJIN_OPTIONS, ZI_CHOICES, ZI_HELP, type BirthForm } from "@/app/input/build-request"
 
 const base = (o: Partial<BirthForm> = {}): BirthForm => ({
   ...emptyForm(), birthYear: "1990", birthMonth: "5", birthDay: "10", gender: "M", ...o,
@@ -38,6 +38,12 @@ describe("buildRequest", () => {
     expect(dawn.ziNight).toBe(false)
     expect("ziNight" in ok(buildRequest("BASIC", base({ timeMode: "sijin", birthHour: "0" }), null))).toBe(false)
     expect("ziNight" in ok(buildRequest("BASIC", base({ timeMode: "sijin", birthHour: "2", ziChoice: "night" }), null))).toBe(false)
+  })
+  it("자시 문구가 서버 시진표(23:30~01:29)와 일치", () => {
+    expect(SIJIN_OPTIONS[0].t).toBe("23:30~01:29")
+    expect(ZI_CHOICES.map((c) => c.l)).toEqual(["밤 11시 30분~자정 (태어난 날 밤)", "자정~새벽 1시 30분"])
+    expect(ZI_HELP).toContain("해시")
+    expect(ZI_HELP).toContain("11시 30분")
   })
   it("sijin인데 시진 미선택은 오류", () => {
     expect("error" in buildRequest("BASIC", base({ timeMode: "sijin" }), null)).toBe(true)

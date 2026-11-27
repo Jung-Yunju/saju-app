@@ -1379,7 +1379,7 @@
         bridge.model = p.model; bridge.selected = p.selId; bridge.room = p.room;
         if (!window.Phaser) { setErr("그림 엔진(Phaser)을 불러오지 못했습니다. 아래 직원 목록은 그대로 쓸 수 있습니다."); return; }
         inst = createOffice(ref.current, bridge);
-        window.__officeInfo = { usingArt: inst.usingArt, usingMap: inst.usingMap };
+        window.__officeInfo = { usingArt: inst.usingArt, usingMap: inst.usingMap, game: inst.game };
       } catch (e) { setErr("그림을 그리는 중 문제가 생겼습니다. 아래 직원 목록은 그대로 쓸 수 있습니다."); }
       return function () { if (inst) { bridge.scene = null; inst.game.destroy(true); } };
     }, []);

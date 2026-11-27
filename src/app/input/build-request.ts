@@ -57,6 +57,14 @@ export function isDstYear(yearStr: string): boolean {
   return Number.isFinite(y) && DST_RANGES.some(([a, b]) => y >= a && y <= b)
 }
 
+export const ZI_CHOICES = [
+  { v: "night", l: "밤 11시 30분~자정 (태어난 날 밤)" },
+  { v: "dawn", l: "자정~새벽 1시 30분" },
+] as const
+
+export const ZI_HELP =
+  "자시는 밤 11시 30분부터 새벽 1시 29분까지라, 자정 전과 후는 사주의 날짜가 달라질 수 있어요. 밤 11시~11시 29분에 태어났다면 자시가 아니라 해시(亥時)를 골라 주세요. 모르면 고르지 않아도 됩니다."
+
 export const SIJIN_OPTIONS = [
   { v: "0", l: "자시(子時)", t: "23:30~01:29" },
   { v: "2", l: "축시(丑時)", t: "01:30~03:29" },

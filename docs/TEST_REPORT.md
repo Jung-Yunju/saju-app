@@ -152,3 +152,37 @@
 
 판정: **조건부 통과** — 계산값과 근거 위치는 명세·독립 오라클과 전부 일치한다. 조건: ① 포섭 규칙과 거리 정보 손실 문제를 연구소장이 결정, ② 오행 가중의 일간 포함 여부를 schools.md §8과 맞춤, ③ `partialDirectional`과 cn-lunarjs 역할을 명세 문서에 반영. 결정에 따라 엔진을 바꾸면 같은 명령으로 다시 검증한다.
 - 미검증: 지장간 날수·12운성 표 자체가 고전과 맞는지(명세가 L0이며 원문 대조는 연구소장 범위), 실제 AI 서술 검증기(P4-04)와의 연동.
+
+## 2026-11-27 · 풀이 결과 자동 검증기 verify@0.1.0 (P4-04)
+- 작성: 품질검증 담당자. 구현 `src/engine/verify/`(순수 함수 `verifyReading(reading, ctx) → VerifyReport`, AI·DB·네트워크·파일·현재 시각 사용 없음), 테스트 `tests/verify/`.
+- 기준: `src/lib/generate-reading-v2.ts`의 `FullReading`·`ClaimsResult` 형식과 SYSTEM_PROMPT(원칙 2·3·5·8·9·10·11, "다루지 않는 것"), 규칙 엔진 rules@0.2.0(`analyzeRules`), `SajuInputData`. `docs/knowledge/voice-guide.md`는 작성 전이라 반영하지 못함.
+- 판정 규칙: block이 하나라도 있으면 `pass=false`(고객에게 보내지 않음). warn은 사람 확인, info는 기록용. `score`는 참고값.
+- 실행: 14:33 `npx tsc --noEmit` 오류 0, 전체 `npx vitest run` 52개 파일 933개 통과 · todo 1. 어댑터 추가 후 다시 실행 → `npx vitest run tests/verify` 13개 파일 210개 통과·실패 0, `npx eslint src/engine/verify tests/verify` 오류 0. 이때 `npx tsc --noEmit`은 오류 4건이었는데 전부 다른 직원이 작업 중인 `src/app/input/birth-card.tsx`(`ZI_CHOICES`·`ZI_HELP` 정의 없음)에서 났고, 검증기·테스트 파일에서는 0건.
+
+| # | 코드 | 심각도 | 오탐 방지 / 미탐 방지 요점 | 판정 |
+|---|---|---|---|---|
+| 1 | BASIS_NOT_IN_CHART · YEAR_GANZHI_MISMATCH | block(운·지장간 글자를 밝히지 않으면 warn) | 허용 = 원국 + sajuInput 대운 전부 + 올해 + 문장·항목에 적힌 해의 세운 + 공망 + 지장간. 붙은 천간+지지는 60갑자 기둥으로 대조(없는 기둥 지어내기 차단). 일반 한자어(子女·未來·午前·自己 등)·『』 서명·역사 사건(壬辰倭亂 등) 제외, 한글 간지는 "년·일주·대운…"이 붙을 때만("갑자기", "정해 일주일" 오검출 방지). "2015년 丙申"처럼 연도에 붙인 간지가 그해 세운과 다르면 차단. years·daeun_overview·life_graph 칸은 계산값과 직접 대조 | 통과 |
+| 2 | TENGOD_MISMATCH | block / 불확실 info | "酉는 정관", "정관인 午", "유금은 정관", 기둥 "丁丑은 편재" 꼴만 잡는다. ctx.rules(없으면 같은 규칙 함수)와 대조. 지장간·지지 음양 학파 차이로만 맞으면 info, 부정문("정관이 아니라") 제외, "상관없다" 제외 | 통과 |
+| 3 | FORBIDDEN_TOPIC | block(사고·중병·이혼·파산은 시기·단정이 없으면 warn, 부적·개명 권유 warn) | 사망·수명, 전생, 병명, 코인·복권·종목, 시험 합격 단정, 타인 속마음. "말하지 않는다·알 수 없다" 같은 안내문, "병원에 가라", "죽을 만큼", "사고방식", "운동 종목" 통과 | 통과 |
+| 4 | FAKE_CLASSIC_QUOTE | block / 서명만 warn | 서명(5대 고전·『』)+따옴표 인용·"이르기를/曰"·한문 구절은 verified 원문이 아니면 차단(현재 verified 0건 → 전부 차단). 짧은 낱말 강조('드세다')는 인용으로 보지 않음. 지식베이스에 verified가 생기면 테스트가 깨지게 고정 | 통과 |
+| 5 | BARNUM | warn | 문장에 근거 표지(간지·십성·기둥 이름·대운·연도·오행·합충·신살)가 없고 상투 사전에 걸리면 문장별 warn, 장별 근거 없는 문장 비율 > 50%면 문장 목록과 함께 warn. "충분히"의 '충'은 표지로 세지 않음 | 통과 |
+| 6 | MORAL_JUDGEMENT · GENDER_STEREOTYPE | block / 흉한 해·고집 낙인 warn | 옛 판정을 걷어 내는 문장("…가 아니라", "옛 책은 …", "그 시대 잣대")은 info로 낮춤 | 통과 |
+| 7 | SCIENTIFIC_CLAIM | block | "과학적으로 입증", "적중률", "100%", "반드시 이루어진다". 바로 부정하는 문장("검증된 예측이 아니다") 통과 | 통과 |
+| 8 | KNOWN_FACT_AS_PREDICTION | warn | known_facts·userFacts의 연도+핵심어(동의어 묶음)가 같은 문장(또는 claims의 when)에 있으면. 질문문 제외, 연도 없는 사실은 과거형 단정일 때만 | 통과 |
+| 9 | UNSAFE_HTML | block(위험 태그·속성·스크립트 문자열) / 그 밖 태그·본문 밖 `<b>` warn | 화면이 body만 `sanitizeBoldHtml`로 넣는다는 전제를 consistency 테스트로 고정 | 통과 |
+| 10 | CRISIS_RESPONSE | block(상담 안내 없음) / warn(안내는 있으나 풀이를 멈추지 않음) | ctx.userText가 있을 때만. 보고서에는 위기 낱말만 남기고 사용자 글 전문을 싣지 않음 | 통과 |
+
+- 견본: `tests/verify/fixtures.ts` — 실제 `buildSajuInput` 출력(1990-05-15 14시 여, 庚午 辛巳 庚辰 癸未)과 저장 형식 FullReading 2개. 깨끗한 견본 발견 0건(chart·rules를 넘겨도 0건), 다른 사람 원국으로 검사하면 차단됨을 확인. 문제투성이 견본은 12개 코드 모두 검출.
+- 결정론·입력 불변·형식 오류(풀이가 객체 아님, sajuInput 간지 깨짐 → MALFORMED_READING block) 확인.
+- 콘텐츠 엔진 연결: `src/engine/verify/adapters.ts`의 `contextFromFactSheet(FactSheet)`(AI에 넘긴 사실표를 그대로 검증 기준으로 씀)와 `verifyChapter(chapter, ctx)`(장 단위 검사)를 만들고 `tests/verify/adapters.test.ts` 4건으로 확인함.
+
+### 옛 감사 스크립트 교체
+- `scripts/qa/legacy-engine-audit.sh`는 saju-input.ts가 `@/engine` 별칭을 쓰게 된 뒤 tsc 단독 컴파일이 깨진다. 삭제하지 않고 맨 위에 폐기 안내를 넣었다(기본 실행 시 안내 출력 후 종료 코드 1, `LEGACY_AUDIT_FORCE=1`이면 옛 본문 실행).
+- 대체: `npx vitest run tests/verify/consistency.test.ts` — 결정론적 표본 400건 이상에서 computeChart ↔ buildSajuInput(원국·대운·시각 모름) ↔ resolveDisplaySaju(저장값·재계산 두 경로) ↔ analyzeRules.source ↔ 검증기 글자 집합이 모두 같음, 표본 100건에서 검증기가 원국·대운·올해 인용은 통과·없는 기둥은 차단, `src/app`이 옛 `@/lib/saju`·`@/lib/generate-reading`(v1)을 가져오지 않음, 결과 화면이 `resolveDisplaySaju`를 씀. 실행 결과 6개 테스트 통과.
+- 총괄실장 조치 필요: CLAUDE.md §6 "검사 명령"의 엔진 감사 명령을 위 대체 명령으로 바꿀 것(이 담당자는 CLAUDE.md 쓰기 권한 없음).
+
+### 한계 (미검증 포함)
+- 정규식 사전 방식이라 사전에 없는 돌려 말하기(예: "그해 흰 옷 입을 일")는 못 잡는다. 예문 밖 실제 AI 출력 대량 표본으로 오탐·미탐률을 잰 적은 없다 → **미검증**(P4-03 콘텐츠 엔진 출력이 생기면 측정).
+- 대운 8개를 모두 허용하면 천간·지지 한 글자 단위 대조는 대부분 통과한다(이 견본은 壬만 어디에도 없음). 그래서 원국에 없고 운에만 있는 글자는 문장·문단·장 제목에 운 표지가 없으면 warn으로 둔다. 기둥(두 글자) 단위 대조가 주된 방어선이다.
+- 십성 대조는 글자와 십성이 바로 붙은 꼴만 본다. 신살·12운성·합충 판정의 사실 여부는 아직 대조하지 않는다(규칙 엔진 interactions와 연결 예정).
+- 위기 표현은 사용자 고민 글이 들어오는 경로가 아직 없어 ctx.userText로만 시험했다.

@@ -1,6 +1,6 @@
 "use client"
 
-import { type BirthForm, PLACES, SIJIN_OPTIONS, isDstYear, type TimeMode } from "./build-request"
+import { type BirthForm, PLACES, SIJIN_OPTIONS, ZI_CHOICES, ZI_HELP, isDstYear, type TimeMode } from "./build-request"
 
 type SetField = <K extends keyof BirthForm>(key: K, val: BirthForm[K]) => void
 
@@ -108,10 +108,7 @@ export function BirthCard({
               <div className="mt-3">
                 <p className="text-xs font-semibold text-[#1b2a3a]">자시 중 언제 태어났나요? <span className="text-[#b9b2a6] font-normal">(선택)</span></p>
                 <div className="grid grid-cols-1 gap-1.5 mt-2">
-                  {[
-                    { v: "night", l: "밤 11시~12시 (태어난 날 밤)" },
-                    { v: "dawn", l: "자정~새벽 1시" },
-                  ].map(({ v, l }) => (
+                  {ZI_CHOICES.map(({ v, l }) => (
                     <button key={v} type="button"
                       onClick={() => setField("ziChoice", form.ziChoice === v ? "" : (v as "night" | "dawn"))}
                       className={`py-2 rounded-lg text-[11px] font-medium border transition-colors ${form.ziChoice === v ? "bg-[#1b2a3a] text-white border-[#1b2a3a]" : "bg-white text-[#6b7280] border-[#e4ddd3] hover:border-[#1b2a3a]"}`}>
@@ -119,7 +116,7 @@ export function BirthCard({
                     </button>
                   ))}
                 </div>
-                <Help>자시는 밤 11시부터 새벽 1시까지라, 밤 11시대와 자정 이후는 사주의 날짜가 달라질 수 있어요. 모르면 고르지 않아도 됩니다.</Help>
+                <Help>{ZI_HELP}</Help>
               </div>
             )}
           </>
