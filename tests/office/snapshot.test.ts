@@ -1,7 +1,7 @@
 // 가상 사무실 상태 판정 테스트 (O-02) — 계약서 4절 규칙의 경계, 오래된 기록, 토큰, 크기 상한, 예시 데이터
 import { describe, expect, it } from "vitest"
 import { spawnSync } from "node:child_process"
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import {
@@ -293,7 +293,9 @@ describe("명령행 실행", () => {
       expect(r.status).toBe(0)
       const doc = JSON.parse(readFileSync(out, "utf8"))
       expect(doc.generatedAt).toBe("2026-11-27T12:30:00.000Z")
-      expect(doc.sample).toBeUndefined()
+      // L7: --sample 없이 넣어도 예시 이벤트(sample:true)가 있으면 예시 문서
+      expect(doc.sample).toBe(true)
+      expect(statSync(out).mode & 0o777).toBe(0o600)
       const bad = spawnSync(process.execPath, [join(ROOT, "scripts/office/snapshot.mjs"), "--now", "어제", "--out", out], { encoding: "utf8" })
       expect(bad.status).not.toBe(0)
     } finally { rmSync(d, { recursive: true, force: true }) }

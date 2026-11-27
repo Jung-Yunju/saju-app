@@ -1681,6 +1681,62 @@
       ]
     },
     {
+      "depends": [
+        "U-02"
+      ],
+      "result": "",
+      "verification": {
+        "result": "미검증",
+        "note": ""
+      },
+      "issues": "",
+      "approval": {
+        "needed": true,
+        "item": "무료 버전 먼저 공개 여부"
+      },
+      "docs": [],
+      "code": [
+        "src/app/free/",
+        "src/app/api/free/",
+        "content/free/"
+      ],
+      "id": "P5-04",
+      "phase": "5",
+      "title": "무료 결과 화면 + 공유 카드 (AI·결제·가입 없이)",
+      "owner": "프론트엔드 개발자",
+      "purpose": "\"아무도 안 보면 쓰레기\" — 비용 0원 무료 체험으로 사람을 모으고 공유로 퍼지게 한다.",
+      "status": "개발 중",
+      "subtasks": [
+        {
+          "t": "할미 무료 문안(일간 10·일주 60·오행·올해·미리보기·공유 카드)",
+          "done": false
+        },
+        {
+          "t": "/free 화면·무료 API(DB·AI 미사용)",
+          "done": false
+        },
+        {
+          "t": "공유 카드 이미지·OG(개인정보 없음)",
+          "done": false
+        },
+        {
+          "t": "독립 검증",
+          "done": false
+        },
+        {
+          "t": "공개(대표 승인)",
+          "done": false
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-11-27",
+          "status": "개발 중",
+          "note": "대표 지시(\"아무도 안 보면 쓰레기\") — 사람이 보는 것 우선"
+        }
+      ]
+    },
+    {
       "id": "P5-02",
       "phase": "5",
       "title": "사용자 화면 개발",

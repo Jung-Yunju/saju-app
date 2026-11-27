@@ -119,6 +119,13 @@ type Loose = Record<string, unknown>
 const isObj = (v: unknown): v is Loose => !!v && typeof v === "object" && !Array.isArray(v)
 const str = (v: unknown): string | undefined => (typeof v === "string" && v ? v : undefined)
 
+/** 신강약 모형 이름(strength-structure-spec §1) */
+const STRENGTH_MODEL_KO: Record<string, string> = {
+  weighted: "가중 점수(weighted)",
+  threeFactor: "득령·득지·득세(threeFactor)",
+  rooted: "뿌리 반영 점수(rooted)",
+}
+
 /**
  * strength: 명세(strength-structure-spec §6) StrengthResult { primary, models[{model, verdict}] } 또는
  * 초안(SAJU_ENGINE §2) { verdict } 둘 다 읽는다. 모양이 다르면 생략(undefined).
@@ -128,9 +135,13 @@ export function readStrength(rules: RuleAnalysis): FactSheet["chart"]["strength"
   if (!isObj(s)) return undefined
   const models = Array.isArray(s.models) ? s.models.filter(isObj) : []
   const views = models
-    .map((m) => ({ method: str(m.model) ?? str(m.method), verdict: str(m.verdict) }))
+    .map((m) => {
+      const code = str(m.model) ?? str(m.method)
+      return { method: code ? (STRENGTH_MODEL_KO[code] ?? code) : undefined, verdict: str(m.verdict) }
+    })
     .filter((v): v is { method: string; verdict: string } => !!v.method && !!v.verdict)
-  const primary = str(s.primary)
+  const primaryCode = str(s.primary)
+  const primary = primaryCode ? (STRENGTH_MODEL_KO[primaryCode] ?? primaryCode) : undefined
   const verdict = str(s.verdict) ?? (primary ? views.find((v) => v.method === primary)?.verdict : undefined) ?? views[0]?.verdict
   if (!verdict) return undefined
   return views.length ? { verdict, views } : { verdict }
