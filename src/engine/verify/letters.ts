@@ -160,7 +160,7 @@ export const GENERAL_HANJA_WORDS: readonly string[] = [
 /** 이 말 앞의 간지는 역사 사건 이름(壬辰倭亂 등)으로 보고 세지 않는다 */
 const HISTORY_SUFFIX = ["倭亂", "胡亂", "改革", "士禍", "政變", "換局", "獄事", "事變", "條約", "勒約", "戰爭", "革命", "農民", "運動", "國恥", "洋擾", "軍亂", "再亂"]
 
-const HANGUL_SUFFIX_RE = /^\s?(년생|년|일주|월주|연주|년주|시주|대운|세운)/
+const HANGUL_SUFFIX_RE = /^\s?(년생|년|일주(?!일)|월주|연주|년주|시주|대운|세운)/
 
 export interface GanzhiToken {
   kind: "pillar" | "char" | "hangulPillar"

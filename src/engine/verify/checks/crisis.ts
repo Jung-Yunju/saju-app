@@ -19,7 +19,7 @@ export function checkCrisis(userText: string | undefined, reading: ReadingLike, 
   if (!m) return []
   const counsel = segments.find((s) => COUNSEL_RE.test(s.text))
   const chapters = (reading.parts ?? []).reduce((n, p) => n + (Array.isArray(p?.chapters) ? p.chapters.length : 0), 0)
-  const loc = counsel ? counsel.location : { path: "", field: "" }
+  const loc = counsel ? counsel.location : { path: "(reading)", field: "" }
   if (!counsel)
     return [{
       severity: "block",

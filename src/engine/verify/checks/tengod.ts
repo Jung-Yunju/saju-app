@@ -5,7 +5,7 @@
 // 대조 기준: ctx.rules(analyzeRules 결과)의 tenGods에서 같은 글자의 십성. 없으면 같은 규칙 함수로 계산.
 //   - 겉 글자 기준과 맞으면 통과
 //   - 지지인데 지장간 기준이나 다른 학파(지지 음양 기준 byOrder)로만 맞으면 info(불확실)
-//   - 일간 자신을 십성으로 부르면(일간 甲을 "비견") info
+//   - 일간 글자는 비견으로만 통과(그 밖의 십성이면 block)
 //   - 어느 기준으로도 안 맞으면 block
 //   - 부정문("정관이 아니라")은 건너뛴다
 import type { Branch, Stem } from "../../types"
@@ -15,7 +15,7 @@ import { tenGodOfBranch, tenGodOfStem } from "../../rules/basics"
 import { DEFAULT_RULE_OPTIONS } from "../../rules/options"
 import type { Finding, TextSegment } from "../types"
 import { excerptAt, splitSentences } from "../text"
-import { BRANCHES, isBranchChar, isStemChar, STEMS, type ChartLetters } from "../letters"
+import { isBranchChar, isStemChar, type ChartLetters } from "../letters"
 
 const TEN_GODS: readonly TenGod[] = ["비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인"]
 /** 십성 이름·묶음 이름 → 해당 십성들 */
@@ -44,12 +44,12 @@ const HANJA = "[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌�
 
 // A: (한글(?)한자 | 한자 | 한글오행) + (조사) + (꾸밈) + 십성
 const PAT_A = new RegExp(
-  `(?:[가-힣]\\(\\s*(${HANJA})\\s*\\)|(${HANJA})(?![甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥])|(${HANGUL_ALT}))` +
+  `(?:[가-힣]\\(\\s*(${HANJA})\\s*\\)|([甲乙丙丁戊己庚辛壬癸])?(${HANJA})(?![甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥])|(${HANGUL_ALT}))` +
     `\\s*(?:[(（][^)）]{0,4}[)）])?\\s*(?:은|는|이|가|=|:|—|-|,)?\\s*(?:곧|바로|네|너의|너한테|네게|너에게|일간에게|일간 기준|일간 기준으로)?\\s*(${NAME_ALT})${NAME_END}`,
   "g",
 )
 // B: 십성 + (인|이라는|이란|,|() + 글자
-const PAT_B = new RegExp(`(${NAME_ALT})${NAME_END}\\s*(?:인|이라는|이란|으로 오는|으로 온|,|:)?\\s*[(（]?\\s*(?:[가-힣][(（])?\\s*(${HANJA})`, "g")
+const PAT_B = new RegExp(`(${NAME_ALT})${NAME_END}\\s*(?:인|이라는|이란|으로 오는|으로 온|:)?\\s*[(（]?\\s*(?:[가-힣][(（])?\\s*(${HANJA})`, "g")
 const NEGATION_AFTER = /^\s*(?:이|가)?\s*(?:아니|아냐|아님)/
 
 export interface TenGodLookup {
@@ -97,14 +97,21 @@ export function buildTenGodLookup(letters: ChartLetters, rules?: RuleAnalysis): 
   return { surface, loose, dayStem, fromRules }
 }
 
-function judge(char: string, name: string, lk: TenGodLookup): { severity: "block" | "info" | null; expected: string } {
-  const claimed = TENGOD_NAMES[name]
+function judgeOne(char: string, claimed: readonly TenGod[], lk: TenGodLookup): "block" | "info" | null {
   const surf = lk.surface(char)
-  const expected = [...surf].join("·") || "알 수 없음"
-  if (!lk.dayStem) return { severity: "info", expected }
-  if (claimed.some((t) => surf.has(t))) return { severity: null, expected }
-  if (char === lk.dayStem) return { severity: "info", expected: `일간(${expected})` }
-  if (claimed.some((t) => lk.loose(char).has(t))) return { severity: "info", expected }
+  if (!lk.dayStem) return "info"
+  if (claimed.some((t) => surf.has(t))) return null
+  if (claimed.some((t) => lk.loose(char).has(t))) return "info"
+  return "block"
+}
+
+/** chars가 둘이면 기둥(丙午 등) — 천간·지지 어느 쪽이든 맞으면 통과 */
+function judge(chars: string[], name: string, lk: TenGodLookup): { severity: "block" | "info" | null; expected: string } {
+  const claimed = TENGOD_NAMES[name]
+  const results = chars.map((c) => judgeOne(c, claimed, lk))
+  const expected = chars.map((c) => `${c}=${[...lk.surface(c)].join("·") || "알 수 없음"}${c === lk.dayStem ? "(일간)" : ""}`).join(", ")
+  if (results.includes(null)) return { severity: null, expected }
+  if (results.includes("info")) return { severity: "info", expected }
   return { severity: "block", expected }
 }
 
@@ -116,13 +123,14 @@ export function checkTenGods(segments: TextSegment[], lk: TenGodLookup): Finding
     sentences.forEach((s, si) => {
       const loc = sentences.length > 1 ? { ...seg.location, sentence: si } : seg.location
       const seen = new Set<string>()
-      const handle = (char: string, name: string, idx: number, len: number) => {
+      const handle = (chars: string[], name: string, idx: number, len: number) => {
+        const char = chars.join("")
         const k = `${char}:${name}`
         if (seen.has(k)) return
         seen.add(k)
         const tail = s.text.slice(idx + len, idx + len + 6)
         if (NEGATION_AFTER.test(tail)) return
-        const { severity, expected } = judge(char, name, lk)
+        const { severity, expected } = judge(chars, name, lk)
         if (!severity) return
         out.push({
           severity,
@@ -132,18 +140,17 @@ export function checkTenGods(segments: TextSegment[], lk: TenGodLookup): Finding
           rule: severity === "block" ? "mismatch" : "uncertain",
           message:
             severity === "block"
-              ? `${char}를 ${name}(이)라 했으나 규칙 엔진 기준 ${char}는 ${expected}`
+              ? `${char}를 ${name}(이)라 했으나 규칙 엔진 기준 ${expected}`
               : `${char}를 ${name}(이)라 했음 — 겉 글자 기준 ${expected}. 일간 자신이거나 지장간·학파 차이로만 맞을 수 있어 사람 확인 필요`,
         })
       }
       for (const m of s.text.matchAll(PAT_A)) {
-        const char = m[1] ?? m[2] ?? HANGUL_ELEMENT_READINGS[m[3]]
-        if (char) handle(char, m[4], m.index ?? 0, m[0].length)
+        const chars = m[1] ? [m[1]] : m[3] ? (m[2] ? [m[2], m[3]] : [m[3]]) : m[4] ? [HANGUL_ELEMENT_READINGS[m[4]]] : []
+        if (chars.length) handle(chars, m[5], m.index ?? 0, m[0].length)
       }
-      for (const m of s.text.matchAll(PAT_B)) handle(m[2], m[1], m.index ?? 0, m[0].length)
+      for (const m of s.text.matchAll(PAT_B)) handle([m[2]], m[1], m.index ?? 0, m[0].length)
     })
   }
   return out
 }
 
-export { STEMS, BRANCHES }

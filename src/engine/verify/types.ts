@@ -150,6 +150,8 @@ export interface TextSegment {
   location: FindingLocation
   /** 같은 객체 안의 year·years·next 숫자와 when·after 글의 4자리 연도 */
   contextYears: number[]
+  /** 이 칸을 담은 객체들(최상위 아래)의 다른 글 칸을 이은 것 — 장 제목·부제, fork의 sub 등 문맥 판단용 */
+  contextText: string
   /** 고객에게 서술로 보이는 본문 계열인지(바넘 검사 대상) */
   narrative: boolean
   /** 간지만 적는 칸(chips.letter, claims.letter, years.ganzhi 등) */

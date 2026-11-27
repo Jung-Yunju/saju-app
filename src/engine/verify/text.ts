@@ -45,7 +45,7 @@ interface WalkInfo {
 /** 풀이 객체의 모든 문자열 칸을 JSON 경로와 함께 모은다(순서 = 객체 키 순서, 결정론적) */
 export function collectSegments(reading: ReadingLike): TextSegment[] {
   const out: TextSegment[] = []
-  const walk = (node: unknown, path: string, field: string, info: WalkInfo, ctxYears: number[], paragraph?: number) => {
+  const walk = (node: unknown, path: string, field: string, info: WalkInfo, ctxYears: number[], paragraph?: number, ctxText = "") => {
     if (typeof node === "string") {
       if (node.trim() === "") return
       const location: FindingLocation = { path, field, ...info }
@@ -57,22 +57,26 @@ export function collectSegments(reading: ReadingLike): TextSegment[] {
         text: stripTags(node),
         location,
         contextYears: ctxYears,
+        contextText: ctxText,
         narrative: NARRATIVE_FIELDS.has(field),
         letterField: LETTER_FIELDS.has(field),
       })
       return
     }
     if (Array.isArray(node)) {
-      node.forEach((v, i) => walk(v, `${path}[${i}]`, field, info, ctxYears, field === "body" ? i : paragraph))
+      node.forEach((v, i) => walk(v, `${path}[${i}]`, field, info, ctxYears, field === "body" ? i : paragraph, ctxText))
       return
     }
     if (node && typeof node === "object") {
       const obj = node as Record<string, unknown>
       const years = [...new Set([...ctxYears, ...contextYearsOf(obj)])]
+      // 최상위(풀이 전체)는 문맥에 넣지 않는다 — 넣으면 모든 칸이 서로의 문맥이 되어 검사가 무뎌진다
+      const shallow = path === "" ? "" : Object.entries(obj).filter(([k, v]) => typeof v === "string" && !SKIP_KEYS.has(k)).map(([, v]) => v as string).join(" ")
+      const ctx = shallow ? (ctxText ? ctxText + " " + shallow : shallow) : ctxText
       for (const [k, v] of Object.entries(obj)) {
         if (SKIP_KEYS.has(k)) continue
         const p = path ? `${path}.${k}` : k
-        let next = info
+        const next = info
         // parts[i].chapters[j] 진입 시 장 정보 기록
         if (k === "chapters" && Array.isArray(v)) {
           v.forEach((ch, j) => {
@@ -82,16 +86,15 @@ export function collectSegments(reading: ReadingLike): TextSegment[] {
               chapter: j,
               chapterKey: typeof c.key === "string" ? c.key : undefined,
               chapterTitle: typeof c.title === "string" ? c.title : undefined,
-            }, years)
+            }, years, undefined, ctx)
           })
           continue
         }
         if (k === "parts" && Array.isArray(v)) {
-          v.forEach((pt, i) => walk(pt, `${p}[${i}]`, k, { part: i }, years))
+          v.forEach((pt, i) => walk(pt, `${p}[${i}]`, k, { part: i }, years, undefined, ctx))
           continue
         }
-        next = info
-        walk(v, p, k, next, years)
+        walk(v, p, k, next, years, undefined, ctx)
       }
     }
   }

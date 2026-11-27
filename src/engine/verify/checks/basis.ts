@@ -6,6 +6,11 @@ import type { Finding, ReadingLike, TextSegment } from "../types"
 import { excerptAt, excerptOf, splitSentences, yearsInText } from "../text"
 import { findGanzhiTokens, hangulToGanzhi, HIDDEN_MARKER_RE, LUCK_MARKER_RE, parsePillar, yearGanzhi, type ChartLetters } from "../letters"
 
+/** 대운·세운을 다루는 칸 — 이 안의 운 글자는 운이라고 밝힌 것으로 본다 */
+const LUCK_PATH_RE = /^(daeun_overview|life_graph|years|shaky_years|review)\b/
+/** 구조 검사(checkStructuredGanzhi)가 따로 보는 칸 */
+const STRUCTURED_GANZHI_RE = /^(years|daeun_overview|life_graph\.periods)\[\d+\]\.ganzhi$/
+
 const YEAR_LABEL_RE = /(1[89]\d{2}|20\d{2})\s*년?\s*[(（]?\s*([甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]|[갑을병정무기경신임계][자축인묘진사오미신유술해](?=\s?년))/g
 
 function checkText(
@@ -16,6 +21,7 @@ function checkText(
   years: number[],
   strict: boolean,
   out: Finding[],
+  contextText = "",
 ) {
   const loc = offsetSentence === undefined ? seg.location : { ...seg.location, sentence: offsetSentence }
   const localPillars = new Map<string, number>()
@@ -70,7 +76,7 @@ function checkText(
     const isHidden = letters.hidden.has(c)
     if (isHidden && HIDDEN_MARKER_RE.test(text)) continue
     const luckSources = (letters.chars.get(c) ?? []).filter((l) => !/^(연주|월주|일주|시주)$/.test(l))
-    if (luckSources.length > 0 && (strict || LUCK_MARKER_RE.test(text))) continue
+    if (luckSources.length > 0 && (strict || LUCK_MARKER_RE.test(text) || LUCK_MARKER_RE.test(contextText) || LUCK_PATH_RE.test(seg.path))) continue
     seen.add(key)
     if (luckSources.length > 0 || isHidden) {
       out.push({
@@ -101,12 +107,15 @@ export function checkBasis(segments: TextSegment[], letters: ChartLetters): Find
   const out: Finding[] = []
   for (const seg of segments) {
     if (seg.letterField) {
+      if (STRUCTURED_GANZHI_RE.test(seg.path)) continue
       checkText(seg, seg.text, undefined, letters, [...seg.contextYears, ...yearsInText(seg.text)], true, out)
       continue
     }
     const sentences = splitSentences(seg.text)
+    // 운 표지 문맥: 같은 문단 전체 + 담은 객체(장 제목·부제 등)
+    const ctxText = seg.text + " " + seg.contextText
     sentences.forEach((s, i) => {
-      checkText(seg, s.text, sentences.length > 1 ? i : undefined, letters, [...seg.contextYears, ...yearsInText(s.text)], false, out)
+      checkText(seg, s.text, sentences.length > 1 ? i : undefined, letters, [...seg.contextYears, ...yearsInText(s.text)], false, out, ctxText)
     })
   }
   return out
