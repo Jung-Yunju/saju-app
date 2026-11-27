@@ -610,7 +610,11 @@ const ATTRIBUTION_RE = /말해 준|말해준|말한|말했|알려 준|알려준|
 
 export function personalStats(s: LoadedSample, recs: SentenceRec[]): PersonalStats {
   const facts = s.facts?.personal.userFacts ?? []
-  const keywords = facts.flatMap((f) => f.value.split(/[·,/]/).map((x) => x.trim()).filter((x) => [...x].length >= 2))
+  // 사용자 사실 낱말(값을 ·,/로 나눈 2자 이상)과 그 사실의 연도를 "언급"으로 본다
+  const keywords = [
+    ...facts.flatMap((f) => f.value.split(/[·,/]/).map((x) => x.trim()).filter((x) => [...x].length >= 2)),
+    ...facts.flatMap((f) => (f.period ?? "").match(/(1[89]\d{2}|20\d{2})/g) ?? []),
+  ]
   const noGuess = s.facts?.personal.noGuessYears ?? []
   let mentions = 0
   let attributed = 0
@@ -618,7 +622,7 @@ export function personalStats(s: LoadedSample, recs: SentenceRec[]): PersonalSta
   for (const r of recs) {
     if (r.fixed) continue
     const attr = ATTRIBUTION_RE.test(r.text)
-    if (keywords.some((k) => r.text.includes(k))) {
+    if (keywords.some((k) => r.text.includes(k)) || attr) {
       mentions++
       if (attr) attributed++
     }
