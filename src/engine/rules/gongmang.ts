@@ -11,9 +11,10 @@
 //   甲子순 戌亥 · 甲戌순 申酉 · 甲申순 午未 · 甲午순 辰巳 · 甲辰순 寅卯 · 甲寅순 子丑
 import type { Branch, Pillar } from "../types"
 import { BRANCHES, sexagenary, sexagenaryIndex } from "../calendar/constants"
+import type { GongmangEntry, Position, RuleOptions } from "./types"
 
-/** 규칙 모듈 버전. 규칙 계산 결과가 바뀌면 올린다(rules 모듈이 늘면 rules 공통 파일로 옮긴다). */
-export const RULES_ENGINE_VERSION = "rules@0.1.0"
+/** 규칙 모듈 버전은 version.ts로 옮겼다(rules@0.2.0). 예전 import 경로 호환용 re-export */
+export { RULES_ENGINE_VERSION } from "./version"
 
 export interface XunKong {
   /** 순두(그 순의 甲 기둥) 예: 甲辰 */
@@ -35,4 +36,31 @@ export function xunKongOf(p: Pillar): XunKong {
 /** 공망 두 지지를 붙인 문자열 예: 甲辰 → "寅卯" (lunar-javascript getDayXunKong과 같은 표기) */
 export function gongmangString(p: Pillar): string {
   return xunKongOf(p).empty.join("")
+}
+
+/** 공망 대상 지지 하나 */
+export interface GongmangTarget {
+  position: Position
+  branch: Branch
+}
+
+/**
+ * 공망 판정(rules-spec §8). gongmangBasis: day / year / both([일, 연] 순).
+ * hits = 기준 기둥을 뺀 대상 지지(원국 + 대운·세운) 중 공망 두 지지에 든 위치. 해공(解空) 등은 판정하지 않는다.
+ */
+export function analyzeGongmang(
+  basis: RuleOptions["gongmangBasis"],
+  natal: { year: Pillar; day: Pillar },
+  targets: readonly GongmangTarget[],
+): GongmangEntry[] {
+  const bases: ("day" | "year")[] = basis === "both" ? ["day", "year"] : [basis]
+  return bases.map((b) => {
+    const p = natal[b]
+    const xk = xunKongOf(p)
+    const hits = targets
+      .filter((t) => !(t.position.pillar === b && t.position.part === "branch"))
+      .filter((t) => xk.empty.includes(t.branch))
+      .map((t) => t.position)
+    return { basis: b, basisPillar: { ...p }, xunHead: xk.xunHead, empty: xk.empty, hits }
+  })
 }
