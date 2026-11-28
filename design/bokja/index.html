@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>복자 캐릭터 시트 v2 — 실제 고양이 모델</title>
+<meta name="theme-color" content="#0b1a26">
+<style>
+:root{
+  --bg:#0b1a26; --bg-2:#102634; --panel:#13293a; --line:#24465a;
+  --text:#f3ecdc; --muted:#b4c3cc; --gold:#e3c67e; --teal:#7fcfc6;
+  --light:#f5f0e6; --light-text:#1d2230;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;color:var(--text);font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;font-size:16px;line-height:1.7;word-break:keep-all;
+  background:radial-gradient(120% 60% at 70% 0%,#163a44 0%,rgba(22,58,68,0) 60%),linear-gradient(#0b1a26,#08121c);min-height:100vh}
+main{max-width:1080px;margin:0 auto;padding:28px 20px 64px}
+h1,h2,h3{font-family:"Noto Serif KR","AppleMyungjo",serif;letter-spacing:-.01em;line-height:1.3;margin:0}
+h1{font-size:28px}
+h2{font-size:21px;margin:48px 0 14px;padding-top:20px;border-top:1px solid var(--line)}
+h3{font-size:17px;margin:0 0 6px}
+p{margin:0 0 10px}
+.lead{color:var(--muted);font-size:15px}
+.tag{display:inline-block;margin:0 0 10px;padding:2px 10px;border:1px solid var(--line);border-radius:999px;color:var(--teal);font-size:13px}
+.poses{display:grid;grid-template-columns:1fr;gap:18px}
+@media(min-width:860px){.poses{grid-template-columns:repeat(3,1fr)}}
+figure{margin:0;padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+figure img{display:block;width:100%;height:auto}
+figcaption{margin-top:10px;font-size:14px;color:var(--muted)}
+figcaption b{color:var(--text);font-size:15px}
+.sizes{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.sizes div{padding:10px;border-radius:10px;border:1px solid var(--line)}
+.sizes .lt{background:var(--light)}
+.sizes span{display:block;font-size:12px;color:var(--muted);margin-top:4px;text-align:center}
+.sizes .lt span{color:#4a5160}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--gold);font-weight:600;white-space:nowrap}
+.sw{display:inline-block;width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,.25);vertical-align:middle}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:var(--teal)}
+.ok{color:#9fe0b8;font-weight:600}.part{color:var(--gold);font-weight:600}.no{color:#f0a493;font-weight:600}
+.scroll{overflow-x:auto}
+ul{margin:0 0 10px;padding-left:20px}
+li{margin:2px 0}
+.note{padding:12px 14px;border-left:3px solid var(--teal);background:rgba(127,207,198,.07);border-radius:0 10px 10px 0;font-size:14px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+  <span class="tag">디자인 실장 · 2026-11-28 · 대표 결정 D-024(복자는 실제 고양이)</span>
+  <h1>복자 캐릭터 시트 v2</h1>
+  <p class="lead">대표님 반려묘 사진 두 장(식빵 자세·바구니에서 자는 모습)을 보고 손으로 좌표를 잡아 다시 그린 반실사 일러스트입니다. 사진은 이 페이지와 저장소에 넣지 않았습니다(집 내부가 보여 로컬 전용). 분위기는 새 콘셉트에 맞춰 <b>“사람의 숨은 영물을 알아보는 신비로운 고양이”</b> — 노란 눈의 은은한 빛, 왼쪽 위 은빛 청록 달빛 테두리, 오른쪽 금빛 테두리, 어두운 바탕에서 검은 몸을 떼어 내는 깊은 청록 기운.</p>
+
+  <h2>포즈 3종</h2>
+  <div class="poses">
+    <figure>
+      <img src="bokja-loaf.svg" width="400" height="300" alt="식빵 자세로 엎드려 정면을 보는 턱시도 고양이 복자">
+      <figcaption><b>① 식빵 자세 정면</b> — 사진 2. 대표 이미지·무료 결과 화면·공유 카드. <code>bokja-loaf.svg</code></figcaption>
+    </figure>
+    <figure>
+      <img src="bokja-sleep.svg" width="400" height="270" alt="둥근 바구니에서 옆으로 누워 자는 복자">
+      <figcaption><b>② 웅크려 자기</b> — 사진 1. 기다리는 화면(계산 중·결제 대기), 잠긴 장 표시. <code>bokja-sleep.svg</code></figcaption>
+    </figure>
+    <figure>
+      <img src="bokja-push.svg" width="300" height="220" alt="고개를 숙이고 이마로 무언가를 미는 복자의 옆모습">
+      <figcaption><b>③ 머리로 미는 옆모습</b> — 인트로·“다음 장 열기” 같은 넘김 동작. 부위별 <code>&lt;g id&gt;</code>가 있어 움직일 수 있다. <code>bokja-push.svg</code></figcaption>
+    </figure>
+  </div>
+
+  <h2>작은 크기·밝은 바탕 확인</h2>
+  <p class="lead">화면용 판(<code>handoff/bokja-svg.ts</code>, 털 결을 줄인 판)과 같은 그림입니다. 밝은 바탕에서는 청록 기운을 끄고(<code>aura:false</code>) 한지색 스티커 테두리를 켭니다.</p>
+  <div class="sizes">
+    <div><img src="bokja-loaf.svg" width="160" height="120" alt=""><span>160px · 어두운 바탕</span></div>
+    <div><img src="bokja-loaf.svg" width="96" height="72" alt=""><span>96px</span></div>
+    <div><img src="bokja-loaf.svg" width="64" height="48" alt=""><span>64px(최소 권장)</span></div>
+    <div class="lt"><img src="bokja-sleep.svg" width="160" height="108" alt=""><span>밝은 바탕</span></div>
+    <div class="lt"><img src="bokja-push.svg" width="120" height="88" alt=""><span>밝은 바탕</span></div>
+  </div>
+
+  <h2>색 표</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>견본</th><th>이름</th><th>값</th><th>쓰임</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sw" style="background:#121319"></span></td><td>먹털</td><td><code>#121319</code></td><td>검은 털 바탕(순검정 #000 대신 푸른 기 먹색). 가장 어두운 곳 <code>#07080c</code></td></tr>
+      <tr><td><span class="sw" style="background:#5d6784"></span></td><td>달빛 결</td><td><code>#5d6784</code></td><td>검은 털 윤기·털 결 선(투명도 40~55%)</td></tr>
+      <tr><td><span class="sw" style="background:#fffdf8"></span></td><td>흰 털 밝음</td><td><code>#fffdf8</code> → <code>#f4efe6</code></td><td>턱받이·주둥이·양말</td></tr>
+      <tr><td><span class="sw" style="background:#dcd4c7"></span></td><td>흰 털 그늘</td><td><code>#dcd4c7</code> / <code>#a9a8b4</code></td><td>흰 털 결·발가락 홈·턱 밑 그늘(푸른 회색)</td></tr>
+      <tr><td><span class="sw" style="background:#cdb948"></span></td><td>눈(노란빛)</td><td><code>#fbefb0</code> → <code>#cdb948</code> → <code>#6f6222</code></td><td>홍채 3단 그라데이션 + 은은한 눈빛 번짐</td></tr>
+      <tr><td><span class="sw" style="background:#1a1416"></span></td><td>코 점</td><td><code>#1a1416</code></td><td>코의 검은 점(보는 쪽 왼쪽으로 번짐)·입술 옆 작은 점·발바닥 검은 점 <code>#2b1e22</code></td></tr>
+      <tr><td><span class="sw" style="background:#d9a0a0"></span></td><td>분홍</td><td><code>#d9a0a0</code> / <code>#b97a80</code></td><td>코 분홍 부분·발바닥</td></tr>
+      <tr><td><span class="sw" style="background:#7a5e68"></span></td><td>귀 안</td><td><code>#7a5e68</code> → <code>#3a2c33</code></td><td>분홍빛 회색 귀 안쪽 + 흰 귓털</td></tr>
+      <tr><td><span class="sw" style="background:#a8d8d2"></span></td><td>달빛 테두리</td><td><code>#a8d8d2</code></td><td>왼쪽 위 테두리 빛(은빛 청록)</td></tr>
+      <tr><td><span class="sw" style="background:#dcb66e"></span></td><td>금빛 테두리</td><td><code>#dcb66e</code></td><td>오른쪽 테두리 빛(은은한 금)</td></tr>
+      <tr><td><span class="sw" style="background:#1f6f6a"></span></td><td>기운</td><td><code>#1f6f6a</code></td><td>몸 뒤 흐린 청록 기운(어두운 바탕 전용, 끌 수 있음)</td></tr>
+    </tbody>
+  </table></div>
+  <p class="lead" style="margin-top:8px">원본 값: <code>design/bokja/tools/palette.mjs</code>. 그림 속 색이라 글자 대비 규칙 대상은 아니다(그림 위에 글자를 얹지 않는다).</p>
+
+  <h2>사진과 대조한 특징</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>특징</th><th>사진에서 본 것</th><th>그림</th><th>판정</th></tr></thead>
+    <tbody>
+      <tr><td>털 무늬</td><td>검은 턱시도, 흰 부분은 얼굴 가운데·턱·가슴·네 발</td><td>같은 배치. 검은 털은 푸른 기 먹색 + 털 결</td><td class="ok">일치</td></tr>
+      <tr><td>미간의 흰 줄</td><td>두 눈 사이에서 가늘게 시작해 코로 내려오며 넓어짐. 가운데에서 조금 비켜남</td><td>가는 흰 줄이 미간에서 시작, 보는 쪽 왼쪽으로 조금 치우침</td><td class="ok">일치</td></tr>
+      <tr><td>주둥이 비대칭</td><td>보는 쪽 오른쪽 수염판은 희고, 왼쪽 수염판은 검다</td><td>같게 그림(왼쪽 검은 수염판, 오른쪽 흰 수염판)</td><td class="ok">일치</td></tr>
+      <tr><td>코 점</td><td>코가 거무스름하고 검은 점이 한쪽으로 번짐, 반대쪽 입술 옆에 작은 검은 점, 턱 쪽에도 작은 점</td><td>분홍 코의 왼쪽을 덮는 검은 점 + 오른쪽 입술 옆 점 + 아랫입술 점</td><td class="ok">일치</td></tr>
+      <tr><td>턱받이</td><td>턱부터 가슴까지 넓고 북슬북슬한 흰 털</td><td>넓은 흰 턱받이, 가장자리 잔털, 턱 밑 그늘</td><td class="ok">일치</td></tr>
+      <tr><td>흰 발</td><td>앞발·뒷발 모두 흰 양말. 뒷발은 발목 위까지</td><td>네 발 흰 양말, 경계는 털로 흐리게</td><td class="ok">일치</td></tr>
+      <tr><td>발바닥</td><td>분홍 발바닥에 검은(짙은 밤색) 점이 섞임. 앞발은 발가락 젤리가 짙고 큰 발바닥에 검은 점, 뒷발은 분홍 큰 발바닥 옆에 검은 점</td><td>② 포즈에서 앞발(짙은 젤리 + 검은 점)·뒷발(분홍 + 검은 점) 모두 그림</td><td class="ok">일치</td></tr>
+      <tr><td>몸</td><td>아주 통통하고 둥근 몸, 식빵 자세에서 몸이 머리 뒤로 크게 솟음</td><td>둥근 언덕 같은 몸, 처진 배(③)</td><td class="ok">일치</td></tr>
+      <tr><td>꼬리</td><td>끝까지 검은 꼬리, 식빵 자세에서 위로 세움</td><td>검은 꼬리를 세움(①③). ②는 사진처럼 안 보이게</td><td class="ok">일치</td></tr>
+      <tr><td>눈</td><td>노란빛(살짝 연둣빛), 반쯤 내려온 눈꺼풀, 무심한 표정</td><td>노란빛 홍채 + 윗눈꺼풀 그늘로 반쯤 감은 눈</td><td class="part">비슷 — 그림이 조금 더 노랗고 또렷하다(신비감 의도)</td></tr>
+      <tr><td>귀</td><td>크고 곧게 선 검은 귀, 안쪽은 분홍빛 회색에 흰 귓털</td><td>같은 색, 귓털 있음</td><td class="part">비슷 — 사진보다 귀가 조금 작고 머리가 조금 크다</td></tr>
+      <tr><td>머리 기울기</td><td>식빵 사진에서 머리가 살짝 기울어 보는 쪽 오른쪽 눈이 높다</td><td>머리 -6도 기울임</td><td class="ok">일치</td></tr>
+      <tr><td>자는 자세</td><td>옆으로 누워 머리를 숙이고, 주둥이가 아래, 목의 흰 털이 주둥이로 이어짐, 뒷발이 바구니 턱 밖으로 늘어짐</td><td>같은 배치(좌표를 사진 위치에서 옮김)</td><td class="ok">일치</td></tr>
+      <tr><td>바구니</td><td>밤색 삼줄 스크래처 + 삼줄 공</td><td>밝은 짚(아이보리) 색으로 바꿈 + 공</td><td class="no">의도적으로 다름(브랜드 색)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>사진과 다른 점(솔직하게)</h2>
+  <ul>
+    <li>털 결을 선 수백 개로 표현한 일러스트라 사진의 부드럽게 뭉친 털 덩어리 느낌보다 가장자리가 <b>조금 뻣뻣하다</b>(특히 흰 턱받이 테두리).</li>
+    <li>① 머리가 사진보다 약간 크고 귀가 작다 — 캐릭터 친근감을 위해 남겼다. 사진 쪽에 더 가깝게 하려면 <code>pose-loaf.mjs</code>의 <code>HEAD_S</code>를 0.86 정도로.</li>
+    <li>① 뒷발은 사진처럼 몸 왼쪽으로 뻗었지만 검은 허벅지가 어두운 바탕에 묻혀 흰 양말이 떠 보일 수 있다(테두리 빛으로 일부 보완).</li>
+    <li>③은 사진에 없는 동작이라 옆모습 비율·무늬는 두 사진에서 추정했다. 보이는 쪽(고양이 왼쪽)은 흰 수염판이라 큰 검은 코 점은 코끝에만 보인다.</li>
+    <li>눈빛 번짐·청록 기운·테두리 빛은 실제 사진에 없는 <b>연출</b>이다(신비로운 고양이 콘셉트).</li>
+  </ul>
+
+  <h2>고칠 때</h2>
+  <div class="note">
+    <p>그림은 손으로 잡은 좌표 파일 <code>tools/pose-loaf.mjs</code>·<code>pose-sleep.mjs</code>·<code>pose-push.mjs</code>가 원본이고, 털 결만 고정 씨앗 난수로 만든다(매번 같은 결과). 고친 뒤 <code>node design/bokja/tools/build.mjs</code> → SVG 3장 + <code>handoff/bokja-svg.ts</code>가 다시 나온다(60KB 넘으면 경고). 색은 <code>tools/palette.mjs</code> 한 곳. 화면 적용은 <code>HANDOFF.md</code>.</p>
+    <p style="margin:0">외부 이미지·글꼴 없음. 사진 파일(<code>reference/</code>)은 빌드가 읽지 않고, 저장소에 올리지 않는다(<code>.gitignore</code>).</p>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="ko" data-mood="night" class="is-play">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>공개 연출 — 네 안에 잠든 신성을 깨우다 (재설계 시안)</title>
+<meta name="theme-color" content="#06131a">
+<script>
+/* 그리기 전에 결정: 움직임 줄이기·?still=1 → 끝 장면 정지 / 재방문(localStorage) → 끝 장면 / ?fresh=1·?at= 은 항상 재생 */
+(function(){var q=location.search,c='is-play';
+if(/[?&]still=1/.test(q)||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))c='is-done is-still';
+else{try{if(!/[?&](fresh=1|at=)/.test(q)&&localStorage.getItem('rd-reveal-seen'))c='is-done is-revisit';}catch(e){}}
+document.documentElement.className=c;})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@300;400;600&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600&text=%E9%9D%91%E9%BE%8D%E7%99%BD%E8%99%8E%E9%BB%91%E7%8B%90%E9%BB%83%E9%B3%B3%E5%87%B0&display=swap">
+<link rel="stylesheet" href="themes.css">
+<link rel="stylesheet" href="ui.css">
+<style>
+html,body{height:100%;overflow:hidden;background:var(--bg-deep)}
+.stage{position:relative;height:100svh;min-height:600px;max-width:520px;margin:0 auto;overflow:hidden;isolation:isolate}
+
+/* 끝 장면이 기본 상태(재생하지 않으면 바로 이 모습) */
+.r-scene{position:absolute;inset:0}
+.r-scene .sc{position:absolute;inset:0}
+.r-scene .sc-tag{top:calc(64px + env(safe-area-inset-top));right:12px}
+.r-veil{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 52%,var(--bg) 76%)}
+.r-room,.r-bokja,.r-book,.r-flash,.r-cap{opacity:0;pointer-events:none}
+
+.r-text{position:absolute;left:0;right:0;bottom:0;z-index:6;padding:0 24px calc(18px + env(safe-area-inset-bottom));text-align:center}
+.r-kind{margin:0;font:600 12px/1 var(--f-body);letter-spacing:.22em;color:var(--gold)}
+.r-name{margin:12px 0 0;display:flex;align-items:baseline;justify-content:center;gap:10px}
+.r-name b{font:300 44px/1 var(--f-display);letter-spacing:-.02em}
+.r-name .hj{font-size:17px;color:var(--gold)}
+.r-nick{margin:10px 0 0;font:500 19px/1.4 var(--f-display);color:var(--accent-text)}
+.r-line{margin:12px auto 0;max-width:320px;font-size:15.5px;line-height:1.7;color:var(--muted)}
+.r-act{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:20px}
+.r-note{margin:10px 0 0;font-size:12px;color:var(--muted)}
+
+.skip{position:absolute;z-index:20;top:calc(10px + env(safe-area-inset-top));right:12px;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid rgba(255,255,255,.28);
+  background:rgba(0,0,0,.35);color:#fff;font:500 14px/1 var(--f-body);cursor:pointer;display:none}
+.is-play .skip{display:inline-flex;align-items:center}
+
+/* ── 1막: 복자가 깸 (0–0.9s) ── */
+.r-room{position:absolute;inset:0;z-index:2;background:radial-gradient(60% 40% at 50% 62%,#2a2418 0%,#0d0d10 55%,#050507 100%)}
+.r-bokja{position:absolute;z-index:3;left:50%;top:52%;width:220px;transform:translate(-50%,-50%)}
+.r-bokja img{position:absolute;left:0;top:0;width:220px;height:auto}
+.r-bokja .wake{opacity:0}
+.r-cap{position:absolute;z-index:8;left:0;right:0;top:24%;text-align:center;font:400 17px/1.5 var(--f-display);color:#efe6d2;letter-spacing:-.01em}
+
+/* ── 2막: 할미가 운명서를 펼침 (0.9–1.9s) ── */
+.r-book{position:absolute;z-index:4;left:50%;top:50%;width:300px;height:220px;transform:translate(-50%,-50%);perspective:900px}
+.sleeve{position:absolute;top:122px;width:120px;height:86px}
+.sleeve.l{left:-58px;transform:rotate(-16deg)}.sleeve.r{right:-58px;transform:scaleX(-1) rotate(-16deg)}
+.pages{position:absolute;left:40px;right:40px;top:30px;bottom:20px;border-radius:4px;background:linear-gradient(90deg,#e9dfc8,#f8f1e0 48%,#cfc2a3 50%,#f8f1e0 52%,#e9dfc8);box-shadow:0 18px 30px -10px rgba(0,0,0,.7)}
+.pages::before{content:"";position:absolute;inset:20px 18px;background:repeating-linear-gradient(transparent 0 9px,rgba(80,60,30,.18) 9px 10px);-webkit-mask:linear-gradient(90deg,#000 44%,transparent 44% 56%,#000 56%);mask:linear-gradient(90deg,#000 44%,transparent 44% 56%,#000 56%)}
+.cover{position:absolute;left:150px;right:40px;top:28px;bottom:18px;transform-origin:0 50%;border-radius:2px 6px 6px 2px;background:linear-gradient(135deg,#1d2b4f,#0f1730);box-shadow:inset 0 0 0 2px #0a0f20,inset 0 0 0 5px rgba(217,187,124,.55);backface-visibility:hidden}
+.cover svg{position:absolute;inset:0;margin:auto;width:54px;height:54px}
+.glow{position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px;border-radius:50%;background:radial-gradient(closest-side,#fffbe8,rgba(255,240,200,.6) 40%,transparent);opacity:0}
+.r-flash{position:absolute;inset:-20%;z-index:5;background:radial-gradient(closest-side,rgba(255,255,255,.96),var(--moon-glow) 55%,transparent);}
+
+/* ── 시간표(압축본 3.2초). 끝 장면은 위 기본값 ── */
+.is-play .r-room{animation:in .3s both,out .45s 1.75s forwards}
+.is-play .r-bokja{animation:in .3s both,sink .4s .85s forwards}
+.is-play .r-bokja .wake{animation:in .22s .42s both}
+.is-play .r-bokja .sleep{animation:out .22s .42s forwards}
+.is-play .c1{animation:in .25s .12s both,out .25s .8s forwards}
+.is-play .r-book{animation:bookIn .35s .82s both,out .35s 1.8s forwards}
+.is-play .cover{animation:open .55s 1.05s cubic-bezier(.5,0,.2,1) both}
+.is-play .glow{animation:burst .7s 1.35s ease-in both}
+.is-play .c2{animation:in .25s .95s both,out .25s 1.7s forwards}
+.is-play .r-flash{animation:flash .9s 1.7s both}
+.is-play .r-scene{animation:in .5s 1.85s both}
+.is-play .r-scene .sc-refl{animation:rise .9s 2.05s var(--ease) both}
+.is-play .r-kind{animation:txt .45s 2.45s var(--ease) both}
+.is-play .r-name{animation:txt .5s 2.55s var(--ease) both}
+.is-play .r-nick{animation:txt .5s 2.7s var(--ease) both}
+.is-play .r-line{animation:txt .5s 2.85s var(--ease) both}
+.is-play .r-act,.is-play .r-note{animation:txt .4s 3.0s var(--ease) both}
+@keyframes in{from{opacity:0}to{opacity:1}}
+@keyframes out{from{opacity:1}to{opacity:0}}
+@keyframes sink{to{opacity:0;transform:translate(-50%,-30%) scale(.9)}}
+@keyframes bookIn{from{opacity:0;transform:translate(-50%,-40%) scale(.94)}to{opacity:1;transform:translate(-50%,-50%)}}
+@keyframes open{from{transform:rotateY(0)}to{transform:rotateY(-172deg)}}
+@keyframes burst{0%{opacity:0;transform:scale(1)}40%{opacity:1}100%{opacity:1;transform:scale(14)}}
+@keyframes flash{0%{opacity:0;transform:scale(.4)}35%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:scale(1.4)}}
+@keyframes rise{from{opacity:0;transform:translateY(18px) scaleY(.85)}to{opacity:.92;transform:none}}
+@keyframes txt{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.is-done .r-act{animation:none}
+</style>
+</head>
+<body>
+<span class="ex-badge">시안 · 예시(원형 배정은 가상)</span>
+<div class="stage" role="main" aria-label="원형 공개">
+  <div class="r-scene">
+    <div data-scene='{"h":760,"horizon":372,"moonY":262,"moonR":70,"crScale":0.82,"seed":5}'></div>
+    <div class="r-veil"></div>
+  </div>
+
+  <div class="r-room" aria-hidden="true"></div>
+  <div class="r-bokja" aria-hidden="true">
+    <img class="sleep" src="../bokja/bokja-sleep.svg" alt="" width="220" height="149">
+    <img class="wake" src="../bokja/bokja-loaf.svg" alt="" width="220" height="165">
+  </div>
+  <p class="r-cap c1" aria-hidden="true">…복자가 눈을 떴어.</p>
+
+  <div class="r-book" aria-hidden="true">
+    <div class="pages"></div>
+    <div class="glow"></div>
+    <div class="cover"><svg viewBox="0 0 54 54" fill="none" stroke="#d9bb7c" stroke-width="1.4"><circle cx="27" cy="27" r="20"/><path d="M33 15a13 13 0 1 0 5 18A11 11 0 0 1 33 15z" fill="#d9bb7c" stroke="none"/><path d="M27 3v4M27 47v4M3 27h4M47 27h4"/></svg></div>
+    <!-- 할머니 소매(저고리 끝동) — 할머니 얼굴은 그리지 않고 손길만 -->
+    <svg class="sleeve l" viewBox="0 0 120 86"><path d="M0 40 C30 30 60 34 84 44 L92 74 C64 70 30 74 0 86Z" fill="#efe6d2"/><path d="M78 42 L96 48 L102 78 L88 75Z" fill="#1d5158"/><path d="M98 52c10 0 18 6 20 14 1 5-4 8-9 6l-9-3z" fill="#e9c9a8"/></svg>
+    <svg class="sleeve r" viewBox="0 0 120 86"><path d="M0 40 C30 30 60 34 84 44 L92 74 C64 70 30 74 0 86Z" fill="#efe6d2"/><path d="M78 42 L96 48 L102 78 L88 75Z" fill="#1d5158"/><path d="M98 52c10 0 18 6 20 14 1 5-4 8-9 6l-9-3z" fill="#e9c9a8"/></svg>
+  </div>
+  <p class="r-cap c2" aria-hidden="true">할미가 오래된 책을 펼친다.</p>
+  <div class="r-flash" aria-hidden="true"></div>
+
+  <section class="r-text" aria-live="polite">
+    <p class="r-kind">네 안에 잠든 <span data-a="kind">신수</span></p>
+    <h1 class="r-name"><b data-a="name">청룡</b><span class="hj" data-a="hanja">靑龍</span></h1>
+    <p class="r-nick" data-a="nick">새벽 물길을 여는 푸른 용</p>
+    <p class="r-line" data-a="line">멈춰 있는 걸 못 견디는 사람. 길이 없으면 물길부터 낸다.</p>
+    <div class="r-act">
+      <a class="btn" href="free.html" data-keep>내 이야기 펼쳐 보기</a>
+      <button class="btn-ghost" id="replay" style="min-height:54px" aria-label="연출 다시 보기"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12a8 8 0 1 0 2.3-5.6M4 4v4h4"/></svg></button>
+    </div>
+    <p class="r-note">계산은 이미 끝났어. 연출은 3초, 건너뛰어도 돼.</p>
+  </section>
+
+  <button class="skip" id="skip">건너뛰기</button>
+</div>
+
+<script src="scene.js"></script>
+<script>
+(function(){
+  var root=document.documentElement, TOTAL=3400;
+  function done(){root.className='is-done';try{localStorage.setItem('rd-reveal-seen','1')}catch(e){}}
+  document.getElementById('skip').addEventListener('click',function(){done();document.querySelector('.r-act .btn').focus();});
+  document.getElementById('replay').addEventListener('click',function(){root.className='';void root.offsetWidth;root.className='is-play';setTimeout(done,TOTAL);});
+  var at=(/[?&]at=(\d+|end)/.exec(location.search)||[])[1];
+  if(at){ if(at==='end'){done();} else { requestAnimationFrame(function(){ document.getAnimations().forEach(function(a){a.pause();a.currentTime=+at;}); }); } }
+  else if(root.classList.contains('is-play')) setTimeout(done,TOTAL);
+})();
+</script>
+</body>
+</html>

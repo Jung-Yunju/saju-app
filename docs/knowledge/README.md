@@ -36,6 +36,7 @@ reviewed_by: []                    # 검수 기록
 | [rules-spec.md](rules-spec.md) | 규칙 엔진(P3-05) 구현 명세 | 제안 |
 | [strength-structure-spec.md](strength-structure-spec.md) | 신강약·격국·용신·조후·기세 판단 명세(P3-06), 경계 사례 12건 | 제안 (L2 0건, 수치는 설계값) |
 | [gaeun.md](gaeun.md) | 개운(바꿔 사는 법) 정리·서비스 안전 기준·엔진 연결 규칙(범주 30개)·관점 갈림 처리 (D-023 ②) | 제안 (L0만, 고전 인용 0건) |
+| [../redesign/02-archetypes.md](../redesign/02-archetypes.md) | 신성 원형 12 판정 관문(엔진 값 기준)·명리 근거 요지·대표 사주 24(손계산)·108 확장 원칙 (D-026) | 제안 (창작 상징, L0만, 고전 인용 0건, 엔진 확인 전) |
 | [entries/tengods.yaml](entries/tengods.yaml) | 십성 10개 기본 의미 | 요지만(unverified) |
 | [entries/johu-outline.yaml](entries/johu-outline.yaml) | 궁통보감 조후 표 뼈대 | 칸 0/120 |
 

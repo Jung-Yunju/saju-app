@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="ko" data-mood="ivory">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>메인·입력 — 네 안에 잠든 신성을 깨우다 (재설계 시안)</title>
+<meta name="theme-color" content="#f5efe3">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@300;400;600&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="themes.css">
+<link rel="stylesheet" href="ui.css">
+<style>
+/* ── 메인: 따뜻한 아이보리. 창(아치) 안만 밤 — "입력은 편안, 결과는 신비"를 한 화면에서 잇는다 ── */
+body{background:radial-gradient(120% 60% at 50% 0%,#fbf7ee 0%,var(--bg) 60%,var(--bg-2) 100%) fixed}
+.wrap{max-width:var(--col);margin:0 auto;padding:0 var(--pad);min-height:100svh;display:flex;flex-direction:column}
+.bar{height:56px;display:flex;align-items:center;justify-content:space-between;margin:0 -8px}
+.brand{display:flex;align-items:center;gap:8px;font:600 15px/1 var(--f-display);letter-spacing:-.02em;color:var(--text);text-decoration:none;padding:0 8px;min-height:44px}
+.brand svg{width:26px;height:26px}
+
+/* 1) 첫 화면 */
+.hero{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;padding-bottom:20px}
+.arch{position:relative;width:min(78vw,288px);aspect-ratio:288/300;margin:6px auto 0;border-radius:999px 999px 26px 26px;overflow:hidden;
+  box-shadow:0 0 0 1px var(--gold-line),0 0 0 7px var(--surface),0 0 0 8px var(--line),0 26px 50px -26px rgba(23,40,52,.55)}
+.arch .sc{position:absolute;inset:0;clip-path:inset(0 round 144px 144px 26px 26px)}
+.arch .sc-tag{top:auto;bottom:10px;right:50%;transform:translateX(50%)}
+.sill{position:relative;width:min(84vw,320px);height:18px;margin:-2px auto 0;border-radius:6px;background:linear-gradient(#e6d9bf,#d8c7a6);box-shadow:0 8px 16px -10px rgba(60,40,10,.5)}
+.bokja{position:absolute;width:104px;right:-6px;bottom:6px;filter:drop-shadow(0 6px 6px rgba(30,20,10,.25))}
+.kicker{margin:26px 0 10px;font:600 12.5px/1 var(--f-body);letter-spacing:.18em;color:var(--gold)}
+h1{margin:0;font:400 25px/1.5 var(--f-display);letter-spacing:-.03em;color:var(--text)}
+h1 em{font-style:normal;font-weight:600;color:var(--accent-text)}
+.sub{margin:12px 0 0;font-size:16px;line-height:1.7;color:var(--muted)}
+.cta{width:100%;margin-top:24px}
+.meta{display:flex;justify-content:center;gap:14px;margin:14px 0 0;padding:0;list-style:none;font-size:13px;color:var(--muted)}
+.meta li+li::before{content:"·";margin-right:14px;color:var(--line-strong)}
+.foot{margin:18px 0 calc(16px + env(safe-area-inset-bottom))}
+
+/* 2) 입력 */
+.form-view{display:none}
+html.show-form .home-view{display:none}
+html.show-form .form-view{display:block}
+.fhead{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;height:56px;margin:0 -8px}
+.fhead h2{margin:0;text-align:center;font:600 16px/1 var(--f-body)}
+.lead{display:grid;grid-template-columns:40px 1fr;gap:12px;align-items:start;margin:8px 0 22px;padding:14px 16px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line)}
+.lead p{margin:0;font:400 16px/1.65 var(--f-display);color:var(--text)}
+.lead .face{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--bg-2)}
+.lead .face svg{width:30px;height:30px}
+form{display:flex;flex-direction:column;gap:22px;padding-bottom:120px}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+.lab{width:100%;display:flex;align-items:center;gap:4px;margin:0 0 8px;font:600 15px/1.3 var(--f-body);color:var(--text)}
+.lab small{font-weight:400;color:var(--muted);font-size:13px;margin-left:2px}
+.help{margin-left:auto;display:inline-flex;align-items:center;gap:4px;min-height:44px;min-width:44px;margin-top:-12px;margin-bottom:-12px;padding:0 4px 0 8px;border:0;background:none;color:var(--accent-text);font:500 13.5px/1 var(--f-body);cursor:pointer;justify-content:flex-end}
+.help svg{width:18px;height:18px}
+.field{width:100%;height:var(--field-h);padding:0 14px;border-radius:var(--r-md);border:1.5px solid var(--line-strong);background:var(--surface);font:500 17px/1 var(--f-body);color:var(--text);transition:border-color var(--dur-1),box-shadow var(--dur-1)}
+.field::placeholder{color:#8b8576;font-weight:400}
+.field:focus{outline:none;border-color:var(--focus);box-shadow:0 0 0 3px rgba(31,111,120,.2)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:4px;border-radius:var(--r-md);background:var(--surface-2)}
+.seg button{min-height:46px;border:0;border-radius:10px;background:transparent;color:var(--muted);font:500 15.5px/1.2 var(--f-body);cursor:pointer;padding:0 6px}
+.seg button[aria-checked="true"]{background:var(--surface);color:var(--text);font-weight:600;box-shadow:0 1px 0 rgba(0,0,0,.04),0 2px 8px -3px rgba(40,30,10,.25)}
+.date{display:grid;grid-template-columns:1.45fr 1fr 1fr;gap:8px;margin-top:10px}
+.unit{position:relative}
+.unit .field{padding-right:30px;text-align:right;font-variant-numeric:tabular-nums}
+.unit span{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--muted);pointer-events:none}
+.check{display:flex;align-items:center;gap:10px;min-height:44px;margin-top:6px;font-size:15.5px;cursor:pointer}
+.check input{appearance:none;width:24px;height:24px;margin:0;border-radius:7px;border:1.5px solid var(--line-strong);background:var(--surface);display:grid;place-items:center;flex:none}
+.check input:checked{background:var(--accent);border-color:var(--accent)}
+.check input:checked::after{content:"";width:6px;height:11px;border:solid var(--on-accent);border-width:0 2.5px 2.5px 0;transform:translateY(-1px) rotate(45deg)}
+.check[hidden]{display:none}
+.time{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.sijin{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.sijin button{min-height:52px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 0}
+.sijin b{font:600 15px/1.1 var(--f-body)}
+.sijin small{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.sijin button[aria-checked="true"]{border-color:var(--accent);background:#e6efe9;box-shadow:inset 0 0 0 1px var(--accent)}
+.zi{margin-top:10px}
+.info{margin-top:10px;padding:12px 14px;border-radius:var(--r-md);background:var(--chip);font-size:14.5px;line-height:1.65;color:var(--text)}
+.place{position:relative}
+.place select{appearance:none;cursor:pointer}
+.place::after{content:"";position:absolute;right:18px;top:50%;width:9px;height:9px;border:solid var(--muted);border-width:0 2px 2px 0;transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.hint{margin:8px 0 0;font-size:13.5px;line-height:1.55;color:var(--muted)}
+/* 오류: 색 + 아이콘 + 글 (색만으로 알리지 않음) */
+.err{display:none;align-items:flex-start;gap:6px;margin:8px 0 0;font-size:14px;line-height:1.5;color:var(--danger);font-weight:500}
+.err svg{width:18px;height:18px;flex:none;margin-top:1px}
+.bad .err{display:flex}
+.bad .field[aria-invalid="true"],.bad .seg.req{border-color:var(--danger);box-shadow:0 0 0 1px var(--danger)}
+.bad .seg.req{border:1.5px solid var(--danger)}
+.summary{display:none;padding:14px 16px;border-radius:var(--r-md);background:var(--danger-bg);color:var(--danger);font-size:14.5px;line-height:1.6;border:1px solid #e9bfb2}
+.summary.on{display:block}
+.summary b{display:block;margin-bottom:2px}
+.summary a{color:var(--danger);font-weight:600}
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:12px var(--pad) calc(12px + env(safe-area-inset-bottom));background:linear-gradient(rgba(245,239,227,0),var(--bg) 30%)}
+.dock .in{max-width:var(--col);margin:0 auto}
+.dock p{margin:8px 0 0;text-align:center;font-size:12.5px;color:var(--muted)}
+/* 도움말 시트 */
+.sheet{position:fixed;inset:0;z-index:50;display:none}
+.sheet.on{display:block}
+.sheet .scrim{position:absolute;inset:0;background:rgba(20,24,32,.45)}
+.sheet .panel{position:absolute;left:0;right:0;bottom:0;max-width:var(--col);margin:0 auto;padding:10px var(--pad) calc(20px + env(safe-area-inset-bottom));border-radius:24px 24px 0 0;background:var(--surface);box-shadow:0 -20px 40px -20px rgba(0,0,0,.4);animation:up var(--dur-2) var(--ease)}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
+.sheet h3{margin:0 0 8px;font:600 19px/1.4 var(--f-display)}
+.sheet p{margin:0 0 12px;font-size:16px;line-height:1.75}
+.sheet .close{margin-top:8px}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+</style>
+</head>
+<body>
+<span class="ex-badge">시안 · 예시 화면</span>
+
+<div class="wrap">
+  <!-- ─── 1) 첫 화면 ─── -->
+  <div class="home-view">
+    <header class="bar">
+      <a class="brand" href="#" aria-label="할머니가 풀어 주는 사주 처음으로">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="15" fill="#173f45"/><path d="M20.5 8.5a8.5 8.5 0 1 0 3 12.2A7 7 0 0 1 20.5 8.5z" fill="#f2e3b8"/><circle cx="22.5" cy="10.5" r="1.2" fill="#f2e3b8"/></svg>
+        할머니가 풀어 주는 사주
+      </a>
+      <button class="icon-btn" aria-label="메뉴"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
+    </header>
+
+    <main class="hero">
+      <div class="arch" data-mood="night" data-arch="cheongryong">
+        <div data-scene='{"creature":"unknown","seed":3,"crScale":0.7}'></div>
+      </div>
+      <div class="sill" aria-hidden="true"><img class="bokja" src="../bokja/bokja-loaf.svg" alt="" width="118" height="89"></div>
+
+      <p class="kicker">네 안에 잠든 신성을 깨우다</p>
+      <h1>얘야, 네 안에 <em>어떤 존재</em>가<br>살고 있는지 궁금하지 않니?</h1>
+      <p class="sub">네가 태어난 날,<br>하늘은 네게 어떤 기운을 주었을까?</p>
+      <a class="btn cta" href="#form" id="go">내 안의 존재 만나기</a>
+      <ul class="meta"><li>생년월일만 있으면 돼</li><li>무료 결과 5장</li></ul>
+      <p class="foot">사주 풀이는 전통 명리 해석과 서비스가 만든 상징 이야기이며,<br>미래를 과학적으로 예측한다는 뜻이 아닙니다.</p>
+    </main>
+  </div>
+
+  <!-- ─── 2) 생년월일 입력 ─── -->
+  <div class="form-view">
+    <header class="fhead">
+      <a class="icon-btn" href="#" id="back" aria-label="첫 화면으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+      <h2>태어난 날 알려 주기</h2><span></span>
+    </header>
+    <div class="lead">
+      <span class="face" aria-hidden="true"><svg viewBox="0 0 40 40" class="halmi-ico" style="stroke:#7f6126"><circle cx="20" cy="9" r="4.2"/><path d="M13 9h14"/><circle cx="20" cy="20" r="8.5"/><circle cx="16.6" cy="20" r="2.4"/><circle cx="23.4" cy="20" r="2.4"/><path d="M19 20h2M17.5 25c1.5 1.1 3.5 1.1 5 0M9 38c1-5 5-8 11-8s10 3 11 8M15 31l5 5 5-5"/></svg></span>
+      <p>정확할수록 할미가 깊이 읽는단다. 모르는 건 모른다고 해도 괜찮아.</p>
+    </div>
+
+    <form id="f" novalidate>
+      <div class="summary" id="sum" role="alert" tabindex="-1"><b>고칠 곳이 있어.</b><span id="sumList"></span></div>
+
+      <div class="fg" id="g-name">
+        <label class="lab" for="name">뭐라고 불러 줄까? <small>(선택)</small></label>
+        <input class="field" id="name" name="name" autocomplete="nickname" maxlength="20" placeholder="예: 달래">
+      </div>
+
+      <fieldset class="fg" id="g-gender">
+        <legend class="lab">성별 <button type="button" class="help" data-help="gender" aria-label="성별을 묻는 이유"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.4" stroke-linecap="round"/><circle cx="12" cy="16.8" r=".6" fill="currentColor"/></svg>왜 물어?</button></legend>
+        <div class="seg req" role="radiogroup" aria-label="성별" data-name="gender">
+          <button type="button" role="radio" aria-checked="false" data-v="F">여성</button>
+          <button type="button" role="radio" aria-checked="false" data-v="M">남성</button>
+        </div>
+        <p class="err" id="e-gender"><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.5l9 16H1z"/><path d="M10 7v5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="14.6" r="1" fill="#fff"/></svg><span>성별을 골라 줘.</span></p>
+      </fieldset>
+
+      <fieldset class="fg" id="g-date">
+        <legend class="lab">생년월일 <button type="button" class="help" data-help="leap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.4" stroke-linecap="round"/><circle cx="12" cy="16.8" r=".6" fill="currentColor"/></svg>음력·윤달?</button></legend>
+        <div class="seg" role="radiogroup" aria-label="달력 종류" data-name="cal">
+          <button type="button" role="radio" aria-checked="true" data-v="SOLAR">양력</button>
+          <button type="button" role="radio" aria-checked="false" data-v="LUNAR">음력</button>
+        </div>
+        <div class="date">
+          <div class="unit"><label class="sr" for="y">태어난 해</label><input class="field" id="y" inputmode="numeric" maxlength="4" autocomplete="bday-year" aria-describedby="e-date"><span aria-hidden="true">년</span></div>
+          <div class="unit"><label class="sr" for="m">월</label><input class="field" id="m" inputmode="numeric" maxlength="2" autocomplete="bday-month" aria-describedby="e-date"><span aria-hidden="true">월</span></div>
+          <div class="unit"><label class="sr" for="d">일</label><input class="field" id="d" inputmode="numeric" maxlength="2" autocomplete="bday-day" aria-describedby="e-date"><span aria-hidden="true">일</span></div>
+        </div>
+        <p class="hint">예: 1992년 8월 14일 → 1992 / 8 / 14</p>
+        <label class="check" id="leapRow" hidden><input type="checkbox" id="leap"> 윤달에 태어났어</label>
+        <p class="err" id="e-date"><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.5l9 16H1z"/><path d="M10 7v5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="14.6" r="1" fill="#fff"/></svg><span></span></p>
+      </fieldset>
+
+      <fieldset class="fg" id="g-time">
+        <legend class="lab">태어난 시각 <button type="button" class="help" data-help="time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.4" stroke-linecap="round"/><circle cx="12" cy="16.8" r=".6" fill="currentColor"/></svg>시진이 뭐야?</button></legend>
+        <div class="seg" role="radiogroup" aria-label="시각을 아는 정도" data-name="tm">
+          <button type="button" role="radio" aria-checked="true" data-v="exact">정확히 알아</button>
+          <button type="button" role="radio" aria-checked="false" data-v="sijin">대략 알아</button>
+          <button type="button" role="radio" aria-checked="false" data-v="none">몰라</button>
+        </div>
+        <div class="time" data-show="exact">
+          <div class="unit"><label class="sr" for="hh">시 (0~23)</label><input class="field" id="hh" inputmode="numeric" maxlength="2" aria-describedby="e-time"><span aria-hidden="true">시</span></div>
+          <div class="unit"><label class="sr" for="mm">분</label><input class="field" id="mm" inputmode="numeric" maxlength="2" aria-describedby="e-time"><span aria-hidden="true">분</span></div>
+        </div>
+        <p class="hint" data-show="exact">밤 11시는 23시로 적어 줘. 분을 모르면 비워 둬도 돼.</p>
+        <div class="sijin" role="radiogroup" aria-label="시진" data-show="sijin" hidden></div>
+        <div class="zi" data-show="zi" hidden>
+          <p class="hint" style="margin:0 0 8px">자시는 자정을 사이에 두고 날짜가 갈려. 언제였어?</p>
+          <div class="seg" role="radiogroup" aria-label="자시 날짜" data-name="zi">
+            <button type="button" role="radio" aria-checked="false" data-v="night">자정 전(밤)</button>
+            <button type="button" role="radio" aria-checked="false" data-v="dawn">자정 넘어(새벽)</button>
+          </div>
+        </div>
+        <p class="info" data-show="none" hidden>괜찮아. 시각 없이도 세 기둥(해·달·날)으로 읽을 수 있어. 다만 ‘태어난 시의 기둥’은 비워 두고 읽는단다.</p>
+        <p class="err" id="e-time"><svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1.5l9 16H1z"/><path d="M10 7v5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="14.6" r="1" fill="#fff"/></svg><span></span></p>
+      </fieldset>
+
+      <div class="fg" id="g-place">
+        <label class="lab" for="place">태어난 곳 <button type="button" class="help" data-help="place"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.4" stroke-linecap="round"/><circle cx="12" cy="16.8" r=".6" fill="currentColor"/></svg>왜 필요해?</button></label>
+        <div class="place"><select class="field" id="place">
+          <option value="126.978">서울</option><option value="129.075">부산</option><option value="128.601">대구</option><option value="126.705">인천</option>
+          <option value="126.853">광주</option><option value="127.385">대전</option><option value="129.311">울산</option><option value="127.289">세종</option>
+          <option value="127.009">경기(수원 기준)</option><option value="128.730">강원(원주 기준)</option><option value="127.490">충북(청주 기준)</option><option value="126.673">충남(홍성 기준)</option>
+          <option value="127.148">전북(전주 기준)</option><option value="126.463">전남(무안 기준)</option><option value="128.505">경북(안동 기준)</option><option value="128.692">경남(창원 기준)</option>
+          <option value="126.531">제주</option><option value="">잘 모르겠어(서울 기준)</option>
+        </select></div>
+        <p class="hint">시각을 바로잡는 데만 써. 결과 카드에는 나오지 않아.</p>
+      </div>
+    </form>
+
+    <div class="dock"><div class="in">
+      <button class="btn" form="f" type="submit">내 안의 존재 만나기</button>
+      <p>입력한 생년월일은 풀이 계산에만 쓰고, 공유 카드에는 나오지 않아.</p>
+    </div></div>
+  </div>
+</div>
+
+<!-- 도움말 시트 -->
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t">
+  <div class="scrim" data-close></div>
+  <div class="panel">
+    <div class="grab" aria-hidden="true"></div>
+    <h3 id="sh-t"></h3><div id="sh-b"></div>
+    <button class="btn close" data-close type="button">알겠어</button>
+  </div>
+</div>
+
+<script src="scene.js"></script>
+<script>
+(function(){
+  var H = {
+    gender:['성별을 묻는 이유','열 해 단위로 바뀌는 흐름(대운)이 앞으로 흐르는지, 거꾸로 흐르는지 정하는 옛 계산법에만 써.','성별로 성격이나 역할을 정해 버리지는 않아.'],
+    leap:['음력과 윤달','부모님이 음력 생일을 챙기셨다면 음력을 골라 줘.','음력은 몇 해에 한 번 같은 달이 두 번 오는데, 뒤에 오는 달을 ‘윤달’이라고 해. 윤달 생일인지 모르겠으면 비워 둬도 되지만, 날이 한 달쯤 어긋날 수 있어.'],
+    time:['시각을 대략만 알 때','옛날엔 하루를 두 시간씩 열둘로 나눠 ‘자시·축시…’라고 불렀어(시진). “새벽 두세 시쯤”처럼 대략 알면 그 구간을 고르면 돼.','할미는 그 구간의 한가운데 시각으로 계산하고, 결과에 그렇게 계산했다고 적어 둘게.'],
+    place:['태어난 곳을 묻는 이유','시계가 같아도 해가 하늘 꼭대기에 오는 때는 동쪽·서쪽마다 조금씩 달라. 그래서 태어난 곳의 경도로 시각을 바로잡아(진태양시 보정). 서울이면 약 32분을 늦춰 계산해.','두 시진 경계쯤에 태어났다면 이 보정으로 ‘시의 기둥’이 바뀔 수 있어. 바뀌면 결과에 꼭 알려 줄게.']
+  };
+  var sheet=document.getElementById('sheet'), lastFocus=null;
+  function openHelp(k,btn){var h=H[k];lastFocus=btn;document.getElementById('sh-t').textContent=h[0];document.getElementById('sh-b').innerHTML=h.slice(1).map(function(t){return '<p>'+t+'</p>'}).join('');sheet.classList.add('on');sheet.querySelector('.close').focus();}
+  function closeHelp(){sheet.classList.remove('on');if(lastFocus)lastFocus.focus();}
+  document.querySelectorAll('[data-help]').forEach(function(b){b.addEventListener('click',function(){openHelp(b.getAttribute('data-help'),b)})});
+  sheet.querySelectorAll('[data-close]').forEach(function(b){b.addEventListener('click',closeHelp)});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&sheet.classList.contains('on'))closeHelp();});
+
+  // 화면 전환(#form)
+  function route(){document.documentElement.classList.toggle('show-form',location.hash==='#form');window.scrollTo(0,0);}
+  window.addEventListener('hashchange',route);route();
+
+  // 시진 12칸 (API_SPEC: 한국 표준시 기준 30분 늦춘 표)
+  var SJ=[['자시','23:30–01:29',0],['축시','01:30–03:29',2],['인시','03:30–05:29',4],['묘시','05:30–07:29',6],['진시','07:30–09:29',8],['사시','09:30–11:29',10],['오시','11:30–13:29',12],['미시','13:30–15:29',14],['신시','15:30–17:29',16],['유시','17:30–19:29',18],['술시','19:30–21:29',20],['해시','21:30–23:29',22]];
+  var sj=document.querySelector('.sijin');
+  sj.innerHTML=SJ.map(function(s){return '<button type="button" role="radio" aria-checked="false" data-v="'+s[2]+'"><b>'+s[0]+'</b><small>'+s[1]+'</small></button>'}).join('');
+
+  var state={gender:null,cal:'SOLAR',tm:'exact',sijin:null,zi:null};
+  function bindRadio(group,cb){group.addEventListener('click',function(e){var b=e.target.closest('[role=radio]');if(!b)return;group.querySelectorAll('[role=radio]').forEach(function(x){x.setAttribute('aria-checked',x===b?'true':'false')});cb(b.getAttribute('data-v'));});
+    group.addEventListener('keydown',function(e){if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;var bs=[].slice.call(group.querySelectorAll('[role=radio]')),i=bs.indexOf(document.activeElement);if(i<0)return;var n=bs[(i+(e.key==='ArrowRight'?1:bs.length-1))%bs.length];n.focus();n.click();e.preventDefault();});}
+  document.querySelectorAll('.seg').forEach(function(g){var k=g.getAttribute('data-name');bindRadio(g,function(v){state[k]=v;sync();});});
+  bindRadio(sj,function(v){state.sijin=+v;sync();});
+  function sync(){
+    document.getElementById('leapRow').hidden=state.cal!=='LUNAR';
+    document.querySelectorAll('[data-show]').forEach(function(el){var k=el.getAttribute('data-show');el.hidden=k==='zi'?!(state.tm==='sijin'&&state.sijin===0):k!==state.tm;el.style.display=el.hidden?'none':'';});
+  }
+  sync();
+
+  // 검증
+  function setErr(gid,msg,fields){var g=document.getElementById(gid);g.classList.toggle('bad',!!msg);var e=g.querySelector('.err span');if(e)e.textContent=msg||'';(fields||[]).forEach(function(id){var el=document.getElementById(id);if(el)el.setAttribute('aria-invalid',msg?'true':'false')});return msg?[gid,msg]:null;}
+  function num(id){var v=document.getElementById(id).value.trim();return v===''?null:(/^\d+$/.test(v)?+v:NaN);}
+  function validate(){
+    var errs=[],r;
+    r=setErr('g-gender',state.gender?'':'성별을 골라 줘.');if(r)errs.push(r);
+    var y=num('y'),m=num('m'),d=num('d'),bad=[],msg='';
+    if(y===null||m===null||d===null){msg='태어난 해·월·일을 모두 적어 줘.';[['y',y],['m',m],['d',d]].forEach(function(p){if(p[1]===null)bad.push(p[0])});}
+    else if(isNaN(y)||y<1900||y>2049){msg='해는 1900년부터 2049년 사이로 적어 줘.';bad=['y'];}
+    else if(isNaN(m)||m<1||m>12){msg='달은 1부터 12 사이야.';bad=['m'];}
+    else{var max=state.cal==='SOLAR'?new Date(y,m,0).getDate():30;
+      if(isNaN(d)||d<1||d>max){msg=state.cal==='SOLAR'?(y+'년 '+m+'월은 '+max+'일까지 있어. 날짜를 다시 봐 줄래?'):'음력 한 달은 29일이나 30일까지야.';bad=['d'];}
+      else if(state.cal==='SOLAR'&&new Date(y,m-1,d)>new Date()){msg='아직 오지 않은 날이야. 날짜를 다시 봐 줄래?';bad=['y','m','d'];}}
+    ['y','m','d'].forEach(function(id){document.getElementById(id).setAttribute('aria-invalid',bad.indexOf(id)>=0?'true':'false')});
+    document.getElementById('g-date').classList.toggle('bad',!!msg);document.querySelector('#e-date span').textContent=msg;if(msg)errs.push(['g-date',msg]);
+    var tmsg='',tb=[];
+    if(state.tm==='exact'){var h=num('hh'),mi=num('mm');if(h===null){tmsg='시를 적어 줘. 모르면 ‘몰라’를 골라도 돼.';tb=['hh'];}else if(isNaN(h)||h>23){tmsg='시는 0부터 23 사이로 적어 줘(밤 11시 = 23시).';tb=['hh'];}else if(mi!==null&&(isNaN(mi)||mi>59)){tmsg='분은 0부터 59 사이야.';tb=['mm'];}}
+    else if(state.tm==='sijin'){if(state.sijin===null)tmsg='태어난 시진을 하나 골라 줘.';else if(state.sijin===0&&!state.zi)tmsg='자시는 자정을 사이에 두고 날짜가 갈려. 자정 전인지 넘어서인지 골라 줘.';}
+    ['hh','mm'].forEach(function(id){document.getElementById(id).setAttribute('aria-invalid',tb.indexOf(id)>=0?'true':'false')});
+    document.getElementById('g-time').classList.toggle('bad',!!tmsg);document.querySelector('#e-time span').textContent=tmsg;if(tmsg)errs.push(['g-time',tmsg]);
+    var sum=document.getElementById('sum');
+    if(errs.length){sum.classList.add('on');document.getElementById('sumList').innerHTML=errs.map(function(e){var l={'g-gender':'성별','g-date':'생년월일','g-time':'태어난 시각'}[e[0]];return '· <a href="#'+e[0]+'">'+l+'</a>'}).join('<br>');}
+    else sum.classList.remove('on');
+    return errs;
+  }
+  document.getElementById('sumList').addEventListener('click',function(e){var a=e.target.closest('a');if(!a)return;e.preventDefault();var g=document.getElementById(a.getAttribute('href').slice(1));g.scrollIntoView({block:'center'});var f=g.querySelector('[aria-invalid=true],[role=radio]');if(f)f.focus();});
+  var tried=false;
+  document.getElementById('f').addEventListener('submit',function(e){e.preventDefault();tried=true;var errs=validate();
+    if(errs.length){var s=document.getElementById('sum');s.scrollIntoView({block:'start'});s.focus();return;}
+    location.href='reveal.html?arch='+(window.RD&&RD.arch||'cheongryong');});
+  document.getElementById('f').addEventListener('input',function(){if(tried)validate();});
+  document.getElementById('f').addEventListener('click',function(e){if(tried&&e.target.closest('[role=radio]'))setTimeout(validate,0);});
+
+  // 시안 보기용: ?demo=errors → 오류 상태, ?demo=filled → 채운 상태, ?demo=lunar → 음력·시진·자시
+  var demo=(/[?&]demo=(\w+)/.exec(location.search)||[])[1];
+  function pick(name,v){var b=document.querySelector('[data-name='+name+'] [data-v="'+v+'"]');if(b)b.click();}
+  if(demo){location.hash='#form';route();
+    if(demo==='errors'){document.getElementById('y').value='1992';document.getElementById('m').value='2';document.getElementById('d').value='31';document.getElementById('hh').value='25';tried=true;validate();}
+    if(demo==='filled'){pick('gender','F');document.getElementById('name').value='달래';document.getElementById('y').value='1992';document.getElementById('m').value='8';document.getElementById('d').value='14';document.getElementById('hh').value='9';document.getElementById('mm').value='0';}
+    if(demo==='lunar'){pick('gender','F');pick('cal','LUNAR');document.getElementById('leap').checked=true;document.getElementById('y').value='1992';document.getElementById('m').value='7';document.getElementById('d').value='16';pick('tm','sijin');sj.querySelector('[data-v="0"]').click();}
+  }
+})();
+</script>
+</body>
+</html>

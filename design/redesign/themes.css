@@ -1,0 +1,178 @@
+/* =====================================================================
+   「네 안에 잠든 신성을 깨우다」 재설계 시안 — 디자인 토큰 (원본)
+   design/redesign/themes.css · 디자인 실장 · 2026-11-28 · [제안 — 대표 승인 대기]
+
+   구조
+   1) 공통 토큰(글꼴·간격·반경·움직임)          :root
+   2) 입력 무드 「따뜻한 아이보리」               [data-mood="ivory"]
+   3) 결과 무드 「신비」 기본 = 청룡(청록·미드나이트) [data-mood="night"]
+   4) 원형별 테마 — 같은 화면 구조에 토큰만 바꾼다 [data-arch="…"]
+        cheongryong 청룡(기본) · baekho 백호 · heukyeo 흑여우 · hwangryong 황룡 · bonghwang 봉황
+      새 원형을 더할 때는 4)에 블록 하나만 추가하면 된다(이름 규칙 동일).
+
+   토큰 이름
+   --bg/-2/-deep 바탕 · --surface/-2 카드 · --text/--muted 글자(대비 AA 확인)
+   --line/--line-strong 선 · --accent/--on-accent 강조 · --gold 은은한 금(글자 가능)
+   --btn-bg/--btn-text 주 버튼 · --danger 오류 · --focus 초점 고리
+   장면(대표 이미지 임시 SVG): --sky-0/1/2 하늘 · --moon/--moon-glow 달 · --mtn-1/2 산
+   --shore 물가 · --water-0/1 물 · --figure/--rim 신성한 인간 실루엣·윤곽광
+   --spirit/--spirit-2 물에 비친 영물 빛 · --mist 안개 · --mote 떠도는 빛
+   대비 수치는 design/redesign/IMAGE_BRIEF.md 끝 「토큰 대비표」 (WCAG 2.1 공식 계산)
+   ===================================================================== */
+
+/* ---------- 1) 공통 ---------- */
+:root{
+  --f-display:"Hahmlet","Noto Serif KR","AppleMyungjo",serif;   /* 제목·할미 말 */
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+  --f-hanja:"Noto Serif KR","Songti SC","Batang",serif;           /* Hahmlet에는 한자가 없다 */
+
+  --s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:20px;--s-6:24px;--s-8:32px;--s-10:40px;--s-12:48px;--s-16:64px;
+  --pad:20px;               /* 휴대폰 좌우 여백 */
+  --col:440px;              /* 읽는 칼럼 최대 폭 */
+  --touch:44px;             /* 터치 최소 */
+  --btn-h:54px;             /* 주 버튼 */
+  --field-h:54px;           /* 입력칸(글자 17px — 아이폰 자동 확대 방지) */
+
+  --r-sm:8px;--r-md:14px;--r-lg:22px;--r-xl:30px;--r-pill:999px;
+
+  --t-xs:12px;--t-sm:14px;--t-md:16px;--t-body:17px;--t-lg:19px;--t-xl:24px;--t-2xl:30px;--t-3xl:38px;
+  --lh-body:1.78;
+
+  --ease:cubic-bezier(.22,.7,.18,1);
+  --dur-1:160ms;--dur-2:320ms;--dur-3:700ms;
+}
+@media (prefers-reduced-motion:reduce){:root{--dur-1:0ms;--dur-2:0ms;--dur-3:0ms}}
+
+/* ---------- 2) 입력 무드: 따뜻한 아이보리 ---------- */
+[data-mood="ivory"]{
+  color-scheme:light;
+  --bg:#f5efe3; --bg-2:#efe6d3; --bg-deep:#e7dcc6;
+  --surface:#fffbf3; --surface-2:#ece2ce;
+  --text:#1b2230;          /* 바탕 대비 14.3 */
+  --muted:#545966;         /* 6.4 */
+  --line:#e0d4bd; --line-strong:#8a7d66;  /* 입력칸 테두리 3.6 */
+  --accent:#173f45; --on-accent:#fbf6ea;  /* 주 버튼 10.9 */
+  --accent-text:#1d5158;   /* 링크·강조 글자 8.0 */
+  --gold:#7f6126;          /* 금빛 글자 5.4 */
+  --gold-line:#c8a964;     /* 장식 선(글자 금지) */
+  --btn-bg:#173f45; --btn-text:#fbf6ea;
+  --danger:#a1352a; --danger-bg:#f8e4dc;   /* 오류 글자 6.0 */
+  --focus:#1f6f78;
+  --chip:#efe5d1;
+}
+
+/* ---------- 3) 결과 무드 기본 = 청룡(깊은 청록 · 미드나이트 · 먹빛) ---------- */
+[data-mood="night"],[data-mood="night"][data-arch="cheongryong"]{
+  color-scheme:dark;
+  --bg:#06131a; --bg-2:#0a1e27; --bg-deep:#03090d;
+  --surface:#0d232b; --surface-2:#123039;
+  --text:#ecf2ef;          /* 16.2 */
+  --muted:#a6bcbb;         /* 9.1 */
+  --line:rgba(170,220,212,.16); --line-strong:#4d7b7d;
+  --accent:#8fd5c8; --on-accent:#05171c;
+  --accent-text:#9fdcd0;
+  --gold:#d9bb7c; --gold-line:rgba(217,187,124,.42);
+  --btn-bg:#e8d8ae; --btn-text:#0a1a1f;
+  --danger:#f09a86; --danger-bg:#3a1d1d;
+  --focus:#8fd5c8;
+  --chip:rgba(143,213,200,.10);
+  --glass:rgba(10,30,38,.62);
+
+  --sky-0:#03090f; --sky-1:#0a2530; --sky-2:#1f5156;
+  --moon:#eaf5ee; --moon-glow:rgba(160,230,212,.38);
+  --mtn-1:#0e2c33; --mtn-2:#08191f; --shore:#040c11;
+  --water-0:#0d2d33; --water-1:#02070a;
+  --figure:#04090d; --rim:#cdefe6;
+  --spirit:#a6eedc; --spirit-2:#2f9c8b;
+  --mist:rgba(150,215,205,.16); --mote:#c8f6e8;
+}
+
+/* ---------- 4) 원형별 테마 ---------- */
+
+/* 백호 — 은 · 백 · 서리 낀 달밤 */
+[data-mood="night"][data-arch="baekho"]{
+  --bg:#0a0e14; --bg-2:#111721; --bg-deep:#05070a;
+  --surface:#151c26; --surface-2:#1c2531;
+  --text:#f1f4f8; --muted:#b2bdca;
+  --line:rgba(220,230,242,.15); --line-strong:#65758a;
+  --accent:#dfe7f1; --on-accent:#0a0e14; --accent-text:#d5e0ee;
+  --gold:#d8ceb6; --gold-line:rgba(216,206,182,.40);
+  --btn-bg:#eef2f7; --btn-text:#0a0e14;
+  --focus:#dfe7f1; --chip:rgba(223,231,241,.09); --glass:rgba(14,20,28,.62);
+
+  --sky-0:#05070b; --sky-1:#121b27; --sky-2:#34445a;
+  --moon:#f8f9fc; --moon-glow:rgba(220,232,248,.42);
+  --mtn-1:#1a2330; --mtn-2:#10161f; --shore:#07090d;
+  --water-0:#172232; --water-1:#030509;
+  --figure:#06080c; --rim:#eef3fa;
+  --spirit:#f5f8fc; --spirit-2:#8ea2bd;
+  --mist:rgba(225,233,244,.17); --mote:#ffffff;
+}
+
+/* 흑여우 — 보라 · 먹 · 안개 */
+[data-mood="night"][data-arch="heukyeo"]{
+  --bg:#0b0910; --bg-2:#14101b; --bg-deep:#050408;
+  --surface:#191421; --surface-2:#221b2d;
+  --text:#f0ebf6; --muted:#baafca;
+  --line:rgba(200,180,240,.15); --line-strong:#6f5f8f;
+  --accent:#c6b2f2; --on-accent:#120d1a; --accent-text:#cbb9f3;
+  --gold:#d4bf90; --gold-line:rgba(212,191,144,.40);
+  --btn-bg:#cdbcf3; --btn-text:#120d1a;
+  --focus:#c6b2f2; --chip:rgba(198,178,242,.10); --glass:rgba(20,15,28,.64);
+
+  --sky-0:#060509; --sky-1:#191226; --sky-2:#40305c;
+  --moon:#f0e8ff; --moon-glow:rgba(184,152,244,.38);
+  --mtn-1:#1d1629; --mtn-2:#120e1a; --shore:#08060c;
+  --water-0:#1c1529; --water-1:#040307;
+  --figure:#07050a; --rim:#dccdff;
+  --spirit:#cdb5ff; --spirit-2:#6a4cb0;
+  --mist:rgba(172,142,226,.17); --mote:#e4d6ff;
+}
+
+/* 황룡 — 금 · 옥빛 먹 (어두운 갈색+금 조합은 피함: 할마카세와 구별) */
+[data-mood="night"][data-arch="hwangryong"]{
+  --bg:#090f0d; --bg-2:#0f1915; --bg-deep:#040706;
+  --surface:#141f1a; --surface-2:#1b2923;
+  --text:#f5f0e3; --muted:#bfbaa6;
+  --line:rgba(230,199,125,.16); --line-strong:#7a7250;
+  --accent:#e6c77d; --on-accent:#141007; --accent-text:#e9cd8c;
+  --gold:#e6c77d; --gold-line:rgba(230,199,125,.48);
+  --btn-bg:#e4c57c; --btn-text:#141007;
+  --focus:#e6c77d; --chip:rgba(230,199,125,.10); --glass:rgba(12,22,18,.64);
+
+  --sky-0:#040807; --sky-1:#0f2019; --sky-2:#4a4a2b;
+  --moon:#fff0c6; --moon-glow:rgba(242,202,112,.40);
+  --mtn-1:#13251d; --mtn-2:#0c1813; --shore:#050a08;
+  --water-0:#1a2b21; --water-1:#030605;
+  --figure:#050907; --rim:#f7dda0;
+  --spirit:#ffdc8f; --spirit-2:#b9892c;
+  --mist:rgba(232,202,132,.14); --mote:#ffe4a3;
+}
+
+/* 봉황 — 붉은 기운 · 금 · 새벽 (부적 같은 원색 빨강 대신 포도주·잉걸불) */
+[data-mood="night"][data-arch="bonghwang"]{
+  --bg:#100a0d; --bg-2:#1a0f14; --bg-deep:#070406;
+  --surface:#21141a; --surface-2:#2c1a21;
+  --text:#f8ede7; --muted:#cfb4ac;
+  --line:rgba(240,170,130,.16); --line-strong:#8a5e55;
+  --accent:#f2a985; --on-accent:#1a0b0e; --accent-text:#f4b494;
+  --gold:#ecc380; --gold-line:rgba(236,195,128,.45);
+  --btn-bg:#f1c28e; --btn-text:#1a0b0e;
+  --focus:#f2a985; --chip:rgba(242,169,133,.10); --glass:rgba(28,14,19,.64);
+
+  --sky-0:#090407; --sky-1:#2a1018; --sky-2:#7c3626;
+  --moon:#ffe2bf; --moon-glow:rgba(255,156,104,.40);
+  --mtn-1:#2a121a; --mtn-2:#190a10; --shore:#0a0406;
+  --water-0:#2d1219; --water-1:#050204;
+  --figure:#080305; --rim:#ffd2ab;
+  --spirit:#ffb886; --spirit-2:#d2553b;
+  --mist:rgba(240,152,120,.14); --mote:#ffd09e;
+}
+
+/* ---------- 오행 5색 (어두운 결과 화면용. 색만으로 구분하지 않고 글자 '목·화·토·금·수'를 같이 쓴다) ---------- */
+[data-mood="night"]{
+  --el-wood:#7cc49c; --el-fire:#ee9579; --el-earth:#dcb872; --el-metal:#cdd3dd; --el-water:#86a9ec;
+}
+[data-mood="ivory"]{
+  --el-wood:#2f6e50; --el-fire:#a84a35; --el-earth:#80621f; --el-metal:#5d6575; --el-water:#2c4a8a;
+}

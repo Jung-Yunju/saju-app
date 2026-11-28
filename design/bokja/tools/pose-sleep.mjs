@@ -5,23 +5,23 @@ import { C } from './palette.mjs'
 import { smooth, furInside, furEdge, deg, furPath as F, rimIn, clipDef } from './lib.mjs'
 
 export const S = {
-  body: [[132, 118], [160, 96], [205, 80], [262, 73], [318, 78], [358, 98], [382, 130], [389, 168], [374, 196], [330, 207], [260, 209], [190, 205], [146, 193], [124, 168], [122, 140]],
+  body: [[132, 131.9], [160, 113.4], [205, 100], [262, 94.1], [318, 98.3], [358, 115.1], [382, 142], [389, 173.9], [374, 197.4], [330, 206.7], [260, 208.4], [190, 205], [146, 194.9], [124, 173.9], [122, 150.4]],
   head: [[70, 136], [92, 122], [118, 121], [137, 134], [144, 156], [140, 178], [126, 194], [101, 201], [78, 195], [63, 180], [59, 158]],
-  ear: [[68, 147], [54, 157], [41, 172, 's'], [55, 180], [72, 186]],
-  earIn: [[66, 156], [55, 166], [47, 172, 's'], [58, 176], [68, 178]],
+  ear: [[70, 139], [50, 150], [32, 167, 's'], [50, 181], [72, 189]],
+  earIn: [[67, 150], [52, 160], [40, 167, 's'], [54, 175], [69, 181]],
   // 목 아래 흰 털이 주둥이로 이어진다(머리를 숙여 턱이 가슴 쪽으로)
-  white: [[106, 160], [114, 150], [119, 134], [118, 120], [126, 117], [134, 128], [139, 146], [140, 164], [136, 180], [127, 189], [114, 190], [105, 184], [102, 171]],
-  chest: [[148, 178], [158, 160], [176, 154], [193, 162], [200, 182], [194, 198], [160, 200]],
+  white: [[104, 168], [110, 156], [117, 144], [121, 130], [123, 117], [131, 113], [137, 123], [139, 141], [141, 160], [139, 174], [133, 185], [121, 190], [109, 188], [103, 179]],
+  chest: [[150, 183], [157, 168], [170, 161], [184, 165], [193, 181], [188, 198], [158, 200]],
   pawTuck: [[148, 191], [158, 184], [178, 184], [188, 190], [182, 198], [154, 199]],
   arm: [[212, 187], [219, 177], [240, 174], [264, 178], [272, 189], [262, 199], [238, 200], [218, 199]],
-  thigh: [[258, 174], [302, 172], [314, 194], [304, 214], [284, 224], [268, 216], [260, 196]],
+  thigh: [[256, 160], [300, 158], [315, 190], [305, 214], [285, 224], [268, 216], [258, 192]],
   sock: [[268, 208], [292, 212], [291, 232], [275, 246], [258, 253], [243, 249], [239, 238], [250, 225]],
 }
 const P = (k) => smooth(S[k])
 
 export function sleep({ p = 'bs', detail = 1, rim = true, aura = true, basket = true } = {}) {
   const N = (v) => Math.max(4, Math.round(v * detail))
-  const g = (v) => (1.25 * v) / Math.sqrt(detail)
+  const g = (v) => (1.25 * v) / Math.pow(detail, 0.8)
   const tangent = (cx, cy) => (x, y) => Math.atan2(y - cy, x - cx) + Math.PI / 2
   const RIMS = ['body', 'head', 'thigh']
   const defs = `
@@ -43,7 +43,7 @@ ${rim ? RIMS.map((k) => clipDef(p, k, P(k))).join('') : ''}`
 
   const body = `
 <ellipse cx="236" cy="250" rx="176" ry="14" fill="url(#${p}-gr)"/>
-${rim && aura ? `<g filter="url(#${p}-blur)" fill="${C.aura}" opacity=".5"><path d="${P('body')}"/><path d="${P('head')}"/><path d="${P('ear')}"/></g>` : ''}
+${rim && aura ? `<g class="bj-aura" filter="url(#${p}-blur)" fill="${C.aura}" opacity=".5"><path d="${P('body')}"/><path d="${P('head')}"/><path d="${P('ear')}"/></g>` : ''}
 ${basket ? `<ellipse cx="236" cy="184" rx="160" ry="16" fill="url(#${p}-bkIn)"/>` : ''}
 <path d="${P('body')}" fill="${C.k1}"/>
 <path d="${P('body')}" fill="url(#${p}-sheen)"/>
@@ -71,20 +71,20 @@ ${F(furEdge({ shape: S.arm, seed: 80, gap: g(1.8), len: [2, 4.5], where: (x) => 
 <path d="${P('thigh')}" fill="url(#${p}-sheen)" opacity=".6"/>
 ${F(furInside({ shape: S.thigh, n: N(36), seed: 81, dir: () => deg(105), len: [4, 8], bend: 1.4 }), C.kSheen, 0.45)}
 ${F(furEdge({ shape: S.thigh, seed: 82, gap: g(2), len: [2, 5], where: (x, y) => y > 190 }), C.k1, 1, 1.2)}
-${R('thigh', 4)}
+${rim ? rimIn(p, 'thigh', P('thigh'), `${p}-lamp`, 3.5, 0.8) : ''}
 <path d="${P('sock')}" fill="url(#${p}-sock)"/>
 ${F(furInside({ shape: S.sock, n: N(30), seed: 83, dir: () => deg(130), len: [3, 6], bend: 1 }), C.w2, 0.8)}
 ${F(furEdge({ shape: S.sock, seed: 84, gap: g(1.8), len: [2, 5], where: (x, y) => y < 244 && x > 244 }), C.w1, 1, 0.9)}
 <g><ellipse cx="258" cy="241" rx="7.5" ry="5.5" fill="${C.pink}" transform="rotate(-35 258 241)"/><ellipse cx="262.5" cy="238.5" rx="3" ry="4.2" fill="${C.padK}" transform="rotate(-35 262.5 238.5)"/>
 <ellipse cx="246" cy="246.5" rx="2.6" ry="2.2" fill="${C.pink}"/><ellipse cx="243.5" cy="240" rx="2.3" ry="2.1" fill="${C.pinkD}"/><ellipse cx="250.5" cy="251" rx="2.3" ry="2" fill="${C.pink}"/></g>
-${basket ? `<circle cx="384" cy="214" r="13" fill="url(#${p}-bk)"/><circle cx="384" cy="214" r="13" fill="url(#${p}-weave)"/><path d="M373 208q11 6 22 0M372 216q12 6 24 0" stroke="#7d6f57" stroke-width=".8" fill="none" stroke-opacity=".6"/>` : ''}
+${basket ? `<circle cx="378" cy="226" r="13" fill="url(#${p}-bk)" stroke="#6f6350" stroke-width="1"/><circle cx="378" cy="226" r="13" fill="url(#${p}-weave)"/><path d="M367 220q11 6 22 0M366 228q12 6 24 0" stroke="#7d6f57" stroke-width=".8" fill="none" stroke-opacity=".6"/>` : ''}
 <path d="${P('ear')}" fill="${C.k1}"/>
 <path d="${P('earIn')}" fill="url(#${p}-ear)"/>
 ${F(furInside({ shape: S.earIn, n: N(10), seed: 85, dir: () => deg(160), len: [3, 7], bend: 1.2 }), '#e9e2da', 0.6, 0.6)}
 <path d="${P('head')}" fill="${C.k1}"/>
 <path d="${P('head')}" fill="url(#${p}-sheen)" opacity=".8"/>
 ${F(furInside({ shape: S.head, n: N(70), seed: 86, dir: (x, y) => Math.atan2(y - 172, x - 118), len: [2.5, 5], bend: 0.8, not: [S.white] }), C.kSheen, 0.5, 0.6)}
-${F(furEdge({ shape: S.head, seed: 87, gap: g(2), len: [2, 5], where: (x, y) => x < 120 }), C.k1, 1, 1.1)}
+${F(furEdge({ shape: S.head, seed: 87, gap: g(2), len: [2, 5], where: (x) => x < 120 }), C.k1, 1, 1.1)}
 ${R('head', 4)}
 <path d="${P('white')}" fill="url(#${p}-white)"/>
 ${F(furEdge({ shape: S.white, seed: 88, gap: g(1.6), len: [1.5, 3.5], inset: 0.8 }), C.w1, 1, 0.8)}

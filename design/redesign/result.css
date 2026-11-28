@@ -1,0 +1,113 @@
+/* =====================================================================
+   design/redesign/result.css — 결과 화면(무료·유료) 공통 읽기 컴포넌트
+   원칙: 긴 글을 한 카드에 몰지 않는다 → 짧은 서술 문단 · 인용 · 시각화 · 근거 칩 · "바꿔 볼 것"을 번갈아 둔다.
+   ===================================================================== */
+body{background:var(--bg)}
+.top{position:fixed;z-index:30;left:0;right:0;top:0;padding-top:env(safe-area-inset-top);transition:background var(--dur-2),backdrop-filter var(--dur-2)}
+.top.solid{background:var(--glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 1px 0 var(--line)}
+.top .in{max-width:var(--col);margin:0 auto;display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:4px;height:56px;padding:0 8px}
+.top .icon-btn{color:var(--text)}
+.prog{display:flex;flex-direction:column;gap:6px;align-items:stretch;min-width:0}
+.prog .segs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px}
+.prog .segs a{position:relative;height:3px;border-radius:2px;background:rgba(255,255,255,.18)}
+.prog .segs a::after{content:"";position:absolute;inset:-14px 0}   /* 탭 영역 */
+.prog .segs a.done,.prog .segs a[aria-current]{background:var(--accent)}
+.prog .lbl{font:500 12.5px/1 var(--f-body);color:var(--text);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.9}
+
+.col{max-width:var(--col);margin:0 auto;padding:0 var(--pad)}
+.ch{display:none}
+.ch.on{display:block;animation:chIn var(--dur-3) var(--ease)}
+@keyframes chIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* 장 여는 머리 */
+.opener{padding:96px 0 8px;text-align:center}
+.opener .no{font:600 12px/1 var(--f-body);letter-spacing:.24em;color:var(--gold)}
+.opener h2{margin:14px 0 0;font:300 29px/1.35 var(--f-display);letter-spacing:-.03em}
+.opener p{margin:14px auto 0;max-width:300px;font:400 16px/1.7 var(--f-display);color:var(--muted)}
+.orn{display:block;width:120px;height:22px;margin:22px auto 0;color:var(--gold-line)}
+
+/* 읽기 블록 */
+.blk{margin-top:36px}
+.blk-h{display:flex;align-items:center;gap:10px;margin:0 0 14px;font:600 13px/1 var(--f-body);letter-spacing:.14em;color:var(--gold)}
+.blk-h::after{content:"";flex:1;height:1px;background:var(--line)}
+.p{margin:0 0 14px;font-size:var(--t-body);line-height:var(--lh-body)}
+.p strong{font-weight:600;color:var(--accent-text)}
+.q{position:relative;margin:28px 0;padding:6px 0 6px 22px;font:400 21px/1.6 var(--f-display);letter-spacing:-.02em}
+.q::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:2px;border-radius:2px;background:linear-gradient(var(--gold),transparent)}
+.q cite{display:block;margin-top:8px;font:500 13px/1 var(--f-body);font-style:normal;color:var(--muted)}
+.card{padding:18px;border-radius:var(--r-lg);background:var(--surface);border:1px solid var(--line)}
+.card+.card{margin-top:10px}
+
+/* 강점 목록 */
+.gift{display:grid;grid-template-columns:40px 1fr;gap:4px 12px;padding:18px 0;border-top:1px solid var(--line)}
+.gift:first-of-type{border-top:0;padding-top:4px}
+.gift .n{grid-row:span 3;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font:300 20px/1 var(--f-display);color:var(--gold);border:1px solid var(--gold-line)}
+.gift h3{margin:6px 0 2px;font:600 18px/1.45 var(--f-display);letter-spacing:-.02em}
+.gift p{margin:0 0 10px;font-size:16px;line-height:1.72;color:var(--muted)}
+
+/* 감춰진 재능: 안개 덮인 카드 */
+.veil{position:relative;overflow:hidden;padding:22px 20px;border-radius:var(--r-lg);border:1px solid var(--gold-line);
+  background:radial-gradient(80% 70% at 85% 0%,color-mix(in srgb,var(--spirit) 22%,transparent),transparent 70%),var(--surface)}
+.veil .tag{font:600 12px/1 var(--f-body);letter-spacing:.16em;color:var(--gold)}
+.veil h3{margin:10px 0 8px;font:400 22px/1.45 var(--f-display);letter-spacing:-.02em}
+.veil p{margin:0 0 12px;font-size:16px;line-height:1.72;color:var(--muted)}
+
+/* 기질 스펙트럼 */
+.spec{display:grid;gap:18px}
+.spec .row{display:grid;grid-template-columns:1fr 1fr;row-gap:8px;font-size:14px;color:var(--muted)}
+.spec .row span:nth-child(2){text-align:right}
+.spec .bar{grid-column:1/-1;position:relative;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--surface-2),color-mix(in srgb,var(--accent) 35%,var(--surface-2)),var(--surface-2))}
+.spec .bar i{position:absolute;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 25%,transparent),0 0 14px var(--accent)}
+.spec .row b{color:var(--text);font-weight:600}
+
+/* 물 위 / 물 아래 */
+.mirror{border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line)}
+.mirror>div{padding:20px 20px 18px}
+.mirror .up{background:linear-gradient(180deg,var(--sky-1),var(--surface))}
+.mirror .down{background:linear-gradient(180deg,var(--water-0),var(--bg-deep));border-top:1px solid var(--rim)}
+.mirror .lab{font:600 12px/1 var(--f-body);letter-spacing:.14em;color:var(--gold)}
+.mirror .down .lab{color:var(--accent-text)}
+.mirror p{margin:10px 0 0;font:400 18px/1.6 var(--f-display);letter-spacing:-.02em}
+.mirror .down p{color:var(--text)}
+
+/* 그림자 */
+.shadow{position:relative;padding:22px 20px;border-radius:var(--r-lg);background:var(--bg-deep);border:1px solid var(--line-strong);overflow:hidden}
+.shadow::before{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.0),rgba(0,0,0,.0) 55%,var(--line) 56%,transparent 58%)}
+.shadow .tag{font:600 12px/1 var(--f-body);letter-spacing:.16em;color:var(--muted)}
+.shadow h3{margin:10px 0 8px;font:400 21px/1.45 var(--f-display)}
+.shadow p{margin:0 0 12px;font-size:16px;line-height:1.72;color:var(--muted)}
+
+/* 바꿔 볼 것 (개운) — 장마다 끝에. 가장 눈에 띄는 블록 */
+.change{position:relative;margin-top:40px;padding:26px 20px 20px;border-radius:var(--r-lg);
+  background:linear-gradient(160deg,color-mix(in srgb,var(--gold) 20%,var(--surface)),var(--surface) 65%);border:1.5px solid var(--gold);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--gold) 10%,transparent),0 18px 40px -20px color-mix(in srgb,var(--gold) 50%,transparent)}
+.change .tag{position:absolute;top:-14px;left:18px;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:999px;
+  background:var(--gold);color:var(--bg);font:600 13px/1 var(--f-body);letter-spacing:.04em;margin:0}
+.change .tag svg{width:16px;height:16px}
+.change h3{margin:4px 0 6px;font:500 20px/1.5 var(--f-display);letter-spacing:-.02em}
+.change p{margin:0;font-size:16px;line-height:1.72;color:var(--muted)}
+.change ul{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+.change li label{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:start;min-height:44px;padding:10px 12px;border-radius:var(--r-md);background:rgba(0,0,0,.18);cursor:pointer;font-size:15.5px;line-height:1.6}
+.change li input{appearance:none;width:22px;height:22px;margin:1px 0 0;border-radius:6px;border:1.5px solid var(--gold-line);display:grid;place-items:center}
+.change li input:checked{background:var(--gold);border-color:var(--gold)}
+.change li input:checked::after{content:"";width:5px;height:10px;border:solid var(--bg);border-width:0 2.2px 2.2px 0;transform:translateY(-1px) rotate(45deg)}
+.change small{display:block;margin-top:12px;font-size:12.5px;color:var(--muted)}
+
+/* 사주 경향 vs 네가 말해 준 것 (D-023) */
+.pair{display:grid;gap:8px}
+.pair>div{padding:14px 16px;border-radius:var(--r-md);border:1px solid var(--line)}
+.pair .k{display:inline-flex;align-items:center;gap:6px;font:600 12px/1 var(--f-body);letter-spacing:.06em;margin-bottom:8px}
+.pair .saju .k{color:var(--gold)}
+.pair .you{border-style:dashed;border-color:var(--accent-text)}
+.pair .you .k{color:var(--accent-text)}
+.pair p{margin:0;font-size:15.5px;line-height:1.7}
+
+/* 안내 · 메모 */
+.note{padding:14px 16px;border-radius:var(--r-md);background:var(--chip);border:1px solid var(--line);font-size:14px;line-height:1.7;color:var(--muted)}
+.note b{color:var(--text);font-weight:600}
+.note--ex{border-style:dashed}
+
+/* 장 넘김 */
+.pager{display:grid;grid-template-columns:auto 1fr;gap:8px;margin:44px 0 0;padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+.pager .btn small{display:block;font:400 12px/1.2 var(--f-body);opacity:.75;margin-bottom:2px}
+.pager .btn{flex-direction:column;gap:0;line-height:1.25}

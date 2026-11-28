@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="ko" data-mood="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>유료 상세 결과 — 네 안에 잠든 신성을 깨우다 (재설계 시안)</title>
+<meta name="theme-color" content="#06131a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@300;400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600&text=%E5%A3%AC%E7%94%B3%E6%88%8A%E6%88%8C%E7%94%B2%E8%BE%B0%E4%B8%81%E6%9C%AA%E4%B8%99%E5%8D%88%E4%B9%99%E5%B7%B3%E7%99%B8%E5%8D%AF%E5%AF%85%E8%BE%9B%E4%B8%91%E5%BA%9A%E5%AD%90%E5%B7%B1%E4%BA%A5%E9%9D%91%E9%BE%8D%E7%99%BD%E8%99%8E%E9%BB%91%E7%8B%90%E9%BB%83%E9%B3%B3%E5%87%B0%E5%81%8F%E5%AE%98%E5%8D%B0%E9%A3%9F%E7%A5%9E%E6%AF%94%E8%82%A9%E6%AD%A3%E8%B2%A1%E5%82%B7%E4%B8%83%E6%AE%BA%E6%A0%BC%E6%9C%A8%E7%81%AB%E5%9C%9F%E9%87%91%E6%B0%B4%E6%BF%95%E5%8A%AB&display=swap">
+<link rel="stylesheet" href="themes.css">
+<link rel="stylesheet" href="ui.css">
+<link rel="stylesheet" href="result.css">
+<style>
+.top .ttl{text-align:center;line-height:1.2}
+.top .ttl b{display:block;font:600 14px/1.2 var(--f-body)}
+.top .ttl span{font-size:12px;color:var(--muted)}
+.rbar{position:fixed;z-index:31;left:0;right:0;top:calc(56px + env(safe-area-inset-top));height:2px;background:var(--line)}
+.rbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--gold));transition:width 120ms linear}
+
+/* 장 표지 */
+.cov{position:relative;height:300px}
+.cov .sc{position:absolute;inset:0}
+.cov .sc-tag{top:calc(66px + env(safe-area-inset-top))}
+.cov::after{content:"";position:absolute;inset:0;z-index:4;background:linear-gradient(180deg,rgba(0,0,0,.25),transparent 30%,transparent 50%,var(--bg))}
+.chead{position:relative;z-index:5;margin-top:-92px}
+.chead .no{font:600 12px/1 var(--f-body);letter-spacing:.22em;color:var(--gold)}
+.chead h1{margin:12px 0 0;font:300 31px/1.3 var(--f-display);letter-spacing:-.03em}
+.chead .meta{display:flex;gap:12px;margin:12px 0 0;font-size:13px;color:var(--muted)}
+.chead .meta span+span::before{content:"·";margin-right:12px}
+
+/* 대운 물길 */
+.river{position:relative;margin:8px 0 0;padding-left:26px}
+.river::before{content:"";position:absolute;left:8px;top:8px;bottom:8px;width:2px;background:linear-gradient(var(--el-fire),var(--el-fire) 40%,var(--accent) 55%,var(--line))}
+.dec{position:relative;padding:12px 0 14px;border-bottom:1px solid var(--line)}
+.dec::before{content:"";position:absolute;left:-23px;top:20px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--line-strong)}
+.dec.past::before{border-color:var(--el-fire)}
+.dec.now{margin:6px 0;padding:14px 14px 16px;border:1px solid var(--gold);border-radius:var(--r-md);background:color-mix(in srgb,var(--gold) 10%,var(--surface))}
+.dec.now::before{left:-29px;width:16px;height:16px;top:22px;background:var(--gold);border-color:var(--gold);box-shadow:0 0 12px var(--gold)}
+.dec .yr{display:flex;align-items:baseline;gap:8px;font-size:13px;color:var(--muted)}
+.dec .yr b{font:600 16px/1 var(--f-body);color:var(--text)}
+.dec .yr .badge{margin-left:auto;font:600 11.5px/1;padding:5px 8px;border-radius:999px;background:var(--gold);color:var(--bg)}
+.dec .gz{display:flex;align-items:center;gap:10px;margin-top:8px}
+.dec .gz .hj{font-size:22px}
+.dec .gz span.rd{font-size:13px;color:var(--muted)}
+.dec h3{margin:6px 0 0;font:500 17px/1.5 var(--f-display)}
+.dec p{margin:4px 0 0;font-size:14.5px;line-height:1.65;color:var(--muted)}
+
+/* 그릇 */
+.vessel{display:block;width:100%;max-width:340px;margin:8px auto 0}
+.vessel text{font-family:var(--f-body)}
+
+/* 목차 */
+.toc{position:fixed;inset:0;z-index:60;display:none}
+.toc.on{display:block}
+.toc .scrim{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.toc .panel{position:absolute;right:0;top:0;bottom:0;width:min(88vw,380px);overflow:auto;padding:calc(12px + env(safe-area-inset-top)) 0 24px;background:var(--bg-2);box-shadow:-20px 0 40px -20px #000;animation:slide var(--dur-2) var(--ease)}
+@keyframes slide{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+.toc header{display:flex;align-items:center;justify-content:space-between;padding:0 8px 8px 20px}
+.toc h2{margin:0;font:500 19px/1 var(--f-display)}
+.toc .sum{padding:0 20px 14px;font-size:13px;color:var(--muted)}
+.toc .sum .pbar{height:4px;border-radius:2px;background:var(--surface-2);margin-top:8px;overflow:hidden}
+.toc .sum .pbar i{display:block;height:100%;width:42%;background:var(--gold)}
+.toc ol{list-style:none;margin:0;padding:0}
+.toc li a{display:grid;grid-template-columns:34px 1fr 24px;gap:10px;align-items:center;min-height:56px;padding:8px 20px;text-decoration:none;color:var(--text);border-top:1px solid var(--line)}
+.toc li a .n{font:300 18px/1 var(--f-display);color:var(--muted);text-align:center}
+.toc li a b{display:block;font:500 15.5px/1.35 var(--f-display)}
+.toc li a small{font-size:12px;color:var(--muted)}
+.toc li a[aria-current]{background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.toc li a[aria-current] .n{color:var(--gold)}
+.toc .st{width:20px;height:20px;color:var(--accent-text)}
+.free{display:inline-block;margin-left:6px;font:600 10.5px/1;padding:3px 6px;border-radius:999px;border:1px solid var(--line-strong);color:var(--muted);vertical-align:2px}
+
+/* 아래 장 넘김 막대 */
+.dock{position:fixed;z-index:30;left:0;right:0;bottom:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:var(--glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 -1px 0 var(--line)}
+.dock .in{max-width:var(--col);margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dock a{display:flex;align-items:center;gap:6px;min-height:48px;padding:0 14px;border-radius:var(--r-md);text-decoration:none;color:var(--text);font:500 14px/1.25 var(--f-body);border:1px solid var(--line)}
+.dock a.next{justify-content:flex-end;text-align:right;background:var(--btn-bg);color:var(--btn-text);border:0;font-weight:600}
+.dock a[aria-disabled]{opacity:.35;pointer-events:none}
+.ch .col{padding-bottom:110px}
+.skip-ch{padding:120px 0 40px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<span class="ex-badge">시안 · 예시(문안·설문 답은 가상)</span>
+
+<header class="top solid" id="top"><div class="in">
+  <a class="icon-btn" href="free.html#c5" data-keep aria-label="무료 결과로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <div class="ttl"><b>네 이야기, 열두 장</b><span id="cnt">6 / 12장</span></div>
+  <button class="icon-btn" id="tocBtn" aria-label="목차 열기" aria-controls="toc" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></svg></button>
+</div></header>
+<div class="rbar" aria-hidden="true"><i id="rb"></i></div>
+
+<main id="book">
+<!-- ═════════ 5장 · 전환점 ═════════ -->
+<section class="ch" id="p5" aria-labelledby="p5h">
+  <div class="cov"><div data-scene='{"h":360,"horizon":230,"moonY":120,"moonR":50,"crScale":0.6,"seed":51}'></div></div>
+  <div class="col">
+    <header class="chead"><p class="no">제5장 · 전환점</p><h1 id="p5h">삶의 물길이<br>꺾이는 자리</h1><p class="meta"><span>약 4분</span><span>근거 2</span></p></header>
+    <div class="blk">
+      <p class="p">사람의 삶에는 열 해마다 물길이 바뀌는 때가 있어. 네게는 <strong>2024년 무렵</strong>이 그랬단다.</p>
+      <p class="p">그때부터 열 해는 ‘만드는 힘’이 바깥으로 드러나는 시기야. 속에 담아 두던 걸 꺼내 놓고 싶어지지.</p>
+      <div class="chips"><button class="chip chip-tap" aria-expanded="false" data-why="x1">근거 · 32세 대운 <span class="hj">甲辰</span> <b>갑진</b></button></div>
+      <p class="why" id="x1" hidden>열 해 흐름(대운)이 32세(2024년)에 甲辰(갑진)으로 바뀌어. 甲은 네게 ‘만드는 힘(식신)’이야.</p>
+    </div>
+    <div class="blk">
+      <p class="blk-h">사주와 네 이야기</p>
+      <div class="pair">
+        <div class="saju"><p class="k">사주에서 보이는 경향</p><p>이 시기의 辰(진)이 태어난 날의 戌(술)과 다시 부딪쳐. 익숙한 자리를 옮기고 싶은 마음이 자주 드는 열 해야.</p></div>
+        <div class="you"><p class="k">네가 말해 준 것 · 설문</p><p>“2024년에 일을 옮겼다”고 답했어. <small style="color:var(--muted)">(예시 답)</small></p></div>
+      </div>
+      <p class="p" style="margin-top:14px">할미 눈엔 둘이 이어져 보여. 다만 네가 일을 옮긴 게 <strong>사주 때문</strong>이라는 말은 아니야. 네가 고른 거고, 사주는 그 결을 읽을 뿐이지.</p>
+    </div>
+    <aside class="change"><p class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg>바꿔 볼 것</p>
+      <h3>옮기기 전에, 남길 것부터</h3><p>자리를 옮기고 싶을 때마다 “여기서 끝내고 갈 한 가지”를 먼저 적어 봐. 시작만 하고 떠나는 버릇을 끊는 연습이야.</p></aside>
+  </div>
+</section>
+
+<!-- ═════════ 6장 · 대운 ═════════ -->
+<section class="ch" id="p6" aria-labelledby="p6h">
+  <div class="cov"><div data-scene='{"h":360,"horizon":200,"moonY":100,"moonR":46,"crScale":0.62,"seed":61}'></div></div>
+  <div class="col">
+    <header class="chead"><p class="no">제6장 · 10년 흐름</p><h1 id="p6h">열 해씩 흐르는<br>물길</h1><p class="meta"><span>약 5분</span><span>근거 3</span><span>지나온 길 확인 2</span></p></header>
+
+    <div class="blk">
+      <p class="p">사주가 타고난 강물이라면, 대운은 그 위로 열 해마다 바뀌어 부는 바람이야. 같은 물도 바람에 따라 결이 달라지지.</p>
+      <blockquote class="q">어릴 적부터 서른 초반까지,<br>네게 없던 불이 바깥에서 들어왔어.<cite>— 할미</cite></blockquote>
+      <p class="p">네 사주엔 겉으로 드러난 불(火)이 없는데, 2세부터 31세까지는 불의 열 해가 이어졌어. 돈·현실 문제에 일찍 눈떴을 수 있어. <strong>맞았는지는 네가 말해 줘.</strong></p>
+    </div>
+
+    <div class="blk">
+      <p class="blk-h">네 물길</p>
+      <div class="river">
+        <div class="dec past"><p class="yr"><b>2세</b>1994–2003</p><p class="gz"><span class="hj">丁未</span><span class="rd">정미 · 작은 불과 마른 흙</span></p><h3>현실과 규칙을 먼저 배운 때</h3></div>
+        <div class="dec past"><p class="yr"><b>12세</b>2004–2013</p><p class="gz"><span class="hj">丙午</span><span class="rd">병오 · 한여름 불</span></p><h3>바깥세상이 크게 열린 때</h3><p>지나온 길 · 이 무렵 집 밖에서 큰 경험을 했는지 확인해 줄래?</p></div>
+        <div class="dec past"><p class="yr"><b>22세</b>2014–2023</p><p class="gz"><span class="hj">乙巳</span><span class="rd">을사 · 덩굴과 초여름 불</span></p><h3>말과 재주로 길을 낸 때</h3></div>
+        <div class="dec now"><p class="yr"><b>32세</b>2024–2033<span class="badge">지금</span></p><p class="gz"><span class="hj">甲辰</span><span class="rd">갑진 · 큰 나무와 젖은 흙</span></p><h3>만든 것을 세상에 내놓는 열 해</h3><p>태어난 날과 부딪치는 글자가 함께 와. 자리를 옮기고 싶은 마음과 뿌리내리고 싶은 마음이 번갈아 들 거야.</p></div>
+        <div class="dec"><p class="yr"><b>42세</b>2034–2043</p><p class="gz"><span class="hj">癸卯</span><span class="rd">계묘 · 봄비와 새순</span></p><h3>사람과 나누며 커지는 때</h3></div>
+        <div class="dec"><p class="yr"><b>52세</b>2044–2053</p><p class="gz"><span class="hj">壬寅</span><span class="rd">임인 · 큰 물과 이른 봄 나무</span></p><h3>제 자리를 찾은 물이 숲을 키우는 때</h3></div>
+        <div class="dec"><p class="yr"><b>62세</b>2054–2063</p><p class="gz"><span class="hj">辛丑</span><span class="rd">신축 · 보석과 언 흙</span></p><h3>쌓은 것을 다듬는 때</h3></div>
+      </div>
+      <div class="chips" style="margin-top:14px">
+        <button class="chip chip-tap" aria-expanded="false" data-why="x2">근거 · 대운 시작 2세, 거꾸로 흐름</button>
+        <button class="chip chip-tap" aria-expanded="false" data-why="x3">근거 · 불의 열 해 셋</button>
+      </div>
+      <p class="why" id="x2" hidden>대운은 태어난 달 戊申(무신)에서 시작해. 양(陽)의 해에 태어난 여성은 전통 계산법에서 거꾸로 흘러(丁未 → 丙午 …), 첫 대운은 2세에 시작해. 이 순서는 사주엔진이 계산한 값이야.</p>
+      <p class="why" id="x3" hidden>丁未·丙午·乙巳의 丁·丙·午·巳가 모두 불(火)이야. 네 원국엔 드러난 불이 없어서, 이 시기에 처음 만난 기운이라고 읽어.</p>
+    </div>
+
+    <aside class="change" aria-label="바꿔 볼 것"><p class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg>바꿔 볼 것 · 이번 열 해</p>
+      <h3>만든 걸 ‘끝까지’ 내놓기</h3>
+      <p>이번 열 해는 만드는 힘이 바깥으로 나오는 때야. 그런데 넌 시작은 빠르고 마무리는 남에게 미루지.</p>
+      <ul>
+        <li><label><input type="checkbox"> <span>하던 일 하나를 골라 ‘공개하는 날’을 달력에 적기</span></label></li>
+        <li><label><input type="checkbox"> <span>새 일을 벌이기 전에, 끝낼 일 하나 먼저 닫기</span></label></li>
+        <li><label><input type="checkbox"> <span>석 달 뒤 이 장을 다시 열어 체크해 보기</span></label></li>
+      </ul>
+      <small>효과를 장담하는 비법은 아니야. 해 보고 네게 맞는지 네가 판단해.</small>
+    </aside>
+  </div>
+</section>
+
+<!-- ═════════ 7장 · 재물 ═════════ -->
+<section class="ch" id="p7" aria-labelledby="p7h">
+  <div class="cov"><div data-scene='{"h":360,"horizon":250,"moonY":150,"moonR":56,"crScale":0.55,"seed":71}'></div></div>
+  <div class="col">
+    <header class="chead"><p class="no">제7장 · 재물</p><h1 id="p7h">돈이 머무는<br>그릇</h1><p class="meta"><span>약 4분</span><span>근거 2</span></p></header>
+    <div class="blk">
+      <blockquote class="q">돈의 글자가 겉에 없다고<br>돈이 없는 사주가 아니야.<br>숨어 있을 뿐이지.<cite>— 할미</cite></blockquote>
+      <p class="p">네 여덟 글자엔 ‘재물’의 글자가 겉으로 하나도 없어. 대신 태어난 날 아래, 戌(술) 속에 작은 불씨가 숨어 있지.</p>
+      <p class="p">이런 사주는 돈을 <strong>쫓아가면 잘 안 잡히고</strong>, 네가 만든 것이 쌓일 때 따라오는 편이야.</p>
+      <div class="chips"><button class="chip chip-tap" aria-expanded="false" data-why="x4">근거 · 재성 0, 戌 속 <span class="hj">丁</span> <b>정재</b></button></div>
+      <p class="why" id="x4" hidden>겉 글자 일곱 개 중 재물(재성)은 없고, 戌(술) 속 숨은 글자 丁(정)이 ‘정재(바르게 버는 돈)’야.</p>
+    </div>
+
+    <div class="blk">
+      <p class="blk-h">네 그릇의 모양</p>
+      <svg class="vessel" viewBox="0 0 340 230" role="img" aria-labelledby="vT vD">
+        <title id="vT">돈 그릇 그림</title><desc id="vD">위로 만든 것이 들어오는 길, 옆으로 남을 챙기느라 새는 길, 바닥에 숨은 불씨가 있는 그릇.</desc>
+        <defs><linearGradient id="vw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--spirit)" stop-opacity=".55"/><stop offset="1" style="stop-color:var(--spirit-2)" stop-opacity=".25"/></linearGradient></defs>
+        <path d="M80 70 Q80 200 170 200 Q260 200 260 70" fill="none" style="stroke:var(--gold)" stroke-width="2"/>
+        <path d="M86 120 Q96 194 170 194 Q244 194 254 120 Z" fill="url(#vw)"/>
+        <path d="M86 120 Q130 112 170 120 T254 120" fill="none" style="stroke:var(--spirit)" stroke-width="1.4" opacity=".8"/>
+        <path d="M170 10 V60" style="stroke:var(--accent)" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round"/><path d="M164 52 L170 64 L176 52" fill="none" style="stroke:var(--accent)" stroke-width="2"/>
+        <text x="182" y="28" font-size="13" style="fill:var(--text)">들어오는 길</text><text x="182" y="45" font-size="12" style="fill:var(--muted)">네가 만든 것(식신)</text>
+        <path d="M252 150 q24 4 40 22" fill="none" style="stroke:var(--el-fire)" stroke-width="1.8" stroke-dasharray="3 4"/><circle cx="296" cy="178" r="3" style="fill:var(--el-fire)"/>
+        <text x="236" y="216" font-size="13" style="fill:var(--text)">새는 길</text><text x="236" y="230" font-size="12" style="fill:var(--muted)" dy="-1">남 챙기기</text>
+        <circle cx="170" cy="182" r="6" style="fill:var(--el-fire)"/><circle cx="170" cy="182" r="14" style="fill:var(--el-fire)" opacity=".18"/>
+        <text x="20" y="196" font-size="13" style="fill:var(--text)">숨은 불씨</text><text x="20" y="212" font-size="12" style="fill:var(--muted)">戌 속 丁</text>
+        <path d="M84 192 L150 184" style="stroke:var(--muted)" stroke-width="1" opacity=".6"/>
+      </svg>
+    </div>
+
+    <div class="blk">
+      <p class="blk-h">사주와 네 이야기</p>
+      <div class="pair">
+        <div class="saju"><p class="k">사주에서 보이는 경향</p><p>돈보다 ‘나를 다잡는 일’에 마음이 먼저 가. 책임을 맡으면 지갑도 같이 열리는 편이야.</p></div>
+        <div class="you"><p class="k">네가 말해 준 것 · 설문</p><p>“버는 것보다 모으는 게 어렵다”고 답했어. <small style="color:var(--muted)">(예시 답)</small></p></div>
+      </div>
+      <p class="p" style="margin-top:14px">새는 길은 낭비가 아니라 <strong>남을 챙기는 마음</strong>일 때가 많아. 그러니 막으려 하기보다 물길을 따로 내 주는 게 맞아.</p>
+    </div>
+
+    <aside class="change" aria-label="바꿔 볼 것"><p class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3M18 3v4h-4M6 21v-4h4"/></svg>바꿔 볼 것</p>
+      <h3>새는 길에 물길을 따로 내기</h3>
+      <ul>
+        <li><label><input type="checkbox"> <span>월급날, ‘안 보이는 통장’으로 먼저 떼어 두기</span></label></li>
+        <li><label><input type="checkbox"> <span>남을 챙기는 돈은 한 달 한도를 정해 그 안에서만</span></label></li>
+        <li><label><input type="checkbox"> <span>한 달에 한 번, 밝은 낮에 돈 흐름을 적어 보기</span></label></li>
+      </ul>
+      <small>돈이 들어온다고 장담하는 말이 아니야. 지키는 습관을 만드는 연습이란다.</small>
+    </aside>
+  </div>
+</section>
+
+<section class="ch" id="px"><div class="col"><p class="skip-ch">이 장은 시안에서 생략했어.<br>(5·6·7장만 견본으로 채움)</p></div></section>
+</main>
+
+<nav class="dock" aria-label="장 넘기기"><div class="in"><a id="prev" href="#p5">←</a><a id="next" class="next" href="#p7">→</a></div></nav>
+
+<div class="toc" id="toc" role="dialog" aria-modal="true" aria-labelledby="tocH">
+  <div class="scrim" data-close></div>
+  <div class="panel">
+    <header><h2 id="tocH">목차</h2><button class="icon-btn" data-close aria-label="목차 닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+    <div class="sum">5장 읽음 · 7장 남음<div class="pbar"><i></i></div></div>
+    <ol id="tocList"></ol>
+  </div>
+</div>
+
+<script src="scene.js"></script>
+<script>
+(function(){
+  var CH=[
+    [1,'네 안에 잠든 존재','무료','free.html#c1'],[2,'하늘이 네게 쥐여 준 것','무료','free.html#c2'],[3,'네가 그런 데는 이유가 있단다','무료','free.html#c3'],[4,'할미가 읽어낸 네 사주','무료','free.html#c4'],
+    [5,'삶의 물길이 꺾이는 자리','전환점','#p5'],[6,'열 해씩 흐르는 물길','10년 흐름','#p6'],[7,'돈이 머무는 그릇','재물','#p7'],
+    [8,'너를 제대로 쓰는 일','직업','#p8'],[9,'마음을 주는 방식','연애·결혼','#p9'],[10,'이어지는 것들','자녀·가족','#p10'],[11,'올해와 내년의 결','가까운 때','#p11'],[12,'할미의 마지막 당부','마무리','#p12']];
+  var READ={1:1,2:1,3:1,4:1,5:1};
+  var arch=(window.RD&&RD.arch)||'cheongryong';
+  function cur(){var m=/^#p(\d+)$/.exec(location.hash);return m?+m[1]:6;}
+  function render(){
+    var n=cur(),has=document.getElementById('p'+n);
+    document.querySelectorAll('.ch').forEach(function(s){s.classList.toggle('on',has?s.id==='p'+n:s.id==='px')});
+    document.getElementById('cnt').textContent=n+' / 12장';
+    var p=CH[n-2],x=CH[n];
+    var pv=document.getElementById('prev'),nx=document.getElementById('next');
+    if(p){pv.href=p[3].indexOf('free')===0?p[3]+'&arch='+arch:p[3];pv.href=p[3].charAt(0)==='#'?p[3]:'free.html?arch='+arch+p[3].slice(9);pv.textContent='← '+p[0]+'장';pv.removeAttribute('aria-disabled');}else{pv.setAttribute('aria-disabled','true');}
+    if(x){nx.href=x[3];nx.textContent=x[0]+'장 '+x[1]+' →';nx.removeAttribute('aria-disabled');}else{nx.textContent='마지막 장';nx.setAttribute('aria-disabled','true');}
+    document.getElementById('tocList').innerHTML=CH.map(function(c){var href=c[3].charAt(0)==='#'?c[3]:'free.html?arch='+arch+c[3].slice(9);
+      return '<li><a href="'+href+'"'+(c[0]===n?' aria-current="page"':'')+'><span class="n">'+c[0]+'</span><span><b>'+c[1]+(c[2]==='무료'?'<span class="free">무료</span>':'')+'</b><small>'+(c[2]==='무료'?'무료 결과':c[2])+'</small></span>'+
+        (READ[c[0]]?'<svg class="st" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="읽음"><path d="M5 12l5 5 9-10"/></svg>':'<span></span>')+'</a></li>';}).join('');
+    window.scrollTo(0,0);onScroll();
+  }
+  function onScroll(){var h=document.documentElement,max=h.scrollHeight-h.clientHeight;document.getElementById('rb').style.width=(max>0?Math.min(100,window.scrollY/max*100):0)+'%';}
+  var toc=document.getElementById('toc'),btn=document.getElementById('tocBtn');
+  function openToc(){toc.classList.add('on');btn.setAttribute('aria-expanded','true');toc.querySelector('[aria-current]')?toc.querySelector('[aria-current]').focus():0;}
+  function closeToc(){toc.classList.remove('on');btn.setAttribute('aria-expanded','false');btn.focus();}
+  btn.addEventListener('click',openToc);
+  toc.addEventListener('click',function(e){if(e.target.closest('[data-close]'))closeToc();else if(e.target.closest('a'))toc.classList.remove('on');});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&toc.classList.contains('on'))closeToc();});
+  document.addEventListener('click',function(e){var c=e.target.closest('[data-why]');if(!c)return;var w=document.getElementById(c.getAttribute('data-why'));var o=c.getAttribute('aria-expanded')==='true';c.setAttribute('aria-expanded',o?'false':'true');w.hidden=o;});
+  window.addEventListener('hashchange',render);window.addEventListener('scroll',onScroll,{passive:true});
+  document.addEventListener('rd:arch',function(e){arch=e.detail;render();});
+  render();
+  if(/[?&]toc=1/.test(location.search))openToc();
+})();
+</script>
+</body>
+</html>

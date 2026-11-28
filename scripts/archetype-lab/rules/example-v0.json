@@ -1,0 +1,121 @@
+{
+  "id": "example-v0",
+  "version": "0.0.1",
+  "status": "example",
+  "source": "엔진 개발자 임시 예시 — 도구 작동 확인용. 명리 근거·연구소장 검토 없음. 고객 화면·콘텐츠에 쓰지 말 것. 연구소장 안(docs/redesign/02-archetypes.md)이 오면 교체",
+  "disclaimer": "신성 원형은 전통 명리학의 공식 분류가 아니라, 사주 구조를 바탕으로 한 서비스의 창작적 상징 해석입니다.",
+  "featureVersion": "features@0.1.0",
+  "params": { "boundaryMargin": 0.5, "minScore": 2 },
+  "fallback": "ex-yellow-dragon",
+  "archetypes": [
+    {
+      "id": "ex-azure-dragon", "name": "청룡(예시)", "category": "divineBeast", "priority": 1,
+      "terms": [
+        { "id": "wood-share", "label": "목 기운 비율", "linear": { "f": "el.share.wood", "mul": 8, "offset": 0.2, "min": 0, "max": 3 } },
+        { "id": "spring", "label": "봄 월령", "when": { "f": "season", "eq": "spring" }, "points": 1 },
+        { "id": "grow-flow", "label": "목 일간이 식상으로 흐름", "when": { "all": [ { "f": "dm.element", "eq": "wood" }, { "f": "fl.toOutput", "eq": true } ] }, "points": 1.5 },
+        { "id": "long-chain", "label": "상생 연쇄 3 이상", "when": { "f": "fl.chainLength", "gte": 3 }, "points": 0.5 }
+      ]
+    },
+    {
+      "id": "ex-vermilion-bird", "name": "주작(예시)", "category": "divineBeast", "priority": 2,
+      "terms": [
+        { "id": "fire-share", "label": "화 기운 비율", "linear": { "f": "el.share.fire", "mul": 8, "offset": 0.2, "min": 0, "max": 3 } },
+        { "id": "output-heavy", "label": "식상 묶음 30% 이상", "when": { "f": "tg.share.siksang", "gte": 0.3 }, "points": 1.5 },
+        { "id": "warm", "label": "난·열강 조후", "when": { "f": "cl.tClass", "in": ["난", "열강"] }, "points": 1 },
+        { "id": "sanggwan-stem", "label": "천간 상관", "when": { "f": "tg.stemTenGods", "has": "상관" }, "points": 0.5 }
+      ]
+    },
+    {
+      "id": "ex-yellow-dragon", "name": "황룡(예시)", "category": "divineBeast", "priority": 3,
+      "terms": [
+        { "id": "earth-share", "label": "토 기운 비율", "linear": { "f": "el.share.earth", "mul": 6, "offset": 0.2, "min": 0, "max": 2.5 } },
+        { "id": "balanced", "label": "모형 A 중화", "when": { "f": "st.weighted", "eq": "중화" }, "points": 1.5 },
+        { "id": "circular", "label": "다섯 오행 순환", "when": { "f": "fl.circular", "eq": true }, "points": 1.5 },
+        { "id": "mild", "label": "한난 중", "when": { "f": "cl.tClass", "eq": "중" }, "points": 0.5 }
+      ]
+    },
+    {
+      "id": "ex-white-tiger", "name": "백호(예시)", "category": "divineBeast", "priority": 4,
+      "terms": [
+        { "id": "metal-share", "label": "금 기운 비율", "linear": { "f": "el.share.metal", "mul": 8, "offset": 0.2, "min": 0, "max": 3 } },
+        { "id": "officer-heavy", "label": "관살 묶음 30% 이상", "when": { "f": "tg.share.gwansal", "gte": 0.3 }, "points": 1.5 },
+        { "id": "clash", "label": "원국 충 있음", "when": { "f": "rel.clash", "gte": 1 }, "points": 1 },
+        { "id": "chilsal", "label": "칠살격", "when": { "f": "gk.name", "eq": "칠살격" }, "points": 1 }
+      ]
+    },
+    {
+      "id": "ex-black-tortoise", "name": "현무(예시)", "category": "divineBeast", "priority": 5,
+      "terms": [
+        { "id": "water-share", "label": "수 기운 비율", "linear": { "f": "el.share.water", "mul": 8, "offset": 0.2, "min": 0, "max": 3 } },
+        { "id": "cold", "label": "한·한강 조후", "when": { "f": "cl.tClass", "in": ["한", "한강"] }, "points": 1 },
+        { "id": "resource-heavy", "label": "인성 묶음 30% 이상", "when": { "f": "tg.share.inseong", "gte": 0.3 }, "points": 1 },
+        { "id": "rooted", "label": "일간 통근", "when": { "f": "st.dmRooted", "eq": true }, "points": 0.5 }
+      ]
+    },
+    {
+      "id": "ex-phoenix", "name": "봉황(예시)", "category": "divineBeast", "priority": 6,
+      "terms": [
+        { "id": "noble-structure", "label": "정관·정재·정인격", "when": { "f": "gk.name", "in": ["정관격", "정재격", "정인격"] }, "points": 2 },
+        { "id": "clear", "label": "청탁 표지 없음", "when": { "f": "fl.clarityCount", "eq": 0 }, "points": 1 },
+        { "id": "to-wealth", "label": "식상→재성 흐름", "when": { "f": "fl.toWealth", "eq": true }, "points": 1 },
+        { "id": "agree", "label": "신강약 세 모형 일치", "when": { "f": "st.agreement", "eq": "all" }, "points": 0.5 }
+      ]
+    },
+    {
+      "id": "ex-black-fox", "name": "흑여우(예시)", "category": "spiritAnimal", "priority": 7,
+      "terms": [
+        { "id": "tricky-structure", "label": "편인·상관·편재격", "when": { "f": "gk.tenGod", "in": ["편인", "상관", "편재"] }, "points": 2 },
+        { "id": "many-combine", "label": "합 2개 이상", "when": { "f": "rel.combine", "gte": 2 }, "points": 1.5 },
+        { "id": "tricky-stem", "label": "천간 편인 또는 상관", "when": { "f": "tg.stemTenGods", "hasAny": ["편인", "상관"] }, "points": 0.5 },
+        { "id": "yin", "label": "음 일간", "when": { "f": "dm.yinYang", "eq": "yin" }, "points": 0.5 }
+      ]
+    },
+    {
+      "id": "ex-silver-wolf", "name": "은빛 늑대(예시)", "category": "spiritAnimal", "priority": 8,
+      "terms": [
+        { "id": "peer-heavy", "label": "비겁 묶음 35% 이상", "when": { "f": "tg.share.bigyeop", "gte": 0.35 }, "points": 2 },
+        { "id": "strong", "label": "대표 모형 신강", "when": { "f": "st.primary", "eq": "신강" }, "points": 1 },
+        { "id": "rokgeop", "label": "록겁 계열 격", "when": { "f": "gk.kind", "eq": "rokgeop" }, "points": 1.5 },
+        { "id": "day-clash", "label": "일지 충", "when": { "f": "rel.dayBranchClash", "eq": true }, "points": 0.5 }
+      ]
+    },
+    {
+      "id": "ex-white-deer", "name": "백록(예시)", "category": "spiritAnimal", "priority": 9,
+      "terms": [
+        { "id": "resource", "label": "인성 묶음 30% 이상", "when": { "f": "tg.share.inseong", "gte": 0.3 }, "points": 1.5 },
+        { "id": "weak", "label": "대표 모형 신약", "when": { "f": "st.primary", "eq": "신약" }, "points": 1 },
+        { "id": "calm", "label": "충형파해 없음", "when": { "f": "rel.tension", "eq": 0 }, "points": 1.5 },
+        { "id": "mild", "label": "조습 중", "when": { "f": "cl.mClass", "eq": "중" }, "points": 0.5 }
+      ]
+    },
+    {
+      "id": "ex-moon-goddess", "name": "달의 여신(예시)", "category": "divineHuman", "priority": 10,
+      "terms": [
+        { "id": "yin-heavy", "label": "양 글자 40% 이하", "when": { "f": "yy.yangRatio", "lte": 0.4 }, "points": 1.5 },
+        { "id": "yin-dm", "label": "음 일간", "when": { "f": "dm.yinYang", "eq": "yin" }, "points": 0.5 },
+        { "id": "moist", "label": "습·습강", "when": { "f": "cl.mClass", "in": ["습", "습강"] }, "points": 1 },
+        { "id": "winter-autumn", "label": "가을·겨울 월령", "when": { "f": "season", "in": ["autumn", "winter"] }, "points": 0.5 },
+        { "id": "inner", "label": "인성 → 일간 흐름, 식상 흐름 없음", "when": { "all": [ { "f": "fl.fromResource", "eq": true }, { "f": "fl.toOutput", "eq": false } ] }, "points": 1 }
+      ]
+    },
+    {
+      "id": "ex-sage", "name": "지혜의 현자(예시)", "category": "divineHuman", "priority": 11,
+      "terms": [
+        { "id": "resource-structure", "label": "인성 계열 격", "when": { "f": "gk.group", "eq": "inseong" }, "points": 2 },
+        { "id": "resource-stem", "label": "천간 인성 투출", "when": { "f": "tg.stems.inseong", "gte": 1 }, "points": 0.5 },
+        { "id": "resource-output", "label": "인성과 식상 천간 함께", "when": { "all": [ { "f": "tg.stems.inseong", "gte": 1 }, { "f": "tg.stems.siksang", "gte": 1 } ] }, "points": 1 },
+        { "id": "chain4", "label": "상생 연쇄 4 이상", "when": { "f": "fl.chainLength", "gte": 4 }, "points": 1 }
+      ]
+    },
+    {
+      "id": "ex-galaxy", "name": "은하(예시)", "category": "celestial", "priority": 12,
+      "terms": [
+        { "id": "special", "label": "특수격 후보", "when": { "f": "gk.hasSpecial", "eq": true }, "points": 3 },
+        { "id": "concentrated", "label": "오행 집중도 0.35 이상", "when": { "f": "el.concentration", "gte": 0.35 }, "points": 1.5 },
+        { "id": "extreme", "label": "극신강·극신약", "when": { "f": "st.extreme", "ne": null }, "points": 1.5 },
+        { "id": "missing2", "label": "없는 오행 2개 이상", "when": { "f": "el.missingCount", "gte": 2 }, "points": 1 }
+      ]
+    }
+  ]
+}
