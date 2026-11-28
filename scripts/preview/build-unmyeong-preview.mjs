@@ -41,6 +41,7 @@ for (const sub of ["final", "placeholder", "book"]) {
 }
 const sha = execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: root, encoding: "utf8" }).trim()
 fs.writeFileSync(path.join(out, "index.html"), `<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>운명비서 미리보기</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Serif+KR:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap">

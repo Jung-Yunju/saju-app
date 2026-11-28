@@ -427,7 +427,7 @@
 | `--ub-cover` | 14px → 22px(720px↑) | 표지가 종이 밖으로 나온 폭 | — |
 | `--ub-paper-bg` · `--ub-paper-burn` · `--ub-stack-r/l` | (묶음 값) | 종이 면·그을림·단면 층 — 다른 종이 면에도 같은 값을 쓴다 | — |
 - 어두운 서재 위에 같은 부품(제목·장 머리)을 놓을 때는 감싸는 요소에 `.ub-dark` — 먹 토큰이 밝은 글(`--um-text` 등)로 바뀐다.
-- 글자: 제목 나눔명조 800(한자 Noto Serif KR), 입력 값 붓 명조 20px(PC 22), 라벨 명조 700 15px(자간 .08em), 본문 Noto Sans KR 17px·줄 간격 1.88, 할머니 말 명조 400 19px. 도움말·오류 15px(본문이 아닌 보조 글).
+- 글자: 제목 나눔명조 800(한자 Noto Serif KR), 입력 값·라벨·할머니 말 명조, 본문·도움말 Noto Sans KR. **크기는 9-5 「타이포 5단계」만 쓴다**(2026-11-28 실기기 보정으로 이 줄의 옛 px 값은 폐기).
 - 터치: 입력 칸 높이 48px 이상, 고르기 글자 52×52px, 인장 버튼 전체(인장+글자) 약 130×150px.
 
 ### 9-3. 컴포넌트(props 확정본)
@@ -437,7 +437,7 @@
 | `UmBook` | `layout`("single"\|"spread"\|"auto") · `left?` · `right?` · `children?`(single) · `opening?` · `leftAlign?`/`rightAlign?`("start"\|"center") · `label?`(주면 `role="region"`) · `className?` | `auto` = 960px 이상 양면, 좁으면 left 다음 right를 한 쪽에 이어서(CSS만). 표지 연출 요소 `aria-hidden` |
 | `UmBookTitle` | `hanja?`(運命秘書) · `title?`(운명비서) · `tagline?`(null이면 없음) · `as?`(h1) · `id?` · `className?` | 한자는 `aria-hidden`, 제목 요소 이름은 한글 |
 | `UmInkField` | `label` · `hint?`(=`help?`) · `error?` · `requiredMark?` · `suffix?` · `as?`("input"\|"select"\|"group") · 나머지 input/select 속성 그대로 | 실제 `<input>`/`<select>` + `label for` + 도움말·오류 `aria-describedby` + `aria-invalid` + 오류 `aria-live`. `group` = `role="group"` + `aria-labelledby` |
-| `UmInkPart` | `aria-label`(필수) · `suffix?` · `invalid?` · `chars?`(칸 너비 글자 수, 기본 4) · `as?`("input"\|"select") · 나머지 속성 | `UmInkField as="group"` 안의 년·월·일·시·분 한 칸 |
+| `UmInkPart` | `aria-label`(필수) · `suffix?` · `invalid?` · `chars?`(칸 최소 너비 = 숫자 글자 수, 기본 4, 한글 한 자 ≈ 1.6) · `grow?`(남는 폭 나눔 비율, 기본 = chars → 년:월:일 4:2:2) · `as?`("input"\|"select") · 나머지 속성 | `UmInkField as="group"` 안의 년·월·일·시·분 한 칸. 폭은 em(글자가 커지면 칸도 커짐), 한 줄에 안 들어가면 다음 줄로 — 넘치거나 잘리지 않는다 |
 | `UmInkChoice` | `legend` · `name` · `options`(`{value,label,sub?,disabled?}`) · `value?`/`defaultValue?` · `onChange?` · `required?` · `hint?` · `error?` · `mark?`("ring"\|"dot") · `className?` | `fieldset`+`legend`+실제 라디오(글자 위에 투명하게 겹침 — 화살표 키·화면낭독기). 고르면 주묵 붓 동그라미가 0.3초 그려짐 |
 | `UmWaxSeal` ("use client") | `label?`("나의 운명비서 열기") · `onActivate?` · `beforeActivate?` · `disabled?` · `busy?` · `busyLabel?` · `sub?` · `size?`("sm"\|"md"\|"lg") · `type?`("submit") · 나머지 button 속성(onClick 제외) | 실제 `<button type="submit">`. 누르면(Enter 암묵 제출 포함) ① `beforeActivate()`가 false면 중단(없으면 폼 `reportValidity()`, `noValidate` 폼은 검사 생략) ② 금이 가고 두 쪽으로 벌어짐 0.6초 ③ `onActivate()`(없으면 `form.requestSubmit()`). `busy` 동안 열린 채 `aria-busy`, busy가 꺼지면 0.25초 뒤 다시 붙음(busy를 끝내 안 켜면 1.8초 뒤). 움직임 줄이기면 0초 |
 | `UmChapterHead` | `no?`(第一章 · 첫째 장) · `kicker?` · `title` · `lead?` · `as?`(h2) · `align?`("center"\|"start") · `id?` · `className?` | 장 번호 한자 `aria-hidden` |
@@ -450,4 +450,25 @@
 - 견본 다시 만들기: `node design/unmyeong/tools/build-book-preview.mjs` → `design/unmyeong/book-preview.html`(입력: 모바일 한 쪽 / PC 양면), `-error`(오류 상태), `-opening`(열림 연출), `-enter`(영상 끝 → 어두워짐), `-result`(결과 쪽). 글꼴은 Google Fonts에서 받는다(인터넷 없을 때는 `… build-book-preview.mjs <출력폴더> next` — `.next` 빌드에 받아 둔 같은 글꼴 사용). **붓 밑줄은 CSS mask라 `file://`로 열면 안 보인다** — 로컬 웹 서버로 연다.
 - 2026-11-28 디자인 실장 확인(390×844·1280×800 화면을 직접 보고 고침): 1차(5.5점) 종이 섬유가 천처럼 줄무늬, 종이 회색, 가죽이 얇은 붉은 테, select 꺾쇠가 '시' 글자와 겹침, PC 높이 넘침 → 2차(6.8점) 섬유·가죽 결 새로 그림, 칸 너비(`chars`), PC 구성(왼쪽 제목·인장 / 오른쪽 기록) → 3차(8점) 열림 연출 시간표 맞춤(회전·드러남·그림자 같은 지점), 인장 금 선이 밀랍 밖으로 나가던 것 자름, 포커스 상자 테두리 → 먹 밑줄. 남은 점: 모바일 왼쪽 맞은편 장 끝자락이 조금 밝게 보임(취향 범위), 1280×800에서 PC 책 아래 끝이 화면 끝에 거의 닿음(바깥 여백은 화면 쪽에서 조절).
 - 금지(8-5 그대로): 마법진·반짝이·과한 금색·이모지·굵은 테두리·형광·광택 버튼. 인장의 은은한 그늘·광택(불투명도 0.1)은 밀랍 물성 표현이며 버튼 그라데이션이 아니다.
+
+### 9-5. 타이포 5단계와 넘침 방지 [현행 — 디자인 실장 2026-11-28, 대표 실기기 사진 「글자 크기가 제각각이네」]
+- **원인(실기기 안드로이드, Claude 앱 미리보기)**: ① 안드로이드 WebView는 사용자 글꼴 크기(textZoom)를 「자동 글자 확대(text autosizing)」로 먹인다 — 덩어리마다 배율이 달라 긴 글(할머니 말·도움말)은 커지고 짧은 라벨·줄바꿈 금지 글은 그대로라 크기가 제각각이 되고, 칸 폭은 그대로라 값이 잘렸다(1992의 2가 「년」과 겹침, 「모름」이 꺾쇠와 겹침). `text-size-adjust`만으로는 꺼지지 않는다(확대 배율이 그 위에 다시 곱해짐). ② 칸 폭을 「글자 수 × 0.62em」으로 잡아 굵은 명조 숫자(실측 0.63em)에 모자랐다 — 확대가 없어도 412px에서 1~2px 잘림(검사 도구로 확인). ③ 할머니 말 17 · 값 18 · 라벨 14 · 도움말 13 · 부제 15 · 인장 16 — 여섯 단계가 섞여 있었다.
+- **5단계(기준 글자 t = 쪽 폭 비례 16~20px, rem 기준)**
+
+| 단계 | 비율 | t=16(휴대폰) | t=20(큰 PC) | 쓰는 곳 | 토큰 |
+|---|---|---|---|---|---|
+| T1 제목 | 쪽 폭 비례 | 34~(運命秘書) · 24~(장 제목) | 68 · 36 | 運命秘書, 장 제목, 원국 한자 | `--ub-fs-han` · `--ub-fs-chapter` |
+| T2 할머니 말 | 1.0625t | 17 | 21.3 | 할머니 말, 결과 소제목(h3)·핵심 한 줄·그림 이름·근거 펼침 | `--ub-fs-voice` |
+| T3 값·본문 | 1t | 16 | 20 | 입력 값, 고르는 글자(양력·남·여), 본문, 인장 글 | `--ub-fs-value` = `--ub-fs-body` |
+| T4 라벨 | 0.9375t | 15 | 18.8 | 칸 라벨, 년·월·일·시 꼬리, 부제 「운명비서」, 한 줄 문구, 장 번호, 구분 점 | `--ub-fs-label` (`--ub-fs-sub` 같은 값) |
+| T5 도움말 | 0.8125t | 13 | 16.3 | 도움말, 오류, 고지, 쪽 번호, 필수 「꼭」, 인장 아래 작은 글 | `--ub-fs-fine` |
+
+  - 서재(어두운 배경) 위 글은 t = 1.0625rem(17px) 고정으로 같은 비율을 쓴다(결과 표지·서가). 새 크기를 만들지 말고 다섯 단계에서 고른다 — `scripts/qa/visual-check.cjs`가 종이 위 단계가 5개를 넘으면 경고한다.
+- **넘침 원천 차단 규칙**
+  - 루트에 `text-size-adjust: 100%` + `.um-root`·`.ub-book__content`에 `max-height: 1000000px`(높이 상한이 있는 상자 안 글은 자동 확대하지 않는 엔진 규칙 — 화면에는 영향 없음). 대신 모든 크기를 rem으로 잡아 브라우저 글꼴 설정·페이지 확대는 모든 단계에 같은 배율로 먹는다. (그 결과 WebView 앱의 textZoom은 이 화면에 적용되지 않는다 — 기본 글자가 16~20px라 읽기 크기는 확보.)
+  - 줄바꿈 금지(`nowrap`) 쓰지 않는다. 한 줄 문구는 쉼표 뒤 의미 단위로 먼저 꺾이고(`text-wrap: balance` + 묶음 `max-width:100%`), 라벨은 낱말 사이에서 꺾인다(`word-break: keep-all`). 원국 「연주(年柱)」·「나(일간)」은 괄호 앞 `<wbr>`.
+  - 묶음 칸(년·월·일 / 시·분): 칸 폭 = `chars × 0.66em`(+여백 4px, select는 꺾쇠 자리 24px) — em이라 글자와 같이 커진다. 남는 폭은 4:2:2로 나누되 한 칸이 줄 끝까지 늘어지지 않게 상한(1.5배). 한 줄에 안 들어가면 다음 줄로(`flex-wrap`), 한 칸이 묶음보다 길면 묶음 폭까지만(묶음 = 컨테이너, `100cqi`).
+  - select는 오른쪽 24px(묶음 칸)·30px(긴 칸)를 꺾쇠 자리로 비운다. 고른 글이 길어질 수 있는 칸은 짧은 이름을 쓴다: 대략 시간대 = 「새벽 2시경 (축시)」(시간 범위는 도움말 줄에), 한밤중 = select 대신 글자 고르기 「모름 · 자정 전 · 자정 후」. 대략 시간대를 고르면 분 칸은 감춘다.
+  - 결과 서가 책등 높이는 em(글자가 커지면 책등도 길어져 제목이 옆으로 넘치지 않음).
+- **검사(유지관리)**: `node scripts/preview/build-unmyeong-preview.mjs <폴더>` → `node scripts/qa/visual-check.cjs <폴더> [스크린샷 폴더]`. 7조건(412 안드로이드·390 아이폰·360·412+글자115%·412+글자130%·1440·1920) × 입력/한밤중/결과 — 넘침·잘림·겹침 0건이어야 통과. 사용법은 스크립트 머리 주석.
 

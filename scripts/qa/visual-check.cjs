@@ -33,6 +33,7 @@
 //   pc1440   1440×900   PC 양면
 //   pc1920   1920×1080  큰 PC
 //   ※ 모두 헤드리스 Chromium 흉내다. 실제 기기·사파리 측정이 아니다(대표 실기기 확인은 따로).
+/* eslint-disable @typescript-eslint/no-require-imports -- Node 전용 CommonJS 검사 도구(다른 scripts/qa/*.cjs 와 같은 방식) */
 const { chromium } = require("playwright")
 const http = require("node:http")
 const fs = require("node:fs")
@@ -232,13 +233,17 @@ function steps(sizes, paper) {
 // 글자 확대 흉내(㉮ + ㉯). 화면이 바뀔 때마다 다시 건다(이미 키운 글자는 되돌린 뒤 다시 잰다)
 async function zoomText(page, z) {
   if (!z) return
-  await page.evaluate(z => {
+  await page.evaluate(async z => {
+    // 쪽 폭(cqi)에 걸린 글자 크기는 배치가 끝나야 새 값이 나온다 → 글자 크기를 바꿀 때마다 한 화면(프레임)을 기다린다
+    const settle = async () => { void document.body.offsetHeight; await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))) }
     const root = document.documentElement
     for (const el of document.querySelectorAll("[data-vc-z]")) { el.style.removeProperty("font-size"); el.removeAttribute("data-vc-z") }
     root.style.fontSize = ""
+    await settle()
     const els = [...document.body.querySelectorAll("*")]
     const base = els.map(el => parseFloat(getComputedStyle(el).fontSize))
     root.style.fontSize = `${z * 100}%`
+    await settle()
     const now = els.map(el => parseFloat(getComputedStyle(el).fontSize))
     els.forEach((el, i) => { if (now[i] < base[i] * z - 0.3) { el.style.setProperty("font-size", `${(base[i] * z).toFixed(2)}px`, "important"); el.setAttribute("data-vc-z", "") } })
   }, z)
@@ -309,7 +314,7 @@ async function fillAndSubmit(page) {
         await page.waitForTimeout(250)
       }
       await zoomText(page, c.zoom)
-      if (screen === "sijin") await page.evaluate(() => { const s = document.querySelector('select[aria-label="태어난 시"]'); s && s.scrollIntoView({ block: "center" }) })
+      if (screen === "sijin") await page.evaluate(() => { document.querySelector('select[aria-label="태어난 시"]')?.scrollIntoView({ block: "center" }) })
       const shot = path.join(SHOTS, `${c.id}-${screen}.png`)
       await page.screenshot({ path: shot })
       const r = await page.evaluate(detect)
