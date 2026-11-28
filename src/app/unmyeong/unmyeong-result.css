@@ -51,6 +51,8 @@
 .umr-wg-cell i{font-style:normal;font-size:var(--ub-fs-label);font-weight:700;color:var(--el)}
 .umr-wg-tag{font-size:var(--ub-fs-fine);color:var(--ub-error);font-weight:700;min-height:1.5em;word-break:keep-all;line-height:1.5}
 .umr-wg-unknown{font-size:var(--ub-fs-body);color:var(--ub-ink-soft);padding:1.5rem 0}
+/* 판이 아주 좁으면(칸 글 폭이 「모름」 두 자보다 좁다 — 200% 확대) 「모름」을 세로로 — 옆 칸의 한자 두 자처럼 위아래로 선다 */
+@container umr-pillars (max-width:14em){.umr-wg-unknown{writing-mode:vertical-rl;letter-spacing:.1em;padding:1rem 0}}
 /* 원국 설명 문장 = 본문 역할 → T3(장 본문과 같은 크기) */
 .umr-wg-note,.umr-wg-line{margin:.7em 0 0!important;font-size:var(--ub-fs-body);line-height:1.75}
 .umr-els-bar{display:flex;height:18px;border-radius:2px;overflow:hidden;background:rgb(42 33 25/.14)}
@@ -61,6 +63,13 @@
 .umr-els-name{display:inline-block;word-break:keep-all}
 .umr-els-legend b{color:var(--el)}.umr-els-legend [lang]{margin-left:1px}
 .umr-els-pct{font-variant-numeric:tabular-nums;color:var(--ub-ink-soft)}
+/* 다섯 칸이 들어갈 폭(칸마다 「목木」·「100%」 약 2.3em + 칸 사이)이 안 되면 — 200%·150% 확대의 좁은 쪽 — 한 줄에 한 기운씩
+   「목木 ··· 0%」 세로 목록(이름 왼쪽·비율 오른쪽 끝). 칸끼리 겹치지 않는다(N2). 쿼리 em = 범례 글자(T3) */
+.umr-els{container:umr-els / inline-size;font-size:var(--ub-fs-body)}
+@container umr-els (max-width:11.5em){
+ .umr-els-legend{display:flex;flex-direction:column;gap:.1em;max-width:9em;margin-inline:auto!important;text-align:left}
+ .umr-els-legend li{flex-direction:row;justify-content:space-between;align-items:baseline;gap:.75em}
+}
 .umr-list{margin:0;padding-left:1.1em}.umr-list li{margin:.3em 0}
 .umr-eltxt{color:var(--el);font-weight:700}
 /* 근거 끝 고지(시각 모름·학파 차이 등) = 정확성에 관한 읽는 글 → T3 */
@@ -128,6 +137,16 @@
 .umb-links{margin-top:4px}
 .umb-foot{margin-top:18px}
 @media (max-width:400px){.umb-spines{gap:3px;padding:0}.umb-spines li{flex-basis:56px}}
+/* 서가 폭이 책등 다섯 권 × 44px(누르는 폭) + 틈보다 좁으면(200% 확대 206px 등) 두 단 서가 — 위 세 권 · 아래 두 권.
+   칸마다 제 선반(li::after)을 깔고 맨 아래 공용 선반은 숨긴다(N5) */
+.umb-shelf{container:umb-shelf / inline-size}
+@container umb-shelf (max-width:239.98px){
+ .umb-spines{flex-wrap:wrap;row-gap:40px;column-gap:3px;padding:0 0 14px}
+ .umb-spines li{position:relative;flex:0 0 calc((100% - 6px) / 3)}
+ .umb-spines li::after{content:"";position:absolute;left:-2px;right:-2px;bottom:-14px;height:14px;border-radius:1px;
+  background:linear-gradient(#4a3a28,#2a2016 60%,#17110b);box-shadow:0 8px 14px rgb(0 0 0/.45),inset 0 1px 0 rgb(255 220 180/.15)}
+ .umb-plank{display:none}
+}
 @media (prefers-reduced-motion:reduce){.umb-spine,.umb-fold__mark::before,.umb-fold__mark::after{transition:none}}
 
 /* 입력 화면(원장형) 보조 */

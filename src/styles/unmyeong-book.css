@@ -823,8 +823,9 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
   container: ub-choice / inline-size;
   contain-intrinsic-inline-size: 10em; /* 내용 폭을 재지 않는 컨테이너 — 넓은 칸 나란히(.ub-fields-row)에서 쓰는 폭 */
   font-size: calc(var(--ub-fs-value) * var(--ub-choice-need, 10) / 10);
-  /* 첫 글자를 라벨(위아래형)·다른 값(장부형)의 왼쪽 끝에 맞춘다 — 칸 여백 0.45t + 짧은 첫 글자가 가운데로 들어간 만큼(lead) */
-  margin-left: calc(var(--ub-t) * (-0.45 - var(--ub-choice-lead, 0)));
+  /* 첫 글자를 라벨(위아래형)·다른 값(장부형)의 왼쪽 끝에 맞춘다 — 칸 여백 0.45t + 짧은 첫 글자가 48px 칸 가운데로 들어간 만큼
+     (48px − 첫 칸 글자·여백 폭 --ub-choice-first × t) / 2. 칸 최소 폭이 px 라 글자가 커지면 당기는 양이 줄어든다(N3) */
+  margin-left: calc(var(--ub-t) * -0.45 - max(0px, (48px - var(--ub-choice-first, 3) * var(--ub-t)) / 2));
 }
 .ub-choice__opts {
   display: flex;
@@ -1277,6 +1278,61 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
     linear-gradient(to right, rgb(52 32 14 / 0.5), rgb(52 32 14 / 0.2) 12%, rgb(255 240 210 / 0.08) 36%, transparent) 0 0 / min(16%, 120px) 100% no-repeat,
     var(--ub-paper-bg);
 }
+/* 넘침 표시(UmPageMore, 2026-11-28 품질검증 N1) — 쪽 안이 넘칠 때만: 쪽 아래 끝 종이가 옅게 흐려지고(글 단 전체),
+ * 오른쪽 여백에 세로쓰기 방주(傍註)처럼 「아래에 더 있다 ⌄」 — 세로로 읽는 방향이 곧 내릴 방향이다.
+ * 글은 쪽 여백(padding-right) 안에만 놓여 글 단의 글자와 겹치지 않는다(흐림은 글자가 없는 겹이라 겹침이 아니다).
+ * 쪽(스크롤 상자)의 마지막 자식이 sticky 로 쪽 아래 끝(아래 여백까지 덮어 종이 끝선)에 붙는다. 자리 차지 0(음수 margin) · 누르기 통과
+ * (표시 위를 쓸어도 쪽이 내려간다) · 낭독 제외. 가려진 높이가 48px 이하가 되면 걷힌다.
+ * 쪽 여백 px(아래·오른쪽)는 % 값이라 컴포넌트가 재서 --ub-more-pb / --ub-more-pr 로 넘긴다.
+ * 흐림 색 = 쪽 아래 가운데 종이 실측 — 양옆은 마스크로 풀어 경계가 보이지 않게. 글은 T3(16px) 옅은 먹.
+ */
+.ub-book__more {
+  --ub-more-h: 4rem;
+  position: sticky;
+  bottom: calc(-1 * var(--ub-more-pb, 0px));
+  z-index: 2;
+  flex: none;
+  height: var(--ub-more-h);
+  margin-top: calc(-1 * var(--ub-more-h));
+  margin-right: calc(-1 * var(--ub-more-pr, 0px)); /* 오른쪽 여백까지 — 세로 글이 이 상자 안에 든다 */
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s ease, visibility 0s linear 0.35s;
+}
+.ub-book__more::before {
+  content: "";
+  position: absolute;
+  inset: 0 var(--ub-more-pr, 0px) 0 0; /* 흐림은 글 단 폭만 */
+  /* 쪽 아래 종이 실측: 가운데 (211 196 165) → 끝선 가까이 그을려 (199 183 151) */
+  background: linear-gradient(to bottom, rgb(211 196 165 / 0), rgb(210 195 164 / 0.88) 50%, rgb(203 187 155 / 0.96));
+  -webkit-mask: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent);
+  mask: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent);
+}
+.ub-book__more[data-on] { opacity: 1; visibility: visible; transition: opacity 0.35s ease, visibility 0s; }
+.ub-book__more-label {
+  position: absolute;
+  bottom: 8px;
+  /* 오른쪽 여백 가운데 — 여백 폭(--ub-more-pr)에서 글자 폭(1em)을 뺀 절반만큼 종이 끝에서 안쪽 */
+  right: max(0px, calc((var(--ub-more-pr, 1.25rem) - 1em) / 2));
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  writing-mode: vertical-rl;
+  font-family: var(--um-font-title);
+  font-weight: 700;
+  font-size: 1rem; /* T3 — 쪽 밖 t 와 같은 16px(rem) */
+  line-height: 1;
+  letter-spacing: 0.08em;
+  color: var(--ub-ink-soft);
+  white-space: pre; /* 세로 한 줄(낱말 사이 띄어쓰기 유지) — 7자라 쪽 높이보다 늘 짧다 */
+}
+.ub-book__more-mark { flex: none; width: 14px; height: 9px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+/* 세로쓰기 안의 꺾쇠는 돌지 않고 그대로 아래를 가리킨다(svg 는 글자가 아니라 눕지 않음) */
+/* 책이 펼쳐지는 동안(0.9초)은 보이지 않다가 글이 스민 뒤에 나타난다(끝 프레임 없음 → 그때의 실제 상태로 이어짐) */
+.ub-book--opening .ub-book__more { animation: ub-more-wait 1.1s linear both; }
+@keyframes ub-more-wait { 0%, 82% { opacity: 0; } }
+
 /* grow: 2:3이 최소, 글이 길면 늘어난다 — 글은 쪽 위에서 시작하고(마주 보는 두 쪽의 첫 줄 높이가 같게) 쪽 번호는 맨 아래 */
 .ub-book--fit-grow .ub-book__content > .ub-bookpage { flex: 1 1 auto; display: flex; flex-direction: column; }
 .ub-book--fit-grow .ub-bookpage > .ub-folio { margin-top: auto; padding-top: calc(var(--ub-t) * 2); }
@@ -1358,6 +1414,7 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
   .ub-choice__dot { transition: none; }
   .ub-seal__wax, .ub-seal__half { transition: none !important; }
   .ub-seal__crack, .ub-seal__branch { animation: none !important; }
+  .ub-book__more, .ub-book__more[data-on] { transition: none; animation: none !important; }
 }
 @media (forced-colors: active) {
   .ub-ink__line, .ub-ink__wet { -webkit-mask: none; mask: none; height: 1px; background: CanvasText; forced-color-adjust: none; }
@@ -1366,4 +1423,5 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
   .ub-choice__input:checked ~ .ub-choice__text { text-decoration: underline; }
   .ub-seal { border: 2px solid ButtonText; }
   .ub-book__page, .ub-paper-surface { border: 1px solid CanvasText; }
+  .ub-book__more::before { background: Canvas; -webkit-mask: none; mask: none; }
 }

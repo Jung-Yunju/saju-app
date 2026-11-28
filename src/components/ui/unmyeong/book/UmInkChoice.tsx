@@ -46,16 +46,18 @@ const RINGS_DRY = [
  * (굵은 명조 한 자 실측 ≈ 0.98t → 1t, 띄어쓰기 0.3t, 숫자·로마자 0.62t).
  * 글자 칸 = max(48px ≈ 3t, 글자 + 좌우 여백 0.9t), 칸 사이(구분 점 자리) 0.5t, 여유 0.15t. 이 폭보다 좁으면 한 항목만 떨어지는 대신
  * 모두 세로 목록으로 바뀐다(CSS 컨테이너 쿼리 — unmyeong-book.css 「5. UmInkChoice」).
- * lead = 첫 칸이 48px 보다 짧은 글자(「남」)라 가운데로 들어간 만큼 — 줄을 그만큼 왼쪽으로 당겨 첫 글자를 다른 값의 왼쪽 끝에 맞춘다.
+ * first = 첫 칸의 글자 + 좌우 여백 폭(t 단위). 첫 칸이 48px 보다 짧은 글자(「남」)면 가운데로 들어간 만큼 줄을 왼쪽으로 당겨
+ * 첫 글자를 다른 값의 왼쪽 끝에 맞춘다 — 당기는 양 = (48px − first × t) / 2 를 CSS 에서 계산(칸 최소 폭 48px 는 고정 px 라
+ * 글자가 커지면 당길 양이 줄어든다. 예전처럼 t 비례로 미리 계산하면 글자 130%에서 7px 지나치게 당겨졌다 — 품질검증 N3).
  */
-function choiceMetrics(labels: ReactNode[]): { need: number; lead: number } {
+function choiceMetrics(labels: ReactNode[]): { need: number; first: number } {
   const text = labels.map(l => {
     const t = typeof l === "string" || typeof l === "number" ? String(l) : "가나"
     return [...t].reduce((n, c) => n + (c === " " ? 0.3 : /[0-9a-zA-Z]/.test(c) ? 0.62 : 1), 0)
   })
   const w = text.map(x => Math.max(3, x + 0.9))
   const r = (n: number) => Math.round(n * 100) / 100
-  return { need: r(w.reduce((a, b) => a + b, 0) + (w.length - 1) * 0.5 + 0.15), lead: r(Math.max(0, (3 - (text[0] + 0.9)) / 2)) }
+  return { need: r(w.reduce((a, b) => a + b, 0) + (w.length - 1) * 0.5 + 0.15), first: r(text[0] + 0.9) }
 }
 
 /**
@@ -73,7 +75,7 @@ export function UmInkChoice({ legend, name, options, value, defaultValue, onChan
   return (
     <fieldset className={cx("ub-choice", error ? "ub-ink--error" : null, className)} aria-describedby={describedBy} aria-invalid={error ? true : undefined}>
       <legend className="ub-choice__legend">{legend}</legend>
-      <div className="ub-choice__row" style={{ "--ub-choice-need": m.need, "--ub-choice-lead": m.lead } as CSSProperties}>
+      <div className="ub-choice__row" style={{ "--ub-choice-need": m.need, "--ub-choice-first": m.first } as CSSProperties}>
         <div className="ub-choice__opts">
           {options.map((o, i) => (
             <label className="ub-choice__opt" key={o.value}>

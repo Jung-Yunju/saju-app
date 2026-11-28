@@ -1,5 +1,6 @@
 import type { ReactNode } from "react"
 import { cx } from "../cx"
+import { UmPageMore } from "./UmPageMore"
 
 export type UmBookProps = {
   /**
@@ -20,7 +21,8 @@ export type UmBookProps = {
   rightAlign?: "start" | "center"
   /**
    * 화면 맞춤(D-034 비율 체계). 한 쪽 = 실제 고서 비율 2:3, 펼침 = 4:3.
-   * lock = 책 전체(가죽 테 포함)가 첫 화면 높이에 꼭 들어간다. 넘치는 내용은 쪽 안에서 스크롤(아주 작은 화면만).
+   * lock = 책 전체(가죽 테 포함)가 첫 화면 높이에 꼭 들어간다. 넘치는 내용은 쪽 안에서 스크롤(아주 작은 화면만) —
+   *        넘칠 때만 쪽 아래 끝에 흐림과 「아래에 더 있다」 표시(UmPageMore)가 붙고, 끝까지 내리면 걷힌다.
    *        화면 자체가 2:3보다 좁은 휴대폰 세로에서는 한 쪽이 화면을 채운다(폭이 먼저 닿는다).
    * grow = 폭은 lock과 같은 규칙, 쪽은 2:3을 최소로 하고 글이 길면 아래로 늘어난다(결과 장).
    * 바깥 여백은 부모가 --ub-stage-pad 로 준다(기본 16px).
@@ -39,6 +41,7 @@ export function UmBook({ layout, left, right, children, opening, fit, leftAlign,
   const page = (side: "left" | "right" | "single", body: ReactNode) => (
     <div className={`ub-book__page ub-book__page--${side}`} data-align={(side === "left" ? leftAlign : rightAlign) ?? undefined}>
       <div className="ub-book__content">{body}</div>
+      {fit === "lock" && <UmPageMore />}
     </div>
   )
   let block: ReactNode

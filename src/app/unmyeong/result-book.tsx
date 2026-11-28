@@ -64,8 +64,18 @@ function Pending() {
   return <p className="umr-pending">이 장은 아직 먹을 갈고 있단다. 글이 다 적히면 여기 펼쳐질 것이다.</p>
 }
 
+/** 문단 끝 몇 낱말을 한 덩어리로 — 마지막 줄이 「수 있다.」처럼 짧은 두세 낱말로 남지 않게(N4, text-wrap: pretty 는 한 낱말만 막는다).
+ *  끝에서부터 글자(띄어쓰기 제외) 6자 이상이 될 때까지, 많아야 세 낱말. 덩어리는 inline-block 이라 줄보다 길면 그 안에서 꺾인다 */
+function tailKeep(p: string): React.ReactNode {
+  const w = p.split(" ")
+  let n = 0, len = 0
+  while (n < Math.min(3, w.length - 2) && len < 6) len += [...w[w.length - 1 - n++]].length
+  if (n < 2) return p
+  return <>{w.slice(0, -n).join(" ")} <span className="umr-keep">{w.slice(-n).join(" ")}</span></>
+}
+
 function Body({ text }: { text: string }) {
-  return <>{text.split(/\n+/).map((p, i) => <p key={i}>{p}</p>)}</>
+  return <>{text.split(/\n+/).map((p, i) => <p key={i}>{tailKeep(p)}</p>)}</>
 }
 
 function Wongook({ data }: { data: UnmyeongFreeResponse }) {
@@ -99,12 +109,15 @@ function Wongook({ data }: { data: UnmyeongFreeResponse }) {
       <p className="umr-wg-line">나를 나타내는 글자(일간)는 <Keep><b lang="zh">{data.dayMaster.hanja}</b>({data.dayMaster.ko}),</Keep> <Keep>{data.dayMaster.element}의 기운이란다.</Keep></p>
 
       <h3>오행 다섯 기운</h3>
-      <div className="umr-els-bar" role="img" aria-label={items.map(e => `${e.ko} ${Math.round(e.share * 100)}%`).join(", ")}>
-        {items.filter(e => e.share > 0).map(e => <i key={e.el} data-el={e.el} style={{ flexGrow: e.share }} />)}
+      {/* 막대 + 범례 묶음이 컨테이너 — 다섯 칸이 들어갈 폭이 안 되면(200% 확대 등) 범례가 한 줄에 한 기운씩 세로 목록이 된다(N2) */}
+      <div className="umr-els">
+        <div className="umr-els-bar" role="img" aria-label={items.map(e => `${e.ko} ${Math.round(e.share * 100)}%`).join(", ")}>
+          {items.filter(e => e.share > 0).map(e => <i key={e.el} data-el={e.el} style={{ flexGrow: e.share }} />)}
+        </div>
+        <ul className="umr-els-legend" aria-hidden="true">
+          {items.map(e => <li key={e.el} data-el={e.el}><span className="umr-els-name"><b>{e.ko}</b><span lang="zh">{e.hanja}</span></span> <span className="umr-els-pct">{Math.round(e.share * 100)}%</span></li>)}
+        </ul>
       </div>
-      <ul className="umr-els-legend" aria-hidden="true">
-        {items.map(e => <li key={e.el} data-el={e.el}><span className="umr-els-name"><b>{e.ko}</b><span lang="zh">{e.hanja}</span></span> <span className="umr-els-pct">{Math.round(e.share * 100)}%</span></li>)}
-      </ul>
 
       <p className="umr-wg-line">
         {cur ? <>지금은 <Keep><b lang="zh">{cur.hanja}</b>({cur.ko}) 대운,</Keep>{" "}</> : null}

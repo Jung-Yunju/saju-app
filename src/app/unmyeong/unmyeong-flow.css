@@ -82,7 +82,27 @@
 .umf-stage>form{width:100%;display:flex;flex-direction:column;align-items:center}
 /* 쪽 안 세로 리듬(2026-11-28 품질검증 S9): 덩어리 사이 간격은 화면 높이(dvh)로만 정하고 상태(한밤중 칸이 열림 등)에 따라 바뀌지 않는다.
    남는 높이는 덩어리 묶음의 위·아래로 똑같이(첫·마지막 덩어리 margin auto — 넘치면 위에서부터, 제목이 잘려 올라가지 않음) */
-.umf-stage{--umf-gap:clamp(calc(var(--ub-t)*.9),2.8dvh,calc(var(--ub-t)*2.4));--umf-row-gap:clamp(calc(var(--ub-t)*.5),1.4dvh,calc(var(--ub-t)*1.2))}
+/* 낮은 화면 조이기(2026-11-28 품질검증 N1 — 주소창 때문에 실제로 보이는 높이가 780·760·740·700px 인 휴대폰에서 인장이 첫 화면 밖으로 밀림).
+   --umf-sq = 보이는 높이가 940px 보다 모자란 만큼(0~240px, 휴대폰 한 쪽만). 간격·여백만 이만큼에 비례해 줄인다 —
+   글자 크기(T1~T5)·칸 높이(터치 44px)·인장 크기는 그대로. 412×915 처럼 넉넉한 화면은 거의 그대로(--umf-sq 25px). */
+.umf-stage{--umf-gap:max(calc(var(--ub-t)*.5),calc(clamp(calc(var(--ub-t)*.9),2.8dvh,calc(var(--ub-t)*2.4)) - var(--umf-sq,0px)*.085));
+ --umf-row-gap:max(calc(var(--ub-t)*.25),calc(clamp(calc(var(--ub-t)*.5),1.4dvh,calc(var(--ub-t)*1.2)) - var(--umf-sq,0px)*.045))}
+@media (max-width:719.98px){
+ .umf-stage{--umf-sq:clamp(0px,calc(940px - 100dvh),240px)}
+ /* 쪽 위·아래 여백(쪽 폭의 6%)과 제목 묶음 안 여백(황동선 위아래), 할머니 말 줄 간격, 인장과 글 사이 */
+ .umf-stage .ub-book--fit-lock{--ub-page-pad-y:clamp(12px,calc(6% - var(--umf-sq)*.05),52px)}
+ .umf-stage .ub-title__rule{margin-block:max(calc(var(--ub-t)*.6),calc(var(--ub-t)*1.25 - var(--umf-sq)*.055))}
+ .umf-stage .ub-title__ko{margin-top:max(.4em,calc(.7em - var(--umf-sq)*.03))}
+ .umf-voice{line-height:max(calc(var(--ub-fs-voice)*1.5),calc(var(--ub-fs-voice)*1.75 - var(--umf-sq)*.02))}
+ .umf-seal .ub-seal{gap:max(4px,calc(10px - var(--umf-sq)*.03));padding-top:max(2px,calc(6px - var(--umf-sq)*.02))}
+ .umf-stage .ub-ink__hint{margin-top:max(.15em,calc(.35em - var(--umf-sq)*.015));line-height:max(calc(var(--ub-fs-body)*1.4),calc(var(--ub-fs-body)*1.55 - var(--umf-sq)*.012))}
+}
+/* 아주 낮은 화면(보이는 높이 720px 이하 — 360×700 등): 인장 글을 인장 옆으로(봉인 옆 제첨처럼) — 인장 묶음 높이 88 → 64px.
+   글이 길어 옆에 다 안 들어가면 낱말 사이에서 두 줄(가운데 맞춤 균형). 이보다 낮거나 글자가 크면 넘치고 「아래에 더 있다」 표시가 붙는다 */
+@media (max-width:719.98px) and (max-height:720px){
+ .umf-seal .ub-seal{flex-direction:row;gap:12px;padding:2px 10px 2px 6px;text-align:left}
+ .umf-seal .ub-seal__label{max-width:11em;text-align:center}
+}
 .umf-stage .ub-book__content{justify-content:flex-start;gap:var(--umf-gap);--ub-title-pad-top:0px;--ub-title-pad-bottom:0px}
 .umf-stage .ub-book__page[data-align="center"] .ub-book__content{justify-content:flex-start}
 .umf-stage .ub-book__content>:first-child{margin-top:auto}
