@@ -80,8 +80,13 @@ interface ExpressionReport {
   version: string; rulesHash: string
   innate: ChartPotential[]             // 타고난 나의 본질
   readings: DimensionReading[]         // 발현·발전·미활용·차이
-  conflicts: { dimensionId?: string; kind: "chart-vs-self" | "self-vs-self" | "missing"; note: string }[]  // 상충·불확실
-  luck: { scope: "daeun" | "seun"; ganzhi: string; activates: string[]; strategy: string[] }[]          // 운이 건드리는 차원 × 현재 상태 → 행동 방향 id
+  conflicts: { dimensionId?: string; kind: "chart-vs-self" | "self-vs-self" | "missing" | "chart-uncertain"; note: string }[]  // 상충·불확실 (chart-uncertain = 시주 모름·경계·표 민감)
+  luck: {
+    scope: "daeun" | "seun"; ganzhi: string
+    touches: { dimensionId: string; how: "activate" | "bridge" | "press"; positions: string[] }[]  // 운 글자가 차원을 켬·이어 줌·누름
+    tone?: "favorable" | "burden" | "neutral"   // 억부 희기 — 경계·표 민감이면 생략
+    activates: string[]; strategy: string[]
+  }[]          // 운이 건드리는 차원 × 현재 상태 → 행동 방향 id
   gaeun: string[]                      // pickGaeun 결과 id(상태에 따라 순서 조정)
   archetype: { id: string }            // 신성과 내면의 영물(기존 엔진)
   sections: Record<ExpressionSectionId, string[]>   // 9개 결과 항목 ↔ 근거 id 목록
@@ -95,7 +100,10 @@ type ExpressionSectionId =
 ## 6. MBTI 다루는 법 (원칙 1·3·5의 구체화)
 - MBTI는 **"지금 스스로 그렇게 느낀다"는 자기보고**로만 쓴다. 원국·운 계산 입력에 절대 들어가지 않는다.
 - MBTI 축 ↔ 기질 차원 대응은 **운명비서 자기이해 모델의 가설 표**다. 표에 `claim: "service-model"`을 붙이고, 출력에는 "검증된 상관"이라는 표현을 만들 수 없게 한다(문구 금지어 시험).
-- MBTI만으로는 `developed`(살아오며 키움)를 판정하지 않는다 — **직업·경험 등 사실(UserFact) 1개 이상이 같은 방향**일 때만. MBTI만 있으면 `self.signal`을 약하게(한 단계 낮춤) 쓰고 `conflicts`에 "missing"을 남긴다.
+- MBTI만으로는 `developed`(살아오며 키움)를 판정하지 않는다 — **자기 기질에 대한 사실(강점·일하는 방식 등 UserFact) 1개 이상이 같은 방향**일 때만. 직업 상태·최근 변화 같은 상황 사실만으로도 `developed` 금지(2026-11-28 연구소장 권고 채택).
+- MBTI 4축 중 E/I·S/N·J/P만 차원 신호로 쓰고 T/F는 조언 문체 힌트로만 쓴다(연구소장 의견).
+- 시주 모름: 12시진 재계산에서 8/12 이상 같은 판정일 때만 `dormant`·`developed`, 아니면 `unknown` + `chart-uncertain`.
+- 차원 판정 규칙·근거: `docs/knowledge/personalization/expression-dimensions.md`(연구소장, 근거 등급 L0 — 고전 원문 대조 0건). MBTI만 있으면 `self.signal`을 약하게(한 단계 낮춤) 쓰고 `conflicts`에 "missing"을 남긴다.
 - MBTI를 모르거나 건너뛰어도 엔진은 돈다(그때는 설문 사실만, 둘 다 없으면 `unknown`).
 
 ## 7. 반드시 통과해야 할 시험
