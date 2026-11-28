@@ -1,0 +1,3692 @@
+{
+ "ruleSet": "research-12@0.1.0",
+ "rows": [
+  {
+   "id": "은하-1",
+   "src": "명세 사례 8",
+   "pillars": [
+    "庚申",
+    "戊子",
+    "丙申",
+    "壬辰"
+   ],
+   "invalid": [],
+   "date": "2041-01-03",
+   "engine": {
+    "archetype": "galaxy",
+    "secondary": "baekho",
+    "alsoMatched": [
+     "baekho"
+    ],
+    "ruleId": "arch.v1.01.galaxy",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": true
+     }
+    ],
+    "S": 1.3,
+    "total": 10.5,
+    "r": 0.12381,
+    "verdict": "신약",
+    "extreme": "weak",
+    "nearBoundary": false,
+    "T": -1,
+    "M": 2.5,
+    "tClass": "한",
+    "mClass": "습강",
+    "groupTotals": {
+     "bigyeop": 0,
+     "siksang": 2.183333,
+     "jaeseong": 2.333333,
+     "gwansal": 4.683333,
+     "inseong": 0.3
+    },
+    "gs": {
+     "bigyeop": 0,
+     "inseong": 0.028571,
+     "siksang": 0.207936,
+     "jaeseong": 0.222222,
+     "gwansal": 0.446032
+    },
+    "shares": {
+     "wood": 0.028571,
+     "fire": 0.095238,
+     "earth": 0.207936,
+     "metal": 0.222222,
+     "water": 0.446032
+    },
+    "structure": "칠살격",
+    "special": [
+     "종살격 후보"
+    ],
+    "flags": [],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": true,
+     "toWealth": true,
+     "fromResource": false
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "galaxy",
+      "secondary": "baekho"
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "galaxy",
+      "secondary": "baekho"
+     },
+     {
+      "tableId": "main-only",
+      "primary": "galaxy",
+      "secondary": "baekho"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "galaxy",
+    "S": 39,
+    "total": 315,
+    "r": 0.12381,
+    "extreme": "weak",
+    "special": "종살"
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 1.3 / 손 39",
+    "T합 엔진 10.5 / 손 315"
+   ]
+  },
+  {
+   "id": "은하-2",
+   "src": "명세 사례 9",
+   "pillars": [
+    "戊午",
+    "己未",
+    "戊戌",
+    "丁巳"
+   ],
+   "invalid": [],
+   "date": "1978-08-04",
+   "engine": {
+    "archetype": "galaxy",
+    "secondary": "golden-sun",
+    "alsoMatched": [
+     "golden-sun",
+     "silver-wolf"
+    ],
+    "ruleId": "arch.v1.01.galaxy",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": true
+     }
+    ],
+    "S": 9.516667,
+    "total": 10.5,
+    "r": 0.906349,
+    "verdict": "신강",
+    "extreme": "strong",
+    "nearBoundary": false,
+    "T": 4,
+    "M": -3.5,
+    "tClass": "열강",
+    "mClass": "조강",
+    "groupTotals": {
+     "bigyeop": 5.233333,
+     "siksang": 0.683333,
+     "jaeseong": 0,
+     "gwansal": 0.3,
+     "inseong": 3.283333
+    },
+    "gs": {
+     "bigyeop": 0.498413,
+     "inseong": 0.312698,
+     "siksang": 0.065079,
+     "jaeseong": 0,
+     "gwansal": 0.028571
+    },
+    "shares": {
+     "wood": 0.028571,
+     "fire": 0.312698,
+     "earth": 0.593651,
+     "metal": 0.065079,
+     "water": 0
+    },
+    "structure": "월겁격",
+    "special": [
+     "종왕격 후보"
+    ],
+    "flags": [],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": false,
+     "toWealth": false,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "galaxy",
+      "secondary": "golden-sun"
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "galaxy",
+      "secondary": "golden-sun"
+     },
+     {
+      "tableId": "main-only",
+      "primary": "galaxy",
+      "secondary": "golden-sun"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "galaxy",
+    "secondary": "golden-sun",
+    "S": 285.5,
+    "r": 0.906349,
+    "extreme": "strong",
+    "special": "종왕",
+    "T": 4,
+    "M": -3.5
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 9.516667 / 손 285.5"
+   ]
+  },
+  {
+   "id": "현무-1",
+   "src": "명세 사례 12",
+   "pillars": [
+    "癸亥",
+    "癸亥",
+    "壬子",
+    "辛丑"
+   ],
+   "invalid": [],
+   "date": "1923-12-05",
+   "engine": {
+    "archetype": "hyeonmu",
+    "secondary": "silver-wolf",
+    "alsoMatched": [
+     "silver-wolf"
+    ],
+    "ruleId": "arch.v1.02.hyeonmu",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": true
+     }
+    ],
+    "S": 8.033333,
+    "total": 10.5,
+    "r": 0.765079,
+    "verdict": "신강",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": -5,
+    "M": 4.5,
+    "tClass": "한강",
+    "mClass": "습강",
+    "groupTotals": {
+     "bigyeop": 5.933333,
+     "siksang": 0.933333,
+     "jaeseong": 0,
+     "gwansal": 1.533333,
+     "inseong": 1.1
+    },
+    "gs": {
+     "bigyeop": 0.565079,
+     "inseong": 0.104762,
+     "siksang": 0.088889,
+     "jaeseong": 0,
+     "gwansal": 0.146032
+    },
+    "shares": {
+     "wood": 0.088889,
+     "fire": 0,
+     "earth": 0.146032,
+     "metal": 0.104762,
+     "water": 0.660317
+    },
+    "structure": "건록격",
+    "special": [],
+    "flags": [],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": false,
+     "toWealth": false,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "hyeonmu",
+      "secondary": "silver-wolf"
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "galaxy",
+      "secondary": "hyeonmu"
+     },
+     {
+      "tableId": "main-only",
+      "primary": "galaxy",
+      "secondary": "hyeonmu"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "hyeonmu",
+    "secondary": "silver-wolf",
+    "r": 0.765079,
+    "verdict": "신강",
+    "extreme": null,
+    "special": null,
+    "T": -5,
+    "M": 4.5,
+    "shares": {
+     "wood": 0.089
+    }
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": []
+  },
+  {
+   "id": "현무-2",
+   "src": "손계산",
+   "pillars": [
+    "戊辰",
+    "甲子",
+    "丙寅",
+    "己亥"
+   ],
+   "invalid": [],
+   "date": "2048-12-22",
+   "engine": {
+    "archetype": "hyeonmu",
+    "secondary": "moon-goddess",
+    "alsoMatched": [
+     "moon-goddess",
+     "bonghwang"
+    ],
+    "ruleId": "arch.v1.02.hyeonmu",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": true
+     }
+    ],
+    "S": 3.683333,
+    "total": 10.5,
+    "r": 0.350794,
+    "verdict": "신약",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": -2.5,
+    "M": 2.5,
+    "tClass": "한강",
+    "mClass": "습강",
+    "groupTotals": {
+     "bigyeop": 0.35,
+     "siksang": 3.183333,
+     "jaeseong": 0,
+     "gwansal": 3.633333,
+     "inseong": 2.333333
+    },
+    "gs": {
+     "bigyeop": 0.033333,
+     "inseong": 0.222222,
+     "siksang": 0.303175,
+     "jaeseong": 0,
+     "gwansal": 0.346032
+    },
+    "shares": {
+     "wood": 0.222222,
+     "fire": 0.128571,
+     "earth": 0.303175,
+     "metal": 0,
+     "water": 0.346032
+    },
+    "structure": "정관격",
+    "special": [],
+    "flags": [
+     "효신탈식"
+    ],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": true,
+     "toWealth": false,
+     "fromResource": true
+    },
+    "strictPairs": [
+     "earth>water"
+    ],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "hyeonmu",
+      "secondary": "moon-goddess"
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "hyeonmu",
+      "secondary": "bonghwang"
+     },
+     {
+      "tableId": "main-only",
+      "primary": "hyeonmu",
+      "secondary": "bonghwang"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "hyeonmu",
+    "secondary": "bonghwang",
+    "S": 110.5,
+    "r": 0.350794,
+    "verdict": "신약",
+    "special": null,
+    "T": -2.5,
+    "M": 2.5,
+    "groupsU": {
+     "gwansal": 109,
+     "inseong": 70
+    },
+    "gs": {
+     "gwansal": 0.346,
+     "inseong": 0.222
+    }
+   },
+   "archMatch": true,
+   "secondaryMatch": false,
+   "mismatches": [
+    "S 엔진 3.683333 / 손 110.5",
+    "관살u 엔진 3.633333 / 손 109",
+    "인성u 엔진 2.333333 / 손 70"
+   ]
+  },
+  {
+   "id": "태양-1",
+   "src": "손계산",
+   "pillars": [
+    "甲午",
+    "庚午",
+    "壬戌",
+    "丙午"
+   ],
+   "invalid": [],
+   "date": "1954-07-05",
+   "engine": {
+    "archetype": "golden-sun",
+    "secondary": "white-deer",
+    "alsoMatched": [
+     "white-deer"
+    ],
+    "ruleId": "arch.v1.03.golden-sun",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": true
+     }
+    ],
+    "S": 2.45,
+    "total": 10.5,
+    "r": 0.233333,
+    "verdict": "신약",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": 4,
+    "M": -4.5,
+    "tClass": "열강",
+    "mClass": "조강",
+    "groupTotals": {
+     "bigyeop": 0,
+     "siksang": 1,
+     "jaeseong": 4.65,
+     "gwansal": 2.4,
+     "inseong": 1.45
+    },
+    "gs": {
+     "bigyeop": 0,
+     "inseong": 0.138095,
+     "siksang": 0.095238,
+     "jaeseong": 0.442857,
+     "gwansal": 0.228571
+    },
+    "shares": {
+     "wood": 0.095238,
+     "fire": 0.442857,
+     "earth": 0.228571,
+     "metal": 0.138095,
+     "water": 0.095238
+    },
+    "structure": "편재격",
+    "special": [],
+    "flags": [
+     "효신탈식"
+    ],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": false,
+     "toWealth": false,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "golden-sun",
+      "secondary": "white-deer"
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "golden-sun",
+      "secondary": "white-deer"
+     },
+     {
+      "tableId": "main-only",
+      "primary": "galaxy",
+      "secondary": "golden-sun"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "golden-sun",
+    "secondary": "white-deer",
+    "S": 73.5,
+    "r": 0.233333,
+    "verdict": "신약",
+    "extreme": null,
+    "T": 4,
+    "M": -4.5,
+    "structure": "편재격",
+    "groupsU": {
+     "jaeseong": 139.5
+    }
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 2.45 / 손 73.5",
+    "재성u 엔진 4.65 / 손 139.5"
+   ]
+  },
+  {
+   "id": "태양-2",
+   "src": "손계산",
+   "pillars": [
+    "丁巳",
+    "丁未",
+    "庚戌",
+    "甲申"
+   ],
+   "invalid": [],
+   "date": "2037-08-06",
+   "engine": {
+    "archetype": "golden-sun",
+    "secondary": "bonghwang",
+    "alsoMatched": [
+     "bonghwang",
+     "eternal-forest"
+    ],
+    "ruleId": "arch.v1.03.golden-sun",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": true
+     }
+    ],
+    "S": 5.383333,
+    "total": 10.5,
+    "r": 0.512698,
+    "verdict": "중화",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": 4,
+    "M": -3,
+    "tClass": "열강",
+    "mClass": "조강",
+    "groupTotals": {
+     "bigyeop": 1.216667,
+     "siksang": 0.233333,
+     "jaeseong": 1.3,
+     "gwansal": 3.583333,
+     "inseong": 3.166667
+    },
+    "gs": {
+     "bigyeop": 0.115873,
+     "inseong": 0.301587,
+     "siksang": 0.022222,
+     "jaeseong": 0.12381,
+     "gwansal": 0.34127
+    },
+    "shares": {
+     "wood": 0.12381,
+     "fire": 0.34127,
+     "earth": 0.301587,
+     "metal": 0.211111,
+     "water": 0.022222
+    },
+    "structure": "정관격",
+    "special": [],
+    "flags": [],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": false,
+     "toWealth": false,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "golden-sun",
+      "secondary": "bonghwang"
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "golden-sun",
+      "secondary": "bonghwang"
+     },
+     {
+      "tableId": "main-only",
+      "primary": "golden-sun",
+      "secondary": "sage"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "golden-sun",
+    "secondary": "bonghwang",
+    "S": 161.5,
+    "r": 0.512698,
+    "verdict": "중화",
+    "T": 4,
+    "M": -3,
+    "structure": "정관격",
+    "groupsU": {
+     "gwansal": 107.5,
+     "inseong": 95
+    },
+    "gs": {
+     "gwansal": 0.341,
+     "inseong": 0.302
+    }
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 5.383333 / 손 161.5",
+    "관살u 엔진 3.583333 / 손 107.5",
+    "인성u 엔진 3.166667 / 손 95"
+   ]
+  },
+  {
+   "id": "달-1",
+   "src": "명세 사례 4",
+   "pillars": [
+    "丙寅",
+    "庚子",
+    "壬午",
+    "丁未"
+   ],
+   "invalid": [],
+   "date": "1926-12-19",
+   "engine": {
+    "archetype": "moon-goddess",
+    "secondary": "eternal-forest",
+    "alsoMatched": [
+     "eternal-forest"
+    ],
+    "ruleId": "arch.v1.04.moon-goddess",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": true
+     }
+    ],
+    "S": 5,
+    "total": 10.5,
+    "r": 0.47619,
+    "verdict": "중화",
+    "extreme": null,
+    "nearBoundary": true,
+    "T": 0,
+    "M": 0,
+    "tClass": "중",
+    "mClass": "중",
+    "groupTotals": {
+     "bigyeop": 3,
+     "siksang": 0.633333,
+     "jaeseong": 3.583333,
+     "gwansal": 1.283333,
+     "inseong": 1
+    },
+    "gs": {
+     "bigyeop": 0.285714,
+     "inseong": 0.095238,
+     "siksang": 0.060317,
+     "jaeseong": 0.34127,
+     "gwansal": 0.122222
+    },
+    "shares": {
+     "wood": 0.060317,
+     "fire": 0.34127,
+     "earth": 0.122222,
+     "metal": 0.095238,
+     "water": 0.380952
+    },
+    "structure": "양인격",
+    "special": [],
+    "flags": [
+     "재성파인"
+    ],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": false,
+     "toWealth": false,
+     "fromResource": false
+    },
+    "strictPairs": [
+     "water>fire"
+    ],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "moon-goddess",
+      "secondary": "eternal-forest"
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "moon-goddess",
+      "secondary": "eternal-forest"
+     },
+     {
+      "tableId": "main-only",
+      "primary": "moon-goddess",
+      "secondary": "eternal-forest"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "moon-goddess",
+    "r": 0.47619,
+    "verdict": "중화",
+    "shares": {
+     "water": 0.381,
+     "fire": 0.341
+    },
+    "strictPair": "water>fire"
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": []
+  },
+  {
+   "id": "달-2",
+   "src": "명세 사례 5",
+   "pillars": [
+    "戊寅",
+    "辛酉",
+    "甲寅",
+    "乙亥"
+   ],
+   "invalid": [],
+   "date": "1938-09-19",
+   "engine": {
+    "archetype": "moon-goddess",
+    "secondary": "baekho",
+    "alsoMatched": [
+     "baekho"
+    ],
+    "ruleId": "arch.v1.04.moon-goddess",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": true
+     }
+    ],
+    "S": 4.1,
+    "total": 10.5,
+    "r": 0.390476,
+    "verdict": "신약",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": -1.5,
+    "M": 0.5,
+    "tClass": "한",
+    "mClass": "중",
+    "groupTotals": {
+     "bigyeop": 2.566667,
+     "siksang": 0.583333,
+     "jaeseong": 1.816667,
+     "gwansal": 4,
+     "inseong": 0.533333
+    },
+    "gs": {
+     "bigyeop": 0.244444,
+     "inseong": 0.050794,
+     "siksang": 0.055556,
+     "jaeseong": 0.173016,
+     "gwansal": 0.380952
+    },
+    "shares": {
+     "wood": 0.339683,
+     "fire": 0.055556,
+     "earth": 0.173016,
+     "metal": 0.380952,
+     "water": 0.050794
+    },
+    "structure": "정관격",
+    "special": [],
+    "flags": [],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": false,
+     "toWealth": false,
+     "fromResource": false
+    },
+    "strictPairs": [
+     "metal>wood"
+    ],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "moon-goddess",
+      "secondary": "baekho"
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "moon-goddess",
+      "secondary": "baekho"
+     },
+     {
+      "tableId": "main-only",
+      "primary": "moon-goddess",
+      "secondary": "eternal-forest"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "moon-goddess",
+    "secondary": "baekho",
+    "r": 0.390476,
+    "verdict": "신약",
+    "shares": {
+     "metal": 0.381,
+     "wood": 0.34
+    },
+    "strictPair": "metal>wood"
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": []
+  },
+  {
+   "id": "봉황-1",
+   "src": "명세 사례 11",
+   "pillars": [
+    "庚申",
+    "甲申",
+    "甲寅",
+    "癸酉"
+   ],
+   "invalid": [],
+   "date": "1920-08-24",
+   "engine": {
+    "archetype": "bonghwang",
+    "secondary": "eternal-forest",
+    "alsoMatched": [
+     "eternal-forest"
+    ],
+    "ruleId": "arch.v1.05.bonghwang",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": true
+     }
+    ],
+    "S": 4.733333,
+    "total": 10.5,
+    "r": 0.450794,
+    "verdict": "중화",
+    "extreme": null,
+    "nearBoundary": true,
+    "T": 0.5,
+    "M": 0.5,
+    "tClass": "중",
+    "mClass": "중",
+    "groupTotals": {
+     "bigyeop": 1.8,
+     "siksang": 0.35,
+     "jaeseong": 1.283333,
+     "gwansal": 4.133333,
+     "inseong": 1.933333
+    },
+    "gs": {
+     "bigyeop": 0.171429,
+     "inseong": 0.184127,
+     "siksang": 0.033333,
+     "jaeseong": 0.122222,
+     "gwansal": 0.393651
+    },
+    "shares": {
+     "wood": 0.266667,
+     "fire": 0.033333,
+     "earth": 0.122222,
+     "metal": 0.393651,
+     "water": 0.184127
+    },
+    "structure": "칠살격",
+    "special": [],
+    "flags": [],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": false,
+     "toWealth": false,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "bonghwang",
+      "secondary": "eternal-forest"
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "bonghwang",
+      "secondary": "eternal-forest"
+     },
+     {
+      "tableId": "main-only",
+      "primary": "moon-goddess",
+      "secondary": "baekho"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "bonghwang",
+    "r": 0.450794,
+    "verdict": "중화",
+    "groupsU": {
+     "gwansal": 124,
+     "inseong": 58
+    },
+    "gs": {
+     "gwansal": 0.394,
+     "inseong": 0.184
+    },
+    "structure": "칠살격",
+    "shares": {
+     "metal": 0.394,
+     "wood": 0.267
+    }
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "관살u 엔진 4.133333 / 손 124",
+    "인성u 엔진 1.933333 / 손 58"
+   ]
+  },
+  {
+   "id": "봉황-2",
+   "src": "명세 사례 7",
+   "pillars": [
+    "甲辰",
+    "己巳",
+    "庚戌",
+    "丙子"
+   ],
+   "invalid": [],
+   "date": "1904-05-16",
+   "engine": {
+    "archetype": "bonghwang",
+    "secondary": "eternal-forest",
+    "alsoMatched": [
+     "eternal-forest"
+    ],
+    "ruleId": "arch.v1.05.bonghwang",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": true
+     }
+    ],
+    "S": 5.35,
+    "total": 10.5,
+    "r": 0.509524,
+    "verdict": "중화",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": 0.5,
+    "M": -0.5,
+    "tClass": "중",
+    "mClass": "중",
+    "groupTotals": {
+     "bigyeop": 1.15,
+     "siksang": 1.1,
+     "jaeseong": 1.3,
+     "gwansal": 2.75,
+     "inseong": 3.2
+    },
+    "gs": {
+     "bigyeop": 0.109524,
+     "inseong": 0.304762,
+     "siksang": 0.104762,
+     "jaeseong": 0.12381,
+     "gwansal": 0.261905
+    },
+    "shares": {
+     "wood": 0.12381,
+     "fire": 0.261905,
+     "earth": 0.304762,
+     "metal": 0.204762,
+     "water": 0.104762
+    },
+    "structure": "칠살격",
+    "special": [],
+    "flags": [
+     "재성파인"
+    ],
+    "circular": true,
+    "dayMasterFlow": {
+     "toOutput": true,
+     "toWealth": true,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "bonghwang",
+      "secondary": "eternal-forest"
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "bonghwang",
+      "secondary": "eternal-forest"
+     },
+     {
+      "tableId": "main-only",
+      "primary": "bonghwang",
+      "secondary": null
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "bonghwang",
+    "r": 0.509524,
+    "verdict": "중화",
+    "groupsU": {
+     "gwansal": 82.5,
+     "inseong": 96,
+     "jaeseong": 39,
+     "siksang": 33
+    },
+    "gs": {
+     "gwansal": 0.262,
+     "inseong": 0.305
+    },
+    "structure": "칠살격",
+    "flags": [
+     "재성파인"
+    ]
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "관살u 엔진 2.75 / 손 82.5",
+    "인성u 엔진 3.2 / 손 96",
+    "재성u 엔진 1.3 / 손 39",
+    "식상u 엔진 1.1 / 손 33"
+   ]
+  },
+  {
+   "id": "백호-1",
+   "src": "손계산",
+   "pillars": [
+    "庚寅",
+    "甲申",
+    "甲辰",
+    "辛未"
+   ],
+   "invalid": [],
+   "date": "1950-09-06",
+   "engine": {
+    "archetype": "baekho",
+    "secondary": null,
+    "alsoMatched": [],
+    "ruleId": "arch.v1.06.baekho",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": false,
+      "failedOn": "tg.shareT.inseong ≥ 0.12"
+     },
+     {
+      "id": "baekho",
+      "passed": true
+     }
+    ],
+    "S": 3.933333,
+    "total": 10.5,
+    "r": 0.374603,
+    "verdict": "신약",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": 1.5,
+    "M": 0,
+    "tClass": "난",
+    "mClass": "중",
+    "groupTotals": {
+     "bigyeop": 2.083333,
+     "siksang": 0.533333,
+     "jaeseong": 2.433333,
+     "gwansal": 3.6,
+     "inseong": 0.85
+    },
+    "gs": {
+     "bigyeop": 0.198413,
+     "inseong": 0.080952,
+     "siksang": 0.050794,
+     "jaeseong": 0.231746,
+     "gwansal": 0.342857
+    },
+    "shares": {
+     "wood": 0.293651,
+     "fire": 0.050794,
+     "earth": 0.231746,
+     "metal": 0.342857,
+     "water": 0.080952
+    },
+    "structure": "칠살격",
+    "special": [],
+    "flags": [
+     "관살혼잡"
+    ],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": false,
+     "toWealth": false,
+     "fromResource": false
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "baekho",
+      "secondary": null
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "bonghwang",
+      "secondary": null
+     },
+     {
+      "tableId": "main-only",
+      "primary": "baekho",
+      "secondary": null
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "baekho",
+    "S": 118,
+    "r": 0.374603,
+    "verdict": "신약",
+    "groupsU": {
+     "bigyeop": 62.5,
+     "inseong": 25.5,
+     "siksang": 16,
+     "jaeseong": 73,
+     "gwansal": 108
+    },
+    "gs": {
+     "inseong": 0.081,
+     "gwansal": 0.343
+    },
+    "structure": "칠살격",
+    "flags": [
+     "관살혼잡"
+    ],
+    "T": 1.5,
+    "M": 0,
+    "shares": {
+     "metal": 0.343,
+     "wood": 0.294
+    }
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 3.933333 / 손 118",
+    "비겁u 엔진 2.083333 / 손 62.5",
+    "인성u 엔진 0.85 / 손 25.5",
+    "식상u 엔진 0.533333 / 손 16",
+    "재성u 엔진 2.433333 / 손 73",
+    "관살u 엔진 3.6 / 손 108"
+   ]
+  },
+  {
+   "id": "백호-2",
+   "src": "손계산",
+   "pillars": [
+    "丙辰",
+    "戊戌",
+    "壬午",
+    "壬寅"
+   ],
+   "invalid": [],
+   "date": "1916-10-12",
+   "engine": {
+    "archetype": "baekho",
+    "secondary": null,
+    "alsoMatched": [],
+    "ruleId": "arch.v1.06.baekho",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": false,
+      "failedOn": "tg.shareT.inseong ≥ 0.12"
+     },
+     {
+      "id": "baekho",
+      "passed": true
+     }
+    ],
+    "S": 3,
+    "total": 10.5,
+    "r": 0.285714,
+    "verdict": "신약",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": 0,
+    "M": -1,
+    "tClass": "중",
+    "mClass": "조",
+    "groupTotals": {
+     "bigyeop": 1.1,
+     "siksang": 0.833333,
+     "jaeseong": 2.583333,
+     "gwansal": 4.083333,
+     "inseong": 0.9
+    },
+    "gs": {
+     "bigyeop": 0.104762,
+     "inseong": 0.085714,
+     "siksang": 0.079365,
+     "jaeseong": 0.246032,
+     "gwansal": 0.388889
+    },
+    "shares": {
+     "wood": 0.079365,
+     "fire": 0.246032,
+     "earth": 0.388889,
+     "metal": 0.085714,
+     "water": 0.2
+    },
+    "structure": "칠살격",
+    "special": [],
+    "flags": [],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": false,
+     "toWealth": false,
+     "fromResource": false
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "baekho",
+      "secondary": null
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "baekho",
+      "secondary": null
+     },
+     {
+      "tableId": "main-only",
+      "primary": "galaxy",
+      "secondary": "baekho"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "baekho",
+    "S": 90,
+    "r": 0.285714,
+    "verdict": "신약",
+    "groupsU": {
+     "bigyeop": 33,
+     "inseong": 27,
+     "siksang": 25,
+     "jaeseong": 77.5,
+     "gwansal": 122.5
+    },
+    "gs": {
+     "inseong": 0.086,
+     "gwansal": 0.389
+    },
+    "structure": "칠살격",
+    "T": 0,
+    "M": -1
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 3 / 손 90",
+    "비겁u 엔진 1.1 / 손 33",
+    "인성u 엔진 0.9 / 손 27",
+    "식상u 엔진 0.833333 / 손 25",
+    "재성u 엔진 2.583333 / 손 77.5",
+    "관살u 엔진 4.083333 / 손 122.5"
+   ]
+  },
+  {
+   "id": "흑여우-1",
+   "src": "손계산",
+   "pillars": [
+    "辛丑",
+    "辛卯",
+    "甲午",
+    "丁卯"
+   ],
+   "invalid": [],
+   "date": "1901-03-17",
+   "engine": {
+    "archetype": "black-fox",
+    "secondary": "cheongnyong",
+    "alsoMatched": [
+     "cheongnyong",
+     "eternal-forest"
+    ],
+    "ruleId": "arch.v1.07.black-fox",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": false,
+      "failedOn": "tg.shareT.inseong ≥ 0.12"
+     },
+     {
+      "id": "baekho",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "black-fox",
+      "passed": true
+     }
+    ],
+    "S": 5.3,
+    "total": 10.5,
+    "r": 0.504762,
+    "verdict": "중화",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": 0.5,
+    "M": -1,
+    "tClass": "중",
+    "mClass": "조",
+    "groupTotals": {
+     "bigyeop": 4,
+     "siksang": 2.05,
+     "jaeseong": 1.05,
+     "gwansal": 2.1,
+     "inseong": 0.3
+    },
+    "gs": {
+     "bigyeop": 0.380952,
+     "inseong": 0.028571,
+     "siksang": 0.195238,
+     "jaeseong": 0.1,
+     "gwansal": 0.2
+    },
+    "shares": {
+     "wood": 0.47619,
+     "fire": 0.195238,
+     "earth": 0.1,
+     "metal": 0.2,
+     "water": 0.028571
+    },
+    "structure": "양인격",
+    "special": [],
+    "flags": [
+     "상관견관"
+    ],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": true,
+     "toWealth": true,
+     "fromResource": false
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "black-fox",
+      "secondary": "cheongnyong"
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "black-fox",
+      "secondary": "cheongnyong"
+     },
+     {
+      "tableId": "main-only",
+      "primary": "black-fox",
+      "secondary": "eternal-forest"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "black-fox",
+    "S": 159,
+    "r": 0.504762,
+    "verdict": "중화",
+    "flags": [
+     "상관견관"
+    ],
+    "structure": "양인격",
+    "gs": {
+     "gwansal": 0.2,
+     "inseong": 0.029
+    },
+    "T": 0.5,
+    "M": -1
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 5.3 / 손 159"
+   ]
+  },
+  {
+   "id": "흑여우-2",
+   "src": "손계산",
+   "pillars": [
+    "戊寅",
+    "甲寅",
+    "癸卯",
+    "庚申"
+   ],
+   "invalid": [],
+   "date": "1998-02-25",
+   "engine": {
+    "archetype": "black-fox",
+    "secondary": null,
+    "alsoMatched": [],
+    "ruleId": "arch.v1.07.black-fox",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": false,
+      "failedOn": "tg.maxOppose = gwansal"
+     },
+     {
+      "id": "baekho",
+      "passed": false,
+      "failedOn": "tg.maxOppose = gwansal"
+     },
+     {
+      "id": "black-fox",
+      "passed": true
+     }
+    ],
+    "S": 2.766667,
+    "total": 10.5,
+    "r": 0.263492,
+    "verdict": "신약",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": -1.5,
+    "M": 0.5,
+    "tClass": "한",
+    "mClass": "중",
+    "groupTotals": {
+     "bigyeop": 0.233333,
+     "siksang": 4.633333,
+     "jaeseong": 0.933333,
+     "gwansal": 2.166667,
+     "inseong": 1.533333
+    },
+    "gs": {
+     "bigyeop": 0.022222,
+     "inseong": 0.146032,
+     "siksang": 0.44127,
+     "jaeseong": 0.088889,
+     "gwansal": 0.206349
+    },
+    "shares": {
+     "wood": 0.44127,
+     "fire": 0.088889,
+     "earth": 0.206349,
+     "metal": 0.146032,
+     "water": 0.11746
+    },
+    "structure": "상관격",
+    "special": [],
+    "flags": [
+     "상관견관"
+    ],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": true,
+     "toWealth": false,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "black-fox",
+      "secondary": null
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "black-fox",
+      "secondary": null
+     },
+     {
+      "tableId": "main-only",
+      "primary": "black-fox",
+      "secondary": null
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "black-fox",
+    "S": 83,
+    "r": 0.263492,
+    "verdict": "신약",
+    "groupsU": {
+     "bigyeop": 7,
+     "inseong": 46,
+     "siksang": 139,
+     "jaeseong": 28,
+     "gwansal": 65
+    },
+    "structure": "상관격",
+    "flags": [
+     "상관견관"
+    ],
+    "T": -1.5,
+    "M": 0.5
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 2.766667 / 손 83",
+    "비겁u 엔진 0.233333 / 손 7",
+    "인성u 엔진 1.533333 / 손 46",
+    "식상u 엔진 4.633333 / 손 139",
+    "재성u 엔진 0.933333 / 손 28",
+    "관살u 엔진 2.166667 / 손 65"
+   ]
+  },
+  {
+   "id": "백록-1",
+   "src": "손계산",
+   "pillars": [
+    "戊戌",
+    "丙辰",
+    "乙丑",
+    "己卯"
+   ],
+   "invalid": [],
+   "date": "1958-04-18",
+   "engine": {
+    "archetype": "white-deer",
+    "secondary": null,
+    "alsoMatched": [],
+    "ruleId": "arch.v1.08.white-deer",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": false,
+      "failedOn": "tg.maxOppose = gwansal"
+     },
+     {
+      "id": "baekho",
+      "passed": false,
+      "failedOn": "tg.maxOppose = gwansal"
+     },
+     {
+      "id": "black-fox",
+      "passed": false,
+      "failedOn": "(fl.clarity has 상관견관 또는 (gk.name = 상관격 그리고 st.weighted ≠ 신강) 또는 (st.weighted = 신약 그리고 tg.maxOppose = siksang))"
+     },
+     {
+      "id": "white-deer",
+      "passed": true
+     }
+    ],
+    "S": 3.65,
+    "total": 10.5,
+    "r": 0.347619,
+    "verdict": "신약",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": -0.5,
+    "M": 0.5,
+    "tClass": "중",
+    "mClass": "중",
+    "groupTotals": {
+     "bigyeop": 1.9,
+     "siksang": 1.1,
+     "jaeseong": 5.3,
+     "gwansal": 0.45,
+     "inseong": 0.75
+    },
+    "gs": {
+     "bigyeop": 0.180952,
+     "inseong": 0.071429,
+     "siksang": 0.104762,
+     "jaeseong": 0.504762,
+     "gwansal": 0.042857
+    },
+    "shares": {
+     "wood": 0.27619,
+     "fire": 0.104762,
+     "earth": 0.504762,
+     "metal": 0.042857,
+     "water": 0.071429
+    },
+    "structure": "정재격",
+    "special": [],
+    "flags": [],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": true,
+     "toWealth": true,
+     "fromResource": false
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "white-deer",
+      "secondary": null
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "white-deer",
+      "secondary": null
+     },
+     {
+      "tableId": "main-only",
+      "primary": "galaxy",
+      "secondary": "white-deer"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "white-deer",
+    "S": 109.5,
+    "r": 0.347619,
+    "verdict": "신약",
+    "groupsU": {
+     "bigyeop": 57,
+     "inseong": 22.5,
+     "siksang": 33,
+     "jaeseong": 159,
+     "gwansal": 13.5
+    },
+    "structure": "정재격",
+    "T": -0.5,
+    "M": 0.5
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 3.65 / 손 109.5",
+    "비겁u 엔진 1.9 / 손 57",
+    "인성u 엔진 0.75 / 손 22.5",
+    "식상u 엔진 1.1 / 손 33",
+    "재성u 엔진 5.3 / 손 159",
+    "관살u 엔진 0.45 / 손 13.5"
+   ]
+  },
+  {
+   "id": "백록-2",
+   "src": "손계산",
+   "pillars": [
+    "甲寅",
+    "丁卯",
+    "庚寅",
+    "庚辰"
+   ],
+   "invalid": [],
+   "date": "2034-04-04",
+   "engine": {
+    "archetype": "white-deer",
+    "secondary": null,
+    "alsoMatched": [],
+    "ruleId": "arch.v1.08.white-deer",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": false,
+      "failedOn": "tg.maxOppose = gwansal"
+     },
+     {
+      "id": "baekho",
+      "passed": false,
+      "failedOn": "tg.maxOppose = gwansal"
+     },
+     {
+      "id": "black-fox",
+      "passed": false,
+      "failedOn": "(fl.clarity has 상관견관 또는 (gk.name = 상관격 그리고 st.weighted ≠ 신강) 또는 (st.weighted = 신약 그리고 tg.maxOppose = siksang))"
+     },
+     {
+      "id": "white-deer",
+      "passed": true
+     }
+    ],
+    "S": 3.183333,
+    "total": 10.5,
+    "r": 0.303175,
+    "verdict": "신약",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": -0.5,
+    "M": 0,
+    "tClass": "중",
+    "mClass": "중",
+    "groupTotals": {
+     "bigyeop": 1,
+     "siksang": 0.1,
+     "jaeseong": 5.633333,
+     "gwansal": 1.583333,
+     "inseong": 1.183333
+    },
+    "gs": {
+     "bigyeop": 0.095238,
+     "inseong": 0.112698,
+     "siksang": 0.009524,
+     "jaeseong": 0.536508,
+     "gwansal": 0.150794
+    },
+    "shares": {
+     "wood": 0.536508,
+     "fire": 0.150794,
+     "earth": 0.112698,
+     "metal": 0.190476,
+     "water": 0.009524
+    },
+    "structure": "편재격",
+    "special": [],
+    "flags": [],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": false,
+     "toWealth": false,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "white-deer",
+      "secondary": null
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "white-deer",
+      "secondary": null
+     },
+     {
+      "tableId": "main-only",
+      "primary": "white-deer",
+      "secondary": null
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "white-deer",
+    "S": 95.5,
+    "r": 0.303175,
+    "verdict": "신약",
+    "groupsU": {
+     "bigyeop": 30,
+     "inseong": 35.5,
+     "siksang": 3,
+     "jaeseong": 169,
+     "gwansal": 47.5
+    },
+    "structure": "편재격",
+    "T": -0.5,
+    "M": 0
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 3.183333 / 손 95.5",
+    "비겁u 엔진 1 / 손 30",
+    "인성u 엔진 1.183333 / 손 35.5",
+    "식상u 엔진 0.1 / 손 3",
+    "재성u 엔진 5.633333 / 손 169",
+    "관살u 엔진 1.583333 / 손 47.5"
+   ]
+  },
+  {
+   "id": "현자-1",
+   "src": "손계산",
+   "pillars": [
+    "戊辰",
+    "乙卯",
+    "丙寅",
+    "壬辰"
+   ],
+   "invalid": [],
+   "date": "1928-03-27",
+   "engine": {
+    "archetype": "sage",
+    "secondary": null,
+    "alsoMatched": [],
+    "ruleId": "arch.v1.09.sage",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": false,
+      "failedOn": "st.weighted ∈ {신약,중화}"
+     },
+     {
+      "id": "baekho",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "black-fox",
+      "passed": false,
+      "failedOn": "(fl.clarity has 상관견관 또는 (gk.name = 상관격 그리고 st.weighted ≠ 신강) 또는 (st.weighted = 신약 그리고 tg.maxOppose = siksang))"
+     },
+     {
+      "id": "white-deer",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "sage",
+      "passed": true
+     }
+    ],
+    "S": 6.75,
+    "total": 10.5,
+    "r": 0.642857,
+    "verdict": "신강",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": -0.5,
+    "M": 1,
+    "tClass": "중",
+    "mClass": "습",
+    "groupTotals": {
+     "bigyeop": 0.35,
+     "siksang": 2.55,
+     "jaeseong": 0,
+     "gwansal": 1.2,
+     "inseong": 5.4
+    },
+    "gs": {
+     "bigyeop": 0.033333,
+     "inseong": 0.514286,
+     "siksang": 0.242857,
+     "jaeseong": 0,
+     "gwansal": 0.114286
+    },
+    "shares": {
+     "wood": 0.514286,
+     "fire": 0.128571,
+     "earth": 0.242857,
+     "metal": 0,
+     "water": 0.114286
+    },
+    "structure": "정인격",
+    "special": [],
+    "flags": [],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": true,
+     "toWealth": false,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "sage",
+      "secondary": null
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "sage",
+      "secondary": null
+     },
+     {
+      "tableId": "main-only",
+      "primary": "sage",
+      "secondary": null
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "sage",
+    "S": 202.5,
+    "r": 0.642857,
+    "verdict": "신강",
+    "groupsU": {
+     "bigyeop": 10.5,
+     "inseong": 162,
+     "siksang": 76.5,
+     "jaeseong": 0,
+     "gwansal": 36
+    },
+    "structure": "정인격",
+    "T": -0.5,
+    "M": 1
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 6.75 / 손 202.5",
+    "비겁u 엔진 0.35 / 손 10.5",
+    "인성u 엔진 5.4 / 손 162",
+    "식상u 엔진 2.55 / 손 76.5",
+    "관살u 엔진 1.2 / 손 36"
+   ]
+  },
+  {
+   "id": "현자-2",
+   "src": "손계산",
+   "pillars": [
+    "甲戌",
+    "戊辰",
+    "辛未",
+    "己丑"
+   ],
+   "invalid": [],
+   "date": "1934-04-30",
+   "engine": {
+    "archetype": "sage",
+    "secondary": null,
+    "alsoMatched": [],
+    "ruleId": "arch.v1.09.sage",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": false,
+      "failedOn": "st.weighted ∈ {신약,중화}"
+     },
+     {
+      "id": "baekho",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "black-fox",
+      "passed": false,
+      "failedOn": "(fl.clarity has 상관견관 또는 (gk.name = 상관격 그리고 st.weighted ≠ 신강) 또는 (st.weighted = 신약 그리고 tg.maxOppose = siksang))"
+     },
+     {
+      "id": "white-deer",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "sage",
+      "passed": true
+     }
+    ],
+    "S": 7.3,
+    "total": 10.5,
+    "r": 0.695238,
+    "verdict": "신강",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": 0,
+    "M": 0.5,
+    "tClass": "중",
+    "mClass": "중",
+    "groupTotals": {
+     "bigyeop": 0.4,
+     "siksang": 0.6,
+     "jaeseong": 2.05,
+     "gwansal": 0.55,
+     "inseong": 5.9
+    },
+    "gs": {
+     "bigyeop": 0.038095,
+     "inseong": 0.561905,
+     "siksang": 0.057143,
+     "jaeseong": 0.195238,
+     "gwansal": 0.052381
+    },
+    "shares": {
+     "wood": 0.195238,
+     "fire": 0.052381,
+     "earth": 0.561905,
+     "metal": 0.133333,
+     "water": 0.057143
+    },
+    "structure": "정인격",
+    "special": [],
+    "flags": [
+     "재성파인"
+    ],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": false,
+     "toWealth": false,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "sage",
+      "secondary": null
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "sage",
+      "secondary": null
+     },
+     {
+      "tableId": "main-only",
+      "primary": "galaxy",
+      "secondary": "sage"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "sage",
+    "S": 219,
+    "r": 0.695238,
+    "verdict": "신강",
+    "groupsU": {
+     "bigyeop": 12,
+     "inseong": 177,
+     "siksang": 18,
+     "jaeseong": 61.5,
+     "gwansal": 16.5
+    },
+    "structure": "정인격",
+    "flags": [
+     "재성파인"
+    ],
+    "T": 0,
+    "M": 0.5
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 7.3 / 손 219",
+    "비겁u 엔진 0.4 / 손 12",
+    "인성u 엔진 5.9 / 손 177",
+    "식상u 엔진 0.6 / 손 18",
+    "재성u 엔진 2.05 / 손 61.5",
+    "관살u 엔진 0.55 / 손 16.5"
+   ]
+  },
+  {
+   "id": "청룡-1",
+   "src": "명세 사례 1",
+   "pillars": [
+    "甲寅",
+    "丙寅",
+    "甲辰",
+    "乙亥"
+   ],
+   "invalid": [],
+   "date": "1974-03-04",
+   "engine": {
+    "archetype": "cheongnyong",
+    "secondary": null,
+    "alsoMatched": [],
+    "ruleId": "arch.v1.10.cheongnyong",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": false,
+      "failedOn": "st.weighted ∈ {신약,중화}"
+     },
+     {
+      "id": "baekho",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "black-fox",
+      "passed": false,
+      "failedOn": "(fl.clarity has 상관견관 또는 (gk.name = 상관격 그리고 st.weighted ≠ 신강) 또는 (st.weighted = 신약 그리고 tg.maxOppose = siksang))"
+     },
+     {
+      "id": "white-deer",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "sage",
+      "passed": false,
+      "failedOn": "tg.supportType = inseong"
+     },
+     {
+      "id": "cheongnyong",
+      "passed": true
+     }
+    ],
+    "S": 6.5,
+    "total": 10.5,
+    "r": 0.619048,
+    "verdict": "신강",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": -1.5,
+    "M": 0.5,
+    "tClass": "한",
+    "mClass": "중",
+    "groupTotals": {
+     "bigyeop": 4.816667,
+     "siksang": 1.933333,
+     "jaeseong": 2.066667,
+     "gwansal": 0,
+     "inseong": 0.683333
+    },
+    "gs": {
+     "bigyeop": 0.45873,
+     "inseong": 0.065079,
+     "siksang": 0.184127,
+     "jaeseong": 0.196825,
+     "gwansal": 0
+    },
+    "shares": {
+     "wood": 0.553968,
+     "fire": 0.184127,
+     "earth": 0.196825,
+     "metal": 0,
+     "water": 0.065079
+    },
+    "structure": "건록격",
+    "special": [],
+    "flags": [],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": true,
+     "toWealth": true,
+     "fromResource": false
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "cheongnyong",
+      "secondary": null
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "cheongnyong",
+      "secondary": null
+     },
+     {
+      "tableId": "main-only",
+      "primary": "silver-wolf",
+      "secondary": null
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "cheongnyong",
+    "r": 0.619048,
+    "verdict": "신강",
+    "groupsU": {
+     "bigyeop": 144.5,
+     "inseong": 20.5
+    },
+    "shares": {
+     "fire": 0.184,
+     "earth": 0.197
+    },
+    "structure": "건록격"
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "비겁u 엔진 4.816667 / 손 144.5",
+    "인성u 엔진 0.683333 / 손 20.5"
+   ]
+  },
+  {
+   "id": "청룡-2",
+   "src": "손계산",
+   "pillars": [
+    "戊午",
+    "庚申",
+    "戊子",
+    "丙辰"
+   ],
+   "invalid": [],
+   "date": "1918-08-09",
+   "engine": {
+    "archetype": "cheongnyong",
+    "secondary": "eternal-forest",
+    "alsoMatched": [
+     "eternal-forest"
+    ],
+    "ruleId": "arch.v1.10.cheongnyong",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": false,
+      "failedOn": "tg.maxOppose = gwansal"
+     },
+     {
+      "id": "baekho",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "black-fox",
+      "passed": false,
+      "failedOn": "(fl.clarity has 상관견관 또는 (gk.name = 상관격 그리고 st.weighted ≠ 신강) 또는 (st.weighted = 신약 그리고 tg.maxOppose = siksang))"
+     },
+     {
+      "id": "white-deer",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "sage",
+      "passed": false,
+      "failedOn": "st.weighted = 신강"
+     },
+     {
+      "id": "cheongnyong",
+      "passed": true
+     }
+    ],
+    "S": 5.3,
+    "total": 10.5,
+    "r": 0.504762,
+    "verdict": "중화",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": 1.5,
+    "M": 0,
+    "tClass": "난",
+    "mClass": "중",
+    "groupTotals": {
+     "bigyeop": 2.6,
+     "siksang": 2.6,
+     "jaeseong": 2.3,
+     "gwansal": 0.3,
+     "inseong": 1.7
+    },
+    "gs": {
+     "bigyeop": 0.247619,
+     "inseong": 0.161905,
+     "siksang": 0.247619,
+     "jaeseong": 0.219048,
+     "gwansal": 0.028571
+    },
+    "shares": {
+     "wood": 0.028571,
+     "fire": 0.161905,
+     "earth": 0.342857,
+     "metal": 0.247619,
+     "water": 0.219048
+    },
+    "structure": "식신격",
+    "special": [],
+    "flags": [
+     "효신탈식"
+    ],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": true,
+     "toWealth": true,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "cheongnyong",
+      "secondary": "eternal-forest"
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "cheongnyong",
+      "secondary": "eternal-forest"
+     },
+     {
+      "tableId": "main-only",
+      "primary": "cheongnyong",
+      "secondary": "eternal-forest"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "cheongnyong",
+    "S": 159,
+    "r": 0.504762,
+    "verdict": "중화",
+    "shares": {
+     "metal": 0.248,
+     "water": 0.219,
+     "wood": 0.029
+    },
+    "circular": false,
+    "structure": "식신격",
+    "flags": [
+     "효신탈식"
+    ],
+    "T": 1.5,
+    "M": 0
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 5.3 / 손 159"
+   ]
+  },
+  {
+   "id": "늑대-1",
+   "src": "손계산",
+   "pillars": [
+    "丁卯",
+    "己酉",
+    "庚辰",
+    "甲申"
+   ],
+   "invalid": [],
+   "date": "1987-09-28",
+   "engine": {
+    "archetype": "silver-wolf",
+    "secondary": null,
+    "alsoMatched": [],
+    "ruleId": "arch.v1.11.silver-wolf",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": false,
+      "failedOn": "st.weighted ∈ {신약,중화}"
+     },
+     {
+      "id": "baekho",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "black-fox",
+      "passed": false,
+      "failedOn": "(fl.clarity has 상관견관 또는 (gk.name = 상관격 그리고 st.weighted ≠ 신강) 또는 (st.weighted = 신약 그리고 tg.maxOppose = siksang))"
+     },
+     {
+      "id": "white-deer",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "sage",
+      "passed": false,
+      "failedOn": "tg.supportType = inseong"
+     },
+     {
+      "id": "cheongnyong",
+      "passed": false,
+      "failedOn": "((st.weighted = 신강 그리고 tg.supportType = bigyeop 그리고 fl.toOutput = true) 또는 (st.weighted = 중화 그리고 fl.toOutput = true 그리고 fl.toWealth = true 그리고 fl.circular = false))"
+     },
+     {
+      "id": "silver-wolf",
+      "passed": true
+     }
+    ],
+    "S": 6.666667,
+    "total": 10.5,
+    "r": 0.634921,
+    "verdict": "신강",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": 1,
+    "M": 0,
+    "tClass": "난",
+    "mClass": "중",
+    "groupTotals": {
+     "bigyeop": 3.533333,
+     "siksang": 0.383333,
+     "jaeseong": 2.45,
+     "gwansal": 1,
+     "inseong": 2.133333
+    },
+    "gs": {
+     "bigyeop": 0.336508,
+     "inseong": 0.203175,
+     "siksang": 0.036508,
+     "jaeseong": 0.233333,
+     "gwansal": 0.095238
+    },
+    "shares": {
+     "wood": 0.233333,
+     "fire": 0.095238,
+     "earth": 0.203175,
+     "metal": 0.431746,
+     "water": 0.036508
+    },
+    "structure": "양인격",
+    "special": [],
+    "flags": [],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": false,
+     "toWealth": false,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "silver-wolf",
+      "secondary": null
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "silver-wolf",
+      "secondary": null
+     },
+     {
+      "tableId": "main-only",
+      "primary": "silver-wolf",
+      "secondary": null
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "silver-wolf",
+    "S": 200,
+    "r": 0.634921,
+    "verdict": "신강",
+    "groupsU": {
+     "bigyeop": 106,
+     "inseong": 64,
+     "siksang": 11.5
+    },
+    "shares": {
+     "water": 0.037
+    },
+    "structure": "양인격",
+    "T": 1,
+    "M": 0
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 6.666667 / 손 200",
+    "비겁u 엔진 3.533333 / 손 106",
+    "인성u 엔진 2.133333 / 손 64",
+    "식상u 엔진 0.383333 / 손 11.5"
+   ]
+  },
+  {
+   "id": "늑대-2",
+   "src": "손계산",
+   "pillars": [
+    "戊寅",
+    "辛酉",
+    "辛卯",
+    "甲午"
+   ],
+   "invalid": [],
+   "date": "2058-09-26",
+   "engine": {
+    "archetype": "silver-wolf",
+    "secondary": null,
+    "alsoMatched": [],
+    "ruleId": "arch.v1.11.silver-wolf",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": false,
+      "failedOn": "st.weighted ∈ {신약,중화}"
+     },
+     {
+      "id": "baekho",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "black-fox",
+      "passed": false,
+      "failedOn": "(fl.clarity has 상관견관 또는 (gk.name = 상관격 그리고 st.weighted ≠ 신강) 또는 (st.weighted = 신약 그리고 tg.maxOppose = siksang))"
+     },
+     {
+      "id": "white-deer",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "sage",
+      "passed": false,
+      "failedOn": "tg.supportType = inseong"
+     },
+     {
+      "id": "cheongnyong",
+      "passed": false,
+      "failedOn": "((st.weighted = 신강 그리고 tg.supportType = bigyeop 그리고 fl.toOutput = true) 또는 (st.weighted = 중화 그리고 fl.toOutput = true 그리고 fl.toWealth = true 그리고 fl.circular = false))"
+     },
+     {
+      "id": "silver-wolf",
+      "passed": true
+     }
+    ],
+    "S": 6.533333,
+    "total": 10.5,
+    "r": 0.622222,
+    "verdict": "신강",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": 0.5,
+    "M": -1,
+    "tClass": "중",
+    "mClass": "조",
+    "groupTotals": {
+     "bigyeop": 4,
+     "siksang": 0,
+     "jaeseong": 3.033333,
+     "gwansal": 0.933333,
+     "inseong": 1.533333
+    },
+    "gs": {
+     "bigyeop": 0.380952,
+     "inseong": 0.146032,
+     "siksang": 0,
+     "jaeseong": 0.288889,
+     "gwansal": 0.088889
+    },
+    "shares": {
+     "wood": 0.288889,
+     "fire": 0.088889,
+     "earth": 0.146032,
+     "metal": 0.47619,
+     "water": 0
+    },
+    "structure": "건록격",
+    "special": [],
+    "flags": [],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": false,
+     "toWealth": false,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "silver-wolf",
+      "secondary": null
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "silver-wolf",
+      "secondary": null
+     },
+     {
+      "tableId": "main-only",
+      "primary": "moon-goddess",
+      "secondary": "silver-wolf"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "silver-wolf",
+    "S": 196,
+    "r": 0.622222,
+    "verdict": "신강",
+    "groupsU": {
+     "bigyeop": 120,
+     "inseong": 46,
+     "siksang": 0,
+     "jaeseong": 91
+    },
+    "gs": {
+     "jaeseong": 0.289
+    },
+    "structure": "건록격",
+    "T": 0.5,
+    "M": -1
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 6.533333 / 손 196",
+    "비겁u 엔진 4 / 손 120",
+    "인성u 엔진 1.533333 / 손 46",
+    "재성u 엔진 3.033333 / 손 91"
+   ]
+  },
+  {
+   "id": "숲-1",
+   "src": "손계산",
+   "pillars": [
+    "丁酉",
+    "甲辰",
+    "甲寅",
+    "壬申"
+   ],
+   "invalid": [],
+   "date": "1957-04-12",
+   "engine": {
+    "archetype": "eternal-forest",
+    "secondary": null,
+    "alsoMatched": [],
+    "ruleId": "arch.v1.12.eternal-forest",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": false,
+      "failedOn": "tg.maxOppose = gwansal"
+     },
+     {
+      "id": "baekho",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "black-fox",
+      "passed": false,
+      "failedOn": "(fl.clarity has 상관견관 또는 (gk.name = 상관격 그리고 st.weighted ≠ 신강) 또는 (st.weighted = 신약 그리고 tg.maxOppose = siksang))"
+     },
+     {
+      "id": "white-deer",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "sage",
+      "passed": false,
+      "failedOn": "st.weighted = 신강"
+     },
+     {
+      "id": "cheongnyong",
+      "passed": false,
+      "failedOn": "((st.weighted = 신강 그리고 tg.supportType = bigyeop 그리고 fl.toOutput = true) 또는 (st.weighted = 중화 그리고 fl.toOutput = true 그리고 fl.toWealth = true 그리고 fl.circular = false))"
+     },
+     {
+      "id": "silver-wolf",
+      "passed": false,
+      "failedOn": "st.weighted = 신강"
+     },
+     {
+      "id": "eternal-forest",
+      "passed": true
+     }
+    ],
+    "S": 5.233333,
+    "total": 10.5,
+    "r": 0.498413,
+    "verdict": "중화",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": 0,
+    "M": 1,
+    "tClass": "중",
+    "mClass": "습",
+    "groupTotals": {
+     "bigyeop": 2.7,
+     "siksang": 1.35,
+     "jaeseong": 2.383333,
+     "gwansal": 1.533333,
+     "inseong": 1.533333
+    },
+    "gs": {
+     "bigyeop": 0.257143,
+     "inseong": 0.146032,
+     "siksang": 0.128571,
+     "jaeseong": 0.226984,
+     "gwansal": 0.146032
+    },
+    "shares": {
+     "wood": 0.352381,
+     "fire": 0.128571,
+     "earth": 0.226984,
+     "metal": 0.146032,
+     "water": 0.146032
+    },
+    "structure": "편재격",
+    "special": [],
+    "flags": [],
+    "circular": true,
+    "dayMasterFlow": {
+     "toOutput": true,
+     "toWealth": true,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "eternal-forest",
+      "secondary": null
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "eternal-forest",
+      "secondary": null
+     },
+     {
+      "tableId": "main-only",
+      "primary": "white-deer",
+      "secondary": null
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "eternal-forest",
+    "S": 157,
+    "r": 0.498413,
+    "verdict": "중화",
+    "shares": {
+     "wood": 0.352,
+     "fire": 0.129,
+     "earth": 0.227,
+     "metal": 0.146,
+     "water": 0.146
+    },
+    "circular": true,
+    "gs": {
+     "gwansal": 0.146
+    },
+    "structure": "편재격",
+    "T": 0,
+    "M": 1
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 5.233333 / 손 157"
+   ]
+  },
+  {
+   "id": "숲-2",
+   "src": "손계산",
+   "pillars": [
+    "庚辰",
+    "甲申",
+    "乙卯",
+    "戊寅"
+   ],
+   "invalid": [],
+   "date": "2000-08-25",
+   "engine": {
+    "archetype": "eternal-forest",
+    "secondary": null,
+    "alsoMatched": [],
+    "ruleId": "arch.v1.12.eternal-forest",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": false,
+      "failedOn": "tg.shareT.inseong ≥ 0.12"
+     },
+     {
+      "id": "baekho",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "black-fox",
+      "passed": false,
+      "failedOn": "(fl.clarity has 상관견관 또는 (gk.name = 상관격 그리고 st.weighted ≠ 신강) 또는 (st.weighted = 신약 그리고 tg.maxOppose = siksang))"
+     },
+     {
+      "id": "white-deer",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "sage",
+      "passed": false,
+      "failedOn": "st.weighted = 신강"
+     },
+     {
+      "id": "cheongnyong",
+      "passed": false,
+      "failedOn": "((st.weighted = 신강 그리고 tg.supportType = bigyeop 그리고 fl.toOutput = true) 또는 (st.weighted = 중화 그리고 fl.toOutput = true 그리고 fl.toWealth = true 그리고 fl.circular = false))"
+     },
+     {
+      "id": "silver-wolf",
+      "passed": false,
+      "failedOn": "st.weighted = 신강"
+     },
+     {
+      "id": "eternal-forest",
+      "passed": true
+     }
+    ],
+    "S": 5.133333,
+    "total": 10.5,
+    "r": 0.488889,
+    "verdict": "중화",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": 0.5,
+    "M": 0.5,
+    "tClass": "중",
+    "mClass": "중",
+    "groupTotals": {
+     "bigyeop": 3.333333,
+     "siksang": 0.233333,
+     "jaeseong": 2.533333,
+     "gwansal": 2.6,
+     "inseong": 0.8
+    },
+    "gs": {
+     "bigyeop": 0.31746,
+     "inseong": 0.07619,
+     "siksang": 0.022222,
+     "jaeseong": 0.24127,
+     "gwansal": 0.247619
+    },
+    "shares": {
+     "wood": 0.412698,
+     "fire": 0.022222,
+     "earth": 0.24127,
+     "metal": 0.247619,
+     "water": 0.07619
+    },
+    "structure": "정관격",
+    "special": [],
+    "flags": [],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": false,
+     "toWealth": false,
+     "fromResource": false
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "eternal-forest",
+      "secondary": null
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "eternal-forest",
+      "secondary": null
+     },
+     {
+      "tableId": "main-only",
+      "primary": "moon-goddess",
+      "secondary": "baekho"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "eternal-forest",
+    "S": 154,
+    "r": 0.488889,
+    "verdict": "중화",
+    "groupsU": {
+     "bigyeop": 100,
+     "inseong": 24,
+     "siksang": 7,
+     "jaeseong": 76,
+     "gwansal": 78
+    },
+    "gs": {
+     "inseong": 0.076,
+     "gwansal": 0.248,
+     "siksang": 0.022
+    },
+    "structure": "정관격",
+    "T": 0.5,
+    "M": 0.5
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": [
+    "S 엔진 5.133333 / 손 154",
+    "비겁u 엔진 3.333333 / 손 100",
+    "인성u 엔진 0.8 / 손 24",
+    "식상u 엔진 0.233333 / 손 7",
+    "재성u 엔진 2.533333 / 손 76",
+    "관살u 엔진 2.6 / 손 78"
+   ]
+  },
+  {
+   "id": "참고-사례6",
+   "src": "명세 사례 6(시주 모름)",
+   "pillars": [
+    "丙寅",
+    "丁酉",
+    "庚辰",
+    null
+   ],
+   "invalid": [],
+   "date": "1986-10-03",
+   "engine": {
+    "archetype": "silver-wolf",
+    "secondary": null,
+    "alsoMatched": [],
+    "ruleId": "arch.v1.11.silver-wolf",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": false,
+      "failedOn": "st.weighted ∈ {신약,중화}"
+     },
+     {
+      "id": "baekho",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "black-fox",
+      "passed": false,
+      "failedOn": "(fl.clarity has 상관견관 또는 (gk.name = 상관격 그리고 st.weighted ≠ 신강) 또는 (st.weighted = 신약 그리고 tg.maxOppose = siksang))"
+     },
+     {
+      "id": "white-deer",
+      "passed": false,
+      "failedOn": "st.weighted = 신약"
+     },
+     {
+      "id": "sage",
+      "passed": false,
+      "failedOn": "tg.supportType = inseong"
+     },
+     {
+      "id": "cheongnyong",
+      "passed": false,
+      "failedOn": "((st.weighted = 신강 그리고 tg.supportType = bigyeop 그리고 fl.toOutput = true) 또는 (st.weighted = 중화 그리고 fl.toOutput = true 그리고 fl.toWealth = true 그리고 fl.circular = false))"
+     },
+     {
+      "id": "silver-wolf",
+      "passed": true
+     }
+    ],
+    "S": 5.133333,
+    "total": 8.5,
+    "r": 0.603922,
+    "verdict": "신강",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": 0.5,
+    "M": -0.5,
+    "tClass": "중",
+    "mClass": "중",
+    "groupTotals": {
+     "bigyeop": 3,
+     "siksang": 0.15,
+     "jaeseong": 0.983333,
+     "gwansal": 2.233333,
+     "inseong": 1.133333
+    },
+    "gs": {
+     "bigyeop": 0.352941,
+     "inseong": 0.133333,
+     "siksang": 0.017647,
+     "jaeseong": 0.115686,
+     "gwansal": 0.262745
+    },
+    "shares": {
+     "wood": 0.115686,
+     "fire": 0.262745,
+     "earth": 0.133333,
+     "metal": 0.470588,
+     "water": 0.017647
+    },
+    "structure": "양인격",
+    "special": [],
+    "flags": [
+     "관살혼잡"
+    ],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": false,
+     "toWealth": false,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "silver-wolf",
+      "secondary": null
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "silver-wolf",
+      "secondary": null
+     },
+     {
+      "tableId": "main-only",
+      "primary": "silver-wolf",
+      "secondary": null
+     }
+    ],
+    "hour": {
+     "distinct": [
+      "moon-goddess",
+      "bonghwang",
+      "silver-wolf"
+     ],
+     "byHour": [
+      [
+       "丙子",
+       "moon-goddess"
+      ],
+      [
+       "丁丑",
+       "moon-goddess"
+      ],
+      [
+       "戊寅",
+       "silver-wolf"
+      ],
+      [
+       "己卯",
+       "silver-wolf"
+      ],
+      [
+       "庚辰",
+       "silver-wolf"
+      ],
+      [
+       "辛巳",
+       "silver-wolf"
+      ],
+      [
+       "壬午",
+       "bonghwang"
+      ],
+      [
+       "癸未",
+       "bonghwang"
+      ],
+      [
+       "甲申",
+       "silver-wolf"
+      ],
+      [
+       "乙酉",
+       "silver-wolf"
+      ],
+      [
+       "丙戌",
+       "moon-goddess"
+      ],
+      [
+       "丁亥",
+       "moon-goddess"
+      ]
+     ]
+    }
+   },
+   "hand": {
+    "arch": "silver-wolf",
+    "r": 0.603922,
+    "verdict": "신강",
+    "shares": {
+     "water": 0.018
+    },
+    "hourSensitive": true
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": []
+  },
+  {
+   "id": "참고-사례3",
+   "src": "명세 사례 3(사례6 + 壬午시)",
+   "pillars": [
+    "丙寅",
+    "丁酉",
+    "庚辰",
+    "壬午"
+   ],
+   "invalid": [],
+   "date": "1986-10-03",
+   "engine": {
+    "archetype": "bonghwang",
+    "secondary": "eternal-forest",
+    "alsoMatched": [
+     "eternal-forest"
+    ],
+    "ruleId": "arch.v1.05.bonghwang",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": false,
+      "failedOn": "(st.extreme ≠ null 또는 gk.hasSpecial = true)"
+     },
+     {
+      "id": "hyeonmu",
+      "passed": false,
+      "failedOn": "cl.tClass = 한강"
+     },
+     {
+      "id": "golden-sun",
+      "passed": false,
+      "failedOn": "cl.tClass = 열강"
+     },
+     {
+      "id": "moon-goddess",
+      "passed": false,
+      "failedOn": "el.strictPairCount ≥ 1"
+     },
+     {
+      "id": "bonghwang",
+      "passed": true
+     }
+    ],
+    "S": 5.433333,
+    "total": 10.5,
+    "r": 0.51746,
+    "verdict": "중화",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": 1,
+    "M": -1,
+    "tClass": "난",
+    "mClass": "조",
+    "groupTotals": {
+     "bigyeop": 3,
+     "siksang": 1.15,
+     "jaeseong": 0.983333,
+     "gwansal": 2.933333,
+     "inseong": 1.433333
+    },
+    "gs": {
+     "bigyeop": 0.285714,
+     "inseong": 0.136508,
+     "siksang": 0.109524,
+     "jaeseong": 0.093651,
+     "gwansal": 0.279365
+    },
+    "shares": {
+     "wood": 0.093651,
+     "fire": 0.279365,
+     "earth": 0.136508,
+     "metal": 0.380952,
+     "water": 0.109524
+    },
+    "structure": "양인격",
+    "special": [],
+    "flags": [
+     "관살혼잡"
+    ],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": true,
+     "toWealth": false,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "bonghwang",
+      "secondary": "eternal-forest"
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "bonghwang",
+      "secondary": "eternal-forest"
+     },
+     {
+      "tableId": "main-only",
+      "primary": "bonghwang",
+      "secondary": "eternal-forest"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "bonghwang",
+    "verdict": "중화"
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": []
+  },
+  {
+   "id": "참고-사례10",
+   "src": "명세 사례 10",
+   "pillars": [
+    "庚辰",
+    "己丑",
+    "甲戌",
+    "戊辰"
+   ],
+   "invalid": [],
+   "date": "1941-01-26",
+   "engine": {
+    "archetype": "galaxy",
+    "secondary": "hyeonmu",
+    "alsoMatched": [
+     "hyeonmu",
+     "white-deer"
+    ],
+    "ruleId": "arch.v1.01.galaxy",
+    "trace": [
+     {
+      "id": "galaxy",
+      "passed": true
+     }
+    ],
+    "S": 2.7,
+    "total": 10.5,
+    "r": 0.257143,
+    "verdict": "신약",
+    "extreme": null,
+    "nearBoundary": false,
+    "T": -2,
+    "M": 1.5,
+    "tClass": "한강",
+    "mClass": "습",
+    "groupTotals": {
+     "bigyeop": 0.6,
+     "siksang": 0.15,
+     "jaeseong": 5.9,
+     "gwansal": 1.75,
+     "inseong": 1.1
+    },
+    "gs": {
+     "bigyeop": 0.057143,
+     "inseong": 0.104762,
+     "siksang": 0.014286,
+     "jaeseong": 0.561905,
+     "gwansal": 0.166667
+    },
+    "shares": {
+     "wood": 0.152381,
+     "fire": 0.014286,
+     "earth": 0.561905,
+     "metal": 0.166667,
+     "water": 0.104762
+    },
+    "structure": "정재격",
+    "special": [
+     "화토격 후보"
+    ],
+    "flags": [],
+    "circular": false,
+    "dayMasterFlow": {
+     "toOutput": false,
+     "toWealth": false,
+     "fromResource": true
+    },
+    "strictPairs": [],
+    "byTable": [
+     {
+      "tableId": "kr-monthly-30",
+      "primary": "galaxy",
+      "secondary": "hyeonmu"
+     },
+     {
+      "tableId": "cn-lunarjs",
+      "primary": "galaxy",
+      "secondary": "hyeonmu"
+     },
+     {
+      "tableId": "main-only",
+      "primary": "galaxy",
+      "secondary": "hyeonmu"
+     }
+    ],
+    "hour": null
+   },
+   "hand": {
+    "arch": "galaxy",
+    "r": 0.257,
+    "special": "화토"
+   },
+   "archMatch": true,
+   "secondaryMatch": true,
+   "mismatches": []
+  }
+ ]
+}
