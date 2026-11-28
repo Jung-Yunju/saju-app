@@ -2568,7 +2568,7 @@
       "title": "사주 발현 분석 엔진 (원국 × MBTI·경험 → 발현·잠재력·운 전략)",
       "owner": "개인화 분석 연구원·명리학 연구소장",
       "purpose": "같은 사주라도 살아온 모습에 따라 다른 해석·행동 조언(D-035)",
-      "status": "개발 중",
+      "status": "검증 중",
       "depends": [],
       "subtasks": [
         {
@@ -2577,15 +2577,15 @@
         },
         {
           "t": "기질 차원 명리 근거 정리",
-          "done": false
+          "done": true
         },
         {
           "t": "엔진 구현·시험",
-          "done": false
+          "done": true
         },
         {
           "t": "연구소장 표 반영",
-          "done": false
+          "done": true
         },
         {
           "t": "품질검증 독립 검증",
@@ -2601,6 +2601,11 @@
           "date": "2026-11-28",
           "status": "개발 중",
           "note": "대표 지시 접수, 계약서 확정, 연구소장·개인화 연구원 병렬 투입"
+        },
+        {
+          "date": "2026-11-28",
+          "status": "검증 중",
+          "note": "연구소장 근거(expression-dimensions@0.1.0)·엔진 expression@0.1.0 구현. 총괄실장 실행: tsc·lint 통과, 발현 시험 32건·전체 2,615건 통과(표 검증 순서 1건 수정). 1만 건 분포: 핵심 5차원 균형, 결 차원 strong 59~65%(조정 검토). 품질검증 독립 검증 중"
         }
       ],
       "result": "",
@@ -2608,7 +2613,7 @@
         "result": "",
         "note": ""
       },
-      "issues": "",
+      "issues": "결 차원(steadiness·edge) strong 과다 — 문턱 조정 검토. 시주 없음 시 핵심 차원 faint 41%(목표 40% 살짝 초과)",
       "approval": {
         "needed": false,
         "item": ""
