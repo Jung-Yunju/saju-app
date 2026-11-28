@@ -6,6 +6,9 @@ import type { BirthInput } from "@/engine"
 import { buildPersonalContext } from "@/engine/personalize"
 import { buildFactSheet } from "@/engine/content/facts"
 import type { ChapterResult, FactSheet } from "@/engine/content/types"
+// 말버릇은 문구를 베껴 쓰지 않고 상수에서 가져온다 — prompts@0.4.0에서 문구가 바뀌어 낡은 문구가 "고정 문구"로 안 잡히고
+// 근거 없는 서술로 세어져 good-2 근거 표지 비율이 0.684로 떨어졌다(2026-11-28 QA 진단).
+import { CATCHPHRASES } from "@/engine/content/prompts/persona"
 
 const AS_OF = new Date("2026-11-27T03:00:00Z")
 
@@ -72,7 +75,7 @@ export function goodChapters1(): ChapterResult[] {
       sub: "올해 병(丙)·오(午)가 경(庚) 일간에 오는 모양",
       chips: [{ letter: "丙午", pos: "seun.stem+seun.branch", label: "올해 병오(丙午) · 관성" }],
       body: [
-        "날씨 얘기다. 우산은 네가 챙겨. 지금 갑신(甲申) 대운 안에서 2026년 병오(丙午)년은 경(庚) 일간한테 불이 겹으로 오는 해다.",
+        `${CATCHPHRASES.weather} 지금 갑신(甲申) 대운 안에서 2026년 병오(丙午)년은 경(庚) 일간한테 불이 겹으로 오는 해다.`,
       ],
       years: [
         {
@@ -80,7 +83,7 @@ export function goodChapters1(): ChapterResult[] {
           ganzhi: "丙午",
           title: "달구는 해",
           text: "올해 병(丙)은 편관, 오(午)는 정관이라 맡는 일이 늘기 쉽다. 올해 병(丙)이 월간 신(辛)과 합해 겁재의 다툼이 잦아드는 쪽으로 쓸 수 있다.",
-          reduce: "오(午)가 원국 오(午)와 형으로 겹치니 약속은 되돌릴 수 있는 크기로 해라.",
+          reduce: "오(午)가 원국 오(午)와 형으로 겹치니 약속은 되돌릴 수 있는 크기로 하거라.",
           keep: "병(丙) 편관이 주는 책임 하나는 끝까지 맡아 본다.",
         },
       ],
@@ -129,7 +132,7 @@ export function goodChapters2(): ChapterResult[] {
       sub: "올해 병(丙)·오(午)가 병(丙) 일간에 오는 모양",
       chips: [{ letter: "丙午", pos: "seun.stem+seun.branch", label: "올해 병오(丙午) · 비겁" }],
       body: [
-        "날씨 얘기다. 우산은 네가 챙겨. 2026년 신묘(辛卯) 대운이 막 시작했고, 병오(丙午)년은 병(丙) 일간한테 같은 불이 하나 더 붙는 해다.",
+        `${CATCHPHRASES.weather} 2026년 신묘(辛卯) 대운이 막 시작했고, 병오(丙午)년은 병(丙) 일간한테 같은 불이 하나 더 붙는 해다.`,
       ],
       years: [
         {
@@ -137,7 +140,7 @@ export function goodChapters2(): ChapterResult[] {
           ganzhi: "丙午",
           title: "불이 붙는 해",
           text: "올해 병(丙)은 비견, 오(午)는 겁재라 같이 뛰는 사람이 늘기 쉽다. 올해 오(午)가 월지 술(戌)과 반합해 식신의 손이 바빠지는 쪽으로 쓸 수 있다.",
-          reduce: "오(午)가 일지 오(午)와 형으로 겹치니 동업은 되돌릴 수 있는 크기로 해라.",
+          reduce: "오(午)가 일지 오(午)와 형으로 겹치니 동업은 되돌릴 수 있는 크기로 하거라.",
           keep: "술(戌) 식신으로 쌓는 일 하나는 매주 이어 간다.",
         },
       ],
