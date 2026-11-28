@@ -51,6 +51,7 @@ interface TraitDimension {
 interface ChartPotential {
   dimensionId: string
   level: "strong" | "moderate" | "faint"   // 숫자 점수는 내부, 화면엔 단계만
+  lean?: "steady" | "edge" | "balanced"     // grain(일을 풀어 가는 결) 전용 — 어느 결로 기우는지 (2026-11-28 @0.2.0)
   basis: { ruleId: string; positions: string[]; note: string }[]  // 어느 자리 어느 글자, 어떤 규칙
   evidenceLevel: "L0" | "L1" | "L2"        // L0 = 서비스 자체 규칙(고전 원문 대조 안 됨)
 }
@@ -71,7 +72,7 @@ type ExpressionStatus =
 interface DimensionReading {
   dimensionId: string
   chart: ChartPotential
-  self: { signal: "high" | "low" | "none"; from: string[] }   // 어떤 MBTI 축·UserFact id에서 왔는지
+  self: { signal: "high" | "low" | "none"; from: string[]; lean?: "steady" | "edge" }   // 어떤 MBTI 축·UserFact id에서 왔는지 (lean은 grain 전용)
   status: ExpressionStatus
   inferred: true             // 항상 true — 화면·AI 서술에서 "~일 수 있다"로만
 }
@@ -101,7 +102,8 @@ type ExpressionSectionId =
 - MBTI는 **"지금 스스로 그렇게 느낀다"는 자기보고**로만 쓴다. 원국·운 계산 입력에 절대 들어가지 않는다.
 - MBTI 축 ↔ 기질 차원 대응은 **운명비서 자기이해 모델의 가설 표**다. 표에 `claim: "service-model"`을 붙이고, 출력에는 "검증된 상관"이라는 표현을 만들 수 없게 한다(문구 금지어 시험).
 - MBTI만으로는 `developed`(살아오며 키움)를 판정하지 않는다 — **자기 기질에 대한 사실(강점·일하는 방식 등 UserFact) 1개 이상이 같은 방향**일 때만. 직업 상태·최근 변화 같은 상황 사실만으로도 `developed` 금지(2026-11-28 연구소장 권고 채택).
-- MBTI 4축 중 E/I·S/N·J/P만 차원 신호로 쓰고 T/F는 조언 문체 힌트로만 쓴다(연구소장 의견).
+- (2026-11-28 개정, 연구소장 @0.2.0 §6.2) MBTI **신호는 3줄뿐**: E→outward, J→grain 고른 쪽, P→grain 센 쪽(모두 확신일 때만). MBTI는 low 신호를 만들지 않는다. S/N·T/F와 나머지 극은 **문체 힌트**(talkFirst·writeFirst·concreteFirst·bigPictureFirst·reasonFirst·peopleFirst)로만 쓴다. 표에 적힌 신호 줄은 반드시 실제 판정에 쓰여야 한다(죽은 줄 금지 — 시험으로 고정).
+- 차원은 8개: steadiness·edge를 하나의 양극 축 `grain`(일을 풀어 가는 결)으로 합친다(정·편은 상대 개념, QA B4 변별력 문제 해결).
 - 시주 모름: 12시진 재계산에서 8/12 이상 같은 판정일 때만 `dormant`·`developed`, 아니면 `unknown` + `chart-uncertain`.
 - 차원 판정 규칙·근거: `docs/knowledge/personalization/expression-dimensions.md`(연구소장, 근거 등급 L0 — 고전 원문 대조 0건). MBTI만 있으면 `self.signal`을 약하게(한 단계 낮춤) 쓰고 `conflicts`에 "missing"을 남긴다.
 - MBTI를 모르거나 건너뛰어도 엔진은 돈다(그때는 설문 사실만, 둘 다 없으면 `unknown`).
