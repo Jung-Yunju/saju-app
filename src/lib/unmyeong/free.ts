@@ -102,7 +102,9 @@ export function buildUnmyeongFree(
     year: yearPillarOf(s.this_year),
   })
   const archetype = resolveArchetype(chart, rules)
-  const chapters = selectFreeChapters(opts.freeCopy !== undefined ? opts.freeCopy : loadFreeCopy(), archetype)
+  const chapters = selectFreeChapters(opts.freeCopy !== undefined ? opts.freeCopy : loadFreeCopy(), archetype, {
+    hourUnknown: base.hourUnknown,
+  })
   return {
     pillars: base.pillars,
     hourUnknown: base.hourUnknown,

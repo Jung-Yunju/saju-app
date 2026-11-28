@@ -140,7 +140,7 @@ function Shelf() {
           </li>
         ))}
       </ol>
-      <p className="umr-shelf-cta"><Link className={umButtonClass("brass")} href="/input">풀이 펼치러 가기</Link></p>
+      <p className="umr-shelf-cta"><Link className={umButtonClass("brass")} href="/input">운명비서 전권 보기</Link></p>
     </section>
   )
 }
@@ -172,6 +172,7 @@ export function ResultBook({ data, name, onRetry }: { data: UnmyeongFreeResponse
                 <Pic a={art.human} className="umr-water-top" />
                 <span className="umr-ripple" aria-hidden="true" />
                 <Pic a={art.beast} className="umr-water-bottom" />
+                {art.human.src.includes("placeholder") && <span className="umr-water-tag">그림 준비 중</span>}
                 <figcaption><b>{aName}</b>{a.secondary && ARCHETYPE_NAME[a.secondary] ? <> · 곁에 {ARCHETYPE_NAME[a.secondary]}</> : null}</figcaption>
               </>
             ) : (

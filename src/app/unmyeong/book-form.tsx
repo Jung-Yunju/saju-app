@@ -88,7 +88,7 @@ export function BookForm({ onSubmit, onReplay, busy, serverError }: {
                 value={f.birthYear} onChange={e => set("birthYear", digits(e.target.value, 4))} />
               <UmField variant="ledger" label="태어난 달" inputMode="numeric" autoComplete="off" placeholder="5"
                 value={f.birthMonth} onChange={e => set("birthMonth", digits(e.target.value, 2))} />
-              <UmField variant="ledger" label="태어난 날" inputMode="numeric" autoComplete="off" placeholder="21"
+              <UmField variant="ledger" label="태어난 날" inputMode="numeric" autoComplete="off" placeholder="17"
                 value={f.birthDay} onChange={e => set("birthDay", digits(e.target.value, 2))} />
             {errors.date && <p className="um-err-line" role="alert">{errors.date}</p>}
           </>

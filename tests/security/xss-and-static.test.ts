@@ -126,10 +126,46 @@ describe("정적 점검", () => {
   })
 
   /**
-   * 로그인 없는 공개 API 허용 목록(품질검증 판정 2026-11-27). 조건을 아래 테스트가 강제한다:
-   * DB(prisma)·세션·auth·AI(Anthropic) 접근 없음, IP 요청 제한(checkRateLimit)·본문 크기 제한(readJsonBody 2번째 인자) 사용.
+   * 로그인 없는 공개 API 허용 목록(품질검증 판정 2026-11-27, 2026-11-28 /api/unmyeong/free 추가 — 독립 검증 tests/security/unmyeong-free.test.ts).
+   * 조건을 아래 테스트가 강제한다: DB(prisma)·세션·auth·AI(Anthropic)·쿠키 접근 없음(라우트 폴더 + 가져오는 모듈 전체),
+   * IP 요청 제한(checkRateLimit)을 본문 읽기 전에, 본문 크기 제한(readJsonBody 2번째 인자, 8KB 이하), 캐시 금지(no-store).
    */
-  const PUBLIC_API = ["src/app/api/free/route.ts"]
+  const PUBLIC_API = ["src/app/api/free/route.ts", "src/app/api/unmyeong/free/route.ts"]
+
+  /** 주석을 지운 소스(줄 주석·블록 주석). 문자열 안의 "//"(URL 등)는 import 경로 판정에 영향 없다 */
+  const stripComments = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`])\/\/.*$/gm, "$1")
+  /** 라우트가 (간접으로) 가져오는 src 안 파일 전부 + 바깥 패키지 이름. type 전용 import는 실행되지 않으므로 뺀다 */
+  function importClosure(entry: string): { files: string[]; packages: string[]; unresolved: string[] } {
+    const seen = new Set<string>()
+    const packages = new Set<string>()
+    const unresolved: string[] = []
+    const resolveSpec = (from: string, spec: string): string | null => {
+      const base = spec.startsWith("@/") ? join(ROOT, "src", spec.slice(2)) : join(from, "..", spec)
+      for (const ext of ["", ".ts", ".tsx", "/index.ts", "/index.tsx", ".json"]) {
+        const p = base + ext
+        try { if (statSync(p).isFile()) return p } catch { /* 없음 */ }
+      }
+      return null
+    }
+    const visit = (f: string) => {
+      if (seen.has(f)) return
+      seen.add(f)
+      if (f.endsWith(".json")) return
+      const src = stripComments(readFileSync(f, "utf8"))
+      const re = /(?:^|[\s;])(?:import|export)\s+(type\s+)?(?:[\w*{}\s,$]+?\s+from\s+)?["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)|require\(\s*["']([^"']+)["']\s*\)/g
+      for (const m of src.matchAll(re)) {
+        if (m[1]) continue
+        const spec = (m[2] ?? m[3] ?? m[4])!
+        if (spec.startsWith("@/") || spec.startsWith(".")) {
+          const p = resolveSpec(f, spec)
+          if (p) visit(p)
+          else unresolved.push(`${rel(f)} → ${spec}`)
+        } else packages.add(spec)
+      }
+    }
+    visit(join(ROOT, entry))
+    return { files: [...seen].map(rel), packages: [...packages], unresolved }
+  }
 
   it("API 라우트(auth·공개 API 제외)는 로그인 판별에 getSessionUser만 쓴다 (auth() 직접 호출·session.user.id 직접 사용 없음)", () => {
     const api = files.filter((f) => rel(f).startsWith("src/app/api/") && /route\.ts$/.test(f) && !rel(f).includes("[...nextauth]"))
@@ -146,6 +182,7 @@ describe("정적 점검", () => {
 
   it("공개 API 허용 조건: DB·세션·AI 접근 없음, 요청 제한·본문 크기 제한 있음(하위 _lib 포함)", () => {
     for (const p of PUBLIC_API) {
+      expect(files.map(rel), `${p} 파일 없음`).toContain(p)
       const dir = join(ROOT, p, "..")
       const srcs = walk(dir).map((f) => readFileSync(f, "utf8")).join("\n")
       expect(srcs, p).not.toMatch(/@\/lib\/prisma|@prisma\/client|@\/lib\/session-user|@\/lib\/auth|next-auth|@anthropic-ai|generate-reading|cookies\(\)/)
@@ -153,6 +190,44 @@ describe("정적 점검", () => {
       expect(route, p).toMatch(/checkRateLimit\(/)
       expect(route, p).toMatch(/readJsonBody\(req, [A-Z_]+\)/)
     }
+  })
+
+  it("공개 API 허용 조건(가져오는 모듈 전체): 라우트 폴더 밖 모듈(src/lib/** 등)도 DB·세션·로그인·AI·쿠키를 가져오지 않는다", () => {
+    const FORBIDDEN_FILE = /^src\/(lib\/(prisma|auth|session-user|generate-reading[^/]*)\.ts|engine\/content\/generate[^/]*\.ts|lib\/anthropic[^/]*\.ts)$/
+    const ALLOWED_PACKAGES = new Set(["next/server", "lunar-javascript", "node:fs", "node:path"])
+    for (const p of PUBLIC_API) {
+      const c = importClosure(p)
+      expect(c.unresolved, p).toEqual([])
+      expect(c.files.filter((f) => FORBIDDEN_FILE.test(f)), p).toEqual([])
+      // 바깥 패키지는 허용 목록만(새 패키지가 끼면 여기서 멈추고 다시 판정)
+      expect(c.packages.filter((x) => !ALLOWED_PACKAGES.has(x)), p).toEqual([])
+      const code = c.files.filter((f) => !f.endsWith(".json")).map((f) => stripComments(readFileSync(join(ROOT, f), "utf8"))).join("\n")
+      expect(code, p).not.toMatch(/\bcookies\(\)|from\s+["']next\/headers["']|getSessionUser\(|\bfetch\(/)
+    }
+    // 걷기 자체 점검: 새 라우트는 본체(src/lib/unmyeong/free.ts)와 공용 요청 제한을 실제로 거친다
+    const um = importClosure("src/app/api/unmyeong/free/route.ts").files
+    expect(um).toEqual(expect.arrayContaining(["src/lib/unmyeong/free.ts", "src/lib/unmyeong/basis.ts", "src/app/api/free/_lib/rate-limit.ts", "src/lib/validate.ts"]))
+    // 음성 대조: 로그인 라우트는 걷기 결과에 prisma·session-user가 잡혀야 한다(걷기가 빈 결과를 내서 통과하는 일 방지)
+    const direct = importClosure("src/app/api/reading/direct/route.ts")
+    expect(direct.files).toEqual(expect.arrayContaining(["src/lib/prisma.ts", "src/lib/session-user.ts"]))
+    expect(direct.packages.some((x) => !ALLOWED_PACKAGES.has(x))).toBe(true)
+  })
+
+  it("공개 API 라우트: 요청 제한이 본문 읽기보다 먼저, 본문 한도 8KB 이하, 응답 캐시 금지, 오류 로그는 오류 종류만", async () => {
+    for (const p of PUBLIC_API) {
+      const route = stripComments(readFileSync(join(ROOT, p), "utf8"))
+      const iLimit = route.indexOf("checkRateLimit(")
+      const iBody = route.indexOf("readJsonBody(")
+      expect(iLimit, p).toBeGreaterThan(-1)
+      expect(iLimit, p).toBeLessThan(iBody)
+      expect(route, p).toMatch(/"Cache-Control":\s*"no-store"/)
+      for (const m of route.matchAll(/console\.\w+\(([^\n]*)\)/g)) {
+        expect(m[1], p).toMatch(/^"[^"]*",\s*e instanceof Error \? e\.name : "unknown"$/)
+      }
+    }
+    const { FREE_BODY_LIMIT } = await import("@/app/api/free/route")
+    const { UNMYEONG_FREE_BODY_LIMIT } = await import("@/lib/unmyeong/free")
+    for (const n of [FREE_BODY_LIMIT, UNMYEONG_FREE_BODY_LIMIT]) expect(n).toBeLessThanOrEqual(8 * 1024)
   })
 
   it("API 라우트 응답에 err.message·String(err)·stack을 그대로 싣지 않는다", () => {

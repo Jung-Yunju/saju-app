@@ -1,10 +1,11 @@
 // 원형 엔진 연결 지점(하나뿐) — D-027 작업 6.
 // 지금은 src/engine/archetype/ 가 없어서 null을 돌려준다(응답 pending.archetype = true).
-// 엔진 개발자가 classifyArchetype(공개 API 추가는 총괄실장 승인)를 만들면 이 함수 본문만 바꾼다:
+// 엔진 개발자가 analyzeArchetype(공개 API 승인 D-030)를 만들면 이 함수 본문만 바꾼다(실제 시그니처·필드 이름은 엔진 완성본에 맞춘다):
 //
-//   import { classifyArchetype } from "@/engine/archetype"
-//   const r = classifyArchetype(chart, rules)
-//   return { id: r.id, order: r.order, secondary: r.secondary, variantTags: r.variantTags, matched: r.matched,
+//   import { analyzeArchetype } from "@/engine/archetype"
+//   const r = analyzeArchetype(chart, rules)
+//   const bridge = r.derived.strictPairs[0]?.bridge   // 다리 기운(통관 오행) — 엔진 Element → ElementKo("수" 등)로 바꿔 넣는다
+//   return { id: r.id, order: r.order, secondary: r.secondary, variantTags: r.variantTags, bridge: bridge ? toKo(bridge) : null, matched: r.matched,
 //            stability: { nearBoundary: r.stability.nearBoundary, tableSensitive: r.stability.tableSensitive, hourSensitive: r.stability.hourSensitive },
 //            disclaimer: r.disclaimer, version: r.version }
 //

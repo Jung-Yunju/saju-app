@@ -24,6 +24,12 @@ export type {
   StrengthAffected, StrengthResult, StructureGroupRef, StructureCandidate, StructureResult, UsefulGodMethod,
   UsefulGodCandidate, FavorableSet, UsefulGodView, UsefulGodsResult, ClimateResult, QiFlowResult,
 } from "./rules/types"
+// 신성 원형(archetype@0.1.0, D-030): RuleAnalysis + 원국 → 창작 상징 원형 12개 중 하나(순서형 관문). 해석 문장 없음
+export { analyzeArchetype, ARCHETYPE_ENGINE_VERSION, ARCHETYPE_RULES_HASH, ARCHETYPE_ID_LIST, ARCHETYPE_TABLE } from "./archetype"
+export type {
+  ArchetypeId, ArchetypeCategory, ArchetypeResult, ArchetypeRef, ArchetypeBasisItem, ArchetypeConditionCheck,
+  ArchetypeHourSensitivity, ArchetypeTableSensitivity, ArchetypeChartInput,
+} from "./archetype"
 
 /** 출생 정보 → 원국·절기·대운 (역법 객관값) */
 export function computeChart(input: BirthInput, options?: Partial<EngineOptions>): CalendarResult {

@@ -219,31 +219,71 @@ describe("POST /api/unmyeong/free — 응답 모양", () => {
   })
 })
 
-describe("무료 5장 문안 고르기(임시 형식)", () => {
-  const keys = ["being", "gift", "reason", "chart", "unfolding"]
-  const copy = { version: 1, chapters: keys.map((key, i) => ({ no: i + 1, key, title: `제${i + 1}장`, default: `기본 ${key}`, byArchetype: { bonghwang: `봉황 ${key}` } })) }
+describe("무료 5장 문안 고르기(version 2)", () => {
+  const keys = ["being", "symbol", "gift", "shadow", "counsel"]
+  const copy = {
+    version: 2,
+    hourNote: { chapter: 1, text: "시각 안내." },
+    bridgeFallback: { replace: "다리는 {bridge}의 기운이다.", with: "다리가 될 기운 하나를 고르거라." },
+    chapters: keys.map((key, i) => ({ no: i + 1, key, title: `제${i + 1}장`, default: null as string | null, byArchetype: { bonghwang: `봉황 ${key}`, "moon-goddess": i === 4 ? "달 앞. 다리는 {bridge}의 기운이다. 달 뒤." : `달 ${key}` } })),
+  }
   const arch = { id: "bonghwang", order: 5, secondary: null, variantTags: [], matched: [], stability: { nearBoundary: false, tableSensitive: false, hourSensitive: null }, disclaimer: "creative-symbol" as const, version: "archetype@0.1.0" }
+  const moon = { ...arch, id: "moon-goddess", order: 4 }
 
   it("파일이 없으면 null", () => {
     expect(selectFreeChapters(null, null)).toBeNull()
     expect(selectFreeChapters(undefined, arch)).toBeNull()
   })
-  it("원형이 있으면 원형 문안, 없으면 기본 문안", () => {
-    expect(selectFreeChapters(copy, arch)?.map((c) => c.text)).toEqual(keys.map((k) => `봉황 ${k}`))
-    expect(selectFreeChapters(copy, null)?.map((c) => [c.no, c.key, c.text])).toEqual(keys.map((k, i) => [i + 1, k, `기본 ${k}`]))
+  it("원형이 있으면 원형 문안, 장 번호 = 키 순서", () => {
+    expect(selectFreeChapters(copy, arch)?.map((c) => [c.no, c.key, c.text])).toEqual(keys.map((k, i) => [i + 1, k, `봉황 ${k}`]))
   })
-  it("한 장이라도 고를 본문이 없거나 형식이 다르면 전체 null", () => {
-    const partial = { ...copy, chapters: copy.chapters.map((c, i) => (i === 2 ? { ...c, default: undefined, byArchetype: {} } : c)) }
-    expect(selectFreeChapters(partial, null)).toBeNull()
-    expect(selectFreeChapters({ chapters: copy.chapters.slice(0, 4) }, null)).toBeNull()
-    expect(selectFreeChapters({ foo: 1 }, null)).toBeNull()
-    expect(selectFreeChapters({ chapters: copy.chapters.map((c) => ({ ...c, no: 9 })) }, null)).toBeNull()
+  it("default가 null이면 원형이 없을 때 전체 null(준비 중)", () => {
+    expect(selectFreeChapters(copy, null)).toBeNull()
+    const withDefault = { ...copy, chapters: copy.chapters.map((c) => ({ ...c, default: `기본 ${c.key}` })) }
+    expect(selectFreeChapters(withDefault, null)?.map((c) => c.text)).toEqual(keys.map((k) => `기본 ${k}`))
   })
-  it("응답 본체에 문안을 넣으면 chapters가 채워지고 pending.chapters=false", () => {
+  it("{bridge}: 통관 오행을 물·나무·불·흙·쇠로, 값이 없으면 대체 문장으로 통째로", () => {
+    expect(selectFreeChapters(copy, { ...moon, variantTags: ["수↔화·목으로 이음"] })?.[4].text).toBe("달 앞. 다리는 나무의 기운이다. 달 뒤.")
+    expect(selectFreeChapters(copy, { ...moon, variantTags: ["금↔목·수로 이음"] })?.[4].text).toBe("달 앞. 다리는 물의 기운이다. 달 뒤.")
+    expect(selectFreeChapters(copy, { ...moon, bridge: "금" as const, variantTags: ["수↔화·목으로 이음"] })?.[4].text).toBe("달 앞. 다리는 쇠의 기운이다. 달 뒤.")
+    expect(selectFreeChapters(copy, moon)?.[4].text).toBe("달 앞. 다리가 될 기운 하나를 고르거라. 달 뒤.")
+    // 대체 문장이 없으면 날 토큰을 내지 않는다 → 전체 null
+    expect(selectFreeChapters({ ...copy, bridgeFallback: undefined }, moon)).toBeNull()
+  })
+  it("hourNote: 시각 모름이면 원형·민감도와 관계없이 1장 끝에 붙는다(D-030), 시각을 알면 없다", () => {
+    const r = selectFreeChapters(copy, arch, { hourUnknown: true })
+    expect(r?.[0].text).toBe("봉황 being 시각 안내.")
+    expect(r?.slice(1).every((c) => !c.text.includes("시각 안내"))).toBe(true)
+    expect(selectFreeChapters(copy, arch, { hourUnknown: false })?.[0].text).toBe("봉황 being")
+  })
+  it("{name} 같은 다른 토큰이 든 본문은 쓰지 않는다", () => {
+    const named = { ...copy, chapters: copy.chapters.map((c, i) => (i === 1 ? { ...c, byArchetype: { bonghwang: "{name}아, 봉황이다." } } : c)) }
+    expect(selectFreeChapters(named, arch)).toBeNull()
+  })
+  it("한 장이라도 고를 본문이 없거나 형식·순서가 다르면 전체 null", () => {
+    const partial = { ...copy, chapters: copy.chapters.map((c, i) => (i === 2 ? { ...c, byArchetype: {} } : c)) }
+    expect(selectFreeChapters(partial, arch)).toBeNull()
+    expect(selectFreeChapters({ ...copy, chapters: copy.chapters.slice(0, 4) }, arch)).toBeNull()
+    expect(selectFreeChapters({ foo: 1 }, arch)).toBeNull()
+    expect(selectFreeChapters({ ...copy, chapters: copy.chapters.map((c) => ({ ...c, no: 9 })) }, arch)).toBeNull()
+    expect(selectFreeChapters({ ...copy, chapters: [...copy.chapters].reverse() }, arch)).toBeNull()
+    const swapped = copy.chapters.map((c, i) => (i === 0 ? { ...c, key: "symbol" } : i === 1 ? { ...c, key: "being" } : c))
+    expect(selectFreeChapters({ ...copy, chapters: swapped }, arch)).toBeNull()
+    const oldKeys = { ...copy, chapters: ["being", "gift", "reason", "chart", "unfolding"].map((key, i) => ({ ...copy.chapters[i], key })) }
+    expect(selectFreeChapters(oldKeys, arch)).toBeNull()
+    expect(selectFreeChapters({ ...copy, hourNote: { chapter: 7, text: "x" } }, arch)).toBeNull()
+  })
+  it("응답 본체: 원형이 없으면(엔진 연결 전) default null 문안 → chapters null, 기본 문안이 있으면 채워지고 시각 모름 안내가 붙는다", () => {
     const v = validateUnmyeongFreeRequest(valid)
     if (!v.ok) throw new Error(v.error)
-    const r = buildUnmyeongFree(v.value, { freeCopy: copy })
-    expect(r.chapters).toHaveLength(5)
+    const none = buildUnmyeongFree(v.value, { freeCopy: copy })
+    expect(none.chapters).toBeNull()
+    expect(none.pending).toEqual({ archetype: true, chapters: true })
+    const withDefault = { ...copy, chapters: copy.chapters.map((c) => ({ ...c, default: `기본 ${c.key}` })) }
+    const r = buildUnmyeongFree(v.value, { freeCopy: withDefault })
+    expect(r.hourUnknown).toBe(true)
+    expect(r.chapters?.map((c) => c.key)).toEqual(keys)
+    expect(r.chapters?.[0].text).toBe("기본 being 시각 안내.")
     expect(r.pending).toEqual({ archetype: true, chapters: false })
   })
 })

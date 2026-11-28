@@ -58,3 +58,14 @@
  .um-loadline{opacity:.6}
 }
 
+
+/* 입력 장 보정 — 기록부 줄의 선택지를 칸으로 보이게 고르게 배치, 숫자 칸은 밑줄로 */
+.um-formbook .um-choice--ledger .um-choice__row{display:grid;grid-template-columns:repeat(auto-fit,minmax(4.2rem,1fr));gap:var(--um-space-2);padding:var(--um-space-2) 0 var(--um-space-2) var(--um-space-3)}
+.um-formbook .um-choice--ledger .um-choice__opt{min-width:0}
+.um-formbook .um-choice--ledger .um-choice__face{min-height:44px;padding:0 var(--um-space-1);border:1px solid var(--um-paper-line);border-radius:2px;white-space:normal;text-align:center;line-height:1.25;word-break:keep-all}
+.um-formbook .um-choice--ledger .um-choice__input:checked + .um-choice__face{border-color:var(--um-seal-ink);box-shadow:inset 0 0 0 1px var(--um-seal-ink);font-weight:700}
+.um-formbook .um-field--ledger .um-field__control[inputmode="numeric"]{margin:var(--um-space-2) var(--um-space-3);min-height:44px;width:calc(100% - 2 * var(--um-space-3));padding:0 var(--um-space-2);border:0;border-bottom:2px solid var(--um-paper-line);background:rgba(255,255,255,.28);font-variant-numeric:tabular-nums;letter-spacing:.08em}
+.um-formbook .um-field--ledger .um-field__control[inputmode="numeric"]:focus{border-bottom-color:var(--um-focus)}
+.umr-water{position:relative}
+.umr-water-tag{position:absolute;top:6px;right:6px;margin:0;padding:1px 6px;border-radius:2px;background:rgba(42,33,25,.72);color:#f3e9d2;font-size:11px;line-height:1.5}
+.umr-water img{aspect-ratio:3/2;object-position:center 35%}
