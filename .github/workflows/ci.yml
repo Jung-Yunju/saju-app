@@ -26,3 +26,6 @@ jobs:
         run: npx eslint src
       - name: 테스트
         run: npx vitest run
+      # 실제 운영 빌드(프리렌더 포함). 타입 검사·테스트로는 못 잡는 배포 차단 오류(2026-11-28 /free 프리렌더 실패)를 막는다.
+      - name: 운영 빌드 확인(배포 아님)
+        run: npx next build
