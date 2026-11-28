@@ -251,6 +251,39 @@ interface RuleAnalysis {
 - 결과 화면(`resolveDisplaySaju`): 저장된 `sajuInput.pillars`가 올바른 간지면 **그 글자 그대로** 한글·오행으로 바꿔 표시한다(= AI가 본 글자). 없거나 깨졌으면 새 엔진(기본 옵션, 평달 가정)으로 계산하고, 그것도 안 되면 빈 원국을 표시한다. 오행 개수는 천간 + 지지 정기 오행(rules-spec §9 counts 기준).
 - 테스트: `tests/engine/unit/saju-input.test.ts`.
 
+## 신성 원형 [계산 명세 — archetype@0.1.0, `src/engine/archetype/`, D-030]
+> 원형은 전통 명리의 공식 분류가 아니라 **서비스의 창작 상징**이다(결과 `disclaimer: "creative-symbol"` + `disclaimerText`, 화면 고지 필수). 해석 문장은 만들지 않는다. 역법(`CalendarResult`)·규칙(`RuleAnalysis`)과 다른 모듈·다른 타입(`ArchetypeResult`).
+
+- **공개 API**: `analyzeArchetype(analysis: RuleAnalysis, chart: { pillars, engineVersion? }): ArchetypeResult` (`src/engine/index.ts`). `chart`는 `computeChart` 결과를 그대로 넣으면 된다(시진·표 재판정에 `pillars`만 쓴다). `analysis.source.natal`과 `chart.pillars`가 다르면 `EngineInputError`. 순수 함수(DB·네트워크·AI 없음).
+- **규칙 데이터**: `src/engine/archetype/rules/research-12-knobC.json` — 연구소장 12안 + 조정안 C(`scripts/archetype-lab/rules/research-12-knobC.json`을 그대로 복사, status `draft`, 연구소장 사후 검토 대상). 규칙 해시 `ARCHETYPE_RULES_HASH = sha256:9bbeaabe286d8d28`(키 정렬 JSON의 sha256 앞 16자리, 상수 — 규칙을 고치면 테스트가 실패하므로 해시·버전·CHANGELOG를 함께 갱신). 로드 시 1회 검증(없는 특징 키·값·연산자, 원형 id·순서).
+- **특징**(`features.ts`, `features@0.2.0`): `RuleAnalysis` 값을 옮기거나 산수만 한다(lab과 같은 코드, 1천 건 동일 확인). 관문이 쓰는 키: `st.weighted`(모형 A 고정 — `strengthPrimary`와 무관), `st.extreme`, `gk.hasSpecial`, `cl.tClass`·`cl.mClass`, `el.strictPairCount`(극 관계 쌍 둘 다 ≥0.30·작은쪽/큰쪽 ≥0.5, 엔진 `tonggwanMinShare`와 독립), `tg.maxOppose`(동점 관살>재성>식상), `tg.shareT.*`(묶음 ÷ 모형 A total, 6자리), `tg.supportType`(비겁 ≥ 인성 → bigyeop), `fl.clarity`, `fl.toOutput`·`fl.toWealth`·`fl.circular`.
+- **판정(순서형 관문)**: 관문 1~12를 순서대로 검사해 **처음 통과한 원형**이 주 원형. 관문 전체를 끝까지 검사해 통과한 나머지를 `alsoMatched`(관문 순서)에 남기고 **부 원형 `secondary` = 관문 전체 중 다음으로 통과한 원형**(02 §7 정의로 통일). 어떤 관문도 통과 못 하면 `fallback`(불멸의 숲) + `fallbackSafety: true` 경보(분할 증명상 0건이어야 함).
+
+| 순서 | id | 관문(조정안 C) |
+|---:|---|---|
+| 1 | `galaxy` 은하 | `st.extreme ≠ null` 또는 특수격 후보 |
+| 2 | `hyeonmu` 현무 | 한강 + **습강** |
+| 3 | `golden-sun` 황금빛 태양 | 열강 + **조강** |
+| 4 | `moon-goddess` 달의 여신 | 양강 대치 쌍 ≥ 1 |
+| 5 | `bonghwang` 봉황 | 신약·중화 + 최대 빼는 묶음 관살 + 관살 ≥0.20 + 인성 ≥**0.15** |
+| 6 | `baekho` 백호 | 신약 + 최대 빼는 묶음 관살 + 봉황 조건(관살 ≥0.20·인성 ≥0.15) 아님 |
+| 7 | `black-fox` 흑여우 | 상관견관 / 신약 + 최대 빼는 묶음 식상 (**상관격 갈래 끔**) |
+| 8 | `white-deer` 백록 | 신약 + 최대 빼는 묶음 재성 |
+| 9 | `sage` 지혜의 현자 | 신강 + 인성 > 비겁 |
+| 10 | `cheongnyong` 청룡 | (신강·비겁형·식상 출구) 또는 (중화·식상 출구·식상→재성·순환 아님) |
+| 11 | `silver-wolf` 은빛 늑대 | 신강 + 비겁형 + 식상 출구 없음 |
+| 12 | `eternal-forest` 불멸의 숲 | 중화(나머지 전부) |
+
+- id는 `src/lib/unmyeong/assets.ts` `ARCHETYPE_IDS`와 같은 값·같은 순서(매핑 불필요, 이름도 자산 대체 글과 일치 — 테스트). `ARCHETYPE_ID_LIST`로 공개.
+- **지장간 표 고정**: 판정은 항상 `kr-monthly-30`. 받은 `analysis`의 표가 다르면 같은 원국·같은 다른 옵션으로 kr 표 분석을 다시 돌린다(결과 `ruleOptions.hiddenStemTable`은 항상 kr). `cn-lunarjs`·`main-only`로 다시 판정한 원형은 `sensitivity.table`(`byTable`, `changed` = kr↔cn 다름, `changedIncludingMainOnly`)에 **기록만** — 고객 화면 비노출.
+- **시각 모름**(시주 null): 세 기둥만으로 판정. 일간 기준 12시진(子→亥, 오서둔) 시주를 넣어 다시 판정해 `sensitivity.hour = { stable: x, of: 12, distinct, byHour }`(`stable` = 세 기둥 원형과 같은 시진 수). `hourUnknownNote: true`를 원형과 무관하게 늘 붙인다 — 화면은 "태어난 시각을 알면 다른 모습이 보일 수 있다" 안내를 표시. 시각을 알면 `hour: null`, `hourUnknownNote: false`. 한계: 12시진 변형은 같은 일·월주에 시주만 바꾼다(23시대·절입 당일 출생은 실제로는 일·월주가 바뀔 수 있음, 03 §15.4).
+- **근거 `basis[]`**: 관문 1부터 주 원형 관문까지 순서대로 `{ order, id, ruleId, gateLabel, passed, failedOn?(처음 거짓이 된 최상위 조건 글), values(판정에 쓴 특징 값), conditions[](잎 조건별 key·op·threshold·value·ok·negated?) }`. 마지막 항목이 통과 관문.
+- **기록 필드**: `version`·`engineVersion`(`archetype@0.1.0`), `rulesHash`, `ruleSet{id,version,status}`, `featureVersion`, `rulesEngineVersion`, `calendarEngineVersion`, `ruleOptions`, `id`·`name`·`category`·`order`·`ruleId`, `hourKnown`.
+- **결정성**: 같은 원국·같은 옵션 → 결과 전체(근거 포함) 같음. 받은 분석의 지장간 표·대운·세운 유무와 무관(테스트).
+- **미구현(02 §7 초안 중)**: `variantTags`(108 확장 때), `derived`, `stability.nearBoundary`. 화면 계약(`src/lib/unmyeong/free-types.ts` `UnmyeongArchetypeView`)으로의 변환은 `src/lib/unmyeong/archetype-link.ts` 담당(백엔드).
+- 성능(실측, 이 개발 환경): 분석 결과가 있을 때 시각 앎 1건 평균 0.5ms(표 재판정 2회), 시각 모름 3.4ms(12시진 + 표 재판정 14회).
+- 테스트: `src/engine/archetype/__tests__/archetype.test.ts` — 대표 사주 24개 원형 일치(+참고 3: 사례 3은 조정안 C에서 봉황 → 불멸의 숲), 부 원형 문서 대비 차이는 현무-2(달의 여신) 하나, lab(`classifyArchetype` + knobC)과 1천 명 × 시각 앎·모름 2천 판정 동일(주·부·alsoMatched·trace·matched·12시진·표), 특징 벡터 동일, 결정성, 경보 0(1천 명 × 18회 판정), 시각 모름, 입력 검증, 성능.
+
 ## 해석 규칙
 연구소장이 `docs/knowledge/`에 규칙 단위로 기록 → 엔진 개발자가 구현. 고전별 관점:
 - 연해자평: 기본 체계(십성·격국의 기초)
