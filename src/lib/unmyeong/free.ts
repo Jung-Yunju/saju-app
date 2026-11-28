@@ -10,7 +10,8 @@ import { buildFreeResult } from "@/app/api/free/_lib/build-result"
 import { resolveArchetype } from "./archetype-link"
 import { friendlyWarnings } from "./warnings"
 import { buildBasis } from "./basis"
-import { loadFreeCopy, selectFreeChapters } from "./free-copy"
+import { loadFreeCopy } from "./free-copy"
+import { composeFactsFrom, composeFreeChapters, logComposeWarnings } from "./compose"
 import type { UnmyeongFreeResponse } from "./free-types"
 
 /** 요청 본문 최대 크기(바이트) — 기존 /api/free와 같다 */
@@ -110,9 +111,13 @@ export function buildUnmyeongFree(
     year: yearPillarOf(s.this_year),
   })
   const archetype = resolveArchetype(chart, rules)
-  const chapters = selectFreeChapters(opts.freeCopy !== undefined ? opts.freeCopy : loadFreeCopy(), archetype, {
-    hourUnknown: base.hourUnknown,
-  })
+  // 무료 5장: 일주·일간·오행 개수·올해 글자·일지 충합·원형을 섞어 조립(compose.ts — 규칙 content/unmyeong/compose.json)
+  const composed = composeFreeChapters(
+    composeFactsFrom(rules, { hourUnknown: base.hourUnknown, year: base.thisYear.year, archetype }),
+    { freeCopy: opts.freeCopy !== undefined ? opts.freeCopy : loadFreeCopy() },
+  )
+  if (composed) logComposeWarnings(composed.warnings)
+  const chapters = composed ? composed.chapters : null
   return {
     pillars: base.pillars,
     hourUnknown: base.hourUnknown,

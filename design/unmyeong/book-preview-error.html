@@ -1,0 +1,2117 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>운명비서 고서 부품 견본 — 오류 상태</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Serif+KR:wght@400;700;800&family=Noto+Sans+KR:wght@400;700&display=swap">
+<style>/*
+ * 운명비서(運命秘書) 디자인 토큰 + 공통 스타일 — 디자인 실장 (D-027)
+ * 범위: .um-root 안쪽만. 기존 화면(/, /free, /input …)에는 영향 없음.
+ * 원본 문서: docs/DESIGN_SYSTEM.md 「8. 운명비서」. 색을 바꾸면 design/unmyeong/tools/contrast.mjs 값도 같이 바꾸고 다시 실측한다.
+ *
+ * 쓰는 법(프론트엔드)
+ *   import "@/styles/unmyeong.css"                       // src/app/unmyeong/layout.tsx 에서 한 번
+ *   import { umFontVariables } from "@/styles/unmyeong-fonts"
+ *   <div className={`um-root ${umFontVariables}`}> … </div>
+ *   종이(고서) 위 영역은 .um-paper — 안쪽 글자·밑줄·포커스 색이 자동으로 종이용으로 바뀐다.
+ *
+ * 금지: 형광·그라데이션 버튼, 금박 광택, 보라, 반짝이 입자, 과한 후광·테두리.
+ */
+
+.um-root {
+  /* ── 색: 대표 지정 8색(D-027) ── */
+  --um-bg: #141310;        /* 가장 깊은 밤 */
+  --um-study: #211c17;     /* 서재 벽·면 */
+  --um-wood: #382b21;      /* 목재(책상·책장) */
+  --um-paper: #c9b898;     /* 고서 종이 */
+  --um-text: #e2d8c5;      /* 어두운 바탕 위 밝은 본문 */
+  --um-brass: #b9a17a;     /* 제목·강조 — 광택 없는 오래된 황동 */
+  --um-line: #504335;      /* 장식 구분선(3:1 미만 — 입력 경계로 쓰지 않는다) */
+  --um-seal: #702f2b;      /* 붉은 봉인 */
+
+  /* ── 색: 파생(대비 실측 — DESIGN_SYSTEM 8-1) ── */
+  --um-text-ink: #2a2119;        /* 종이 위 본문 8.11:1 */
+  --um-text-ink-muted: #403428;  /* 종이 위 보조 — 질감 가장 어두운 곳에서도 4.5 이상(8-1) */
+  --um-text-muted: #a99b83;      /* 어두운 바탕 보조 6.81(bg)·5.02(wood) */
+  --um-brass-deep: #554425;      /* 종이 위 황동(포커스·테두리 — 글자에는 쓰지 않는다) 4.82:1 */
+  --um-seal-ink: #5a221f;        /* 종이 위 붉은 글자(장 번호·머리글·오류) — 질감 위에서도 4.5 이상 */
+  --um-line-strong: #80705a;     /* 어두운 바탕 입력 밑줄 3.88:1 */
+  --um-paper-line: #5b4c3a;      /* 종이 위 입력 밑줄·기록부 가로줄 4.3(평균)·3.0(질감 가장 어두운 곳) */
+  --um-paper-shade: #b3a07d;     /* 종이 그을린 가장자리(장식) */
+  --um-seal-hover: #7b3530;
+  --um-seal-press: #5f2724;
+  --um-seal-edge: #a65e50;       /* 봉인 버튼 경계 3.84:1 */
+  --um-seal-text: #efe6d6;       /* 봉인 버튼 글자 7.96:1 */
+  --um-danger-dark: #d49a8a;     /* 어두운 바탕 오류 글 7.77:1 */
+  --um-lamp: 201 150 82;         /* 등불 빛(RGB 채널 — rgb(var(--um-lamp) / .1) 처럼 투명도와 함께만 쓴다) */
+
+  /* 종이 질감(섬유 결·얼룩 입자·큰 얼룩 — feTurbulence 3겹, 260px 타일) */
+  --um-paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.018 .9' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .33 0 0 0 0 .25 0 0 0 0 .16 0 0 0 1.3 -.62'/%3E%3C/filter%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .22 0 0 0 0 .13 0 0 0 1.6 -.78'/%3E%3C/filter%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='2' seed='29' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .32 0 0 0 0 .19 0 0 0 1.1 -.52'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23b)' opacity='.5'/%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='.28'/%3E%3Crect width='100%25' height='100%25' filter='url(%23s)' opacity='.6'/%3E%3C/svg%3E");
+
+  /* ── 글꼴(next/font 변수 → 없으면 시스템 글꼴) ── */
+  --um-font-title: var(--um-ff-title, "Nanum Myeongjo"), var(--um-ff-hanja, "Noto Serif KR"), "AppleMyungjo", "Batang", serif;
+  --um-font-body: var(--um-ff-body, "Noto Sans KR"), "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+
+  /* ── 글자 크기: 모바일 본문 17px, 16px 미만은 xs(장 번호·주석 같은 보조 표식)만 ── */
+  --um-fs-xs: 0.875rem;   /* 14 */
+  --um-fs-sm: 1rem;       /* 16 */
+  --um-fs-md: 1.0625rem;  /* 17 — 본문·입력 */
+  --um-fs-lg: 1.25rem;    /* 20 — 할머니 대사·소제목 */
+  --um-fs-xl: clamp(1.5rem, 1.18rem + 1.35vw, 1.875rem);   /* 24 → 30 */
+  --um-fs-2xl: clamp(1.875rem, 1.35rem + 2.2vw, 2.5rem);   /* 30 → 40 */
+  --um-lh-body: 1.78;
+  --um-lh-title: 1.35;
+
+  /* ── 간격(4의 배수) ── */
+  --um-space-1: 4px;
+  --um-space-2: 8px;
+  --um-space-3: 12px;
+  --um-space-4: 16px;
+  --um-space-5: 24px;
+  --um-space-6: 32px;
+  --um-space-7: 48px;
+  --um-space-8: 64px;
+  --um-measure: 34rem;     /* 한 줄 최대 폭(읽기) */
+
+  /* ── 둥글기: 고서는 거의 각지다 ── */
+  --um-radius-s: 2px;
+  --um-radius-m: 4px;
+
+  /* ── 그림자 ── */
+  --um-shadow-page: 0 1px 1px rgb(0 0 0 / 0.45), 0 6px 14px -4px rgb(0 0 0 / 0.55), 0 22px 44px -18px rgb(0 0 0 / 0.75);
+  --um-shadow-lamp: 0 0 0 1px rgb(var(--um-lamp) / 0.05), 0 -12px 60px -10px rgb(var(--um-lamp) / 0.16);
+
+  /* ── 버튼 ── */
+  --um-btn-h: 52px;        /* 주 버튼 */
+  --um-btn-h-sm: 44px;     /* 보조(터치 최소) */
+  --um-btn-px: 24px;
+  --um-btn-radius: var(--um-radius-s);
+  --um-btn-fs: var(--um-fs-md);
+  --um-btn-seal-bg: var(--um-seal);
+  --um-btn-seal-bg-hover: var(--um-seal-hover);
+  --um-btn-seal-bg-press: var(--um-seal-press);
+  --um-btn-seal-fg: var(--um-seal-text);
+  --um-btn-seal-edge: var(--um-seal-edge);
+  --um-btn-brass-line: var(--um-brass);
+  --um-btn-brass-fg: var(--um-brass);
+  --um-btn-brass-bg-hover: rgb(185 161 122 / 0.09);
+
+  /* ── 펼친 고서·기록부(UmLedgerPage) — 영상 마지막 프레임과 맞추는 값(DESIGN_SYSTEM 8-6) ── */
+  --um-gutter-shadow: linear-gradient(90deg, rgb(48 31 16 / 0.5) 0, rgb(48 31 16 / 0.22) 9px, rgb(48 31 16 / 0.07) 26px, transparent 46px);
+  --um-gutter-shadow-l: linear-gradient(270deg, rgb(48 31 16 / 0.5) 0, rgb(48 31 16 / 0.22) 9px, rgb(48 31 16 / 0.07) 26px, transparent 46px);
+  --um-page-stack: -1px 1px 0 #b7a581, -2px 2px 0 #a8956f, -3px 3px 0 #9c8865;
+  --um-ledger-line: var(--um-paper-line);   /* 기록부 가로줄 = 입력 경계(3:1 이상) */
+  --um-ledger-rule: rgb(42 33 25 / 0.22);   /* 칸 나눔 세로줄(장식) */
+  --um-ledger-col: 5.75em;                  /* 항목 이름 칸 폭 */
+  --um-stamp-color: var(--um-seal);
+  --um-stamp-rotate: -5deg;
+
+  /* ── 문맥 변수(어두운 서재 기본값 — .um-paper 가 덮어쓴다) ── */
+  --um-fg: var(--um-text);
+  --um-fg-muted: var(--um-text-muted);
+  --um-accent: var(--um-brass);
+  --um-field-line: var(--um-line-strong);
+  --um-focus: var(--um-brass);
+  --um-danger: var(--um-danger-dark);
+  --um-rule: var(--um-line);
+
+  color-scheme: dark;
+  background-color: var(--um-bg);
+  color: var(--um-fg);
+  font-family: var(--um-font-body);
+  font-size: var(--um-fs-md);
+  line-height: var(--um-lh-body);
+  letter-spacing: -0.005em;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.um-root *,
+.um-root *::before,
+.um-root *::after {
+  box-sizing: border-box;
+}
+
+.um-root ::selection {
+  background: rgb(185 161 122 / 0.35);
+  color: inherit;
+}
+
+/* ════════ 바탕 ════════ */
+
+/* 서재: 왼쪽 위 등불에서 번지는 아주 옅은 빛 + 미세한 먹 입자. 별·입자·후광 없음 */
+.um-study {
+  background-color: var(--um-bg);
+  background-image:
+    radial-gradient(120% 70% at 22% -6%, rgb(var(--um-lamp) / 0.13), transparent 62%),
+    radial-gradient(90% 60% at 50% 110%, rgb(0 0 0 / 0.55), transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .89 0 0 0 0 .85 0 0 0 0 .77 0 0 0 .5 -.18'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.08'/%3E%3C/svg%3E");
+}
+
+/* 고서 종이: 섬유 결 + 얼룩 입자(feTurbulence, 이미지 파일 없음) + 그을린 가장자리 */
+.um-paper {
+  --um-fg: var(--um-text-ink);
+  --um-fg-muted: var(--um-text-ink-muted);
+  --um-accent: var(--um-brass-deep);
+  --um-field-line: var(--um-paper-line);
+  --um-focus: var(--um-brass-deep);
+  --um-danger: var(--um-seal-ink);
+  --um-rule: rgb(42 33 25 / 0.28);
+  --um-btn-brass-line: var(--um-brass-deep);
+  --um-btn-brass-fg: var(--um-text-ink);
+  --um-btn-brass-bg-hover: rgb(85 68 37 / 0.08);
+
+  color-scheme: light;
+  color: var(--um-fg);
+  background-color: var(--um-paper);
+  background-image:
+    var(--um-paper-grain);
+  background-size: 260px 260px;
+}
+
+/* ════════ 글 ════════ */
+
+.um-title {
+  font-family: var(--um-font-title);
+  font-weight: 700;
+  line-height: var(--um-lh-title);
+  letter-spacing: 0;
+  color: var(--um-accent);
+}
+
+.um-prose {
+  max-width: var(--um-measure);
+}
+.um-prose > * + * {
+  margin-top: 1em;
+}
+.um-prose p {
+  margin: 0;
+}
+.um-prose strong {
+  font-weight: 700;
+  color: var(--um-fg);
+}
+
+/* 할머니 대사: 명조, 조금 크게, 말 사이 여백 */
+.um-voice {
+  font-family: var(--um-font-title);
+  font-size: var(--um-fs-lg);
+  font-weight: 400;
+  line-height: 1.7;
+  color: var(--um-fg);
+}
+
+.um-muted {
+  color: var(--um-fg-muted);
+}
+
+/* 고지·주석 — 16px 유지 */
+.um-note {
+  font-size: var(--um-fs-sm);
+  line-height: 1.6;
+  color: var(--um-fg-muted);
+}
+
+.um-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 포커스: 키보드일 때만, 바탕에 맞는 황동(어두움 6.79 / 종이 4.82) */
+.um-root :focus-visible {
+  outline: 2px solid var(--um-focus);
+  outline-offset: 3px;
+}
+
+/* ════════ 고서 한 장 (UmPage) ════════ */
+
+.um-page {
+  position: relative;
+  padding: var(--um-space-7) var(--um-space-5) var(--um-space-6);
+  border-radius: var(--um-radius-s);
+  box-shadow: var(--um-shadow-page), inset 0 0 36px rgb(92 64 34 / 0.32), inset 0 0 6px rgb(92 64 34 / 0.25);
+}
+/* 광곽(匡郭): 고서 판면의 가는 테두리 한 줄 — 장식은 이것 하나 */
+.um-page::before {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1px solid rgb(42 33 25 / 0.2);
+  pointer-events: none;
+}
+.um-page--dark {
+  background-color: var(--um-study);
+  box-shadow: var(--um-shadow-page), var(--um-shadow-lamp);
+}
+.um-page--dark::before {
+  border-color: rgb(185 161 122 / 0.14);
+}
+
+.um-page__head {
+  margin-bottom: var(--um-space-5);
+}
+.um-page__no {
+  display: flex;
+  align-items: baseline;
+  gap: var(--um-space-2);
+  margin: 0 0 var(--um-space-2);
+  font-family: var(--um-font-title);
+  font-size: var(--um-fs-xs);
+  letter-spacing: 0.12em;
+  color: var(--um-seal-ink);
+}
+.um-page--dark .um-page__no {
+  color: var(--um-fg-muted);
+}
+.um-page__no-han {
+  font-weight: 700;
+}
+.um-page__title {
+  margin: 0;
+  font-family: var(--um-font-title);
+  font-size: var(--um-fs-xl);
+  font-weight: 700;
+  line-height: var(--um-lh-title);
+  color: var(--um-fg);
+}
+.um-page--dark .um-page__title {
+  color: var(--um-brass);
+}
+.um-page__sub {
+  margin: var(--um-space-2) 0 0;
+  font-size: var(--um-fs-sm);
+  color: var(--um-fg-muted);
+}
+.um-page__foot {
+  margin-top: var(--um-space-6);
+}
+
+/* ════════ 장 제목 (UmChapterTitle) ════════ */
+
+.um-ct {
+  margin: 0 0 var(--um-space-5);
+}
+.um-ct--center {
+  text-align: center;
+}
+.um-ct__kicker {
+  margin: 0 0 var(--um-space-2);
+  font-family: var(--um-font-title);
+  font-size: var(--um-fs-xs);
+  letter-spacing: 0.18em;
+  color: var(--um-fg-muted);
+}
+.um-ct__title {
+  margin: 0;
+  font-family: var(--um-font-title);
+  font-size: var(--um-fs-2xl);
+  font-weight: 700;
+  line-height: 1.28;
+  color: var(--um-accent);
+}
+.um-paper .um-ct__title {
+  color: var(--um-fg);
+}
+.um-ct__lead {
+  margin: var(--um-space-3) 0 0;
+  font-size: var(--um-fs-md);
+  color: var(--um-fg-muted);
+}
+.um-ct--center .um-ct__lead {
+  margin-inline: auto;
+  max-width: var(--um-measure);
+}
+
+/* ════════ 버튼 ════════ */
+
+.um-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--um-space-2);
+  min-height: var(--um-btn-h);
+  min-width: var(--um-btn-h-sm);
+  padding: 0 var(--um-btn-px);
+  border: 1px solid transparent;
+  border-radius: var(--um-btn-radius);
+  font-family: var(--um-font-title);
+  font-size: var(--um-btn-fs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.08s ease;
+}
+.um-btn--sm {
+  min-height: var(--um-btn-h-sm);
+  padding: 0 var(--um-space-4);
+  font-size: var(--um-fs-sm);
+}
+.um-btn--block {
+  display: flex;
+  width: 100%;
+}
+.um-btn:active {
+  transform: translateY(1px);
+}
+.um-btn:disabled,
+.um-btn[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+/* 붉은 봉인 버튼: 단색 + 인주 번짐 같은 미세 입자. 그라데이션·광택 없음 */
+.um-btn--seal {
+  background-color: var(--um-btn-seal-bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='i'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='2' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .06 0 0 0 0 .05 0 0 0 1.4 -.7'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23i)' opacity='.55'/%3E%3C/svg%3E");
+  border-color: var(--um-btn-seal-edge);
+  color: var(--um-btn-seal-fg);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.28), 0 1px 0 rgb(0 0 0 / 0.45);
+}
+.um-btn--seal:hover {
+  background-color: var(--um-btn-seal-bg-hover);
+}
+.um-btn--seal:active {
+  background-color: var(--um-btn-seal-bg-press);
+}
+.um-paper .um-btn--seal {
+  border-color: var(--um-seal-press);
+}
+
+/* 황동 테두리 버튼: 비어 있는 면 + 가는 황동 선 */
+.um-btn--brass {
+  background-color: transparent;
+  border-color: var(--um-btn-brass-line);
+  color: var(--um-btn-brass-fg);
+}
+.um-btn--brass:hover {
+  background-color: var(--um-btn-brass-bg-hover);
+}
+
+/* ════════ 입력 (UmField / UmChoiceGroup) — 고서 위에 쓰는 밑줄 ════════ */
+
+.um-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--um-space-1);
+  margin: 0 0 var(--um-space-5);
+}
+.um-field__label {
+  font-family: var(--um-font-title);
+  font-size: var(--um-fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--um-fg);
+}
+.um-field__req {
+  margin-left: var(--um-space-1);
+  font-weight: 400;
+  color: var(--um-fg-muted);
+}
+.um-field__wrap {
+  position: relative;
+}
+.um-field__control {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: var(--um-space-2) var(--um-space-1);
+  border: 0;
+  border-bottom: 1px solid var(--um-field-line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--um-fg);
+  font-family: var(--um-font-title);
+  font-size: 1.125rem; /* 18 — iOS 확대 방지(16 이상) */
+  line-height: 1.5;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.um-field__control::placeholder {
+  color: var(--um-fg-muted);
+  opacity: 0.85;
+}
+.um-field__control:focus {
+  outline: none;
+}
+.um-field__control:focus-visible,
+.um-field__control:focus {
+  border-bottom-color: var(--um-focus);
+  box-shadow: 0 1px 0 0 var(--um-focus);
+}
+.um-field__control[aria-invalid="true"] {
+  border-bottom-color: var(--um-danger);
+  box-shadow: 0 1px 0 0 var(--um-danger);
+}
+textarea.um-field__control {
+  min-height: 6.5em;
+  resize: vertical;
+  font-family: var(--um-font-body);
+  font-size: var(--um-fs-md);
+  line-height: var(--um-lh-body);
+}
+select.um-field__control {
+  padding-right: var(--um-space-6);
+  cursor: pointer;
+}
+.um-field__wrap--select::after {
+  content: "";
+  position: absolute;
+  right: var(--um-space-2);
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -6px;
+  border-right: 1.5px solid var(--um-fg-muted);
+  border-bottom: 1.5px solid var(--um-fg-muted);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+.um-field__help {
+  margin: var(--um-space-1) 0 0;
+  font-size: var(--um-fs-sm);
+  line-height: 1.55;
+  color: var(--um-fg-muted);
+}
+.um-field__error {
+  margin: 0;
+  font-size: var(--um-fs-sm);
+  line-height: 1.55;
+  color: var(--um-danger);
+}
+.um-field__error:empty {
+  display: none;
+}
+
+/* 고르기(양력·음력, 성별): 라디오는 화면에서 숨기지 않고 겹쳐 둔다 → 키보드·화면낭독 그대로 */
+.um-choice {
+  margin: 0 0 var(--um-space-5);
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.um-choice__legend {
+  margin-bottom: var(--um-space-2);
+  padding: 0;
+  font-family: var(--um-font-title);
+  font-size: var(--um-fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--um-fg);
+}
+.um-choice__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--um-space-2);
+}
+.um-choice__opt {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 5.5rem;
+}
+.um-choice__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.um-choice__face {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 var(--um-space-3);
+  border: 1px solid var(--um-field-line);
+  border-radius: var(--um-radius-s);
+  font-family: var(--um-font-title);
+  font-size: var(--um-fs-md);
+  color: var(--um-fg-muted);
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+.um-choice__input:checked + .um-choice__face {
+  border-color: var(--um-accent);
+  color: var(--um-fg);
+  font-weight: 700;
+  background-color: var(--um-btn-brass-bg-hover);
+  box-shadow: inset 0 -2px 0 var(--um-accent);
+}
+.um-choice__input:focus-visible + .um-choice__face {
+  outline: 2px solid var(--um-focus);
+  outline-offset: 3px;
+}
+.um-choice__input:disabled + .um-choice__face {
+  opacity: 0.55;
+}
+
+/* ════════ 펼침 (UmFold) — "할미는 어떻게 알았을까?" ════════ */
+
+.um-fold {
+  margin: var(--um-space-5) 0 0;
+  border-top: 1px solid var(--um-rule);
+  border-bottom: 1px solid var(--um-rule);
+}
+.um-fold__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--um-space-3);
+  min-height: 48px;
+  padding: var(--um-space-2) 0;
+  font-family: var(--um-font-title);
+  font-size: var(--um-fs-md);
+  font-weight: 700;
+  color: var(--um-fg);
+  cursor: pointer;
+  list-style: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.um-fold__summary::-webkit-details-marker {
+  display: none;
+}
+.um-fold__summary::marker {
+  content: "";
+}
+/* 표식: 작은 네모 안의 + / − (봉인 도장 축소판) */
+.um-fold__mark {
+  position: relative;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--um-accent);
+  border-radius: 1px;
+}
+.um-fold__mark::before,
+.um-fold__mark::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: var(--um-accent);
+  transform: translate(-50%, -50%);
+  transition: transform 0.2s ease;
+}
+.um-fold__mark::before {
+  width: 8px;
+  height: 1.5px;
+}
+.um-fold__mark::after {
+  width: 1.5px;
+  height: 8px;
+}
+.um-fold[open] .um-fold__mark::after {
+  transform: translate(-50%, -50%) scaleY(0);
+}
+.um-fold__hint {
+  margin-left: auto;
+  font-family: var(--um-font-body);
+  font-size: var(--um-fs-sm);
+  font-weight: 400;
+  color: var(--um-fg-muted);
+}
+.um-fold__body {
+  padding: 0 0 var(--um-space-4) calc(18px + var(--um-space-3));
+  font-size: var(--um-fs-md);
+  color: var(--um-fg);
+}
+.um-fold__body > * + * {
+  margin-top: 0.75em;
+}
+.um-fold__body p {
+  margin: 0;
+}
+/* 지원 브라우저에서만 부드럽게 열림(점진적 향상) */
+@supports selector(::details-content) {
+  .um-fold {
+    interpolate-size: allow-keywords;
+  }
+  .um-fold::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition: block-size 0.28s ease, content-visibility 0.28s allow-discrete;
+  }
+  .um-fold[open]::details-content {
+    block-size: auto;
+  }
+}
+
+/* ════════ 구분선 (UmDivider) ════════ */
+
+.um-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--um-space-3);
+  margin: var(--um-space-6) 0;
+  border: 0;
+  color: var(--um-rule);
+}
+.um-divider::before,
+.um-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+}
+.um-divider--plain::after {
+  display: none;
+}
+.um-divider__mark {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  background: var(--um-accent);
+  transform: rotate(45deg);
+  opacity: 0.8;
+}
+.um-divider--seal .um-divider__mark {
+  width: 7px;
+  height: 7px;
+  background: var(--um-seal);
+  transform: none;
+  border-radius: 1px;
+  opacity: 1;
+}
+
+/* ════════ 1급 비밀 도장 (UmStamp) ════════ */
+
+/* 인주가 고르지 않게 찍힌 사각 도장: 두 줄 테두리 + 마스크(feTurbulence)로 닳은 자국 */
+.um-stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px 4px;
+  border: 2.5px solid var(--um-stamp-color);
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 2px var(--um-paper), inset 0 0 0 3px var(--um-stamp-color);
+  color: var(--um-stamp-color);
+  font-family: var(--um-font-title);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  white-space: nowrap;
+  transform: rotate(var(--um-stamp-rotate));
+  opacity: 0.92;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='80'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='3' seed='17'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.4 0 0 0 2.05'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='80'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='3' seed='17'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.4 0 0 0 2.05'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23m)'/%3E%3C/svg%3E");
+  -webkit-mask-size: 140px 80px;
+  mask-size: 140px 80px;
+  mix-blend-mode: multiply;
+}
+.um-stamp--lg {
+  padding: 8px 16px 7px;
+  border-width: 3px;
+  box-shadow: inset 0 0 0 3px var(--um-paper), inset 0 0 0 4px var(--um-stamp-color);
+  font-size: 1.375rem;
+}
+
+/* ════════ 펼친 고서 한 쪽 = 입력 화면 (UmLedgerPage) ════════ */
+
+/* 모바일: 오른쪽 장 한 쪽 + 왼쪽 가장자리에 가운데 접힘 그림자와 왼쪽 장 끝자락 */
+.um-ledger {
+  position: relative;
+  display: flex;
+  min-height: calc(100svh - 2 * var(--um-space-4));
+  margin: var(--um-space-4) var(--um-space-3) var(--um-space-4) var(--um-space-4);
+}
+.um-ledger__leaf {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+.um-ledger__leaf::after {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgb(42 33 25 / 0.2);
+  pointer-events: none;
+}
+/* 왼쪽 장(제목 장) — 모바일에서는 오른쪽 장 위쪽에 합쳐 보인다 */
+.um-ledger__leaf--title {
+  display: none;
+}
+.um-ledger__leaf--record {
+  padding: var(--um-space-6) var(--um-space-5) var(--um-space-6) calc(var(--um-space-5) + 10px);
+  border-radius: 0 var(--um-radius-s) var(--um-radius-s) 0;
+  background-image: var(--um-gutter-shadow), var(--um-paper-grain);
+  background-size: 100% 100%, 260px 260px;
+  background-repeat: no-repeat, repeat;
+  box-shadow: var(--um-shadow-page), inset 0 0 34px rgb(92 64 34 / 0.3);
+}
+/* 왼쪽 장 끝자락(접힘 너머로 살짝 보이는 종이) */
+.um-ledger::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 6px;
+  bottom: 6px;
+  width: 8px;
+  border-radius: var(--um-radius-s) 0 0 var(--um-radius-s);
+  background: linear-gradient(90deg, #8e7b5b, #a8956f 60%, #6f5d44);
+  box-shadow: -2px 2px 6px rgb(0 0 0 / 0.5);
+}
+
+/* 제목 묶음(1급 비밀 · 운명비서) */
+.um-ledger__mast {
+  position: relative;
+  margin: 0 0 var(--um-space-6);
+}
+.um-ledger__kicker {
+  margin: 0 0 var(--um-space-2);
+  font-family: var(--um-font-title);
+  font-size: var(--um-fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--um-seal-ink);
+}
+.um-ledger__title {
+  margin: 0;
+  font-family: var(--um-font-title);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--um-text-ink);
+}
+.um-ledger__han {
+  display: block;
+  font-size: var(--um-fs-2xl);
+  letter-spacing: 0.08em;
+}
+.um-ledger__ko {
+  display: block;
+  margin-top: var(--um-space-1);
+  font-size: var(--um-fs-lg);
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--um-text-ink-muted);
+}
+/* 모바일: 도장은 한자 제목 오른쪽(제목 첫 줄 높이) */
+.um-ledger__stamp {
+  position: absolute;
+  top: 2.75rem;
+  right: 0;
+}
+.um-ledger__intro {
+  margin: var(--um-space-4) 0 0;
+}
+
+/* 기록부 머리: "오늘의 대상자" + 기록 번호 */
+.um-ledger__rec-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--um-space-3);
+  padding-bottom: var(--um-space-2);
+  border-bottom: 3px double var(--um-ledger-line);
+}
+.um-ledger__rec-title {
+  margin: 0;
+  font-family: var(--um-font-title);
+  font-size: var(--um-fs-lg);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--um-text-ink);
+}
+.um-ledger__rec-meta {
+  font-family: var(--um-font-title);
+  font-size: var(--um-fs-xs);
+  letter-spacing: 0.06em;
+  color: var(--um-text-ink-muted);
+  white-space: nowrap;
+}
+.um-ledger__rows {
+  margin-bottom: var(--um-space-6);
+}
+.um-ledger__foot {
+  margin-top: auto;
+}
+.um-ledger__record-inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+/* 기록부 한 줄(UmField variant="ledger", UmChoiceGroup variant="ledger") */
+.um-field--ledger,
+.um-choice--ledger {
+  display: grid;
+  grid-template-columns: var(--um-ledger-col) minmax(0, 1fr);
+  gap: 0;
+  margin: 0;
+  border-bottom: 1px solid var(--um-ledger-line);
+}
+.um-field--ledger .um-field__label,
+.um-choice--ledger .um-choice__label {
+  display: block;
+  min-height: 56px;
+  padding: 14px var(--um-space-2) var(--um-space-2) 0; /* 첫 줄을 기입 칸(56px) 글자 높이에 맞춘다 */
+  border-right: 1px solid var(--um-ledger-rule);
+  grid-row: 1 / span 3; /* 도움말·오류 줄까지 칸 나눔 선을 이어 그린다 */
+  font-family: var(--um-font-title);
+  font-size: var(--um-fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--um-fg);
+}
+.um-field--ledger .um-field__wrap {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+}
+.um-field--ledger .um-field__control {
+  min-height: 56px;
+  padding-left: var(--um-space-3);
+  border-bottom: 0;
+}
+.um-field--ledger .um-field__control:focus,
+.um-field--ledger .um-field__control:focus-visible {
+  box-shadow: inset 0 -2px 0 var(--um-focus);
+}
+.um-field--ledger:has([aria-invalid="true"]) {
+  border-bottom-color: var(--um-danger);
+}
+.um-field--ledger .um-field__control[aria-invalid="true"] {
+  box-shadow: inset 0 -2px 0 var(--um-danger);
+}
+.um-field--ledger .um-field__help,
+.um-field--ledger .um-field__error {
+  grid-column: 2;
+  padding: 0 0 var(--um-space-2) var(--um-space-3);
+}
+.um-field--ledger .um-field__help {
+  margin-top: 0;
+}
+.um-choice--ledger .um-choice__row {
+  grid-column: 2;
+  align-items: center;
+  padding: var(--um-space-1) 0 var(--um-space-1) var(--um-space-3);
+}
+.um-choice--ledger .um-choice__row {
+  gap: var(--um-space-1);
+}
+.um-choice--ledger .um-choice__opt {
+  flex: 0 1 auto;
+  min-width: 3.5rem;
+}
+.um-choice--ledger .um-choice__face {
+  padding: 0 var(--um-space-2);
+}
+.um-choice--ledger .um-choice__face {
+  min-height: 44px;
+  border-color: transparent;
+}
+.um-choice--ledger .um-choice__input:checked + .um-choice__face {
+  border-color: var(--um-seal-ink);
+  color: var(--um-seal-ink);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--um-seal-ink);
+}
+.um-choice--ledger .um-choice__help {
+  grid-column: 2;
+  margin: 0;
+  padding: 0 0 var(--um-space-2) var(--um-space-3);
+  font-size: var(--um-fs-sm);
+  color: var(--um-fg-muted);
+}
+
+/* 태블릿·PC: 양쪽 장이 펼쳐진 책 — 왼쪽 제목 장, 오른쪽 기록부 장 */
+@media (min-width: 900px) {
+  .um-ledger {
+    width: min(75vw, 1240px);
+    min-height: min(86vh, 880px);
+    margin: 7vh auto;
+    box-shadow: var(--um-page-stack), 1px 1px 0 #b7a581, 2px 2px 0 #a8956f, 3px 3px 0 #9c8865;
+  }
+  .um-ledger::before {
+    display: none;
+  }
+  .um-ledger__leaf--title {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--um-space-8) var(--um-space-7);
+    border-radius: var(--um-radius-s) 0 0 var(--um-radius-s);
+    background-image: var(--um-gutter-shadow-l), var(--um-paper-grain);
+    background-size: 100% 100%, 260px 260px;
+    background-repeat: no-repeat, repeat;
+    box-shadow: var(--um-shadow-page), inset 0 0 40px rgb(92 64 34 / 0.3);
+  }
+  .um-ledger__leaf--record {
+    padding: var(--um-space-8) var(--um-space-7);
+  }
+  .um-ledger__leaf--record .um-ledger__mast {
+    display: none;
+  }
+  .um-ledger__leaf--title .um-ledger__mast {
+    margin: 0;
+    padding-right: 0;
+  }
+  .um-ledger__leaf--title .um-ledger__stamp {
+    position: static;
+    display: block;
+    margin-top: var(--um-space-6);
+  }
+  .um-ledger__leaf--title .um-ledger__han {
+    font-size: clamp(2.5rem, 1.2rem + 2.6vw, 3.5rem);
+  }
+}
+
+/* ════════ 화면 폭 ════════ */
+
+@media (min-width: 768px) {
+  .um-root {
+    --um-btn-px: 32px;
+  }
+  .um-page {
+    padding: var(--um-space-8) var(--um-space-7) var(--um-space-7);
+  }
+  .um-page::before {
+    inset: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .um-root *,
+  .um-root *::before,
+  .um-root *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .um-btn,
+  .um-choice__face {
+    border-color: ButtonText;
+  }
+  .um-field__control {
+    border-bottom-color: CanvasText;
+  }
+}
+
+/*
+ * 운명비서 「펼친 비밀 고서」 부품 — 디자인 실장 (D-033, 2026-11-28)
+ * 짝 컴포넌트: src/components/ui/unmyeong/book/ (UmStudyBackdrop · UmBook · UmBookTitle · UmInkField · UmInkChoice · UmWaxSeal · UmBookPage · UmChapterHead)
+ * 문서: docs/DESIGN_SYSTEM.md 「9. 펼친 비밀 고서」. 그림: public/unmyeong/book/*.svg (design/unmyeong/tools/make-book-art.mjs 가 만든다)
+ *
+ * 쓰는 법(프론트엔드): src/app/unmyeong/layout.tsx 에서 unmyeong.css 다음 줄에
+ *   import "@/styles/unmyeong-book.css"
+ * 범위: .um-root 안쪽만(토큰은 .um-root 에 더한다 — 기존 unmyeong.css 값은 건드리지 않는다). 클래스 앞머리 ub-.
+ *
+ * 원칙: 신비는 어둠·등불·여백·종이와 가죽의 물성으로. 금박·반짝이·마법진·형광·광택 버튼·굵은 테두리 금지.
+ * 대비(WCAG 2.1 실측, 종이 #DCCFB1 / 글자 자리에서 가장 어두운 종이 #C4B18E):
+ *   먹 #2A2119 10.23 / 7.54 · 옅은 먹 #4A3B2D 7.06 / 5.20 · 흐린 먹(placeholder) #5E4D3B 5.23 / 3.86(가장자리만)
+ *   붉은 먹 글자 #5A221F 8.08 / 5.96 · 밑줄 #6B5843 4.39 / 3.23(3:1 비글자 기준) · 포커스 #554425 6.3 / 4.6
+ */
+
+/* ════════ 토큰 ════════ */
+.um-root {
+  /* 고급 종이(아이보리) — 가운데가 가장 밝고 가장자리로 그을린다 */
+  --ub-paper: #ded1b3;
+      --ub-paper-edge: 126 92 52;      /* 그을림(RGB 채널 — 투명도와 함께) */
+
+  /* 종이 면 = 등불 빛(왼쪽 위, 따뜻하게) + 오른쪽 아래 그늘 + 오래된 얼룩 두어 점 + 섬유 + 바탕색 */
+  --ub-paper-bg:
+    radial-gradient(ellipse 95% 55% at 6% 0%, rgb(255 222 160 / 0.3), rgb(255 222 160 / 0.08) 55%, transparent 75%),
+    radial-gradient(ellipse 85% 60% at 100% 100%, rgb(var(--ub-paper-edge) / 0.2), transparent 70%),
+    radial-gradient(ellipse 22% 14% at 80% 20%, rgb(var(--ub-paper-edge) / 0.07), transparent 70%),
+    radial-gradient(ellipse 16% 10% at 18% 78%, rgb(var(--ub-paper-edge) / 0.06), transparent 70%),
+    url("../../public/unmyeong/book/paper-fiber.svg") 0 0 / 360px 360px,
+    var(--ub-paper);
+  /* 가장자리 그을림(안쪽 그림자 세 겹) */
+  --ub-paper-burn:
+    inset 0 0 0 1px rgb(var(--ub-paper-edge) / 0.4),
+    inset 0 0 6px rgb(var(--ub-paper-edge) / 0.4),
+    inset 0 0 26px rgb(var(--ub-paper-edge) / 0.34),
+    inset 0 0 80px rgb(var(--ub-paper-edge) / 0.16);
+  /* 종이 단면 층(바깥 아래로) + 종이 묶음이 가죽 위에 드리우는 그림자 */
+  --ub-stack-r: 1px 1px 0 #cdbd9b, 2px 2px 0 #a8946f, 3px 3px 0 #c4b28e, 4px 4px 0 #9b8664, 5px 5px 0 #b9a680, 6px 6px 0 #8c7756, 7px 8px 6px rgb(10 4 2 / 0.55);
+  --ub-stack-l: -1px 1px 0 #cdbd9b, -2px 2px 0 #a8946f, -3px 3px 0 #c4b28e, -4px 4px 0 #9b8664, -5px 5px 0 #b9a680, -6px 6px 0 #8c7756, -3px 8px 6px rgb(10 4 2 / 0.55);
+
+  /* 먹 — 종이 위 글자 */
+  --ub-ink: #2a2119;
+  --ub-ink-soft: #4a3b2d;          /* 라벨·보조 글 */
+  --ub-ink-faint: #5e4d3b;         /* placeholder·구분 점 */
+  --ub-line: #6b5843;              /* 붓 밑줄(쉴 때) — 3:1 이상 */
+  --ub-line-wet: #2a2119;          /* 붓 밑줄(포커스 — 먹이 번진 뒤) */
+  --ub-cinnabar: #7a2a24;          /* 주묵(朱墨) — 고른 글자 둘레 동그라미 */
+  --ub-error: #5a221f;             /* 붉은 먹 오류 글자 */
+  --ub-brass-line: rgb(128 99 56 / 0.75); /* 가는 황동 장식선(장식 — 글자에 쓰지 않음) */
+  --ub-focus: #554425;             /* 종이 위 키보드 포커스 */
+
+  /* 가죽 표지 — 짙은 갈색에 암적색이 비친다 */
+  --ub-leather: #3c1c15;
+  --ub-leather-lit: #54281d;       /* 등불 쪽(왼쪽 위) */
+  --ub-leather-deep: #230f0c;
+  --ub-leather-worn: 140 88 62;    /* 닳은 모서리·가장자리(RGB 채널) */
+  --ub-leather-side: #1b0b09;      /* 표지 두께(옆면) */
+
+  /* 밀랍 */
+  --ub-wax: #6c2823;
+  --ub-wax-deep: #45150f;
+
+  /* 크기 */
+  --ub-cover: 14px;                /* 표지가 종이 밖으로 나온 폭(모바일) */
+  --ub-book-single: 600px;
+  --ub-book-spread: 1060px;
+  --ub-page-pad-y: 44px;
+  --ub-page-pad-x: 26px;
+  --ub-gutter: 14px;               /* 접힘 쪽 여분 여백 */
+  --ub-ease: cubic-bezier(0.22, 0.61, 0.24, 1);
+}
+@media (min-width: 720px) {
+  .um-root {
+    --ub-cover: 22px;
+    --ub-page-pad-y: 48px;
+    --ub-page-pad-x: 56px;
+    --ub-gutter: 20px;
+  }
+}
+
+/* 어두운 서재 위에 같은 부품(제목·장 머리)을 놓을 때 — 먹 → 밝은 글 */
+.ub-dark {
+  --ub-ink: var(--um-text);
+  --ub-ink-soft: var(--um-text-muted);
+  --ub-ink-faint: var(--um-text-muted);
+  --ub-line: var(--um-line-strong);
+  --ub-line-wet: var(--um-brass);
+  --ub-error: var(--um-danger-dark);
+  --ub-cinnabar: #b5655a;
+  --ub-brass-line: rgb(185 161 122 / 0.6);
+  --ub-focus: var(--um-brass);
+}
+
+/* ════════ 1. UmStudyBackdrop — 어두운 서재 ════════ */
+.ub-backdrop {
+  --ub-dim: 0.35;
+  --ub-blur: 2.5px;
+  --ub-lamp-x: 5%;
+  --ub-lamp-y: 30%;
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--um-bg);
+  color: var(--um-text);
+}
+@media (orientation: portrait) {
+  .ub-backdrop { --ub-lamp-x: 2%; --ub-lamp-y: 7%; }
+}
+.ub-backdrop__img,
+.ub-backdrop__veil,
+.ub-backdrop__lamp {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+.ub-backdrop__img {
+  z-index: -3;
+  /* 영상 마지막 프레임과 같은 그림 · 같은 맞춤(cover 가운데) → 밝기 1·흐림 0 에서 시작하면 이음새가 없다 */
+  background: var(--um-bg) url("../../public/unmyeong/final/book_topview_pc_16x9.webp") center / cover no-repeat;
+  filter: brightness(var(--ub-dim)) blur(var(--ub-blur)) saturate(0.88);
+  transform: scale(1.03); /* 흐림으로 생기는 가장자리 빈틈 가리기 */
+  transition: filter 0.8s ease-in-out, transform 0.8s ease-in-out;
+}
+@media (orientation: portrait) {
+  .ub-backdrop__img { background-image: url("../../public/unmyeong/final/book_topview_mobile_9x16.webp"); }
+}
+.ub-backdrop__img[data-image="pc"] { background-image: url("../../public/unmyeong/final/book_topview_pc_16x9.webp"); }
+.ub-backdrop__img[data-image="mobile"] { background-image: url("../../public/unmyeong/final/book_topview_mobile_9x16.webp"); }
+
+/* 비네팅: 가운데(책 자리)는 그대로, 가장자리로 깊은 밤 */
+.ub-backdrop__veil {
+  z-index: -2;
+  background:
+    radial-gradient(ellipse 125% 100% at 50% 44%, transparent 38%, rgb(14 11 9 / 0.5) 72%, rgb(10 8 6 / 0.9) 100%),
+    linear-gradient(to bottom, rgb(10 8 6 / 0.25), transparent 18%, transparent 80%, rgb(10 8 6 / 0.45));
+}
+/* 등불 쪽 따뜻한 빛 번짐 — 아주 느리게 숨 쉬듯(움직임 줄이기면 멈춤) */
+.ub-backdrop__lamp {
+  z-index: -1;
+  background:
+    radial-gradient(circle at var(--ub-lamp-x) var(--ub-lamp-y), rgb(var(--um-lamp) / 0.26), rgb(var(--um-lamp) / 0.08) 22%, transparent 48%);
+  mix-blend-mode: screen;
+  animation: ub-lamp-breathe 7s ease-in-out infinite alternate;
+}
+@keyframes ub-lamp-breathe {
+  0% { opacity: 0.82; }
+  45% { opacity: 1; }
+  60% { opacity: 0.9; }
+  100% { opacity: 0.97; }
+}
+.ub-backdrop__content {
+  position: relative;
+  min-height: inherit;
+}
+/* 영상 마지막 프레임 → 이 상태로 0.8초 어두워짐 */
+.ub-backdrop--enter .ub-backdrop__img { animation: ub-dim-in 0.8s ease-in-out both; }
+.ub-backdrop--enter .ub-backdrop__veil,
+.ub-backdrop--enter .ub-backdrop__lamp { animation: ub-fade-in 0.8s ease-in-out both; }
+.ub-backdrop--enter .ub-backdrop__lamp { animation: ub-fade-in 0.8s ease-in-out both, ub-lamp-breathe 7s 0.8s ease-in-out infinite alternate; }
+@keyframes ub-dim-in {
+  from { filter: brightness(1) blur(0) saturate(1); transform: scale(1); }
+}
+@keyframes ub-fade-in {
+  from { opacity: 0; }
+}
+
+/* ════════ 2. UmBook — 입체 고서 ════════ */
+.ub-book {
+  position: relative;
+  width: 100%;
+  max-width: var(--ub-book-single);
+  margin-inline: auto;
+  perspective: 2600px;
+  perspective-origin: 50% 30%;
+  color: var(--ub-ink);
+}
+.ub-book--spread { max-width: var(--ub-book-spread); }
+@media (min-width: 960px) {
+  .ub-book--auto { max-width: var(--ub-book-spread); }
+}
+
+/* 바닥 그림자 — 등불이 왼쪽 위라 오른쪽 아래로 진다 */
+.ub-book__shadow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 6px;
+  box-shadow:
+    6px 14px 18px -4px rgb(0 0 0 / 0.62),
+    18px 40px 60px -10px rgb(0 0 0 / 0.55),
+    0 0 90px 10px rgb(0 0 0 / 0.35);
+  pointer-events: none;
+}
+
+/* 가죽 표지(앞·뒤 표지가 펼쳐져 책상에 놓인 면) */
+.ub-book__body {
+  position: relative;
+  z-index: 1;
+  padding: var(--ub-cover);
+  border-radius: 5px 6px 6px 5px;
+  background:
+    /* 닳은 모서리 넷 — 색이 빠져 밝은 갈색 */
+    radial-gradient(circle at 0 0, rgb(var(--ub-leather-worn) / 0.55), transparent 26px),
+    radial-gradient(circle at 100% 0, rgb(var(--ub-leather-worn) / 0.42), transparent 24px),
+    radial-gradient(circle at 0 100%, rgb(var(--ub-leather-worn) / 0.38), transparent 24px),
+    radial-gradient(circle at 100% 100%, rgb(var(--ub-leather-worn) / 0.5), transparent 28px),
+    url("../../public/unmyeong/book/leather-grain.svg") 0 0 / 260px 260px,
+    linear-gradient(128deg, var(--ub-leather-lit), var(--ub-leather) 38%, var(--ub-leather-deep));
+  box-shadow:
+    /* 가장자리 닳음 + 위쪽 등불 받는 모서리 */
+    inset 0 0 0 1px rgb(var(--ub-leather-worn) / 0.3),
+    inset 0 1px 0 rgb(var(--ub-leather-worn) / 0.45),
+    inset 0 0 10px 1px rgb(var(--ub-leather-worn) / 0.18),
+    inset 0 0 30px rgb(0 0 0 / 0.35),
+    /* 표지 두께(아래·오른쪽 옆면) */
+    1px 1px 0 var(--ub-leather-side),
+    1px 3px 0 var(--ub-leather-side),
+    2px 4px 0 #120706;
+}
+/* 책등 — 펼친 책 가운데 가죽이 접힌 골 */
+.ub-book--spread .ub-book__body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 18px);
+  width: 36px;
+  background: linear-gradient(to right, transparent, rgb(0 0 0 / 0.42) 40%, rgb(255 210 170 / 0.06) 50%, rgb(0 0 0 / 0.42) 60%, transparent);
+  pointer-events: none;
+}
+@media (min-width: 960px) {
+  .ub-book--auto .ub-book__body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(50% - 18px);
+    width: 36px;
+    background: linear-gradient(to right, transparent, rgb(0 0 0 / 0.42) 40%, rgb(255 210 170 / 0.06) 50%, rgb(0 0 0 / 0.42) 60%, transparent);
+    pointer-events: none;
+  }
+}
+
+/* 종이 묶음 */
+.ub-book__block {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+.ub-book--spread .ub-book__block { display: grid; grid-template-columns: 1fr 1fr; }
+@media (min-width: 960px) {
+  .ub-book--auto .ub-book__block { display: grid; grid-template-columns: 1fr 1fr; }
+}
+
+/* 고급 종이 면(한 쪽 / 펼친 양쪽 각 쪽) */
+.ub-paper-surface,
+.ub-book__page {
+  position: relative;
+  min-width: 0;
+  color: var(--ub-ink);
+  background: var(--ub-paper-bg);
+  box-shadow: var(--ub-paper-burn);
+}
+.ub-book__page {
+  padding: var(--ub-page-pad-y) var(--ub-page-pad-x) calc(var(--ub-page-pad-y) + 8px);
+}
+
+/* 한 쪽(모바일): 왼쪽이 책 묶은 쪽 — 접힘 그늘 + 맞은편 장의 끝자락, 오른쪽·아래로 종이 단면 층 */
+.ub-book__leaf {
+  flex: 0 0 7px;
+  margin-right: -1px;
+  border-radius: 2px 0 0 2px;
+  background: linear-gradient(to right, #7d6a4b, #b8a580 55%, #8e7a58);
+  box-shadow: -1px 1px 0 #a8946f, -2px 2px 0 #8c7756;
+}
+.ub-book--single .ub-book__page,
+.ub-book--auto .ub-book__page {
+  flex: 1 1 auto;
+  padding-left: calc(var(--ub-page-pad-x) + var(--ub-gutter) * 0.6);
+  box-shadow:
+    var(--ub-paper-burn), var(--ub-stack-r);
+}
+/* 묶은 쪽 접힘 그늘 */
+.ub-book__page::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 16%;
+  max-width: 120px;
+  pointer-events: none;
+}
+.ub-book--single .ub-book__page::after,
+.ub-book--auto .ub-book__page::after {
+  left: 0;
+  background: linear-gradient(to right, rgb(58 36 16 / 0.42), rgb(58 36 16 / 0.16) 18%, rgb(255 240 210 / 0.1) 46%, transparent);
+}
+
+/* auto(좁은 화면): 왼쪽·오른쪽 내용을 한 쪽에 이어서 — 종이 면은 묶음이 그린다 */
+@media (max-width: 959.98px) {
+  .ub-book--auto .ub-book__pages {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .ub-book--auto .ub-book__page--left { padding-bottom: calc(var(--ub-page-pad-y) * 0.5); }
+  .ub-book--auto .ub-book__page--right { padding-top: calc(var(--ub-page-pad-y) * 0.5); }
+  .ub-book--auto .ub-book__pages {
+    position: relative;
+    background: var(--ub-paper-bg);
+    box-shadow: var(--ub-paper-burn), var(--ub-stack-r);
+  }
+  .ub-book--auto .ub-book__page { background: none; box-shadow: none; }
+  .ub-book--auto .ub-book__page--right::after { display: none; }
+  .ub-book--auto .ub-book__pages::after {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 16%;
+    max-width: 120px;
+    background: linear-gradient(to right, rgb(58 36 16 / 0.42), rgb(58 36 16 / 0.16) 18%, rgb(255 240 210 / 0.1) 46%, transparent);
+    pointer-events: none;
+  }
+  .ub-book--auto .ub-book__page::after { display: none; }
+}
+@media (min-width: 960px) {
+  .ub-book--auto .ub-book__leaf { display: none; }
+  .ub-book--auto .ub-book__pages { display: contents; }
+}
+
+/* 펼친 양면(PC) */
+.ub-book--spread .ub-book__page--left,
+.ub-book--spread .ub-book__page--right {
+  min-height: min(720px, calc(100dvh - 140px));
+}
+.ub-book--spread .ub-book__page--left { padding-right: calc(var(--ub-page-pad-x) + var(--ub-gutter)); border-radius: 3px 0 0 3px; }
+.ub-book--spread .ub-book__page--right { padding-left: calc(var(--ub-page-pad-x) + var(--ub-gutter)); border-radius: 0 3px 3px 0; }
+.ub-book--spread .ub-book__page--left {
+  box-shadow:
+    var(--ub-paper-burn), var(--ub-stack-l);
+}
+.ub-book--spread .ub-book__page--right {
+  box-shadow:
+    var(--ub-paper-burn), var(--ub-stack-r);
+}
+.ub-book--spread .ub-book__page--left::after {
+  right: 0;
+  background: linear-gradient(to left, rgb(52 32 14 / 0.5), rgb(52 32 14 / 0.2) 12%, rgb(255 240 210 / 0.1) 36%, transparent);
+}
+.ub-book--spread .ub-book__page--right::after {
+  left: 0;
+  background: linear-gradient(to right, rgb(52 32 14 / 0.5), rgb(52 32 14 / 0.2) 12%, rgb(255 240 210 / 0.08) 36%, transparent);
+}
+@media (min-width: 960px) {
+  .ub-book--auto .ub-book__page--left,
+  .ub-book--auto .ub-book__page--right {
+    min-height: min(720px, calc(100dvh - 140px));
+  }
+  .ub-book--auto .ub-book__page--left {
+    padding-left: var(--ub-page-pad-x);
+    padding-right: calc(var(--ub-page-pad-x) + var(--ub-gutter));
+    border-radius: 3px 0 0 3px;
+    box-shadow:
+      var(--ub-paper-burn), var(--ub-stack-l);
+  }
+  .ub-book--auto .ub-book__page--right {
+    padding-left: calc(var(--ub-page-pad-x) + var(--ub-gutter));
+    border-radius: 0 3px 3px 0;
+  }
+  .ub-book--auto .ub-book__page--left::after {
+    left: auto;
+    right: 0;
+    background: linear-gradient(to left, rgb(52 32 14 / 0.5), rgb(52 32 14 / 0.2) 12%, rgb(255 240 210 / 0.1) 36%, transparent);
+  }
+  .ub-book--auto .ub-book__page--right::after {
+    left: 0;
+    background: linear-gradient(to right, rgb(52 32 14 / 0.5), rgb(52 32 14 / 0.2) 12%, rgb(255 240 210 / 0.08) 36%, transparent);
+  }
+}
+.ub-book__page { display: flex; flex-direction: column; }
+.ub-book__content { position: relative; z-index: 1; flex: 1 1 auto; display: flex; flex-direction: column; }
+.ub-book__page[data-align="center"] .ub-book__content { justify-content: center; --ub-title-pad-top: 0px; --ub-title-pad-bottom: clamp(24px, 3vw, 36px); }
+
+/* ── 열림(opening): 표지가 책등을 축으로 넘어가며 펼쳐진다 0.9초 ── */
+.ub-book__flap {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  transform-origin: 0 50%;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.ub-book--spread .ub-book__flap { left: 50%; }
+@media (min-width: 960px) {
+  .ub-book--auto .ub-book__flap { left: 50%; }
+}
+.ub-book__flap-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 0 6px 6px 0;
+}
+.ub-book__flap-front {
+  background:
+    radial-gradient(circle at 100% 0, rgb(var(--ub-leather-worn) / 0.45), transparent 26px),
+    radial-gradient(circle at 100% 100%, rgb(var(--ub-leather-worn) / 0.45), transparent 28px),
+    url("../../public/unmyeong/book/leather-grain.svg") 0 0 / 260px 260px,
+    linear-gradient(128deg, var(--ub-leather-lit), var(--ub-leather) 40%, var(--ub-leather-deep));
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--ub-leather-worn) / 0.3),
+    inset 6px 0 14px rgb(0 0 0 / 0.45),
+    inset 0 0 30px rgb(0 0 0 / 0.3),
+    2px 3px 0 var(--ub-leather-side);
+}
+/* 제첨(題簽) — 표지 위 세로 제목 종이 */
+.ub-book__flap-label {
+  position: absolute;
+  top: 9%;
+  right: 14%;
+  padding: 14px 7px;
+  writing-mode: vertical-rl;
+  font-family: var(--um-font-title);
+  font-weight: 800;
+  font-size: clamp(1rem, 0.8rem + 1vw, 1.375rem);
+  letter-spacing: 0.32em;
+  color: var(--ub-ink);
+  background: url("../../public/unmyeong/book/paper-fiber.svg") 0 0 / 360px, #d2c3a2;
+  box-shadow: inset 0 0 0 1px rgb(var(--ub-paper-edge) / 0.35), inset 0 0 10px rgb(var(--ub-paper-edge) / 0.35), 0 1px 2px rgb(0 0 0 / 0.4);
+}
+/* 표지 안쪽 = 가죽 테두리 안에 붙은 면지(종이). 넘어가는 동안 그늘졌다가 내려앉으며 밝아지고, 그 아래 왼쪽 쪽 글이 스며 나온다 */
+.ub-book__flap-back {
+  transform: rotateY(180deg);
+  border-radius: 6px 0 0 6px;
+  background: var(--ub-paper-bg);
+  box-shadow: inset 0 0 0 var(--ub-cover) var(--ub-leather), var(--ub-paper-burn);
+}
+.ub-book__flap-back::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgb(30 18 8);
+  opacity: 0;
+}
+.ub-book--opening .ub-book__flap { animation: ub-flap-single 0.9s cubic-bezier(0.5, 0.05, 0.25, 1) both; }
+.ub-book--opening .ub-book__flap-front { animation: ub-flap-shade 0.9s var(--ub-ease) both; }
+.ub-book--opening .ub-book__content { animation: ub-ink-in 0.9s ease-out both; }
+@keyframes ub-flap-single {
+  0% { transform: rotateY(0); opacity: 1; }
+  55% { opacity: 1; }
+  100% { transform: rotateY(-96deg); opacity: 0; }
+}
+@keyframes ub-flap-shade {
+  from { filter: brightness(1); }
+  to { filter: brightness(0.5); }
+}
+@keyframes ub-ink-in {
+  0%, 45% { opacity: 0; }
+  100% { opacity: 1; }
+}
+/* 양면: 닫힌 책(오른쪽 반)에서 표지가 왼쪽으로 넘어가 펼쳐진다 */
+.ub-book--spread.ub-book--opening .ub-book__flap { animation: ub-flap-spread 0.9s linear both; }
+.ub-book--spread.ub-book--opening .ub-book__flap-front { animation: ub-flap-shade 0.45s ease-in both; }
+.ub-book--spread.ub-book--opening .ub-book__flap-back { animation: ub-flap-back 0.9s linear both; }
+.ub-book--spread.ub-book--opening .ub-book__flap-back::after { animation: ub-flap-back-shade 0.9s linear both; }
+.ub-book--spread.ub-book--opening .ub-book__body { animation: ub-reveal-spread 0.9s linear both; }
+.ub-book--spread.ub-book--opening .ub-book__shadow { animation: ub-shadow-spread 0.9s linear both; transform-origin: 100% 50%; }
+.ub-book--spread.ub-book--opening .ub-book__page--right .ub-book__content { animation: none; }
+.ub-book--spread.ub-book--opening .ub-book__page--left .ub-book__content { animation: ub-ink-in-late 0.9s ease-out both; }
+@media (min-width: 960px) {
+  .ub-book--auto.ub-book--opening .ub-book__flap { animation: ub-flap-spread 0.9s linear both; }
+  .ub-book--auto.ub-book--opening .ub-book__flap-front { animation: ub-flap-shade 0.45s ease-in both; }
+  .ub-book--auto.ub-book--opening .ub-book__flap-back { animation: ub-flap-back 0.9s linear both; }
+  .ub-book--auto.ub-book--opening .ub-book__flap-back::after { animation: ub-flap-back-shade 0.9s linear both; }
+  .ub-book--auto.ub-book--opening .ub-book__body { animation: ub-reveal-spread 0.9s linear both; }
+  .ub-book--auto.ub-book--opening .ub-book__shadow { animation: ub-shadow-spread 0.9s linear both; transform-origin: 100% 50%; }
+  .ub-book--auto.ub-book--opening .ub-book__page--right .ub-book__content { animation: none; }
+  .ub-book--auto.ub-book--opening .ub-book__page--left .ub-book__content { animation: ub-ink-in-late 0.9s ease-out both; }
+}
+/* 회전·드러남·그림자를 같은 시간표(천천히 들림 → 빠르게 넘어감 → 내려앉음)로 맞춘다 — 셋 다 linear + 같은 지점 */
+@keyframes ub-flap-spread {
+  0% { transform: rotateY(0); }
+  20% { transform: rotateY(-14deg); }
+  40% { transform: rotateY(-58deg); }
+  50% { transform: rotateY(-90deg); }
+  60% { transform: rotateY(-122deg); }
+  70% { transform: rotateY(-148deg); }
+  80% { transform: rotateY(-166deg); }
+  100% { transform: rotateY(-180deg); }
+}
+@keyframes ub-flap-back {
+  0%, 86% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes ub-flap-back-shade {
+  0%, 50% { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+@keyframes ub-reveal-spread {
+  0%, 50% { clip-path: inset(-60px -60px -60px 50%); }
+  60% { clip-path: inset(-60px -60px -60px 26%); }
+  70% { clip-path: inset(-60px -60px -60px 10%); }
+  80% { clip-path: inset(-60px -60px -60px 3%); }
+  100% { clip-path: inset(-60px -60px -60px 0%); }
+}
+@keyframes ub-shadow-spread {
+  0%, 50% { transform: scaleX(0.5); }
+  60% { transform: scaleX(0.74); }
+  70% { transform: scaleX(0.9); }
+  80% { transform: scaleX(0.97); }
+  100% { transform: scaleX(1); }
+}
+@keyframes ub-ink-in-late {
+  0%, 84% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* ════════ 3. UmBookTitle ════════ */
+.ub-title {
+  margin: 0;
+  padding-block: var(--ub-title-pad-top, clamp(20px, 5vw, 44px)) var(--ub-title-pad-bottom, clamp(28px, 6vw, 52px));
+  text-align: center;
+}
+.ub-title__head { margin: 0; font-weight: inherit; }
+.ub-title__han {
+  display: block;
+  font-family: var(--um-font-title);
+  font-weight: 800;
+  font-size: clamp(2.75rem, 2.1rem + 3.2vw, 4.25rem);
+  line-height: 1.12;
+  letter-spacing: 0.1em;
+  padding-left: 0.1em; /* 끝 자간만큼 오른쪽으로 쏠리지 않게 */
+  color: var(--ub-ink);
+  text-shadow: 0 0 0.5px rgb(42 33 25 / 0.55); /* 먹이 종이에 살짝 스민 가장자리 */
+}
+.ub-title__ko {
+  display: block;
+  margin-top: clamp(12px, 2.4vw, 18px);
+  font-family: var(--um-font-title);
+  font-weight: 700;
+  font-size: clamp(1.0625rem, 0.98rem + 0.4vw, 1.25rem);
+  letter-spacing: 0.62em;
+  padding-left: 0.62em;
+  color: var(--ub-ink-soft);
+}
+.ub-title__rule {
+  display: block;
+  width: 64px;
+  height: 1px;
+  margin: clamp(22px, 4.5vw, 32px) auto;
+  background: linear-gradient(90deg, transparent, var(--ub-brass-line) 22%, var(--ub-brass-line) 78%, transparent);
+}
+.ub-title__tagline {
+  margin: 0;
+  font-family: var(--um-font-title);
+  font-weight: 400;
+  font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  color: var(--ub-ink-soft);
+}
+
+/* ════════ 4. UmInkField — 고서에 직접 적는 칸 ════════ */
+.ub-ink {
+  position: relative;
+  min-width: 0;
+  padding-top: 6px;
+}
+.ub-ink + .ub-ink,
+.ub-ink + .ub-choice,
+.ub-choice + .ub-ink,
+.ub-choice + .ub-choice,
+.ub-fields-row + .ub-ink,
+.ub-fields-row + .ub-choice,
+.ub-ink + .ub-fields-row,
+.ub-choice + .ub-fields-row { margin-top: var(--ub-field-gap, clamp(14px, 3vw, 20px)); }
+/* 두 칸 나란히(넓은 쪽에서만) — 예: 달력 | 성별 */
+.ub-fields-row { display: grid; gap: 0 clamp(20px, 4vw, 40px); }
+.ub-fields-row > * + * { margin-top: var(--ub-field-gap, clamp(14px, 3vw, 20px)); }
+@media (min-width: 560px) {
+  .ub-fields-row { grid-template-columns: repeat(auto-fit, minmax(0, max-content)); align-items: start; }
+  .ub-fields-row > .ub-ink,
+  .ub-fields-row > .ub-choice { margin-top: 0; }
+}
+.ub-ink__label,
+.ub-choice__legend {
+  display: block;
+  padding: 0;
+  font-family: var(--um-font-title);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  color: var(--ub-ink-soft);
+}
+.ub-ink__req {
+  margin-left: 6px;
+  font-size: 0.8125rem;
+  letter-spacing: 0;
+  color: var(--ub-error);
+}
+.ub-ink__wrap {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.ub-ink__control {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: 6px 0 9px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ub-ink);
+  font-family: var(--um-font-title);
+  font-weight: 700;
+  font-size: 1.25rem; /* 20 — 입력 값 18 이상(아이폰 자동 확대 방지 포함) */
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  caret-color: var(--ub-cinnabar);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+@media (min-width: 720px) {
+  .ub-ink__control { font-size: 1.375rem; }
+}
+/* 포커스 표시 = 먹이 번져 진해진 밑줄(2px 상당, #2A2119 — 종이 대비 10:1). 상자 테두리는 끈다 */
+.um-root .ub-ink__control:focus,
+.um-root .ub-ink__control:focus-visible { outline: none; }
+.ub-ink__control::placeholder {
+  color: var(--ub-ink-faint);
+  font-weight: 400;
+  opacity: 1;
+}
+.ub-ink__control:disabled { color: var(--ub-ink-faint); cursor: not-allowed; }
+select.ub-ink__control { padding-right: 30px; cursor: pointer; }
+select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family: var(--um-font-body); font-weight: 400; }
+.ub-ink__caret {
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  width: 14px;
+  height: 10px;
+  margin-top: -6px;
+  color: var(--ub-ink-soft);
+  pointer-events: none;
+}
+.ub-ink__suffix {
+  flex: 0 0 auto;
+  font-family: var(--um-font-title);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  color: var(--ub-ink-soft);
+}
+/* 붓 밑줄 — 쉴 때는 옅게, 포커스면 먹이 가운데서 양옆으로 번지며 진해진다 */
+.ub-ink__line,
+.ub-ink__wet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5px;
+  pointer-events: none;
+  -webkit-mask: url("../../public/unmyeong/book/brush-line.svg") 0 0 / 100% 100% no-repeat;
+  mask: url("../../public/unmyeong/book/brush-line.svg") 0 0 / 100% 100% no-repeat;
+}
+.ub-ink__line { background: var(--ub-line); opacity: 0.9; }
+.ub-ink__wet {
+  height: 6px;
+  bottom: -0.5px;
+  background: var(--ub-line-wet);
+  opacity: 0;
+  clip-path: inset(0 50% 0 50%);
+  filter: blur(1.6px);
+  transition: clip-path 0.5s var(--ub-ease), filter 0.6s ease-out, opacity 0.25s ease-out;
+}
+.ub-ink__wrap:focus-within .ub-ink__wet {
+  opacity: 1;
+  clip-path: inset(0 -2% 0 -2%);
+  filter: blur(0);
+}
+.ub-ink--error .ub-ink__line { background: var(--ub-error); }
+.ub-ink--error .ub-ink__wet { background: var(--ub-error); }
+.ub-ink__hint,
+.ub-ink__error {
+  margin: 8px 0 0;
+  font-family: var(--um-font-body);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+.ub-ink__hint { color: var(--ub-ink-soft); }
+.ub-ink__error { color: var(--ub-error); font-weight: 700; }
+.ub-ink__error:empty { margin: 0; }
+.ub-ink__group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 4px 14px;
+}
+/* 묶음 안 여러 칸(년·월·일 등) */
+.ub-ink__part {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex: 1 1 64px;
+  min-width: 0;
+}
+.ub-ink__part { flex: 0 1 auto; }
+.ub-ink__part .ub-ink__control { width: var(--ub-part-w, 4.2em); flex: 0 0 auto; text-align: center; padding-inline: 2px; }
+.ub-ink__part .ub-ink__suffix { padding-right: 6px; }
+/* select + 붓 꺾쇠 묶음(꺾쇠가 뒤 글자와 겹치지 않게) */
+.ub-ink__sel { position: relative; display: flex; flex: 1 1 auto; min-width: 0; }
+.ub-ink__part .ub-ink__sel { flex: 0 0 auto; }
+.ub-ink__part select.ub-ink__control { padding-right: 22px; text-align: left; text-align-last: center; }
+
+/* ════════ 5. UmInkChoice — 글자를 골라 주묵 동그라미 ════════ */
+.ub-choice {
+  min-width: 0;
+  margin: 0;
+  padding: 6px 0 0;
+  border: 0;
+}
+.ub-choice__legend { float: left; width: 100%; } /* legend 기본 배치(테두리 위 걸침) 끄기 */
+.ub-choice__row {
+  clear: both;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 2px;
+  margin-left: -10px; /* 첫 글자를 라벨 왼쪽 끝에 맞춘다(터치 여백은 유지) */
+}
+.ub-choice__sep {
+  font-family: var(--um-font-title);
+  font-size: 1.125rem;
+  color: var(--ub-ink-faint);
+  user-select: none;
+}
+.ub-choice__opt {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  min-width: 52px;
+  min-height: 52px;
+  padding: 4px 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ub-choice__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.ub-choice__input:disabled { cursor: not-allowed; }
+.ub-choice__text {
+  position: relative;
+  font-family: var(--um-font-title);
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  color: var(--ub-ink-soft);
+  transition: color 0.2s ease;
+}
+.ub-choice__sub {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--um-font-body);
+  font-weight: 400;
+  font-size: 0.8125rem;
+  letter-spacing: 0;
+  text-align: center;
+  color: var(--ub-ink-soft);
+}
+@media (min-width: 720px) {
+  .ub-choice__text { font-size: 1.375rem; }
+}
+.ub-choice__opt:hover .ub-choice__text { color: var(--ub-ink); }
+.ub-choice__input:checked ~ .ub-choice__text { color: var(--ub-ink); }
+.ub-choice__input:disabled ~ .ub-choice__text { color: var(--ub-ink-faint); text-decoration: line-through; text-decoration-thickness: 1px; }
+/* 키보드 포커스: 글자 아래 먹 밑줄(상자 테두리 대신) */
+.um-root .ub-choice__input:focus-visible { outline: none; }
+.ub-choice__input:focus-visible ~ .ub-choice__text {
+  text-decoration: underline 2px var(--ub-focus);
+  text-underline-offset: 9px;
+}
+/* 붓 동그라미 */
+.ub-choice__ring {
+  position: absolute;
+  inset: 3px 1px;
+  width: calc(100% - 2px);
+  height: calc(100% - 6px);
+  overflow: visible;
+  pointer-events: none;
+}
+.ub-choice__ring path {
+  fill: none;
+  stroke: var(--ub-cinnabar);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+}
+.ub-choice__ring path:first-child { stroke-width: 2.4px; }
+.ub-choice__ring path:last-child { stroke-width: 1px; opacity: 0.45; }
+.ub-choice__input:checked ~ .ub-choice__ring path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.3s cubic-bezier(0.55, 0.06, 0.3, 1);
+}
+.ub-choice__input:checked ~ .ub-choice__ring path:last-child { transition-delay: 0.05s; }
+/* 먹점 표시 */
+.ub-choice__dot {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
+  border-radius: 48% 52% 45% 55%;
+  background: var(--ub-cinnabar);
+  transform: scale(0);
+  transition: transform 0.25s var(--ub-ease);
+  pointer-events: none;
+}
+.ub-choice__input:checked ~ .ub-choice__dot { transform: scale(1); }
+.ub-choice__hint { clear: both; }
+
+/* ════════ 6. UmWaxSeal — 붉은 밀랍 인장 ════════ */
+.ub-seal {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 6px 14px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ub-ink);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ub-seal:focus-visible { outline: 2px solid var(--ub-focus); outline-offset: 4px; }
+.ub-seal__wax {
+  display: block;
+  width: 96px;
+  height: 96px;
+  overflow: visible;
+  filter: drop-shadow(1.5px 2.5px 1.5px rgb(40 12 6 / 0.5)) drop-shadow(3px 9px 10px rgb(40 16 8 / 0.28));
+  transition: transform 0.25s var(--ub-ease), filter 0.25s ease;
+}
+.ub-seal--sm .ub-seal__wax { width: 76px; height: 76px; }
+.ub-seal--lg .ub-seal__wax { width: 116px; height: 116px; }
+.ub-seal:hover .ub-seal__wax { transform: translateY(-1px) rotate(-1.5deg); }
+.ub-seal:active .ub-seal__wax { transform: scale(0.965); filter: drop-shadow(1px 1.5px 1px rgb(40 12 6 / 0.55)) drop-shadow(2px 5px 6px rgb(40 16 8 / 0.25)); }
+.ub-seal__label {
+  font-family: var(--um-font-title);
+  font-weight: 800;
+  font-size: 1.125rem;
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  padding-left: 0.14em;
+  color: var(--ub-ink);
+}
+.ub-seal__sub {
+  margin-top: -6px;
+  font-family: var(--um-font-body);
+  font-size: 0.875rem;
+  color: var(--ub-ink-soft);
+}
+/* 쉬는 동안은 한 덩어리(두 쪽 이음선이 비치지 않게), 갈라질 때 두 쪽으로 바꿔 그린다 */
+.ub-seal__half { opacity: 0; }
+.ub-seal[data-state="breaking"] .ub-seal__half,
+.ub-seal[data-state="open"] .ub-seal__half { opacity: 1; }
+.ub-seal[data-state="breaking"] .ub-seal__whole,
+.ub-seal[data-state="open"] .ub-seal__whole { opacity: 0; }
+.ub-seal__half { transform-box: view-box; transition: transform 0.42s cubic-bezier(0.2, 0.7, 0.25, 1); }
+.ub-seal__half--l { transform-origin: 34px 112px; }
+.ub-seal__half--r { transform-origin: 86px 112px; }
+.ub-seal__crack {
+  fill: none;
+  stroke: #1e0705;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+}
+.ub-seal__branch { fill: none; stroke: #1e0705; stroke-width: 0.9; stroke-linecap: round; opacity: 0; }
+/* 0~0.16초 금이 위에서 아래로 → 0.16초부터 두 쪽이 벌어지며 금 선은 사라진다(벌어진 틈으로 종이가 보임) */
+.ub-seal[data-state="breaking"] .ub-seal__crack { animation: ub-crack 0.6s linear both; }
+.ub-seal[data-state="breaking"] .ub-seal__branch { animation: ub-crack-branch 0.6s linear both; }
+@keyframes ub-crack {
+  0% { stroke-dashoffset: 1; opacity: 0.9; }
+  27% { stroke-dashoffset: 0; opacity: 0.9; }
+  45% { opacity: 0.6; }
+  70%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes ub-crack-branch {
+  0%, 18% { opacity: 0; }
+  30% { opacity: 0.7; }
+  60%, 100% { opacity: 0; }
+}
+.ub-seal[data-state="breaking"] .ub-seal__half,
+.ub-seal[data-state="open"] .ub-seal__half { transition-delay: 0.16s; }
+.ub-seal[data-state="open"] .ub-seal__half { transition-delay: 0s; }
+.ub-seal[data-state="breaking"] .ub-seal__half--l,
+.ub-seal[data-state="open"] .ub-seal__half--l { transform: translate(-5px, 2px) rotate(-8deg); }
+.ub-seal[data-state="breaking"] .ub-seal__half--r,
+.ub-seal[data-state="open"] .ub-seal__half--r { transform: translate(6px, 3px) rotate(7deg); }
+.ub-seal[data-state="breaking"] .ub-seal__wax,
+.ub-seal[data-state="open"] .ub-seal__wax { transform: none; }
+.ub-seal[data-state="open"] .ub-seal__label,
+.ub-seal[aria-busy="true"] .ub-seal__label { color: var(--ub-ink-soft); }
+.ub-seal:disabled,
+.ub-seal[aria-disabled="true"] { cursor: not-allowed; }
+.ub-seal:disabled .ub-seal__wax { filter: grayscale(0.55) brightness(0.92) drop-shadow(1px 2px 1px rgb(40 12 6 / 0.35)); opacity: 0.7; transform: none; }
+.ub-seal:disabled .ub-seal__label { color: var(--ub-ink-faint); }
+
+/* ════════ 7. UmChapterHead · UmBookPage ════════ */
+.ub-chapter {
+  margin: 0 0 clamp(24px, 5vw, 36px);
+  text-align: center;
+}
+.ub-chapter--start { text-align: left; }
+.ub-chapter__no {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  font-family: var(--um-font-title);
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.22em;
+  color: var(--ub-error); /* 붉은 먹 장 번호 */
+}
+.ub-chapter--start .ub-chapter__no { justify-content: flex-start; }
+.ub-chapter__han { font-weight: 800; letter-spacing: 0.16em; }
+.ub-chapter__dot { color: var(--ub-ink-faint); letter-spacing: 0; }
+.ub-chapter__title {
+  margin: 0;
+  font-family: var(--um-font-title);
+  font-weight: 800;
+  font-size: clamp(1.625rem, 1.3rem + 1.5vw, 2.25rem);
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  color: var(--ub-ink);
+  text-wrap: balance;
+}
+.ub-chapter__rule {
+  display: block;
+  width: 48px;
+  height: 1px;
+  margin: clamp(16px, 3.4vw, 22px) auto 0;
+  background: linear-gradient(90deg, transparent, var(--ub-brass-line) 22%, var(--ub-brass-line) 78%, transparent);
+}
+.ub-chapter--start .ub-chapter__rule { margin-left: 0; background: linear-gradient(90deg, var(--ub-brass-line), var(--ub-brass-line) 70%, transparent); }
+.ub-chapter__lead {
+  margin: clamp(14px, 3vw, 20px) auto 0;
+  max-width: 30rem;
+  font-family: var(--um-font-title);
+  font-weight: 400;
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  line-height: 1.75;
+  color: var(--ub-ink-soft);
+  text-wrap: balance;
+}
+.ub-chapter--start .ub-chapter__lead { margin-left: 0; }
+
+.ub-bookpage { position: relative; }
+.ub-bookpage + .ub-bookpage {
+  margin-top: clamp(48px, 10vw, 72px);
+  padding-top: clamp(44px, 9vw, 64px);
+}
+/* 한 쪽이 끝나고 다음 쪽 — 가운데 먹점 셋 */
+.ub-bookpage + .ub-bookpage::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 36px;
+  height: 4px;
+  margin-left: -18px;
+  background:
+    radial-gradient(circle, var(--ub-ink-faint) 1.6px, transparent 2px) 0 0 / 12px 4px repeat-x;
+  opacity: 0.7;
+}
+.ub-prose {
+  max-width: 34rem;
+  margin-inline: auto;
+  font-family: var(--um-font-body);
+  font-size: 1.0625rem;
+  line-height: 1.88;
+  letter-spacing: -0.003em;
+  color: var(--ub-ink);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.ub-prose > * { margin: 0; }
+.ub-prose > * + * { margin-top: 1.05em; }
+.ub-prose strong { font-weight: 700; }
+.ub-prose h3 {
+  margin-top: 1.8em;
+  font-family: var(--um-font-title);
+  font-weight: 800;
+  font-size: 1.25rem;
+  line-height: 1.45;
+}
+.ub-prose ul, .ub-prose ol { padding-left: 1.2em; }
+.ub-prose li + li { margin-top: 0.4em; }
+.ub-prose li::marker { color: var(--ub-ink-faint); }
+/* 할머니 말 — 붓 명조, 왼쪽에 옅은 먹 한 획 */
+.ub-voice,
+.ub-prose blockquote {
+  position: relative;
+  padding-left: 18px;
+  font-family: var(--um-font-title);
+  font-weight: 400;
+  font-size: 1.1875rem;
+  line-height: 1.8;
+  color: var(--ub-ink);
+}
+.ub-voice--center { padding-left: 0; text-align: center; }
+.ub-voice--center::before { display: none; }
+.ub-voice::before,
+.ub-prose blockquote::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.35em;
+  bottom: 0.35em;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, rgb(42 33 25 / 0.5), rgb(42 33 25 / 0.2));
+}
+.ub-note {
+  font-family: var(--um-font-body);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--ub-ink-soft);
+}
+.ub-bookpage__foot { margin-top: clamp(28px, 6vw, 40px); }
+.ub-folio {
+  display: block;
+  margin-top: clamp(32px, 7vw, 48px);
+  text-align: center;
+  font-family: var(--um-font-title);
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.3em;
+  padding-left: 0.3em;
+  color: var(--ub-ink-soft);
+}
+
+/* ════════ 접근성: 움직임 줄이기 · 고대비 ════════ */
+@media (prefers-reduced-motion: reduce) {
+  .ub-backdrop__lamp { animation: none; }
+  .ub-backdrop__img { transition: none; }
+  .ub-backdrop--enter .ub-backdrop__img,
+  .ub-backdrop--enter .ub-backdrop__veil,
+  .ub-backdrop--enter .ub-backdrop__lamp { animation: none; }
+  .ub-book__flap { display: none; }
+  .ub-book--opening .ub-book__body,
+  .ub-book--opening .ub-book__shadow,
+  .ub-book--opening .ub-book__content { animation: none !important; }
+  .ub-ink__wet { transition: none; filter: none; }
+  .ub-choice__input:checked ~ .ub-choice__ring path { transition: none; }
+  .ub-choice__dot { transition: none; }
+  .ub-seal__wax, .ub-seal__half { transition: none !important; }
+  .ub-seal__crack, .ub-seal__branch { animation: none !important; }
+}
+@media (forced-colors: active) {
+  .ub-ink__line, .ub-ink__wet { -webkit-mask: none; mask: none; height: 1px; background: CanvasText; forced-color-adjust: none; }
+  .ub-ink__wrap:focus-within .ub-ink__wet { height: 3px; background: Highlight; }
+  .ub-choice__ring path { stroke: Highlight; }
+  .ub-choice__input:checked ~ .ub-choice__text { text-decoration: underline; }
+  .ub-seal { border: 2px solid ButtonText; }
+  .ub-book__page, .ub-paper-surface { border: 1px solid CanvasText; }
+}
+
+html,body{margin:0;background:#141310}
+.um-root{--um-ff-title:"Nanum Myeongjo";--um-ff-hanja:"Noto Serif KR";--um-ff-body:"Noto Sans KR"}
+.pv-stage{padding:clamp(28px,6vw,52px) clamp(12px,3vw,40px) 72px}
+.pv-only-d{display:none}@media (min-width:960px){.pv-only-m{display:none}.pv-only-d{display:block}}
+.pv-grandma{margin:0 auto clamp(28px,7vw,40px);max-width:26rem}
+.pv-form{display:block}
+
+.pv-actions{display:flex;flex-direction:column;align-items:center;margin-top:clamp(28px,6vw,40px)}
+.pv-note{margin:14px auto 0;max-width:24rem;text-align:center}
+</style></head><body><div class="um-root"><div class="ub-backdrop" style="--ub-dim:0.35;--ub-blur:2.5px"><div class="ub-backdrop__img" aria-hidden="true"></div><div class="ub-backdrop__veil" aria-hidden="true"></div><div class="ub-backdrop__lamp" aria-hidden="true"></div><div class="ub-backdrop__content"><main class="pv-stage"><form noValidate="" class="pv-only-m"><div class="ub-book ub-book--single" role="region" aria-label="운명비서 — 적는 쪽"><div class="ub-book__shadow" aria-hidden="true"></div><div class="ub-book__body"><div class="ub-book__block"><div class="ub-book__leaf" aria-hidden="true"></div><div class="ub-book__page ub-book__page--single"><div class="ub-book__content"><header class="ub-title"><h1 class="ub-title__head"><span class="ub-title__han" lang="ko-Hani" aria-hidden="true">運命秘書</span><span class="ub-title__ko">운명비서</span></h1><span class="ub-title__rule" aria-hidden="true"></span><p class="ub-title__tagline">세상에 단 한 권, 오직 너를 위한 기록.</p></header><p class="ub-voice ub-voice--center pv-grandma">왔구나. 앉거라.<br/>네 이름과 난 때만 적으면 된다.</p><div class="pv-form"><div class="ub-ink"><label class="ub-ink__label" for="ub-f_R_3qc_">부를 이름</label><div class="ub-ink__wrap"><input placeholder="예: 서연" autoComplete="given-name" id="ub-f_R_3qc_" aria-describedby="ub-f_R_3qc_-hint" class="ub-ink__control" name="name"/><span class="ub-ink__line" aria-hidden="true"></span><span class="ub-ink__wet" aria-hidden="true"></span></div><p class="ub-ink__hint" id="ub-f_R_3qc_-hint">이 책에서만 너를 부를 이름이다.</p><p class="ub-ink__error" id="ub-f_R_3qc_-err" aria-live="polite"></p></div><div class="ub-ink ub-ink--group ub-ink--error" role="group" aria-labelledby="ub-f_R_5qc_-label" aria-describedby="ub-f_R_5qc_-err"><span class="ub-ink__label" id="ub-f_R_5qc_-label">태어난 날<span class="ub-ink__req">꼭</span></span><div class="ub-ink__group"><span class="ub-ink__part ub-ink__wrap" style="--ub-part-w:2.98em"><input aria-label="태어난 해" inputMode="numeric" placeholder="1992" class="ub-ink__control" value="1992"/><span class="ub-ink__suffix" aria-hidden="true">년</span><span class="ub-ink__line" aria-hidden="true"></span><span class="ub-ink__wet" aria-hidden="true"></span></span><span class="ub-ink__part ub-ink__wrap" style="--ub-part-w:1.74em"><input aria-label="태어난 달" inputMode="numeric" placeholder="8" class="ub-ink__control" value="8"/><span class="ub-ink__suffix" aria-hidden="true">월</span><span class="ub-ink__line" aria-hidden="true"></span><span class="ub-ink__wet" aria-hidden="true"></span></span><span class="ub-ink__part ub-ink__wrap ub-ink--error" style="--ub-part-w:1.74em"><input aria-label="태어난 날" inputMode="numeric" placeholder="14" class="ub-ink__control" aria-invalid="true"/><span class="ub-ink__suffix" aria-hidden="true">일</span><span class="ub-ink__line" aria-hidden="true"></span><span class="ub-ink__wet" aria-hidden="true"></span></span></div><p class="ub-ink__error" id="ub-f_R_5qc_-err" aria-live="polite">날을 끝까지 적어 주거라.</p></div><fieldset class="ub-choice"><legend class="ub-choice__legend">달력</legend><div class="ub-choice__row"><label class="ub-choice__opt"><input class="ub-choice__input" type="radio" name="calfalse" checked="" value="solar"/><span class="ub-choice__text">양력</span><svg class="ub-choice__ring" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M22 9C44 1 84 3 95 23C104 41 79 57 49 57C19 57 2 46 5 28C8 15 26 7 46 6" pathLength="1"></path><path d="M26 11C47 4 82 6 92 24C99 40 77 54 50 54" pathLength="1"></path></svg></label><span class="ub-choice__sep" aria-hidden="true">·</span><label class="ub-choice__opt"><input class="ub-choice__input" type="radio" name="calfalse" value="lunar"/><span class="ub-choice__text">음력</span><svg class="ub-choice__ring" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M70 5C90 8 101 22 96 37C90 53 63 58 40 56C15 54 1 42 4 26C7 11 30 2 58 3C66 3 72 5 77 7" pathLength="1"></path><path d="M66 8C86 11 97 23 93 36C88 50 63 55 42 54" pathLength="1"></path></svg></label><span class="ub-choice__sep" aria-hidden="true">·</span><label class="ub-choice__opt"><input class="ub-choice__input" type="radio" name="calfalse" value="leap"/><span class="ub-choice__text">윤달</span><svg class="ub-choice__ring" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M30 6C52 0 88 5 96 26C102 43 82 56 52 57C24 58 3 48 3 31C3 16 20 8 41 5" pathLength="1"></path><path d="M33 9C55 3 85 8 93 27C98 42 80 54 54 55" pathLength="1"></path></svg></label></div><p class="ub-ink__error ub-choice__hint" id="ub-c_R_7qc_-err" aria-live="polite"></p></fieldset><div class="ub-ink ub-ink--group" role="group" aria-labelledby="ub-f_R_9qc_-label" aria-describedby="ub-f_R_9qc_-hint"><span class="ub-ink__label" id="ub-f_R_9qc_-label">태어난 시각</span><div class="ub-ink__group"><span class="ub-ink__part ub-ink__wrap" style="--ub-part-w:3.46em"><span class="ub-ink__sel"><select aria-label="시" class="ub-ink__control"><option value="" selected="">모름</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option></select><svg class="ub-ink__caret" viewBox="0 0 14 10" aria-hidden="true" focusable="false"><path d="M1.5 2.2C4 4.6 5.6 6.4 7.1 8.3C8.6 6.2 10.4 4.2 12.6 1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span class="ub-ink__suffix" aria-hidden="true">시</span><span class="ub-ink__line" aria-hidden="true"></span><span class="ub-ink__wet" aria-hidden="true"></span></span><span class="ub-ink__part ub-ink__wrap" style="--ub-part-w:2.84em"><span class="ub-ink__sel"><select aria-label="분" class="ub-ink__control"><option value="" selected="">—</option><option value="0">0</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="40">40</option><option value="50">50</option></select><svg class="ub-ink__caret" viewBox="0 0 14 10" aria-hidden="true" focusable="false"><path d="M1.5 2.2C4 4.6 5.6 6.4 7.1 8.3C8.6 6.2 10.4 4.2 12.6 1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span class="ub-ink__suffix" aria-hidden="true">분</span><span class="ub-ink__line" aria-hidden="true"></span><span class="ub-ink__wet" aria-hidden="true"></span></span></div><p class="ub-ink__hint" id="ub-f_R_9qc_-hint">모르면 &#x27;모름&#x27;으로 둬라. 시는 빼고 본다.</p><p class="ub-ink__error" id="ub-f_R_9qc_-err" aria-live="polite"></p></div><fieldset class="ub-choice ub-ink--error" aria-describedby="ub-c_R_bqc_-err" aria-invalid="true"><legend class="ub-choice__legend">성별</legend><div class="ub-choice__row"><label class="ub-choice__opt"><input class="ub-choice__input" type="radio" name="sexfalse" value="m"/><span class="ub-choice__text">남</span><svg class="ub-choice__ring" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M22 9C44 1 84 3 95 23C104 41 79 57 49 57C19 57 2 46 5 28C8 15 26 7 46 6" pathLength="1"></path><path d="M26 11C47 4 82 6 92 24C99 40 77 54 50 54" pathLength="1"></path></svg></label><span class="ub-choice__sep" aria-hidden="true">·</span><label class="ub-choice__opt"><input class="ub-choice__input" type="radio" name="sexfalse" checked="" value="f"/><span class="ub-choice__text">여</span><svg class="ub-choice__ring" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M70 5C90 8 101 22 96 37C90 53 63 58 40 56C15 54 1 42 4 26C7 11 30 2 58 3C66 3 72 5 77 7" pathLength="1"></path><path d="M66 8C86 11 97 23 93 36C88 50 63 55 42 54" pathLength="1"></path></svg></label></div><p class="ub-ink__error ub-choice__hint" id="ub-c_R_bqc_-err" aria-live="polite">하나를 골라 다오.</p></fieldset><div class="ub-ink"><label class="ub-ink__label" for="ub-f_R_dqc_">태어난 곳</label><div class="ub-ink__wrap"><span class="ub-ink__sel"><select name="place" id="ub-f_R_dqc_" class="ub-ink__control"><option value="seoul" selected="">서울</option><option value="busan">부산</option><option value="other">그 밖</option></select><svg class="ub-ink__caret" viewBox="0 0 14 10" aria-hidden="true" focusable="false"><path d="M1.5 2.2C4 4.6 5.6 6.4 7.1 8.3C8.6 6.2 10.4 4.2 12.6 1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span class="ub-ink__line" aria-hidden="true"></span><span class="ub-ink__wet" aria-hidden="true"></span></div><p class="ub-ink__error" id="ub-f_R_dqc_-err" aria-live="polite"></p></div><div class="pv-actions"><button type="submit" class="ub-seal" data-state="idle"><svg class="ub-seal__wax" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><defs><radialGradient id="ub-s_R_vqc_-g" cx="0.38" cy="0.32" r="0.78"><stop offset="0" stop-color="#87362e"></stop><stop offset="0.5" stop-color="#6c2823"></stop><stop offset="1" stop-color="#4a1713"></stop></radialGradient><radialGradient id="ub-s_R_vqc_-gd" cx="0.62" cy="0.66" r="0.72"><stop offset="0" stop-color="#74302a"></stop><stop offset="1" stop-color="#57201b"></stop></radialGradient><filter id="ub-s_R_vqc_-t" x="0" y="0" width="1" height="1"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" result="n"></feTurbulence><feColorMatrix in="n" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.4 0.82" result="a"></feColorMatrix><feComposite in="a" in2="SourceGraphic" operator="in"></feComposite></filter><filter id="ub-s_R_vqc_-sh" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter><clipPath id="ub-s_R_vqc_-d"><path d="M93.43 60.00C93.46 61.45 93.29 62.92 93.10 64.36C92.91 65.80 92.71 67.27 92.30 68.65C91.88 70.04 91.20 71.36 90.59 72.67C89.98 73.98 89.38 75.31 88.62 76.52C87.86 77.74 86.97 78.90 86.04 79.98C85.11 81.07 84.07 82.05 83.04 83.04C82.02 84.04 81.03 85.08 79.91 85.95C78.79 86.82 77.55 87.55 76.32 88.26C75.09 88.98 73.82 89.64 72.53 90.24C71.23 90.84 69.90 91.42 68.54 91.87C67.17 92.31 65.76 92.69 64.33 92.93C62.91 93.16 61.45 93.26 60.00 93.29C58.55 93.32 57.08 93.26 55.64 93.10C54.20 92.93 52.74 92.69 51.35 92.29C49.95 91.89 48.59 91.31 47.28 90.70C45.97 90.08 44.68 89.40 43.48 88.61C42.28 87.82 41.19 86.86 40.08 85.96C38.97 85.05 37.82 84.19 36.82 83.18C35.81 82.18 34.91 81.05 34.05 79.92C33.18 78.78 32.34 77.61 31.63 76.38C30.92 75.15 30.35 73.83 29.78 72.52C29.20 71.21 28.59 69.90 28.16 68.53C27.72 67.17 27.39 65.74 27.16 64.32C26.94 62.90 26.85 61.44 26.83 60.00C26.82 58.56 26.90 57.10 27.08 55.67C27.27 54.24 27.56 52.80 27.95 51.41C28.35 50.03 28.88 48.67 29.45 47.35C30.02 46.02 30.65 44.72 31.39 43.48C32.12 42.24 32.93 41.03 33.85 39.93C34.76 38.83 35.84 37.86 36.89 36.89C37.94 35.92 39.03 35.01 40.14 34.12C41.26 33.24 42.37 32.32 43.59 31.58C44.81 30.84 46.15 30.30 47.45 29.71C48.76 29.12 50.06 28.47 51.43 28.02C52.80 27.58 54.23 27.26 55.66 27.05C57.09 26.83 58.55 26.74 60.00 26.74C61.45 26.73 62.90 26.87 64.34 27.04C65.78 27.21 67.24 27.40 68.63 27.78C70.03 28.16 71.39 28.73 72.70 29.34C74.01 29.95 75.28 30.66 76.49 31.44C77.69 32.22 78.83 33.12 79.93 34.03C81.03 34.94 82.09 35.90 83.09 36.91C84.09 37.93 85.04 39.00 85.91 40.12C86.78 41.24 87.58 42.43 88.31 43.66C89.04 44.88 89.69 46.15 90.29 47.45C90.89 48.75 91.46 50.08 91.90 51.45C92.33 52.82 92.65 54.24 92.91 55.67C93.16 57.09 93.40 58.55 93.43 60.00Z"></path></clipPath><clipPath id="ub-s_R_vqc_-o"><path d="M107.19 60.00C107.26 61.03 107.37 62.06 107.46 63.11C107.55 64.16 107.70 65.22 107.73 66.28C107.76 67.35 107.63 68.39 107.66 69.48C107.70 70.57 108.00 71.75 107.94 72.85C107.88 73.94 107.74 75.07 107.32 76.06C106.90 77.06 106.00 77.89 105.43 78.82C104.85 79.74 104.55 80.80 103.84 81.62C103.13 82.45 101.99 83.04 101.17 83.77C100.35 84.50 99.60 85.23 98.91 86.00C98.21 86.76 97.71 87.67 96.99 88.38C96.27 89.10 95.31 89.62 94.56 90.31C93.82 91.00 93.19 91.77 92.52 92.52C91.85 93.28 91.15 93.97 90.55 94.84C89.96 95.71 89.45 96.66 88.95 97.72C88.44 98.78 88.09 100.10 87.53 101.19C86.96 102.29 86.35 103.44 85.56 104.28C84.77 105.11 83.80 105.75 82.78 106.20C81.76 106.64 80.57 106.78 79.45 106.95C78.32 107.12 77.16 107.19 76.03 107.21C74.89 107.23 73.74 107.17 72.61 107.07C71.49 106.98 70.38 106.86 69.28 106.64C68.18 106.42 67.08 106.04 66.02 105.74C64.97 105.44 63.94 104.97 62.94 104.84C61.94 104.70 60.98 104.95 60.00 104.94C59.02 104.93 58.05 104.75 57.07 104.77C56.08 104.78 55.06 105.04 54.07 105.01C53.08 104.99 52.14 104.64 51.13 104.60C50.12 104.56 49.07 104.71 48.00 104.78C46.93 104.86 45.79 105.09 44.70 105.07C43.62 105.05 42.55 104.87 41.49 104.68C40.43 104.49 39.38 104.22 38.34 103.92C37.31 103.61 36.18 103.39 35.27 102.83C34.36 102.27 33.72 101.26 32.90 100.56C32.07 99.87 31.16 99.32 30.34 98.66C29.51 97.99 28.62 97.38 27.93 96.57C27.25 95.75 26.85 94.64 26.23 93.77C25.61 92.91 24.91 92.16 24.21 91.38C23.52 90.60 22.64 89.97 22.07 89.10C21.51 88.24 21.29 87.11 20.81 86.19C20.33 85.26 19.79 84.41 19.17 83.57C18.56 82.73 17.78 81.98 17.12 81.14C16.47 80.30 15.92 79.40 15.26 78.53C14.60 77.66 13.71 76.84 13.16 75.90C12.60 74.96 12.10 73.94 11.93 72.88C11.75 71.82 11.99 70.63 12.11 69.53C12.24 68.42 12.44 67.31 12.70 66.23C12.96 65.15 13.38 64.07 13.67 63.04C13.97 62.00 14.25 61.00 14.47 60.00C14.69 59.00 14.85 58.03 15.00 57.05C15.15 56.07 15.30 55.11 15.36 54.12C15.41 53.13 15.26 52.11 15.32 51.11C15.38 50.11 15.53 49.12 15.70 48.13C15.87 47.14 16.22 46.21 16.34 45.18C16.46 44.15 16.20 42.96 16.40 41.94C16.61 40.92 17.18 40.04 17.57 39.07C17.95 38.11 18.35 37.15 18.72 36.17C19.09 35.18 19.29 34.05 19.81 33.14C20.33 32.24 21.15 31.52 21.84 30.72C22.53 29.92 23.16 29.07 23.93 28.37C24.71 27.67 25.71 27.18 26.51 26.51C27.31 25.83 27.85 24.90 28.72 24.33C29.59 23.77 30.78 23.60 31.72 23.14C32.65 22.68 33.45 22.08 34.33 21.59C35.22 21.10 36.16 20.72 37.02 20.21C37.89 19.69 38.66 19.00 39.54 18.51C40.42 18.02 41.39 17.73 42.29 17.25C43.19 16.76 44.06 16.24 44.92 15.58C45.79 14.92 46.58 13.98 47.48 13.28C48.38 12.58 49.33 11.84 50.33 11.37C51.33 10.90 52.41 10.61 53.48 10.46C54.55 10.32 55.67 10.30 56.76 10.52C57.84 10.75 58.94 11.49 60.00 11.82C61.06 12.15 62.09 12.24 63.11 12.50C64.14 12.76 65.14 13.10 66.14 13.39C67.13 13.68 68.12 13.96 69.10 14.26C70.08 14.57 71.02 14.93 72.01 15.19C72.99 15.46 74.01 15.56 74.99 15.84C75.97 16.12 76.97 16.38 77.87 16.86C78.76 17.34 79.47 18.22 80.36 18.72C81.25 19.21 82.25 19.43 83.20 19.82C84.14 20.21 85.07 20.63 86.03 21.05C86.98 21.46 88.06 21.74 88.92 22.31C89.78 22.87 90.47 23.69 91.20 24.43C91.92 25.17 92.58 25.97 93.27 26.73C93.95 27.50 94.76 28.17 95.30 29.04C95.85 29.91 96.07 31.05 96.54 31.97C97.00 32.88 97.50 33.73 98.08 34.55C98.66 35.38 99.32 36.13 100.01 36.90C100.70 37.67 101.26 38.49 102.22 39.18C103.17 39.87 104.90 40.26 105.76 41.05C106.62 41.84 107.16 42.86 107.37 43.92C107.57 44.98 107.14 46.27 107.01 47.40C106.87 48.54 106.57 49.67 106.56 50.74C106.56 51.81 106.88 52.79 106.95 53.82C107.03 54.85 106.99 55.89 107.03 56.92C107.07 57.95 107.12 58.97 107.19 60.00Z"></path></clipPath><clipPath id="ub-s_R_vqc_-l"><path d="M-20 -20L63 -4L61.5 10L64.5 22L59 34L62.5 46L57.5 58L61 70L56.5 82L60 95L57 108L58.5 124L-20 140Z"></path></clipPath><clipPath id="ub-s_R_vqc_-r"><path d="M140 -20L63 -4L61.5 10L64.5 22L59 34L62.5 46L57.5 58L61 70L56.5 82L60 95L57 108L58.5 124L140 140Z"></path></clipPath><g id="ub-s_R_vqc_-b"><path d="M107.19 60.00C107.26 61.03 107.37 62.06 107.46 63.11C107.55 64.16 107.70 65.22 107.73 66.28C107.76 67.35 107.63 68.39 107.66 69.48C107.70 70.57 108.00 71.75 107.94 72.85C107.88 73.94 107.74 75.07 107.32 76.06C106.90 77.06 106.00 77.89 105.43 78.82C104.85 79.74 104.55 80.80 103.84 81.62C103.13 82.45 101.99 83.04 101.17 83.77C100.35 84.50 99.60 85.23 98.91 86.00C98.21 86.76 97.71 87.67 96.99 88.38C96.27 89.10 95.31 89.62 94.56 90.31C93.82 91.00 93.19 91.77 92.52 92.52C91.85 93.28 91.15 93.97 90.55 94.84C89.96 95.71 89.45 96.66 88.95 97.72C88.44 98.78 88.09 100.10 87.53 101.19C86.96 102.29 86.35 103.44 85.56 104.28C84.77 105.11 83.80 105.75 82.78 106.20C81.76 106.64 80.57 106.78 79.45 106.95C78.32 107.12 77.16 107.19 76.03 107.21C74.89 107.23 73.74 107.17 72.61 107.07C71.49 106.98 70.38 106.86 69.28 106.64C68.18 106.42 67.08 106.04 66.02 105.74C64.97 105.44 63.94 104.97 62.94 104.84C61.94 104.70 60.98 104.95 60.00 104.94C59.02 104.93 58.05 104.75 57.07 104.77C56.08 104.78 55.06 105.04 54.07 105.01C53.08 104.99 52.14 104.64 51.13 104.60C50.12 104.56 49.07 104.71 48.00 104.78C46.93 104.86 45.79 105.09 44.70 105.07C43.62 105.05 42.55 104.87 41.49 104.68C40.43 104.49 39.38 104.22 38.34 103.92C37.31 103.61 36.18 103.39 35.27 102.83C34.36 102.27 33.72 101.26 32.90 100.56C32.07 99.87 31.16 99.32 30.34 98.66C29.51 97.99 28.62 97.38 27.93 96.57C27.25 95.75 26.85 94.64 26.23 93.77C25.61 92.91 24.91 92.16 24.21 91.38C23.52 90.60 22.64 89.97 22.07 89.10C21.51 88.24 21.29 87.11 20.81 86.19C20.33 85.26 19.79 84.41 19.17 83.57C18.56 82.73 17.78 81.98 17.12 81.14C16.47 80.30 15.92 79.40 15.26 78.53C14.60 77.66 13.71 76.84 13.16 75.90C12.60 74.96 12.10 73.94 11.93 72.88C11.75 71.82 11.99 70.63 12.11 69.53C12.24 68.42 12.44 67.31 12.70 66.23C12.96 65.15 13.38 64.07 13.67 63.04C13.97 62.00 14.25 61.00 14.47 60.00C14.69 59.00 14.85 58.03 15.00 57.05C15.15 56.07 15.30 55.11 15.36 54.12C15.41 53.13 15.26 52.11 15.32 51.11C15.38 50.11 15.53 49.12 15.70 48.13C15.87 47.14 16.22 46.21 16.34 45.18C16.46 44.15 16.20 42.96 16.40 41.94C16.61 40.92 17.18 40.04 17.57 39.07C17.95 38.11 18.35 37.15 18.72 36.17C19.09 35.18 19.29 34.05 19.81 33.14C20.33 32.24 21.15 31.52 21.84 30.72C22.53 29.92 23.16 29.07 23.93 28.37C24.71 27.67 25.71 27.18 26.51 26.51C27.31 25.83 27.85 24.90 28.72 24.33C29.59 23.77 30.78 23.60 31.72 23.14C32.65 22.68 33.45 22.08 34.33 21.59C35.22 21.10 36.16 20.72 37.02 20.21C37.89 19.69 38.66 19.00 39.54 18.51C40.42 18.02 41.39 17.73 42.29 17.25C43.19 16.76 44.06 16.24 44.92 15.58C45.79 14.92 46.58 13.98 47.48 13.28C48.38 12.58 49.33 11.84 50.33 11.37C51.33 10.90 52.41 10.61 53.48 10.46C54.55 10.32 55.67 10.30 56.76 10.52C57.84 10.75 58.94 11.49 60.00 11.82C61.06 12.15 62.09 12.24 63.11 12.50C64.14 12.76 65.14 13.10 66.14 13.39C67.13 13.68 68.12 13.96 69.10 14.26C70.08 14.57 71.02 14.93 72.01 15.19C72.99 15.46 74.01 15.56 74.99 15.84C75.97 16.12 76.97 16.38 77.87 16.86C78.76 17.34 79.47 18.22 80.36 18.72C81.25 19.21 82.25 19.43 83.20 19.82C84.14 20.21 85.07 20.63 86.03 21.05C86.98 21.46 88.06 21.74 88.92 22.31C89.78 22.87 90.47 23.69 91.20 24.43C91.92 25.17 92.58 25.97 93.27 26.73C93.95 27.50 94.76 28.17 95.30 29.04C95.85 29.91 96.07 31.05 96.54 31.97C97.00 32.88 97.50 33.73 98.08 34.55C98.66 35.38 99.32 36.13 100.01 36.90C100.70 37.67 101.26 38.49 102.22 39.18C103.17 39.87 104.90 40.26 105.76 41.05C106.62 41.84 107.16 42.86 107.37 43.92C107.57 44.98 107.14 46.27 107.01 47.40C106.87 48.54 106.57 49.67 106.56 50.74C106.56 51.81 106.88 52.79 106.95 53.82C107.03 54.85 106.99 55.89 107.03 56.92C107.07 57.95 107.12 58.97 107.19 60.00Z" fill="url(#ub-s_R_vqc_-g)"></path><path d="M107.19 60.00C107.26 61.03 107.37 62.06 107.46 63.11C107.55 64.16 107.70 65.22 107.73 66.28C107.76 67.35 107.63 68.39 107.66 69.48C107.70 70.57 108.00 71.75 107.94 72.85C107.88 73.94 107.74 75.07 107.32 76.06C106.90 77.06 106.00 77.89 105.43 78.82C104.85 79.74 104.55 80.80 103.84 81.62C103.13 82.45 101.99 83.04 101.17 83.77C100.35 84.50 99.60 85.23 98.91 86.00C98.21 86.76 97.71 87.67 96.99 88.38C96.27 89.10 95.31 89.62 94.56 90.31C93.82 91.00 93.19 91.77 92.52 92.52C91.85 93.28 91.15 93.97 90.55 94.84C89.96 95.71 89.45 96.66 88.95 97.72C88.44 98.78 88.09 100.10 87.53 101.19C86.96 102.29 86.35 103.44 85.56 104.28C84.77 105.11 83.80 105.75 82.78 106.20C81.76 106.64 80.57 106.78 79.45 106.95C78.32 107.12 77.16 107.19 76.03 107.21C74.89 107.23 73.74 107.17 72.61 107.07C71.49 106.98 70.38 106.86 69.28 106.64C68.18 106.42 67.08 106.04 66.02 105.74C64.97 105.44 63.94 104.97 62.94 104.84C61.94 104.70 60.98 104.95 60.00 104.94C59.02 104.93 58.05 104.75 57.07 104.77C56.08 104.78 55.06 105.04 54.07 105.01C53.08 104.99 52.14 104.64 51.13 104.60C50.12 104.56 49.07 104.71 48.00 104.78C46.93 104.86 45.79 105.09 44.70 105.07C43.62 105.05 42.55 104.87 41.49 104.68C40.43 104.49 39.38 104.22 38.34 103.92C37.31 103.61 36.18 103.39 35.27 102.83C34.36 102.27 33.72 101.26 32.90 100.56C32.07 99.87 31.16 99.32 30.34 98.66C29.51 97.99 28.62 97.38 27.93 96.57C27.25 95.75 26.85 94.64 26.23 93.77C25.61 92.91 24.91 92.16 24.21 91.38C23.52 90.60 22.64 89.97 22.07 89.10C21.51 88.24 21.29 87.11 20.81 86.19C20.33 85.26 19.79 84.41 19.17 83.57C18.56 82.73 17.78 81.98 17.12 81.14C16.47 80.30 15.92 79.40 15.26 78.53C14.60 77.66 13.71 76.84 13.16 75.90C12.60 74.96 12.10 73.94 11.93 72.88C11.75 71.82 11.99 70.63 12.11 69.53C12.24 68.42 12.44 67.31 12.70 66.23C12.96 65.15 13.38 64.07 13.67 63.04C13.97 62.00 14.25 61.00 14.47 60.00C14.69 59.00 14.85 58.03 15.00 57.05C15.15 56.07 15.30 55.11 15.36 54.12C15.41 53.13 15.26 52.11 15.32 51.11C15.38 50.11 15.53 49.12 15.70 48.13C15.87 47.14 16.22 46.21 16.34 45.18C16.46 44.15 16.20 42.96 16.40 41.94C16.61 40.92 17.18 40.04 17.57 39.07C17.95 38.11 18.35 37.15 18.72 36.17C19.09 35.18 19.29 34.05 19.81 33.14C20.33 32.24 21.15 31.52 21.84 30.72C22.53 29.92 23.16 29.07 23.93 28.37C24.71 27.67 25.71 27.18 26.51 26.51C27.31 25.83 27.85 24.90 28.72 24.33C29.59 23.77 30.78 23.60 31.72 23.14C32.65 22.68 33.45 22.08 34.33 21.59C35.22 21.10 36.16 20.72 37.02 20.21C37.89 19.69 38.66 19.00 39.54 18.51C40.42 18.02 41.39 17.73 42.29 17.25C43.19 16.76 44.06 16.24 44.92 15.58C45.79 14.92 46.58 13.98 47.48 13.28C48.38 12.58 49.33 11.84 50.33 11.37C51.33 10.90 52.41 10.61 53.48 10.46C54.55 10.32 55.67 10.30 56.76 10.52C57.84 10.75 58.94 11.49 60.00 11.82C61.06 12.15 62.09 12.24 63.11 12.50C64.14 12.76 65.14 13.10 66.14 13.39C67.13 13.68 68.12 13.96 69.10 14.26C70.08 14.57 71.02 14.93 72.01 15.19C72.99 15.46 74.01 15.56 74.99 15.84C75.97 16.12 76.97 16.38 77.87 16.86C78.76 17.34 79.47 18.22 80.36 18.72C81.25 19.21 82.25 19.43 83.20 19.82C84.14 20.21 85.07 20.63 86.03 21.05C86.98 21.46 88.06 21.74 88.92 22.31C89.78 22.87 90.47 23.69 91.20 24.43C91.92 25.17 92.58 25.97 93.27 26.73C93.95 27.50 94.76 28.17 95.30 29.04C95.85 29.91 96.07 31.05 96.54 31.97C97.00 32.88 97.50 33.73 98.08 34.55C98.66 35.38 99.32 36.13 100.01 36.90C100.70 37.67 101.26 38.49 102.22 39.18C103.17 39.87 104.90 40.26 105.76 41.05C106.62 41.84 107.16 42.86 107.37 43.92C107.57 44.98 107.14 46.27 107.01 47.40C106.87 48.54 106.57 49.67 106.56 50.74C106.56 51.81 106.88 52.79 106.95 53.82C107.03 54.85 106.99 55.89 107.03 56.92C107.07 57.95 107.12 58.97 107.19 60.00Z" fill="#000" filter="url(#ub-s_R_vqc_-t)" opacity="0.32"></path><path d="M107.19 60.00C107.26 61.03 107.37 62.06 107.46 63.11C107.55 64.16 107.70 65.22 107.73 66.28C107.76 67.35 107.63 68.39 107.66 69.48C107.70 70.57 108.00 71.75 107.94 72.85C107.88 73.94 107.74 75.07 107.32 76.06C106.90 77.06 106.00 77.89 105.43 78.82C104.85 79.74 104.55 80.80 103.84 81.62C103.13 82.45 101.99 83.04 101.17 83.77C100.35 84.50 99.60 85.23 98.91 86.00C98.21 86.76 97.71 87.67 96.99 88.38C96.27 89.10 95.31 89.62 94.56 90.31C93.82 91.00 93.19 91.77 92.52 92.52C91.85 93.28 91.15 93.97 90.55 94.84C89.96 95.71 89.45 96.66 88.95 97.72C88.44 98.78 88.09 100.10 87.53 101.19C86.96 102.29 86.35 103.44 85.56 104.28C84.77 105.11 83.80 105.75 82.78 106.20C81.76 106.64 80.57 106.78 79.45 106.95C78.32 107.12 77.16 107.19 76.03 107.21C74.89 107.23 73.74 107.17 72.61 107.07C71.49 106.98 70.38 106.86 69.28 106.64C68.18 106.42 67.08 106.04 66.02 105.74C64.97 105.44 63.94 104.97 62.94 104.84C61.94 104.70 60.98 104.95 60.00 104.94C59.02 104.93 58.05 104.75 57.07 104.77C56.08 104.78 55.06 105.04 54.07 105.01C53.08 104.99 52.14 104.64 51.13 104.60C50.12 104.56 49.07 104.71 48.00 104.78C46.93 104.86 45.79 105.09 44.70 105.07C43.62 105.05 42.55 104.87 41.49 104.68C40.43 104.49 39.38 104.22 38.34 103.92C37.31 103.61 36.18 103.39 35.27 102.83C34.36 102.27 33.72 101.26 32.90 100.56C32.07 99.87 31.16 99.32 30.34 98.66C29.51 97.99 28.62 97.38 27.93 96.57C27.25 95.75 26.85 94.64 26.23 93.77C25.61 92.91 24.91 92.16 24.21 91.38C23.52 90.60 22.64 89.97 22.07 89.10C21.51 88.24 21.29 87.11 20.81 86.19C20.33 85.26 19.79 84.41 19.17 83.57C18.56 82.73 17.78 81.98 17.12 81.14C16.47 80.30 15.92 79.40 15.26 78.53C14.60 77.66 13.71 76.84 13.16 75.90C12.60 74.96 12.10 73.94 11.93 72.88C11.75 71.82 11.99 70.63 12.11 69.53C12.24 68.42 12.44 67.31 12.70 66.23C12.96 65.15 13.38 64.07 13.67 63.04C13.97 62.00 14.25 61.00 14.47 60.00C14.69 59.00 14.85 58.03 15.00 57.05C15.15 56.07 15.30 55.11 15.36 54.12C15.41 53.13 15.26 52.11 15.32 51.11C15.38 50.11 15.53 49.12 15.70 48.13C15.87 47.14 16.22 46.21 16.34 45.18C16.46 44.15 16.20 42.96 16.40 41.94C16.61 40.92 17.18 40.04 17.57 39.07C17.95 38.11 18.35 37.15 18.72 36.17C19.09 35.18 19.29 34.05 19.81 33.14C20.33 32.24 21.15 31.52 21.84 30.72C22.53 29.92 23.16 29.07 23.93 28.37C24.71 27.67 25.71 27.18 26.51 26.51C27.31 25.83 27.85 24.90 28.72 24.33C29.59 23.77 30.78 23.60 31.72 23.14C32.65 22.68 33.45 22.08 34.33 21.59C35.22 21.10 36.16 20.72 37.02 20.21C37.89 19.69 38.66 19.00 39.54 18.51C40.42 18.02 41.39 17.73 42.29 17.25C43.19 16.76 44.06 16.24 44.92 15.58C45.79 14.92 46.58 13.98 47.48 13.28C48.38 12.58 49.33 11.84 50.33 11.37C51.33 10.90 52.41 10.61 53.48 10.46C54.55 10.32 55.67 10.30 56.76 10.52C57.84 10.75 58.94 11.49 60.00 11.82C61.06 12.15 62.09 12.24 63.11 12.50C64.14 12.76 65.14 13.10 66.14 13.39C67.13 13.68 68.12 13.96 69.10 14.26C70.08 14.57 71.02 14.93 72.01 15.19C72.99 15.46 74.01 15.56 74.99 15.84C75.97 16.12 76.97 16.38 77.87 16.86C78.76 17.34 79.47 18.22 80.36 18.72C81.25 19.21 82.25 19.43 83.20 19.82C84.14 20.21 85.07 20.63 86.03 21.05C86.98 21.46 88.06 21.74 88.92 22.31C89.78 22.87 90.47 23.69 91.20 24.43C91.92 25.17 92.58 25.97 93.27 26.73C93.95 27.50 94.76 28.17 95.30 29.04C95.85 29.91 96.07 31.05 96.54 31.97C97.00 32.88 97.50 33.73 98.08 34.55C98.66 35.38 99.32 36.13 100.01 36.90C100.70 37.67 101.26 38.49 102.22 39.18C103.17 39.87 104.90 40.26 105.76 41.05C106.62 41.84 107.16 42.86 107.37 43.92C107.57 44.98 107.14 46.27 107.01 47.40C106.87 48.54 106.57 49.67 106.56 50.74C106.56 51.81 106.88 52.79 106.95 53.82C107.03 54.85 106.99 55.89 107.03 56.92C107.07 57.95 107.12 58.97 107.19 60.00Z" fill="none" stroke="#2c0c09" stroke-opacity="0.55" stroke-width="0.9"></path><circle cx="60" cy="60" r="36.5" fill="none" stroke="#8f3d33" stroke-opacity="0.5" stroke-width="2.4" transform="translate(-0.7 -0.9)"></circle><circle cx="60" cy="60" r="36.5" fill="none" stroke="#3a100d" stroke-opacity="0.45" stroke-width="1.6" transform="translate(0.8 1)"></circle><path d="M93.43 60.00C93.46 61.45 93.29 62.92 93.10 64.36C92.91 65.80 92.71 67.27 92.30 68.65C91.88 70.04 91.20 71.36 90.59 72.67C89.98 73.98 89.38 75.31 88.62 76.52C87.86 77.74 86.97 78.90 86.04 79.98C85.11 81.07 84.07 82.05 83.04 83.04C82.02 84.04 81.03 85.08 79.91 85.95C78.79 86.82 77.55 87.55 76.32 88.26C75.09 88.98 73.82 89.64 72.53 90.24C71.23 90.84 69.90 91.42 68.54 91.87C67.17 92.31 65.76 92.69 64.33 92.93C62.91 93.16 61.45 93.26 60.00 93.29C58.55 93.32 57.08 93.26 55.64 93.10C54.20 92.93 52.74 92.69 51.35 92.29C49.95 91.89 48.59 91.31 47.28 90.70C45.97 90.08 44.68 89.40 43.48 88.61C42.28 87.82 41.19 86.86 40.08 85.96C38.97 85.05 37.82 84.19 36.82 83.18C35.81 82.18 34.91 81.05 34.05 79.92C33.18 78.78 32.34 77.61 31.63 76.38C30.92 75.15 30.35 73.83 29.78 72.52C29.20 71.21 28.59 69.90 28.16 68.53C27.72 67.17 27.39 65.74 27.16 64.32C26.94 62.90 26.85 61.44 26.83 60.00C26.82 58.56 26.90 57.10 27.08 55.67C27.27 54.24 27.56 52.80 27.95 51.41C28.35 50.03 28.88 48.67 29.45 47.35C30.02 46.02 30.65 44.72 31.39 43.48C32.12 42.24 32.93 41.03 33.85 39.93C34.76 38.83 35.84 37.86 36.89 36.89C37.94 35.92 39.03 35.01 40.14 34.12C41.26 33.24 42.37 32.32 43.59 31.58C44.81 30.84 46.15 30.30 47.45 29.71C48.76 29.12 50.06 28.47 51.43 28.02C52.80 27.58 54.23 27.26 55.66 27.05C57.09 26.83 58.55 26.74 60.00 26.74C61.45 26.73 62.90 26.87 64.34 27.04C65.78 27.21 67.24 27.40 68.63 27.78C70.03 28.16 71.39 28.73 72.70 29.34C74.01 29.95 75.28 30.66 76.49 31.44C77.69 32.22 78.83 33.12 79.93 34.03C81.03 34.94 82.09 35.90 83.09 36.91C84.09 37.93 85.04 39.00 85.91 40.12C86.78 41.24 87.58 42.43 88.31 43.66C89.04 44.88 89.69 46.15 90.29 47.45C90.89 48.75 91.46 50.08 91.90 51.45C92.33 52.82 92.65 54.24 92.91 55.67C93.16 57.09 93.40 58.55 93.43 60.00Z" fill="url(#ub-s_R_vqc_-gd)"></path><g clip-path="url(#ub-s_R_vqc_-d)"><path d="M93.43 60.00C93.46 61.45 93.29 62.92 93.10 64.36C92.91 65.80 92.71 67.27 92.30 68.65C91.88 70.04 91.20 71.36 90.59 72.67C89.98 73.98 89.38 75.31 88.62 76.52C87.86 77.74 86.97 78.90 86.04 79.98C85.11 81.07 84.07 82.05 83.04 83.04C82.02 84.04 81.03 85.08 79.91 85.95C78.79 86.82 77.55 87.55 76.32 88.26C75.09 88.98 73.82 89.64 72.53 90.24C71.23 90.84 69.90 91.42 68.54 91.87C67.17 92.31 65.76 92.69 64.33 92.93C62.91 93.16 61.45 93.26 60.00 93.29C58.55 93.32 57.08 93.26 55.64 93.10C54.20 92.93 52.74 92.69 51.35 92.29C49.95 91.89 48.59 91.31 47.28 90.70C45.97 90.08 44.68 89.40 43.48 88.61C42.28 87.82 41.19 86.86 40.08 85.96C38.97 85.05 37.82 84.19 36.82 83.18C35.81 82.18 34.91 81.05 34.05 79.92C33.18 78.78 32.34 77.61 31.63 76.38C30.92 75.15 30.35 73.83 29.78 72.52C29.20 71.21 28.59 69.90 28.16 68.53C27.72 67.17 27.39 65.74 27.16 64.32C26.94 62.90 26.85 61.44 26.83 60.00C26.82 58.56 26.90 57.10 27.08 55.67C27.27 54.24 27.56 52.80 27.95 51.41C28.35 50.03 28.88 48.67 29.45 47.35C30.02 46.02 30.65 44.72 31.39 43.48C32.12 42.24 32.93 41.03 33.85 39.93C34.76 38.83 35.84 37.86 36.89 36.89C37.94 35.92 39.03 35.01 40.14 34.12C41.26 33.24 42.37 32.32 43.59 31.58C44.81 30.84 46.15 30.30 47.45 29.71C48.76 29.12 50.06 28.47 51.43 28.02C52.80 27.58 54.23 27.26 55.66 27.05C57.09 26.83 58.55 26.74 60.00 26.74C61.45 26.73 62.90 26.87 64.34 27.04C65.78 27.21 67.24 27.40 68.63 27.78C70.03 28.16 71.39 28.73 72.70 29.34C74.01 29.95 75.28 30.66 76.49 31.44C77.69 32.22 78.83 33.12 79.93 34.03C81.03 34.94 82.09 35.90 83.09 36.91C84.09 37.93 85.04 39.00 85.91 40.12C86.78 41.24 87.58 42.43 88.31 43.66C89.04 44.88 89.69 46.15 90.29 47.45C90.89 48.75 91.46 50.08 91.90 51.45C92.33 52.82 92.65 54.24 92.91 55.67C93.16 57.09 93.40 58.55 93.43 60.00Z" fill="none" stroke="#2a0a08" stroke-opacity="0.7" stroke-width="3.2" transform="translate(1.6 1.9)"></path><path d="M93.43 60.00C93.46 61.45 93.29 62.92 93.10 64.36C92.91 65.80 92.71 67.27 92.30 68.65C91.88 70.04 91.20 71.36 90.59 72.67C89.98 73.98 89.38 75.31 88.62 76.52C87.86 77.74 86.97 78.90 86.04 79.98C85.11 81.07 84.07 82.05 83.04 83.04C82.02 84.04 81.03 85.08 79.91 85.95C78.79 86.82 77.55 87.55 76.32 88.26C75.09 88.98 73.82 89.64 72.53 90.24C71.23 90.84 69.90 91.42 68.54 91.87C67.17 92.31 65.76 92.69 64.33 92.93C62.91 93.16 61.45 93.26 60.00 93.29C58.55 93.32 57.08 93.26 55.64 93.10C54.20 92.93 52.74 92.69 51.35 92.29C49.95 91.89 48.59 91.31 47.28 90.70C45.97 90.08 44.68 89.40 43.48 88.61C42.28 87.82 41.19 86.86 40.08 85.96C38.97 85.05 37.82 84.19 36.82 83.18C35.81 82.18 34.91 81.05 34.05 79.92C33.18 78.78 32.34 77.61 31.63 76.38C30.92 75.15 30.35 73.83 29.78 72.52C29.20 71.21 28.59 69.90 28.16 68.53C27.72 67.17 27.39 65.74 27.16 64.32C26.94 62.90 26.85 61.44 26.83 60.00C26.82 58.56 26.90 57.10 27.08 55.67C27.27 54.24 27.56 52.80 27.95 51.41C28.35 50.03 28.88 48.67 29.45 47.35C30.02 46.02 30.65 44.72 31.39 43.48C32.12 42.24 32.93 41.03 33.85 39.93C34.76 38.83 35.84 37.86 36.89 36.89C37.94 35.92 39.03 35.01 40.14 34.12C41.26 33.24 42.37 32.32 43.59 31.58C44.81 30.84 46.15 30.30 47.45 29.71C48.76 29.12 50.06 28.47 51.43 28.02C52.80 27.58 54.23 27.26 55.66 27.05C57.09 26.83 58.55 26.74 60.00 26.74C61.45 26.73 62.90 26.87 64.34 27.04C65.78 27.21 67.24 27.40 68.63 27.78C70.03 28.16 71.39 28.73 72.70 29.34C74.01 29.95 75.28 30.66 76.49 31.44C77.69 32.22 78.83 33.12 79.93 34.03C81.03 34.94 82.09 35.90 83.09 36.91C84.09 37.93 85.04 39.00 85.91 40.12C86.78 41.24 87.58 42.43 88.31 43.66C89.04 44.88 89.69 46.15 90.29 47.45C90.89 48.75 91.46 50.08 91.90 51.45C92.33 52.82 92.65 54.24 92.91 55.67C93.16 57.09 93.40 58.55 93.43 60.00Z" fill="none" stroke="#b0574a" stroke-opacity="0.4" stroke-width="2" transform="translate(-1.4 -1.6)"></path></g><circle cx="60" cy="60" r="28.6" fill="none" stroke="#3a100d" stroke-opacity="0.75" stroke-width="0.9"></circle><circle cx="60" cy="60" r="28.6" fill="none" stroke="#a5503f" stroke-opacity="0.35" stroke-width="0.7" transform="translate(0.6 0.7)"></circle><g transform="translate(0.7 0.8)"><path d="M27.1-14L27.1-12.3Q29.7-9.9 32.4-8.5Q35.1-7 38.7-6.3Q42.2-5.5 47.2-5.3Q52.1-5.1 59.1-5.1L59.1-5.1Q64.7-5.1 71.4-5.1Q78-5.1 84.9-5.2Q91.7-5.3 98-5.5L98-5.5L98-4.3Q90.5-2.5 89.6 6.7L89.6 6.7Q85.4 6.7 80.2 6.7Q74.9 6.7 69.5 6.7Q64.1 6.7 59.2 6.7L59.2 6.7Q52.1 6.7 47.0 6Q41.8 5.3 38 3.4Q34.2 1.5 31.4-2.0Q28.5-5.4 26-10.8L26-10.8Q23.9-8 21.3-4.8Q18.7-1.5 16.2 1.5Q13.6 4.4 11.6 6.5L11.6 6.5Q11.5 7.5 11.1 8.1Q10.6 8.7 9.8 9L9.8 9L3.1-5.1Q6.2-6.1 10.4-7.6Q14.5-9.1 18.9-10.8Q23.4-12.5 27.1-14L27.1-14ZM27.1-29.9L27.1-29.9L27.1-13.5L14.8-4.9L14.8-31.6L3.5-31.6L2.9-34.5L13.3-34.5L19.3-42.5L32.3-32.1Q31.6-31.5 30.5-30.9Q29.3-30.2 27.1-29.9ZM7.5-82.5L8.3-83.1Q15.4-82.8 19.6-81Q23.8-79.2 25.7-76.8Q27.6-74.4 27.7-72.0Q27.7-69.5 26.3-67.8Q24.9-66.1 22.6-65.7Q20.2-65.2 17.5-66.9L17.5-66.9Q16.7-69.7 15.1-72.5Q13.4-75.4 11.4-78Q9.4-80.6 7.5-82.5L7.5-82.5ZM4.6-62.1L5.4-62.8Q12.7-62.7 17.2-61.2Q21.6-59.6 23.7-57.2Q25.8-54.8 26.0-52.4Q26.1-49.9 24.8-48.1Q23.5-46.2 21.2-45.7Q18.8-45.1 15.8-46.6L15.8-46.6Q14.9-49.4 13.1-52.3Q11.2-55.1 9-57.7Q6.8-60.3 4.6-62.1L4.6-62.1ZM74.8-25.1L74.8-53.7L73.8-53.7L79.5-59.9L91.3-50.9Q90.9-50.4 89.9-49.8Q88.8-49.2 87.3-48.9L87.3-48.9L87.3-28.3Q87.3-27.9 85.6-27.2Q83.9-26.4 81.5-25.8Q79.1-25.1 77-25.1L77-25.1L74.8-25.1ZM40.4-28.7L40.4-31.6L81.3-31.6L81.3-28.7L40.4-28.7ZM40.4-40.1L40.4-42.9L81.3-42.9L81.3-40.1L40.4-40.1ZM38.7-75.5L38.7-78.3L86.1-78.3L86.1-75.5L38.7-75.5ZM35-23.1L35-53.7L35-58.7L35-58.7L47.9-53.7L81.1-53.7L81.1-50.9L47.3-50.9L47.3-26.9Q47.3-26.3 45.7-25.5Q44.1-24.6 41.7-23.9Q39.3-23.1 36.7-23.1L36.7-23.1L35-23.1ZM54.7-5.8L54.7-73L70.8-71.5Q70.7-70.5 70.0-69.8Q69.2-69 67.2-68.7L67.2-68.7L67.2-9.5Q67.2-8.9 65.7-8.1Q64.1-7.2 61.8-6.5Q59.4-5.8 57-5.8L57-5.8L54.7-5.8ZM32.3-60.9L31.5-63.8L74.7-63.8L80.7-70.9Q80.7-70.9 82.6-69.5Q84.4-68.2 87.0-66.3Q89.5-64.3 91.6-62.5L91.6-62.5Q91.3-60.9 88.9-60.9L88.9-60.9L32.3-60.9ZM29.9-17.8L29.1-20.6L78.9-20.6L85.1-28.3Q85.1-28.3 87.1-26.9Q89-25.4 91.7-23.4Q94.4-21.3 96.4-19.4L96.4-19.4Q96.1-17.8 93.7-17.8L93.7-17.8L29.9-17.8ZM39.3-84.8L39.3-84.8L40.6-84.9Q43.1-79.8 43.2-75.7Q43.3-71.5 41.8-68.8Q40.3-66.1 37.9-65.1L37.9-65.1Q35.3-64.1 32.5-65.3Q29.7-66.4 28.9-69.6L28.9-69.6Q28.3-72.7 30-74.7Q31.7-76.7 34.3-77.7L34.3-77.7Q36.3-78.6 38-80.6Q39.7-82.5 39.3-84.8ZM81.1-78.3L81.1-78.3L80-78.3L86.3-84.6L97.3-74.2Q96.7-73.6 95.9-73.4Q95-73.1 93.4-73L93.4-73Q91-71.1 87.2-68.9Q83.4-66.7 80.3-65.3L80.3-65.3L79.5-66Q80-68.5 80.5-72.2Q81-75.9 81.1-78.3Z" transform="translate(41.94 73.58) scale(0.3579)" fill="#a9554a" fill-opacity="0.45"></path></g><path d="M27.1-14L27.1-12.3Q29.7-9.9 32.4-8.5Q35.1-7 38.7-6.3Q42.2-5.5 47.2-5.3Q52.1-5.1 59.1-5.1L59.1-5.1Q64.7-5.1 71.4-5.1Q78-5.1 84.9-5.2Q91.7-5.3 98-5.5L98-5.5L98-4.3Q90.5-2.5 89.6 6.7L89.6 6.7Q85.4 6.7 80.2 6.7Q74.9 6.7 69.5 6.7Q64.1 6.7 59.2 6.7L59.2 6.7Q52.1 6.7 47.0 6Q41.8 5.3 38 3.4Q34.2 1.5 31.4-2.0Q28.5-5.4 26-10.8L26-10.8Q23.9-8 21.3-4.8Q18.7-1.5 16.2 1.5Q13.6 4.4 11.6 6.5L11.6 6.5Q11.5 7.5 11.1 8.1Q10.6 8.7 9.8 9L9.8 9L3.1-5.1Q6.2-6.1 10.4-7.6Q14.5-9.1 18.9-10.8Q23.4-12.5 27.1-14L27.1-14ZM27.1-29.9L27.1-29.9L27.1-13.5L14.8-4.9L14.8-31.6L3.5-31.6L2.9-34.5L13.3-34.5L19.3-42.5L32.3-32.1Q31.6-31.5 30.5-30.9Q29.3-30.2 27.1-29.9ZM7.5-82.5L8.3-83.1Q15.4-82.8 19.6-81Q23.8-79.2 25.7-76.8Q27.6-74.4 27.7-72.0Q27.7-69.5 26.3-67.8Q24.9-66.1 22.6-65.7Q20.2-65.2 17.5-66.9L17.5-66.9Q16.7-69.7 15.1-72.5Q13.4-75.4 11.4-78Q9.4-80.6 7.5-82.5L7.5-82.5ZM4.6-62.1L5.4-62.8Q12.7-62.7 17.2-61.2Q21.6-59.6 23.7-57.2Q25.8-54.8 26.0-52.4Q26.1-49.9 24.8-48.1Q23.5-46.2 21.2-45.7Q18.8-45.1 15.8-46.6L15.8-46.6Q14.9-49.4 13.1-52.3Q11.2-55.1 9-57.7Q6.8-60.3 4.6-62.1L4.6-62.1ZM74.8-25.1L74.8-53.7L73.8-53.7L79.5-59.9L91.3-50.9Q90.9-50.4 89.9-49.8Q88.8-49.2 87.3-48.9L87.3-48.9L87.3-28.3Q87.3-27.9 85.6-27.2Q83.9-26.4 81.5-25.8Q79.1-25.1 77-25.1L77-25.1L74.8-25.1ZM40.4-28.7L40.4-31.6L81.3-31.6L81.3-28.7L40.4-28.7ZM40.4-40.1L40.4-42.9L81.3-42.9L81.3-40.1L40.4-40.1ZM38.7-75.5L38.7-78.3L86.1-78.3L86.1-75.5L38.7-75.5ZM35-23.1L35-53.7L35-58.7L35-58.7L47.9-53.7L81.1-53.7L81.1-50.9L47.3-50.9L47.3-26.9Q47.3-26.3 45.7-25.5Q44.1-24.6 41.7-23.9Q39.3-23.1 36.7-23.1L36.7-23.1L35-23.1ZM54.7-5.8L54.7-73L70.8-71.5Q70.7-70.5 70.0-69.8Q69.2-69 67.2-68.7L67.2-68.7L67.2-9.5Q67.2-8.9 65.7-8.1Q64.1-7.2 61.8-6.5Q59.4-5.8 57-5.8L57-5.8L54.7-5.8ZM32.3-60.9L31.5-63.8L74.7-63.8L80.7-70.9Q80.7-70.9 82.6-69.5Q84.4-68.2 87.0-66.3Q89.5-64.3 91.6-62.5L91.6-62.5Q91.3-60.9 88.9-60.9L88.9-60.9L32.3-60.9ZM29.9-17.8L29.1-20.6L78.9-20.6L85.1-28.3Q85.1-28.3 87.1-26.9Q89-25.4 91.7-23.4Q94.4-21.3 96.4-19.4L96.4-19.4Q96.1-17.8 93.7-17.8L93.7-17.8L29.9-17.8ZM39.3-84.8L39.3-84.8L40.6-84.9Q43.1-79.8 43.2-75.7Q43.3-71.5 41.8-68.8Q40.3-66.1 37.9-65.1L37.9-65.1Q35.3-64.1 32.5-65.3Q29.7-66.4 28.9-69.6L28.9-69.6Q28.3-72.7 30-74.7Q31.7-76.7 34.3-77.7L34.3-77.7Q36.3-78.6 38-80.6Q39.7-82.5 39.3-84.8ZM81.1-78.3L81.1-78.3L80-78.3L86.3-84.6L97.3-74.2Q96.7-73.6 95.9-73.4Q95-73.1 93.4-73L93.4-73Q91-71.1 87.2-68.9Q83.4-66.7 80.3-65.3L80.3-65.3L79.5-66Q80-68.5 80.5-72.2Q81-75.9 81.1-78.3Z" transform="translate(41.94 73.58) scale(0.3579)" fill="#360d0a" fill-opacity="0.92"></path><ellipse cx="40" cy="31" rx="15" ry="7" transform="rotate(-32 40 31)" fill="#ffe6d0" opacity="0.1" filter="url(#ub-s_R_vqc_-sh)"></ellipse></g></defs><use class="ub-seal__whole" href="#ub-s_R_vqc_-b"></use><g class="ub-seal__half ub-seal__half--l" clip-path="url(#ub-s_R_vqc_-l)"><use href="#ub-s_R_vqc_-b"></use></g><g class="ub-seal__half ub-seal__half--r" clip-path="url(#ub-s_R_vqc_-r)"><use href="#ub-s_R_vqc_-b"></use></g><g clip-path="url(#ub-s_R_vqc_-o)"><path class="ub-seal__crack" d="M63 -4L61.5 10L64.5 22L59 34L62.5 46L57.5 58L61 70L56.5 82L60 95L57 108L58.5 124" pathLength="1"></path><path class="ub-seal__branch" d="M59 34L52 39L47 38M57.5 58L66 63L71 62"></path></g></svg><span class="ub-seal__label">나의 운명비서 열기</span></button><p class="ub-note pv-note">사주 풀이는 전통 명리 해석에 따른 이야기이며, 미래를 과학적으로 예측한다는 뜻이 아닙니다.</p></div></div></div></div></div></div></div></form><form noValidate="" class="pv-only-d"><div class="ub-book ub-book--spread" role="region" aria-label="운명비서 — 적는 쪽"><div class="ub-book__shadow" aria-hidden="true"></div><div class="ub-book__body"><div class="ub-book__block"><div class="ub-book__page ub-book__page--left" data-align="center"><div class="ub-book__content"><header class="ub-title"><h1 class="ub-title__head"><span class="ub-title__han" lang="ko-Hani" aria-hidden="true">運命秘書</span><span class="ub-title__ko">운명비서</span></h1><span class="ub-title__rule" aria-hidden="true"></span><p class="ub-title__tagline">세상에 단 한 권, 오직 너를 위한 기록.</p></header><p class="ub-voice ub-voice--center pv-grandma">왔구나. 앉거라.<br/>네 이름과 난 때만 적으면 된다.</p><div class="pv-actions"><button type="submit" class="ub-seal" data-state="idle"><svg class="ub-seal__wax" viewBox="0 0 120 120" aria-hidden="true" focusable="false"><defs><radialGradient id="ub-s_R_3mk_-g" cx="0.38" cy="0.32" r="0.78"><stop offset="0" stop-color="#87362e"></stop><stop offset="0.5" stop-color="#6c2823"></stop><stop offset="1" stop-color="#4a1713"></stop></radialGradient><radialGradient id="ub-s_R_3mk_-gd" cx="0.62" cy="0.66" r="0.72"><stop offset="0" stop-color="#74302a"></stop><stop offset="1" stop-color="#57201b"></stop></radialGradient><filter id="ub-s_R_3mk_-t" x="0" y="0" width="1" height="1"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" result="n"></feTurbulence><feColorMatrix in="n" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.4 0.82" result="a"></feColorMatrix><feComposite in="a" in2="SourceGraphic" operator="in"></feComposite></filter><filter id="ub-s_R_3mk_-sh" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"></feGaussianBlur></filter><clipPath id="ub-s_R_3mk_-d"><path d="M93.43 60.00C93.46 61.45 93.29 62.92 93.10 64.36C92.91 65.80 92.71 67.27 92.30 68.65C91.88 70.04 91.20 71.36 90.59 72.67C89.98 73.98 89.38 75.31 88.62 76.52C87.86 77.74 86.97 78.90 86.04 79.98C85.11 81.07 84.07 82.05 83.04 83.04C82.02 84.04 81.03 85.08 79.91 85.95C78.79 86.82 77.55 87.55 76.32 88.26C75.09 88.98 73.82 89.64 72.53 90.24C71.23 90.84 69.90 91.42 68.54 91.87C67.17 92.31 65.76 92.69 64.33 92.93C62.91 93.16 61.45 93.26 60.00 93.29C58.55 93.32 57.08 93.26 55.64 93.10C54.20 92.93 52.74 92.69 51.35 92.29C49.95 91.89 48.59 91.31 47.28 90.70C45.97 90.08 44.68 89.40 43.48 88.61C42.28 87.82 41.19 86.86 40.08 85.96C38.97 85.05 37.82 84.19 36.82 83.18C35.81 82.18 34.91 81.05 34.05 79.92C33.18 78.78 32.34 77.61 31.63 76.38C30.92 75.15 30.35 73.83 29.78 72.52C29.20 71.21 28.59 69.90 28.16 68.53C27.72 67.17 27.39 65.74 27.16 64.32C26.94 62.90 26.85 61.44 26.83 60.00C26.82 58.56 26.90 57.10 27.08 55.67C27.27 54.24 27.56 52.80 27.95 51.41C28.35 50.03 28.88 48.67 29.45 47.35C30.02 46.02 30.65 44.72 31.39 43.48C32.12 42.24 32.93 41.03 33.85 39.93C34.76 38.83 35.84 37.86 36.89 36.89C37.94 35.92 39.03 35.01 40.14 34.12C41.26 33.24 42.37 32.32 43.59 31.58C44.81 30.84 46.15 30.30 47.45 29.71C48.76 29.12 50.06 28.47 51.43 28.02C52.80 27.58 54.23 27.26 55.66 27.05C57.09 26.83 58.55 26.74 60.00 26.74C61.45 26.73 62.90 26.87 64.34 27.04C65.78 27.21 67.24 27.40 68.63 27.78C70.03 28.16 71.39 28.73 72.70 29.34C74.01 29.95 75.28 30.66 76.49 31.44C77.69 32.22 78.83 33.12 79.93 34.03C81.03 34.94 82.09 35.90 83.09 36.91C84.09 37.93 85.04 39.00 85.91 40.12C86.78 41.24 87.58 42.43 88.31 43.66C89.04 44.88 89.69 46.15 90.29 47.45C90.89 48.75 91.46 50.08 91.90 51.45C92.33 52.82 92.65 54.24 92.91 55.67C93.16 57.09 93.40 58.55 93.43 60.00Z"></path></clipPath><clipPath id="ub-s_R_3mk_-o"><path d="M107.19 60.00C107.26 61.03 107.37 62.06 107.46 63.11C107.55 64.16 107.70 65.22 107.73 66.28C107.76 67.35 107.63 68.39 107.66 69.48C107.70 70.57 108.00 71.75 107.94 72.85C107.88 73.94 107.74 75.07 107.32 76.06C106.90 77.06 106.00 77.89 105.43 78.82C104.85 79.74 104.55 80.80 103.84 81.62C103.13 82.45 101.99 83.04 101.17 83.77C100.35 84.50 99.60 85.23 98.91 86.00C98.21 86.76 97.71 87.67 96.99 88.38C96.27 89.10 95.31 89.62 94.56 90.31C93.82 91.00 93.19 91.77 92.52 92.52C91.85 93.28 91.15 93.97 90.55 94.84C89.96 95.71 89.45 96.66 88.95 97.72C88.44 98.78 88.09 100.10 87.53 101.19C86.96 102.29 86.35 103.44 85.56 104.28C84.77 105.11 83.80 105.75 82.78 106.20C81.76 106.64 80.57 106.78 79.45 106.95C78.32 107.12 77.16 107.19 76.03 107.21C74.89 107.23 73.74 107.17 72.61 107.07C71.49 106.98 70.38 106.86 69.28 106.64C68.18 106.42 67.08 106.04 66.02 105.74C64.97 105.44 63.94 104.97 62.94 104.84C61.94 104.70 60.98 104.95 60.00 104.94C59.02 104.93 58.05 104.75 57.07 104.77C56.08 104.78 55.06 105.04 54.07 105.01C53.08 104.99 52.14 104.64 51.13 104.60C50.12 104.56 49.07 104.71 48.00 104.78C46.93 104.86 45.79 105.09 44.70 105.07C43.62 105.05 42.55 104.87 41.49 104.68C40.43 104.49 39.38 104.22 38.34 103.92C37.31 103.61 36.18 103.39 35.27 102.83C34.36 102.27 33.72 101.26 32.90 100.56C32.07 99.87 31.16 99.32 30.34 98.66C29.51 97.99 28.62 97.38 27.93 96.57C27.25 95.75 26.85 94.64 26.23 93.77C25.61 92.91 24.91 92.16 24.21 91.38C23.52 90.60 22.64 89.97 22.07 89.10C21.51 88.24 21.29 87.11 20.81 86.19C20.33 85.26 19.79 84.41 19.17 83.57C18.56 82.73 17.78 81.98 17.12 81.14C16.47 80.30 15.92 79.40 15.26 78.53C14.60 77.66 13.71 76.84 13.16 75.90C12.60 74.96 12.10 73.94 11.93 72.88C11.75 71.82 11.99 70.63 12.11 69.53C12.24 68.42 12.44 67.31 12.70 66.23C12.96 65.15 13.38 64.07 13.67 63.04C13.97 62.00 14.25 61.00 14.47 60.00C14.69 59.00 14.85 58.03 15.00 57.05C15.15 56.07 15.30 55.11 15.36 54.12C15.41 53.13 15.26 52.11 15.32 51.11C15.38 50.11 15.53 49.12 15.70 48.13C15.87 47.14 16.22 46.21 16.34 45.18C16.46 44.15 16.20 42.96 16.40 41.94C16.61 40.92 17.18 40.04 17.57 39.07C17.95 38.11 18.35 37.15 18.72 36.17C19.09 35.18 19.29 34.05 19.81 33.14C20.33 32.24 21.15 31.52 21.84 30.72C22.53 29.92 23.16 29.07 23.93 28.37C24.71 27.67 25.71 27.18 26.51 26.51C27.31 25.83 27.85 24.90 28.72 24.33C29.59 23.77 30.78 23.60 31.72 23.14C32.65 22.68 33.45 22.08 34.33 21.59C35.22 21.10 36.16 20.72 37.02 20.21C37.89 19.69 38.66 19.00 39.54 18.51C40.42 18.02 41.39 17.73 42.29 17.25C43.19 16.76 44.06 16.24 44.92 15.58C45.79 14.92 46.58 13.98 47.48 13.28C48.38 12.58 49.33 11.84 50.33 11.37C51.33 10.90 52.41 10.61 53.48 10.46C54.55 10.32 55.67 10.30 56.76 10.52C57.84 10.75 58.94 11.49 60.00 11.82C61.06 12.15 62.09 12.24 63.11 12.50C64.14 12.76 65.14 13.10 66.14 13.39C67.13 13.68 68.12 13.96 69.10 14.26C70.08 14.57 71.02 14.93 72.01 15.19C72.99 15.46 74.01 15.56 74.99 15.84C75.97 16.12 76.97 16.38 77.87 16.86C78.76 17.34 79.47 18.22 80.36 18.72C81.25 19.21 82.25 19.43 83.20 19.82C84.14 20.21 85.07 20.63 86.03 21.05C86.98 21.46 88.06 21.74 88.92 22.31C89.78 22.87 90.47 23.69 91.20 24.43C91.92 25.17 92.58 25.97 93.27 26.73C93.95 27.50 94.76 28.17 95.30 29.04C95.85 29.91 96.07 31.05 96.54 31.97C97.00 32.88 97.50 33.73 98.08 34.55C98.66 35.38 99.32 36.13 100.01 36.90C100.70 37.67 101.26 38.49 102.22 39.18C103.17 39.87 104.90 40.26 105.76 41.05C106.62 41.84 107.16 42.86 107.37 43.92C107.57 44.98 107.14 46.27 107.01 47.40C106.87 48.54 106.57 49.67 106.56 50.74C106.56 51.81 106.88 52.79 106.95 53.82C107.03 54.85 106.99 55.89 107.03 56.92C107.07 57.95 107.12 58.97 107.19 60.00Z"></path></clipPath><clipPath id="ub-s_R_3mk_-l"><path d="M-20 -20L63 -4L61.5 10L64.5 22L59 34L62.5 46L57.5 58L61 70L56.5 82L60 95L57 108L58.5 124L-20 140Z"></path></clipPath><clipPath id="ub-s_R_3mk_-r"><path d="M140 -20L63 -4L61.5 10L64.5 22L59 34L62.5 46L57.5 58L61 70L56.5 82L60 95L57 108L58.5 124L140 140Z"></path></clipPath><g id="ub-s_R_3mk_-b"><path d="M107.19 60.00C107.26 61.03 107.37 62.06 107.46 63.11C107.55 64.16 107.70 65.22 107.73 66.28C107.76 67.35 107.63 68.39 107.66 69.48C107.70 70.57 108.00 71.75 107.94 72.85C107.88 73.94 107.74 75.07 107.32 76.06C106.90 77.06 106.00 77.89 105.43 78.82C104.85 79.74 104.55 80.80 103.84 81.62C103.13 82.45 101.99 83.04 101.17 83.77C100.35 84.50 99.60 85.23 98.91 86.00C98.21 86.76 97.71 87.67 96.99 88.38C96.27 89.10 95.31 89.62 94.56 90.31C93.82 91.00 93.19 91.77 92.52 92.52C91.85 93.28 91.15 93.97 90.55 94.84C89.96 95.71 89.45 96.66 88.95 97.72C88.44 98.78 88.09 100.10 87.53 101.19C86.96 102.29 86.35 103.44 85.56 104.28C84.77 105.11 83.80 105.75 82.78 106.20C81.76 106.64 80.57 106.78 79.45 106.95C78.32 107.12 77.16 107.19 76.03 107.21C74.89 107.23 73.74 107.17 72.61 107.07C71.49 106.98 70.38 106.86 69.28 106.64C68.18 106.42 67.08 106.04 66.02 105.74C64.97 105.44 63.94 104.97 62.94 104.84C61.94 104.70 60.98 104.95 60.00 104.94C59.02 104.93 58.05 104.75 57.07 104.77C56.08 104.78 55.06 105.04 54.07 105.01C53.08 104.99 52.14 104.64 51.13 104.60C50.12 104.56 49.07 104.71 48.00 104.78C46.93 104.86 45.79 105.09 44.70 105.07C43.62 105.05 42.55 104.87 41.49 104.68C40.43 104.49 39.38 104.22 38.34 103.92C37.31 103.61 36.18 103.39 35.27 102.83C34.36 102.27 33.72 101.26 32.90 100.56C32.07 99.87 31.16 99.32 30.34 98.66C29.51 97.99 28.62 97.38 27.93 96.57C27.25 95.75 26.85 94.64 26.23 93.77C25.61 92.91 24.91 92.16 24.21 91.38C23.52 90.60 22.64 89.97 22.07 89.10C21.51 88.24 21.29 87.11 20.81 86.19C20.33 85.26 19.79 84.41 19.17 83.57C18.56 82.73 17.78 81.98 17.12 81.14C16.47 80.30 15.92 79.40 15.26 78.53C14.60 77.66 13.71 76.84 13.16 75.90C12.60 74.96 12.10 73.94 11.93 72.88C11.75 71.82 11.99 70.63 12.11 69.53C12.24 68.42 12.44 67.31 12.70 66.23C12.96 65.15 13.38 64.07 13.67 63.04C13.97 62.00 14.25 61.00 14.47 60.00C14.69 59.00 14.85 58.03 15.00 57.05C15.15 56.07 15.30 55.11 15.36 54.12C15.41 53.13 15.26 52.11 15.32 51.11C15.38 50.11 15.53 49.12 15.70 48.13C15.87 47.14 16.22 46.21 16.34 45.18C16.46 44.15 16.20 42.96 16.40 41.94C16.61 40.92 17.18 40.04 17.57 39.07C17.95 38.11 18.35 37.15 18.72 36.17C19.09 35.18 19.29 34.05 19.81 33.14C20.33 32.24 21.15 31.52 21.84 30.72C22.53 29.92 23.16 29.07 23.93 28.37C24.71 27.67 25.71 27.18 26.51 26.51C27.31 25.83 27.85 24.90 28.72 24.33C29.59 23.77 30.78 23.60 31.72 23.14C32.65 22.68 33.45 22.08 34.33 21.59C35.22 21.10 36.16 20.72 37.02 20.21C37.89 19.69 38.66 19.00 39.54 18.51C40.42 18.02 41.39 17.73 42.29 17.25C43.19 16.76 44.06 16.24 44.92 15.58C45.79 14.92 46.58 13.98 47.48 13.28C48.38 12.58 49.33 11.84 50.33 11.37C51.33 10.90 52.41 10.61 53.48 10.46C54.55 10.32 55.67 10.30 56.76 10.52C57.84 10.75 58.94 11.49 60.00 11.82C61.06 12.15 62.09 12.24 63.11 12.50C64.14 12.76 65.14 13.10 66.14 13.39C67.13 13.68 68.12 13.96 69.10 14.26C70.08 14.57 71.02 14.93 72.01 15.19C72.99 15.46 74.01 15.56 74.99 15.84C75.97 16.12 76.97 16.38 77.87 16.86C78.76 17.34 79.47 18.22 80.36 18.72C81.25 19.21 82.25 19.43 83.20 19.82C84.14 20.21 85.07 20.63 86.03 21.05C86.98 21.46 88.06 21.74 88.92 22.31C89.78 22.87 90.47 23.69 91.20 24.43C91.92 25.17 92.58 25.97 93.27 26.73C93.95 27.50 94.76 28.17 95.30 29.04C95.85 29.91 96.07 31.05 96.54 31.97C97.00 32.88 97.50 33.73 98.08 34.55C98.66 35.38 99.32 36.13 100.01 36.90C100.70 37.67 101.26 38.49 102.22 39.18C103.17 39.87 104.90 40.26 105.76 41.05C106.62 41.84 107.16 42.86 107.37 43.92C107.57 44.98 107.14 46.27 107.01 47.40C106.87 48.54 106.57 49.67 106.56 50.74C106.56 51.81 106.88 52.79 106.95 53.82C107.03 54.85 106.99 55.89 107.03 56.92C107.07 57.95 107.12 58.97 107.19 60.00Z" fill="url(#ub-s_R_3mk_-g)"></path><path d="M107.19 60.00C107.26 61.03 107.37 62.06 107.46 63.11C107.55 64.16 107.70 65.22 107.73 66.28C107.76 67.35 107.63 68.39 107.66 69.48C107.70 70.57 108.00 71.75 107.94 72.85C107.88 73.94 107.74 75.07 107.32 76.06C106.90 77.06 106.00 77.89 105.43 78.82C104.85 79.74 104.55 80.80 103.84 81.62C103.13 82.45 101.99 83.04 101.17 83.77C100.35 84.50 99.60 85.23 98.91 86.00C98.21 86.76 97.71 87.67 96.99 88.38C96.27 89.10 95.31 89.62 94.56 90.31C93.82 91.00 93.19 91.77 92.52 92.52C91.85 93.28 91.15 93.97 90.55 94.84C89.96 95.71 89.45 96.66 88.95 97.72C88.44 98.78 88.09 100.10 87.53 101.19C86.96 102.29 86.35 103.44 85.56 104.28C84.77 105.11 83.80 105.75 82.78 106.20C81.76 106.64 80.57 106.78 79.45 106.95C78.32 107.12 77.16 107.19 76.03 107.21C74.89 107.23 73.74 107.17 72.61 107.07C71.49 106.98 70.38 106.86 69.28 106.64C68.18 106.42 67.08 106.04 66.02 105.74C64.97 105.44 63.94 104.97 62.94 104.84C61.94 104.70 60.98 104.95 60.00 104.94C59.02 104.93 58.05 104.75 57.07 104.77C56.08 104.78 55.06 105.04 54.07 105.01C53.08 104.99 52.14 104.64 51.13 104.60C50.12 104.56 49.07 104.71 48.00 104.78C46.93 104.86 45.79 105.09 44.70 105.07C43.62 105.05 42.55 104.87 41.49 104.68C40.43 104.49 39.38 104.22 38.34 103.92C37.31 103.61 36.18 103.39 35.27 102.83C34.36 102.27 33.72 101.26 32.90 100.56C32.07 99.87 31.16 99.32 30.34 98.66C29.51 97.99 28.62 97.38 27.93 96.57C27.25 95.75 26.85 94.64 26.23 93.77C25.61 92.91 24.91 92.16 24.21 91.38C23.52 90.60 22.64 89.97 22.07 89.10C21.51 88.24 21.29 87.11 20.81 86.19C20.33 85.26 19.79 84.41 19.17 83.57C18.56 82.73 17.78 81.98 17.12 81.14C16.47 80.30 15.92 79.40 15.26 78.53C14.60 77.66 13.71 76.84 13.16 75.90C12.60 74.96 12.10 73.94 11.93 72.88C11.75 71.82 11.99 70.63 12.11 69.53C12.24 68.42 12.44 67.31 12.70 66.23C12.96 65.15 13.38 64.07 13.67 63.04C13.97 62.00 14.25 61.00 14.47 60.00C14.69 59.00 14.85 58.03 15.00 57.05C15.15 56.07 15.30 55.11 15.36 54.12C15.41 53.13 15.26 52.11 15.32 51.11C15.38 50.11 15.53 49.12 15.70 48.13C15.87 47.14 16.22 46.21 16.34 45.18C16.46 44.15 16.20 42.96 16.40 41.94C16.61 40.92 17.18 40.04 17.57 39.07C17.95 38.11 18.35 37.15 18.72 36.17C19.09 35.18 19.29 34.05 19.81 33.14C20.33 32.24 21.15 31.52 21.84 30.72C22.53 29.92 23.16 29.07 23.93 28.37C24.71 27.67 25.71 27.18 26.51 26.51C27.31 25.83 27.85 24.90 28.72 24.33C29.59 23.77 30.78 23.60 31.72 23.14C32.65 22.68 33.45 22.08 34.33 21.59C35.22 21.10 36.16 20.72 37.02 20.21C37.89 19.69 38.66 19.00 39.54 18.51C40.42 18.02 41.39 17.73 42.29 17.25C43.19 16.76 44.06 16.24 44.92 15.58C45.79 14.92 46.58 13.98 47.48 13.28C48.38 12.58 49.33 11.84 50.33 11.37C51.33 10.90 52.41 10.61 53.48 10.46C54.55 10.32 55.67 10.30 56.76 10.52C57.84 10.75 58.94 11.49 60.00 11.82C61.06 12.15 62.09 12.24 63.11 12.50C64.14 12.76 65.14 13.10 66.14 13.39C67.13 13.68 68.12 13.96 69.10 14.26C70.08 14.57 71.02 14.93 72.01 15.19C72.99 15.46 74.01 15.56 74.99 15.84C75.97 16.12 76.97 16.38 77.87 16.86C78.76 17.34 79.47 18.22 80.36 18.72C81.25 19.21 82.25 19.43 83.20 19.82C84.14 20.21 85.07 20.63 86.03 21.05C86.98 21.46 88.06 21.74 88.92 22.31C89.78 22.87 90.47 23.69 91.20 24.43C91.92 25.17 92.58 25.97 93.27 26.73C93.95 27.50 94.76 28.17 95.30 29.04C95.85 29.91 96.07 31.05 96.54 31.97C97.00 32.88 97.50 33.73 98.08 34.55C98.66 35.38 99.32 36.13 100.01 36.90C100.70 37.67 101.26 38.49 102.22 39.18C103.17 39.87 104.90 40.26 105.76 41.05C106.62 41.84 107.16 42.86 107.37 43.92C107.57 44.98 107.14 46.27 107.01 47.40C106.87 48.54 106.57 49.67 106.56 50.74C106.56 51.81 106.88 52.79 106.95 53.82C107.03 54.85 106.99 55.89 107.03 56.92C107.07 57.95 107.12 58.97 107.19 60.00Z" fill="#000" filter="url(#ub-s_R_3mk_-t)" opacity="0.32"></path><path d="M107.19 60.00C107.26 61.03 107.37 62.06 107.46 63.11C107.55 64.16 107.70 65.22 107.73 66.28C107.76 67.35 107.63 68.39 107.66 69.48C107.70 70.57 108.00 71.75 107.94 72.85C107.88 73.94 107.74 75.07 107.32 76.06C106.90 77.06 106.00 77.89 105.43 78.82C104.85 79.74 104.55 80.80 103.84 81.62C103.13 82.45 101.99 83.04 101.17 83.77C100.35 84.50 99.60 85.23 98.91 86.00C98.21 86.76 97.71 87.67 96.99 88.38C96.27 89.10 95.31 89.62 94.56 90.31C93.82 91.00 93.19 91.77 92.52 92.52C91.85 93.28 91.15 93.97 90.55 94.84C89.96 95.71 89.45 96.66 88.95 97.72C88.44 98.78 88.09 100.10 87.53 101.19C86.96 102.29 86.35 103.44 85.56 104.28C84.77 105.11 83.80 105.75 82.78 106.20C81.76 106.64 80.57 106.78 79.45 106.95C78.32 107.12 77.16 107.19 76.03 107.21C74.89 107.23 73.74 107.17 72.61 107.07C71.49 106.98 70.38 106.86 69.28 106.64C68.18 106.42 67.08 106.04 66.02 105.74C64.97 105.44 63.94 104.97 62.94 104.84C61.94 104.70 60.98 104.95 60.00 104.94C59.02 104.93 58.05 104.75 57.07 104.77C56.08 104.78 55.06 105.04 54.07 105.01C53.08 104.99 52.14 104.64 51.13 104.60C50.12 104.56 49.07 104.71 48.00 104.78C46.93 104.86 45.79 105.09 44.70 105.07C43.62 105.05 42.55 104.87 41.49 104.68C40.43 104.49 39.38 104.22 38.34 103.92C37.31 103.61 36.18 103.39 35.27 102.83C34.36 102.27 33.72 101.26 32.90 100.56C32.07 99.87 31.16 99.32 30.34 98.66C29.51 97.99 28.62 97.38 27.93 96.57C27.25 95.75 26.85 94.64 26.23 93.77C25.61 92.91 24.91 92.16 24.21 91.38C23.52 90.60 22.64 89.97 22.07 89.10C21.51 88.24 21.29 87.11 20.81 86.19C20.33 85.26 19.79 84.41 19.17 83.57C18.56 82.73 17.78 81.98 17.12 81.14C16.47 80.30 15.92 79.40 15.26 78.53C14.60 77.66 13.71 76.84 13.16 75.90C12.60 74.96 12.10 73.94 11.93 72.88C11.75 71.82 11.99 70.63 12.11 69.53C12.24 68.42 12.44 67.31 12.70 66.23C12.96 65.15 13.38 64.07 13.67 63.04C13.97 62.00 14.25 61.00 14.47 60.00C14.69 59.00 14.85 58.03 15.00 57.05C15.15 56.07 15.30 55.11 15.36 54.12C15.41 53.13 15.26 52.11 15.32 51.11C15.38 50.11 15.53 49.12 15.70 48.13C15.87 47.14 16.22 46.21 16.34 45.18C16.46 44.15 16.20 42.96 16.40 41.94C16.61 40.92 17.18 40.04 17.57 39.07C17.95 38.11 18.35 37.15 18.72 36.17C19.09 35.18 19.29 34.05 19.81 33.14C20.33 32.24 21.15 31.52 21.84 30.72C22.53 29.92 23.16 29.07 23.93 28.37C24.71 27.67 25.71 27.18 26.51 26.51C27.31 25.83 27.85 24.90 28.72 24.33C29.59 23.77 30.78 23.60 31.72 23.14C32.65 22.68 33.45 22.08 34.33 21.59C35.22 21.10 36.16 20.72 37.02 20.21C37.89 19.69 38.66 19.00 39.54 18.51C40.42 18.02 41.39 17.73 42.29 17.25C43.19 16.76 44.06 16.24 44.92 15.58C45.79 14.92 46.58 13.98 47.48 13.28C48.38 12.58 49.33 11.84 50.33 11.37C51.33 10.90 52.41 10.61 53.48 10.46C54.55 10.32 55.67 10.30 56.76 10.52C57.84 10.75 58.94 11.49 60.00 11.82C61.06 12.15 62.09 12.24 63.11 12.50C64.14 12.76 65.14 13.10 66.14 13.39C67.13 13.68 68.12 13.96 69.10 14.26C70.08 14.57 71.02 14.93 72.01 15.19C72.99 15.46 74.01 15.56 74.99 15.84C75.97 16.12 76.97 16.38 77.87 16.86C78.76 17.34 79.47 18.22 80.36 18.72C81.25 19.21 82.25 19.43 83.20 19.82C84.14 20.21 85.07 20.63 86.03 21.05C86.98 21.46 88.06 21.74 88.92 22.31C89.78 22.87 90.47 23.69 91.20 24.43C91.92 25.17 92.58 25.97 93.27 26.73C93.95 27.50 94.76 28.17 95.30 29.04C95.85 29.91 96.07 31.05 96.54 31.97C97.00 32.88 97.50 33.73 98.08 34.55C98.66 35.38 99.32 36.13 100.01 36.90C100.70 37.67 101.26 38.49 102.22 39.18C103.17 39.87 104.90 40.26 105.76 41.05C106.62 41.84 107.16 42.86 107.37 43.92C107.57 44.98 107.14 46.27 107.01 47.40C106.87 48.54 106.57 49.67 106.56 50.74C106.56 51.81 106.88 52.79 106.95 53.82C107.03 54.85 106.99 55.89 107.03 56.92C107.07 57.95 107.12 58.97 107.19 60.00Z" fill="none" stroke="#2c0c09" stroke-opacity="0.55" stroke-width="0.9"></path><circle cx="60" cy="60" r="36.5" fill="none" stroke="#8f3d33" stroke-opacity="0.5" stroke-width="2.4" transform="translate(-0.7 -0.9)"></circle><circle cx="60" cy="60" r="36.5" fill="none" stroke="#3a100d" stroke-opacity="0.45" stroke-width="1.6" transform="translate(0.8 1)"></circle><path d="M93.43 60.00C93.46 61.45 93.29 62.92 93.10 64.36C92.91 65.80 92.71 67.27 92.30 68.65C91.88 70.04 91.20 71.36 90.59 72.67C89.98 73.98 89.38 75.31 88.62 76.52C87.86 77.74 86.97 78.90 86.04 79.98C85.11 81.07 84.07 82.05 83.04 83.04C82.02 84.04 81.03 85.08 79.91 85.95C78.79 86.82 77.55 87.55 76.32 88.26C75.09 88.98 73.82 89.64 72.53 90.24C71.23 90.84 69.90 91.42 68.54 91.87C67.17 92.31 65.76 92.69 64.33 92.93C62.91 93.16 61.45 93.26 60.00 93.29C58.55 93.32 57.08 93.26 55.64 93.10C54.20 92.93 52.74 92.69 51.35 92.29C49.95 91.89 48.59 91.31 47.28 90.70C45.97 90.08 44.68 89.40 43.48 88.61C42.28 87.82 41.19 86.86 40.08 85.96C38.97 85.05 37.82 84.19 36.82 83.18C35.81 82.18 34.91 81.05 34.05 79.92C33.18 78.78 32.34 77.61 31.63 76.38C30.92 75.15 30.35 73.83 29.78 72.52C29.20 71.21 28.59 69.90 28.16 68.53C27.72 67.17 27.39 65.74 27.16 64.32C26.94 62.90 26.85 61.44 26.83 60.00C26.82 58.56 26.90 57.10 27.08 55.67C27.27 54.24 27.56 52.80 27.95 51.41C28.35 50.03 28.88 48.67 29.45 47.35C30.02 46.02 30.65 44.72 31.39 43.48C32.12 42.24 32.93 41.03 33.85 39.93C34.76 38.83 35.84 37.86 36.89 36.89C37.94 35.92 39.03 35.01 40.14 34.12C41.26 33.24 42.37 32.32 43.59 31.58C44.81 30.84 46.15 30.30 47.45 29.71C48.76 29.12 50.06 28.47 51.43 28.02C52.80 27.58 54.23 27.26 55.66 27.05C57.09 26.83 58.55 26.74 60.00 26.74C61.45 26.73 62.90 26.87 64.34 27.04C65.78 27.21 67.24 27.40 68.63 27.78C70.03 28.16 71.39 28.73 72.70 29.34C74.01 29.95 75.28 30.66 76.49 31.44C77.69 32.22 78.83 33.12 79.93 34.03C81.03 34.94 82.09 35.90 83.09 36.91C84.09 37.93 85.04 39.00 85.91 40.12C86.78 41.24 87.58 42.43 88.31 43.66C89.04 44.88 89.69 46.15 90.29 47.45C90.89 48.75 91.46 50.08 91.90 51.45C92.33 52.82 92.65 54.24 92.91 55.67C93.16 57.09 93.40 58.55 93.43 60.00Z" fill="url(#ub-s_R_3mk_-gd)"></path><g clip-path="url(#ub-s_R_3mk_-d)"><path d="M93.43 60.00C93.46 61.45 93.29 62.92 93.10 64.36C92.91 65.80 92.71 67.27 92.30 68.65C91.88 70.04 91.20 71.36 90.59 72.67C89.98 73.98 89.38 75.31 88.62 76.52C87.86 77.74 86.97 78.90 86.04 79.98C85.11 81.07 84.07 82.05 83.04 83.04C82.02 84.04 81.03 85.08 79.91 85.95C78.79 86.82 77.55 87.55 76.32 88.26C75.09 88.98 73.82 89.64 72.53 90.24C71.23 90.84 69.90 91.42 68.54 91.87C67.17 92.31 65.76 92.69 64.33 92.93C62.91 93.16 61.45 93.26 60.00 93.29C58.55 93.32 57.08 93.26 55.64 93.10C54.20 92.93 52.74 92.69 51.35 92.29C49.95 91.89 48.59 91.31 47.28 90.70C45.97 90.08 44.68 89.40 43.48 88.61C42.28 87.82 41.19 86.86 40.08 85.96C38.97 85.05 37.82 84.19 36.82 83.18C35.81 82.18 34.91 81.05 34.05 79.92C33.18 78.78 32.34 77.61 31.63 76.38C30.92 75.15 30.35 73.83 29.78 72.52C29.20 71.21 28.59 69.90 28.16 68.53C27.72 67.17 27.39 65.74 27.16 64.32C26.94 62.90 26.85 61.44 26.83 60.00C26.82 58.56 26.90 57.10 27.08 55.67C27.27 54.24 27.56 52.80 27.95 51.41C28.35 50.03 28.88 48.67 29.45 47.35C30.02 46.02 30.65 44.72 31.39 43.48C32.12 42.24 32.93 41.03 33.85 39.93C34.76 38.83 35.84 37.86 36.89 36.89C37.94 35.92 39.03 35.01 40.14 34.12C41.26 33.24 42.37 32.32 43.59 31.58C44.81 30.84 46.15 30.30 47.45 29.71C48.76 29.12 50.06 28.47 51.43 28.02C52.80 27.58 54.23 27.26 55.66 27.05C57.09 26.83 58.55 26.74 60.00 26.74C61.45 26.73 62.90 26.87 64.34 27.04C65.78 27.21 67.24 27.40 68.63 27.78C70.03 28.16 71.39 28.73 72.70 29.34C74.01 29.95 75.28 30.66 76.49 31.44C77.69 32.22 78.83 33.12 79.93 34.03C81.03 34.94 82.09 35.90 83.09 36.91C84.09 37.93 85.04 39.00 85.91 40.12C86.78 41.24 87.58 42.43 88.31 43.66C89.04 44.88 89.69 46.15 90.29 47.45C90.89 48.75 91.46 50.08 91.90 51.45C92.33 52.82 92.65 54.24 92.91 55.67C93.16 57.09 93.40 58.55 93.43 60.00Z" fill="none" stroke="#2a0a08" stroke-opacity="0.7" stroke-width="3.2" transform="translate(1.6 1.9)"></path><path d="M93.43 60.00C93.46 61.45 93.29 62.92 93.10 64.36C92.91 65.80 92.71 67.27 92.30 68.65C91.88 70.04 91.20 71.36 90.59 72.67C89.98 73.98 89.38 75.31 88.62 76.52C87.86 77.74 86.97 78.90 86.04 79.98C85.11 81.07 84.07 82.05 83.04 83.04C82.02 84.04 81.03 85.08 79.91 85.95C78.79 86.82 77.55 87.55 76.32 88.26C75.09 88.98 73.82 89.64 72.53 90.24C71.23 90.84 69.90 91.42 68.54 91.87C67.17 92.31 65.76 92.69 64.33 92.93C62.91 93.16 61.45 93.26 60.00 93.29C58.55 93.32 57.08 93.26 55.64 93.10C54.20 92.93 52.74 92.69 51.35 92.29C49.95 91.89 48.59 91.31 47.28 90.70C45.97 90.08 44.68 89.40 43.48 88.61C42.28 87.82 41.19 86.86 40.08 85.96C38.97 85.05 37.82 84.19 36.82 83.18C35.81 82.18 34.91 81.05 34.05 79.92C33.18 78.78 32.34 77.61 31.63 76.38C30.92 75.15 30.35 73.83 29.78 72.52C29.20 71.21 28.59 69.90 28.16 68.53C27.72 67.17 27.39 65.74 27.16 64.32C26.94 62.90 26.85 61.44 26.83 60.00C26.82 58.56 26.90 57.10 27.08 55.67C27.27 54.24 27.56 52.80 27.95 51.41C28.35 50.03 28.88 48.67 29.45 47.35C30.02 46.02 30.65 44.72 31.39 43.48C32.12 42.24 32.93 41.03 33.85 39.93C34.76 38.83 35.84 37.86 36.89 36.89C37.94 35.92 39.03 35.01 40.14 34.12C41.26 33.24 42.37 32.32 43.59 31.58C44.81 30.84 46.15 30.30 47.45 29.71C48.76 29.12 50.06 28.47 51.43 28.02C52.80 27.58 54.23 27.26 55.66 27.05C57.09 26.83 58.55 26.74 60.00 26.74C61.45 26.73 62.90 26.87 64.34 27.04C65.78 27.21 67.24 27.40 68.63 27.78C70.03 28.16 71.39 28.73 72.70 29.34C74.01 29.95 75.28 30.66 76.49 31.44C77.69 32.22 78.83 33.12 79.93 34.03C81.03 34.94 82.09 35.90 83.09 36.91C84.09 37.93 85.04 39.00 85.91 40.12C86.78 41.24 87.58 42.43 88.31 43.66C89.04 44.88 89.69 46.15 90.29 47.45C90.89 48.75 91.46 50.08 91.90 51.45C92.33 52.82 92.65 54.24 92.91 55.67C93.16 57.09 93.40 58.55 93.43 60.00Z" fill="none" stroke="#b0574a" stroke-opacity="0.4" stroke-width="2" transform="translate(-1.4 -1.6)"></path></g><circle cx="60" cy="60" r="28.6" fill="none" stroke="#3a100d" stroke-opacity="0.75" stroke-width="0.9"></circle><circle cx="60" cy="60" r="28.6" fill="none" stroke="#a5503f" stroke-opacity="0.35" stroke-width="0.7" transform="translate(0.6 0.7)"></circle><g transform="translate(0.7 0.8)"><path d="M27.1-14L27.1-12.3Q29.7-9.9 32.4-8.5Q35.1-7 38.7-6.3Q42.2-5.5 47.2-5.3Q52.1-5.1 59.1-5.1L59.1-5.1Q64.7-5.1 71.4-5.1Q78-5.1 84.9-5.2Q91.7-5.3 98-5.5L98-5.5L98-4.3Q90.5-2.5 89.6 6.7L89.6 6.7Q85.4 6.7 80.2 6.7Q74.9 6.7 69.5 6.7Q64.1 6.7 59.2 6.7L59.2 6.7Q52.1 6.7 47.0 6Q41.8 5.3 38 3.4Q34.2 1.5 31.4-2.0Q28.5-5.4 26-10.8L26-10.8Q23.9-8 21.3-4.8Q18.7-1.5 16.2 1.5Q13.6 4.4 11.6 6.5L11.6 6.5Q11.5 7.5 11.1 8.1Q10.6 8.7 9.8 9L9.8 9L3.1-5.1Q6.2-6.1 10.4-7.6Q14.5-9.1 18.9-10.8Q23.4-12.5 27.1-14L27.1-14ZM27.1-29.9L27.1-29.9L27.1-13.5L14.8-4.9L14.8-31.6L3.5-31.6L2.9-34.5L13.3-34.5L19.3-42.5L32.3-32.1Q31.6-31.5 30.5-30.9Q29.3-30.2 27.1-29.9ZM7.5-82.5L8.3-83.1Q15.4-82.8 19.6-81Q23.8-79.2 25.7-76.8Q27.6-74.4 27.7-72.0Q27.7-69.5 26.3-67.8Q24.9-66.1 22.6-65.7Q20.2-65.2 17.5-66.9L17.5-66.9Q16.7-69.7 15.1-72.5Q13.4-75.4 11.4-78Q9.4-80.6 7.5-82.5L7.5-82.5ZM4.6-62.1L5.4-62.8Q12.7-62.7 17.2-61.2Q21.6-59.6 23.7-57.2Q25.8-54.8 26.0-52.4Q26.1-49.9 24.8-48.1Q23.5-46.2 21.2-45.7Q18.8-45.1 15.8-46.6L15.8-46.6Q14.9-49.4 13.1-52.3Q11.2-55.1 9-57.7Q6.8-60.3 4.6-62.1L4.6-62.1ZM74.8-25.1L74.8-53.7L73.8-53.7L79.5-59.9L91.3-50.9Q90.9-50.4 89.9-49.8Q88.8-49.2 87.3-48.9L87.3-48.9L87.3-28.3Q87.3-27.9 85.6-27.2Q83.9-26.4 81.5-25.8Q79.1-25.1 77-25.1L77-25.1L74.8-25.1ZM40.4-28.7L40.4-31.6L81.3-31.6L81.3-28.7L40.4-28.7ZM40.4-40.1L40.4-42.9L81.3-42.9L81.3-40.1L40.4-40.1ZM38.7-75.5L38.7-78.3L86.1-78.3L86.1-75.5L38.7-75.5ZM35-23.1L35-53.7L35-58.7L35-58.7L47.9-53.7L81.1-53.7L81.1-50.9L47.3-50.9L47.3-26.9Q47.3-26.3 45.7-25.5Q44.1-24.6 41.7-23.9Q39.3-23.1 36.7-23.1L36.7-23.1L35-23.1ZM54.7-5.8L54.7-73L70.8-71.5Q70.7-70.5 70.0-69.8Q69.2-69 67.2-68.7L67.2-68.7L67.2-9.5Q67.2-8.9 65.7-8.1Q64.1-7.2 61.8-6.5Q59.4-5.8 57-5.8L57-5.8L54.7-5.8ZM32.3-60.9L31.5-63.8L74.7-63.8L80.7-70.9Q80.7-70.9 82.6-69.5Q84.4-68.2 87.0-66.3Q89.5-64.3 91.6-62.5L91.6-62.5Q91.3-60.9 88.9-60.9L88.9-60.9L32.3-60.9ZM29.9-17.8L29.1-20.6L78.9-20.6L85.1-28.3Q85.1-28.3 87.1-26.9Q89-25.4 91.7-23.4Q94.4-21.3 96.4-19.4L96.4-19.4Q96.1-17.8 93.7-17.8L93.7-17.8L29.9-17.8ZM39.3-84.8L39.3-84.8L40.6-84.9Q43.1-79.8 43.2-75.7Q43.3-71.5 41.8-68.8Q40.3-66.1 37.9-65.1L37.9-65.1Q35.3-64.1 32.5-65.3Q29.7-66.4 28.9-69.6L28.9-69.6Q28.3-72.7 30-74.7Q31.7-76.7 34.3-77.7L34.3-77.7Q36.3-78.6 38-80.6Q39.7-82.5 39.3-84.8ZM81.1-78.3L81.1-78.3L80-78.3L86.3-84.6L97.3-74.2Q96.7-73.6 95.9-73.4Q95-73.1 93.4-73L93.4-73Q91-71.1 87.2-68.9Q83.4-66.7 80.3-65.3L80.3-65.3L79.5-66Q80-68.5 80.5-72.2Q81-75.9 81.1-78.3Z" transform="translate(41.94 73.58) scale(0.3579)" fill="#a9554a" fill-opacity="0.45"></path></g><path d="M27.1-14L27.1-12.3Q29.7-9.9 32.4-8.5Q35.1-7 38.7-6.3Q42.2-5.5 47.2-5.3Q52.1-5.1 59.1-5.1L59.1-5.1Q64.7-5.1 71.4-5.1Q78-5.1 84.9-5.2Q91.7-5.3 98-5.5L98-5.5L98-4.3Q90.5-2.5 89.6 6.7L89.6 6.7Q85.4 6.7 80.2 6.7Q74.9 6.7 69.5 6.7Q64.1 6.7 59.2 6.7L59.2 6.7Q52.1 6.7 47.0 6Q41.8 5.3 38 3.4Q34.2 1.5 31.4-2.0Q28.5-5.4 26-10.8L26-10.8Q23.9-8 21.3-4.8Q18.7-1.5 16.2 1.5Q13.6 4.4 11.6 6.5L11.6 6.5Q11.5 7.5 11.1 8.1Q10.6 8.7 9.8 9L9.8 9L3.1-5.1Q6.2-6.1 10.4-7.6Q14.5-9.1 18.9-10.8Q23.4-12.5 27.1-14L27.1-14ZM27.1-29.9L27.1-29.9L27.1-13.5L14.8-4.9L14.8-31.6L3.5-31.6L2.9-34.5L13.3-34.5L19.3-42.5L32.3-32.1Q31.6-31.5 30.5-30.9Q29.3-30.2 27.1-29.9ZM7.5-82.5L8.3-83.1Q15.4-82.8 19.6-81Q23.8-79.2 25.7-76.8Q27.6-74.4 27.7-72.0Q27.7-69.5 26.3-67.8Q24.9-66.1 22.6-65.7Q20.2-65.2 17.5-66.9L17.5-66.9Q16.7-69.7 15.1-72.5Q13.4-75.4 11.4-78Q9.4-80.6 7.5-82.5L7.5-82.5ZM4.6-62.1L5.4-62.8Q12.7-62.7 17.2-61.2Q21.6-59.6 23.7-57.2Q25.8-54.8 26.0-52.4Q26.1-49.9 24.8-48.1Q23.5-46.2 21.2-45.7Q18.8-45.1 15.8-46.6L15.8-46.6Q14.9-49.4 13.1-52.3Q11.2-55.1 9-57.7Q6.8-60.3 4.6-62.1L4.6-62.1ZM74.8-25.1L74.8-53.7L73.8-53.7L79.5-59.9L91.3-50.9Q90.9-50.4 89.9-49.8Q88.8-49.2 87.3-48.9L87.3-48.9L87.3-28.3Q87.3-27.9 85.6-27.2Q83.9-26.4 81.5-25.8Q79.1-25.1 77-25.1L77-25.1L74.8-25.1ZM40.4-28.7L40.4-31.6L81.3-31.6L81.3-28.7L40.4-28.7ZM40.4-40.1L40.4-42.9L81.3-42.9L81.3-40.1L40.4-40.1ZM38.7-75.5L38.7-78.3L86.1-78.3L86.1-75.5L38.7-75.5ZM35-23.1L35-53.7L35-58.7L35-58.7L47.9-53.7L81.1-53.7L81.1-50.9L47.3-50.9L47.3-26.9Q47.3-26.3 45.7-25.5Q44.1-24.6 41.7-23.9Q39.3-23.1 36.7-23.1L36.7-23.1L35-23.1ZM54.7-5.8L54.7-73L70.8-71.5Q70.7-70.5 70.0-69.8Q69.2-69 67.2-68.7L67.2-68.7L67.2-9.5Q67.2-8.9 65.7-8.1Q64.1-7.2 61.8-6.5Q59.4-5.8 57-5.8L57-5.8L54.7-5.8ZM32.3-60.9L31.5-63.8L74.7-63.8L80.7-70.9Q80.7-70.9 82.6-69.5Q84.4-68.2 87.0-66.3Q89.5-64.3 91.6-62.5L91.6-62.5Q91.3-60.9 88.9-60.9L88.9-60.9L32.3-60.9ZM29.9-17.8L29.1-20.6L78.9-20.6L85.1-28.3Q85.1-28.3 87.1-26.9Q89-25.4 91.7-23.4Q94.4-21.3 96.4-19.4L96.4-19.4Q96.1-17.8 93.7-17.8L93.7-17.8L29.9-17.8ZM39.3-84.8L39.3-84.8L40.6-84.9Q43.1-79.8 43.2-75.7Q43.3-71.5 41.8-68.8Q40.3-66.1 37.9-65.1L37.9-65.1Q35.3-64.1 32.5-65.3Q29.7-66.4 28.9-69.6L28.9-69.6Q28.3-72.7 30-74.7Q31.7-76.7 34.3-77.7L34.3-77.7Q36.3-78.6 38-80.6Q39.7-82.5 39.3-84.8ZM81.1-78.3L81.1-78.3L80-78.3L86.3-84.6L97.3-74.2Q96.7-73.6 95.9-73.4Q95-73.1 93.4-73L93.4-73Q91-71.1 87.2-68.9Q83.4-66.7 80.3-65.3L80.3-65.3L79.5-66Q80-68.5 80.5-72.2Q81-75.9 81.1-78.3Z" transform="translate(41.94 73.58) scale(0.3579)" fill="#360d0a" fill-opacity="0.92"></path><ellipse cx="40" cy="31" rx="15" ry="7" transform="rotate(-32 40 31)" fill="#ffe6d0" opacity="0.1" filter="url(#ub-s_R_3mk_-sh)"></ellipse></g></defs><use class="ub-seal__whole" href="#ub-s_R_3mk_-b"></use><g class="ub-seal__half ub-seal__half--l" clip-path="url(#ub-s_R_3mk_-l)"><use href="#ub-s_R_3mk_-b"></use></g><g class="ub-seal__half ub-seal__half--r" clip-path="url(#ub-s_R_3mk_-r)"><use href="#ub-s_R_3mk_-b"></use></g><g clip-path="url(#ub-s_R_3mk_-o)"><path class="ub-seal__crack" d="M63 -4L61.5 10L64.5 22L59 34L62.5 46L57.5 58L61 70L56.5 82L60 95L57 108L58.5 124" pathLength="1"></path><path class="ub-seal__branch" d="M59 34L52 39L47 38M57.5 58L66 63L71 62"></path></g></svg><span class="ub-seal__label">나의 운명비서 열기</span></button><p class="ub-note pv-note">사주 풀이는 전통 명리 해석에 따른 이야기이며, 미래를 과학적으로 예측한다는 뜻이 아닙니다.</p></div></div></div><div class="ub-book__page ub-book__page--right"><div class="ub-book__content"><div class="pv-form"><div class="ub-ink"><label class="ub-ink__label" for="ub-f_R_qk_">부를 이름</label><div class="ub-ink__wrap"><input placeholder="예: 서연" autoComplete="given-name" id="ub-f_R_qk_" aria-describedby="ub-f_R_qk_-hint" class="ub-ink__control" name="name"/><span class="ub-ink__line" aria-hidden="true"></span><span class="ub-ink__wet" aria-hidden="true"></span></div><p class="ub-ink__hint" id="ub-f_R_qk_-hint">이 책에서만 너를 부를 이름이다.</p><p class="ub-ink__error" id="ub-f_R_qk_-err" aria-live="polite"></p></div><div class="ub-ink ub-ink--group ub-ink--error" role="group" aria-labelledby="ub-f_R_1ak_-label" aria-describedby="ub-f_R_1ak_-err"><span class="ub-ink__label" id="ub-f_R_1ak_-label">태어난 날<span class="ub-ink__req">꼭</span></span><div class="ub-ink__group"><span class="ub-ink__part ub-ink__wrap" style="--ub-part-w:2.98em"><input aria-label="태어난 해" inputMode="numeric" placeholder="1992" class="ub-ink__control" value="1992"/><span class="ub-ink__suffix" aria-hidden="true">년</span><span class="ub-ink__line" aria-hidden="true"></span><span class="ub-ink__wet" aria-hidden="true"></span></span><span class="ub-ink__part ub-ink__wrap" style="--ub-part-w:1.74em"><input aria-label="태어난 달" inputMode="numeric" placeholder="8" class="ub-ink__control" value="8"/><span class="ub-ink__suffix" aria-hidden="true">월</span><span class="ub-ink__line" aria-hidden="true"></span><span class="ub-ink__wet" aria-hidden="true"></span></span><span class="ub-ink__part ub-ink__wrap ub-ink--error" style="--ub-part-w:1.74em"><input aria-label="태어난 날" inputMode="numeric" placeholder="14" class="ub-ink__control" aria-invalid="true"/><span class="ub-ink__suffix" aria-hidden="true">일</span><span class="ub-ink__line" aria-hidden="true"></span><span class="ub-ink__wet" aria-hidden="true"></span></span></div><p class="ub-ink__error" id="ub-f_R_1ak_-err" aria-live="polite">날을 끝까지 적어 주거라.</p></div><div class="ub-fields-row"><fieldset class="ub-choice"><legend class="ub-choice__legend">달력</legend><div class="ub-choice__row"><label class="ub-choice__opt"><input class="ub-choice__input" type="radio" name="caltrue" checked="" value="solar"/><span class="ub-choice__text">양력</span><svg class="ub-choice__ring" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M22 9C44 1 84 3 95 23C104 41 79 57 49 57C19 57 2 46 5 28C8 15 26 7 46 6" pathLength="1"></path><path d="M26 11C47 4 82 6 92 24C99 40 77 54 50 54" pathLength="1"></path></svg></label><span class="ub-choice__sep" aria-hidden="true">·</span><label class="ub-choice__opt"><input class="ub-choice__input" type="radio" name="caltrue" value="lunar"/><span class="ub-choice__text">음력</span><svg class="ub-choice__ring" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M70 5C90 8 101 22 96 37C90 53 63 58 40 56C15 54 1 42 4 26C7 11 30 2 58 3C66 3 72 5 77 7" pathLength="1"></path><path d="M66 8C86 11 97 23 93 36C88 50 63 55 42 54" pathLength="1"></path></svg></label><span class="ub-choice__sep" aria-hidden="true">·</span><label class="ub-choice__opt"><input class="ub-choice__input" type="radio" name="caltrue" value="leap"/><span class="ub-choice__text">윤달</span><svg class="ub-choice__ring" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M30 6C52 0 88 5 96 26C102 43 82 56 52 57C24 58 3 48 3 31C3 16 20 8 41 5" pathLength="1"></path><path d="M33 9C55 3 85 8 93 27C98 42 80 54 54 55" pathLength="1"></path></svg></label></div><p class="ub-ink__error ub-choice__hint" id="ub-c_R_5qk_-err" aria-live="polite"></p></fieldset><fieldset class="ub-choice ub-ink--error" aria-describedby="ub-c_R_9qk_-err" aria-invalid="true"><legend class="ub-choice__legend">성별</legend><div class="ub-choice__row"><label class="ub-choice__opt"><input class="ub-choice__input" type="radio" name="sextrue" value="m"/><span class="ub-choice__text">남</span><svg class="ub-choice__ring" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M22 9C44 1 84 3 95 23C104 41 79 57 49 57C19 57 2 46 5 28C8 15 26 7 46 6" pathLength="1"></path><path d="M26 11C47 4 82 6 92 24C99 40 77 54 50 54" pathLength="1"></path></svg></label><span class="ub-choice__sep" aria-hidden="true">·</span><label class="ub-choice__opt"><input class="ub-choice__input" type="radio" name="sextrue" checked="" value="f"/><span class="ub-choice__text">여</span><svg class="ub-choice__ring" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M70 5C90 8 101 22 96 37C90 53 63 58 40 56C15 54 1 42 4 26C7 11 30 2 58 3C66 3 72 5 77 7" pathLength="1"></path><path d="M66 8C86 11 97 23 93 36C88 50 63 55 42 54" pathLength="1"></path></svg></label></div><p class="ub-ink__error ub-choice__hint" id="ub-c_R_9qk_-err" aria-live="polite">하나를 골라 다오.</p></fieldset></div><div class="ub-ink ub-ink--group" role="group" aria-labelledby="ub-f_R_2ak_-label" aria-describedby="ub-f_R_2ak_-hint"><span class="ub-ink__label" id="ub-f_R_2ak_-label">태어난 시각</span><div class="ub-ink__group"><span class="ub-ink__part ub-ink__wrap" style="--ub-part-w:3.46em"><span class="ub-ink__sel"><select aria-label="시" class="ub-ink__control"><option value="" selected="">모름</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option></select><svg class="ub-ink__caret" viewBox="0 0 14 10" aria-hidden="true" focusable="false"><path d="M1.5 2.2C4 4.6 5.6 6.4 7.1 8.3C8.6 6.2 10.4 4.2 12.6 1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span class="ub-ink__suffix" aria-hidden="true">시</span><span class="ub-ink__line" aria-hidden="true"></span><span class="ub-ink__wet" aria-hidden="true"></span></span><span class="ub-ink__part ub-ink__wrap" style="--ub-part-w:2.84em"><span class="ub-ink__sel"><select aria-label="분" class="ub-ink__control"><option value="" selected="">—</option><option value="0">0</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="40">40</option><option value="50">50</option></select><svg class="ub-ink__caret" viewBox="0 0 14 10" aria-hidden="true" focusable="false"><path d="M1.5 2.2C4 4.6 5.6 6.4 7.1 8.3C8.6 6.2 10.4 4.2 12.6 1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span class="ub-ink__suffix" aria-hidden="true">분</span><span class="ub-ink__line" aria-hidden="true"></span><span class="ub-ink__wet" aria-hidden="true"></span></span></div><p class="ub-ink__hint" id="ub-f_R_2ak_-hint">모르면 &#x27;모름&#x27;으로 둬라. 시는 빼고 본다.</p><p class="ub-ink__error" id="ub-f_R_2ak_-err" aria-live="polite"></p></div><div class="ub-ink"><label class="ub-ink__label" for="ub-f_R_3ak_">태어난 곳</label><div class="ub-ink__wrap"><span class="ub-ink__sel"><select name="place" id="ub-f_R_3ak_" class="ub-ink__control"><option value="seoul" selected="">서울</option><option value="busan">부산</option><option value="other">그 밖</option></select><svg class="ub-ink__caret" viewBox="0 0 14 10" aria-hidden="true" focusable="false"><path d="M1.5 2.2C4 4.6 5.6 6.4 7.1 8.3C8.6 6.2 10.4 4.2 12.6 1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span class="ub-ink__line" aria-hidden="true"></span><span class="ub-ink__wet" aria-hidden="true"></span></div><p class="ub-ink__error" id="ub-f_R_3ak_-err" aria-live="polite"></p></div></div></div></div></div></div></div></form></main></div></div></div></body></html>

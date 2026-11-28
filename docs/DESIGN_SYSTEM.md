@@ -1,6 +1,6 @@
 # 디자인 가이드 [현행 기록 + 방향 제안]
 
-> 1절 현행 기록, 2~4절 브랜드 시안 A·B(P5-01, 대표 승인 대기), 5절 가상 사무실, 6·7절 인트로 시안·복자 v2, **8절 「운명비서」(D-027 — 새 경로 `/unmyeong`의 기준)**.
+> 1절 현행 기록, 2~4절 브랜드 시안 A·B(P5-01, 대표 승인 대기), 5절 가상 사무실, 6·7절 인트로 시안·복자 v2, **8절 「운명비서」(D-027 — 새 경로 `/unmyeong`의 기준)**, **9절 「펼친 비밀 고서」 부품(D-033 — 입력·결과 화면의 새 기준, 8-4 `UmLedgerPage`·8-6 '종이 위 오버레이'를 대체)**.
 
 ## 1. 현행 [현행]
 - 메인: 짙은 남색 그라데이션(#060818 → #0d1535) + 금색(#c9962a, #d4a847), 별 배경, 장식 한자 「命」
@@ -399,3 +399,55 @@
 | 타임코드 전달 | 결과 진입 영상마다 세 값을 **초 단위 소수 셋째 자리**(프레임 경계 = 1/30초 배수)로 적어 보낸다: `durationSec`(전체), `loopStartSec`, `loopEndSec`(이후 = 멈춤 컷 시작). 예: `result_entry_pc_16x9.mp4  duration 13.500 / loop 6.000–9.000`. PC·모바일 값이 다르면 따로. 인트로는 `durationSec`와 정지 시작 초. 이 값만 `src/lib/unmyeong/assets.ts` media 항목에 넣는다(임시값 12.0 / 6.0 / 9.0) |
 | 효과음 | `sfx_brush_close.mp3` 1.0~1.5초, 44.1kHz, -30~-24 LUFS, 앞 무음 20ms 이하(클릭과 동시에 들리게) |
 | 금지 | 8-5 목록, 영상 안 입력란 글자, 화면 가장자리 130px 안에 중요한 그림(cover로 잘림) |
+
+## 9. 「펼친 비밀 고서」 부품 [현행 — 디자인 실장 2026-11-28, D-033]
+> 대표 평 "오래된 종이 위에 행정서류를 배치한 것처럼 보인다 → 고급스러운 비밀 고서를 직접 펼쳐 보는 경험"에 따른 전면 재설계. 입력·무료 결과·유료 결과가 모두 이 부품으로 그린다. 8절의 색·글꼴 토큰은 그대로 쓰고(어두운 서재), 종이·가죽·먹 토큰을 새로 더했다. 8절 컴포넌트(`UmLedgerPage` 등)는 지우지 않았다(새 화면 검증 뒤 정리 — 대표 승인 사항).
+> 코드 원본: 스타일 `src/styles/unmyeong-book.css`, 컴포넌트 `src/components/ui/unmyeong/book/`(import `@/components/ui/unmyeong/book`), 그림 `public/unmyeong/book/*.svg`(만드는 스크립트 `design/unmyeong/tools/make-book-art.mjs`). 견본 `design/unmyeong/book-preview*.html`(만드는 스크립트 `design/unmyeong/tools/build-book-preview.mjs`).
+
+### 9-1. 장면 구성
+- **어두운 서재(`UmStudyBackdrop`)**: 대표 납품 정지 이미지(`public/unmyeong/final/book_topview_{pc_16x9,mobile_9x16}.webp`, 세로 화면은 9:16)를 cover 가운데로 깔고 밝기 0.35·흐림 2.5px·채도 0.88, 가장자리 비네팅, 왼쪽 위 등불 빛 번짐(7초 주기로 아주 약하게 숨 쉼). 배경 세 겹은 `position: fixed` — 스크롤하면 책만 움직인다.
+- **영상 → 입력 연결**: 인트로 영상 마지막 프레임 = 같은 정지 그림, 같은 cover 맞춤. `enter`를 켜면 밝기 1·흐림 0(마지막 프레임과 같은 상태)에서 0.8초 동안 dim·blur 값으로 어두워진다. 그 위로 `UmBook opening`이 0.9초 펼쳐진다. `dim`을 바꾸면 0.8초에 걸쳐 바뀐다(CSS transition).
+- **입체 고서(`UmBook`)**: 가죽 표지(짙은 갈색에 암적색, 결·얕은 주름·닳은 네 모서리·위쪽 모서리 빛·표지 두께) → 고급 종이(아이보리, 구름 같은 지합 얼룩·드문 섬유, 왼쪽 위 등불 빛, 오른쪽 아래 그늘, 가장자리 그을림 세 겹) → 종이 단면 층(바깥 아래로 6겹) → 바닥 그림자(오른쪽 아래). PC 양면은 가운데 접힘 그늘과 가죽 책등 골, 모바일 한 쪽은 왼쪽 묶은 쪽 그늘과 맞은편 장의 끝자락.
+- **열림 연출(`opening`)**: 양면 = 닫힌 책(오른쪽 반, 표지 위 세로 제목 종이 「運命秘書」)에서 표지가 책등을 축으로 왼쪽으로 넘어가며(0.9초, 천천히 들림 → 빠르게 → 내려앉음) 왼쪽 반이 드러나고, 표지 안쪽 면지가 내려앉으며 왼쪽 쪽 글이 먹처럼 스며 나온다. 한 쪽 = 표지가 보는 사람 쪽으로 들리며 사라지고 글이 스며 나온다. 움직임 줄이기면 연출 없음.
+
+### 9-2. 새 토큰(`.um-root`에 더함 — 대비는 화면을 찍어 글자 상자 안 가장 어두운 종이 픽셀(하위 2%)과 실측, 390×844·1280×800, 2026-11-28)
+| 토큰 | 값 | 쓰임 | 대비(실측 최저) |
+|---|---|---|---|
+| `--ub-paper` | #DED1B3 | 고급 종이 바탕(등불·그늘·그을림이 얹힘) | — |
+| `--ub-ink` | #2A2119 | 종이 위 본문·입력 값·제목 | 8.34 |
+| `--ub-ink-soft` | #4A3B2D | 라벨·도움말·고르지 않은 글자·주석 | 5.36 |
+| `--ub-ink-faint` | #5E4D3B | placeholder(흐린 먹)·구분 점 | 4.59 |
+| `--ub-error` | #5A221F | 붉은 먹 글자(오류·장 번호) | 6.76 |
+| `--ub-line` | #6B5843 | 붓 밑줄(쉴 때) — 입력 경계 | 3:1 이상(평균 종이 4.4) |
+| `--ub-line-wet` | #2A2119 | 붓 밑줄(포커스 — 먹이 번진 뒤) = 포커스 표시 | 8 이상 |
+| `--ub-cinnabar` | #7A2A24 | 주묵 동그라미(고른 글자 표시, 비글자) | 5.6(평균 종이) |
+| `--ub-focus` | #554425 | 키보드 포커스(인장 버튼 테두리·고르기 밑줄) | 4.6 이상 |
+| `--ub-brass-line` | rgb(128 99 56 / .75) | 가는 황동 장식선(장식만) | — |
+| `--ub-leather` · `-lit` · `-deep` · `-side` | #3C1C15 · #54281D · #230F0C · #1B0B09 | 가죽 표지 면·등불 쪽·그늘·두께 | — |
+| `--ub-cover` | 14px → 22px(720px↑) | 표지가 종이 밖으로 나온 폭 | — |
+| `--ub-paper-bg` · `--ub-paper-burn` · `--ub-stack-r/l` | (묶음 값) | 종이 면·그을림·단면 층 — 다른 종이 면에도 같은 값을 쓴다 | — |
+- 어두운 서재 위에 같은 부품(제목·장 머리)을 놓을 때는 감싸는 요소에 `.ub-dark` — 먹 토큰이 밝은 글(`--um-text` 등)로 바뀐다.
+- 글자: 제목 나눔명조 800(한자 Noto Serif KR), 입력 값 붓 명조 20px(PC 22), 라벨 명조 700 15px(자간 .08em), 본문 Noto Sans KR 17px·줄 간격 1.88, 할머니 말 명조 400 19px. 도움말·오류 15px(본문이 아닌 보조 글).
+- 터치: 입력 칸 높이 48px 이상, 고르기 글자 52×52px, 인장 버튼 전체(인장+글자) 약 130×150px.
+
+### 9-3. 컴포넌트(props 확정본)
+| 컴포넌트 | props | 접근성·동작 |
+|---|---|---|
+| `UmStudyBackdrop` | `dim?`(0.35) · `blur?`(2.5) · `enter?` · `image?`("auto"\|"pc"\|"mobile") · `className?` · `children` | 그림 세 겹 `aria-hidden`. 훅 없음 |
+| `UmBook` | `layout`("single"\|"spread"\|"auto") · `left?` · `right?` · `children?`(single) · `opening?` · `leftAlign?`/`rightAlign?`("start"\|"center") · `label?`(주면 `role="region"`) · `className?` | `auto` = 960px 이상 양면, 좁으면 left 다음 right를 한 쪽에 이어서(CSS만). 표지 연출 요소 `aria-hidden` |
+| `UmBookTitle` | `hanja?`(運命秘書) · `title?`(운명비서) · `tagline?`(null이면 없음) · `as?`(h1) · `id?` · `className?` | 한자는 `aria-hidden`, 제목 요소 이름은 한글 |
+| `UmInkField` | `label` · `hint?`(=`help?`) · `error?` · `requiredMark?` · `suffix?` · `as?`("input"\|"select"\|"group") · 나머지 input/select 속성 그대로 | 실제 `<input>`/`<select>` + `label for` + 도움말·오류 `aria-describedby` + `aria-invalid` + 오류 `aria-live`. `group` = `role="group"` + `aria-labelledby` |
+| `UmInkPart` | `aria-label`(필수) · `suffix?` · `invalid?` · `chars?`(칸 너비 글자 수, 기본 4) · `as?`("input"\|"select") · 나머지 속성 | `UmInkField as="group"` 안의 년·월·일·시·분 한 칸 |
+| `UmInkChoice` | `legend` · `name` · `options`(`{value,label,sub?,disabled?}`) · `value?`/`defaultValue?` · `onChange?` · `required?` · `hint?` · `error?` · `mark?`("ring"\|"dot") · `className?` | `fieldset`+`legend`+실제 라디오(글자 위에 투명하게 겹침 — 화살표 키·화면낭독기). 고르면 주묵 붓 동그라미가 0.3초 그려짐 |
+| `UmWaxSeal` ("use client") | `label?`("나의 운명비서 열기") · `onActivate?` · `beforeActivate?` · `disabled?` · `busy?` · `busyLabel?` · `sub?` · `size?`("sm"\|"md"\|"lg") · `type?`("submit") · 나머지 button 속성(onClick 제외) | 실제 `<button type="submit">`. 누르면(Enter 암묵 제출 포함) ① `beforeActivate()`가 false면 중단(없으면 폼 `reportValidity()`, `noValidate` 폼은 검사 생략) ② 금이 가고 두 쪽으로 벌어짐 0.6초 ③ `onActivate()`(없으면 `form.requestSubmit()`). `busy` 동안 열린 채 `aria-busy`, busy가 꺼지면 0.25초 뒤 다시 붙음(busy를 끝내 안 켜면 1.8초 뒤). 움직임 줄이기면 0초 |
+| `UmChapterHead` | `no?`(第一章 · 첫째 장) · `kicker?` · `title` · `lead?` · `as?`(h2) · `align?`("center"\|"start") · `id?` · `className?` | 장 번호 한자 `aria-hidden` |
+| `UmBookPage` | `no?` · `kicker?` · `title?` · `lead?` · `titleAs?` · `align?` · `children`(본문) · `footer?` · `folio?` · `as?`("article") · `id?` · `className?` | `aria-labelledby` = 제목. 여러 장을 이어 놓으면 사이에 먹점 셋 |
+- 보조 클래스: `.ub-fields-row`(두 칸 나란히 — 560px↑, 예: 달력|성별), `.ub-voice`(할머니 말, 왼쪽 옅은 먹 한 획) · `.ub-voice--center`(획 없이 가운데), `.ub-note`(주석), `.ub-prose`(UmBookPage 본문 — p·ul·blockquote·h3 자동).
+- **폼 검증 순서 권장**: 프론트엔드 검사는 `beforeActivate`에서 돌려 오류 문구를 띄우고 false를 돌려준다 → 인장은 갈라지지 않는다. 통과하면 연출 뒤 `onActivate`에서 계산 요청 + `busy`.
+
+### 9-4. 견본·확인(유지관리)
+- 그림 다시 만들기: `node design/unmyeong/tools/make-book-art.mjs` → `public/unmyeong/book/{leather-grain,paper-fiber,brush-line}.svg`(각 2KB 안팎, 이미지 파일 없음 — SVG 잡음 필터) + `src/components/ui/unmyeong/book/seal-art.ts`(인장 모양·갈라짐 선·運 윤곽 — 손으로 고치지 않는다).
+- 견본 다시 만들기: `node design/unmyeong/tools/build-book-preview.mjs` → `design/unmyeong/book-preview.html`(입력: 모바일 한 쪽 / PC 양면), `-error`(오류 상태), `-opening`(열림 연출), `-enter`(영상 끝 → 어두워짐), `-result`(결과 쪽). 글꼴은 Google Fonts에서 받는다(인터넷 없을 때는 `… build-book-preview.mjs <출력폴더> next` — `.next` 빌드에 받아 둔 같은 글꼴 사용). **붓 밑줄은 CSS mask라 `file://`로 열면 안 보인다** — 로컬 웹 서버로 연다.
+- 2026-11-28 디자인 실장 확인(390×844·1280×800 화면을 직접 보고 고침): 1차(5.5점) 종이 섬유가 천처럼 줄무늬, 종이 회색, 가죽이 얇은 붉은 테, select 꺾쇠가 '시' 글자와 겹침, PC 높이 넘침 → 2차(6.8점) 섬유·가죽 결 새로 그림, 칸 너비(`chars`), PC 구성(왼쪽 제목·인장 / 오른쪽 기록) → 3차(8점) 열림 연출 시간표 맞춤(회전·드러남·그림자 같은 지점), 인장 금 선이 밀랍 밖으로 나가던 것 자름, 포커스 상자 테두리 → 먹 밑줄. 남은 점: 모바일 왼쪽 맞은편 장 끝자락이 조금 밝게 보임(취향 범위), 1280×800에서 PC 책 아래 끝이 화면 끝에 거의 닿음(바깥 여백은 화면 쪽에서 조절).
+- 금지(8-5 그대로): 마법진·반짝이·과한 금색·이모지·굵은 테두리·형광·광택 버튼. 인장의 은은한 그늘·광택(불투명도 0.1)은 밀랍 물성 표현이며 버튼 그라데이션이 아니다.
+

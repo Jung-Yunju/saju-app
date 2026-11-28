@@ -117,15 +117,21 @@ describe("응답 — 원형과 5장 문안이 실제로 채워진다(content/unm
         expect(c.text, `${id} ${c.key}`).not.toMatch(/\{[^{}]*\}/)
         expect(c.text.length).toBeGreaterThan(0)
       }
-      // 1장은 그 원형의 문안(시각 앎 → 시각 안내 없음)
-      expect(r.chapters![0].text).toBe(copy.chapters[0].byArchetype[id].trim())
+      // 조립기(compose.ts): 1장은 그 사람의 일주로 시작하고(시각 앎 → 시각 안내 없음), 2장은 그 원형 문안 그대로
+      expect(r.chapters![0].text, id).toContain(`${r.dayPillar.ko}(${r.dayPillar.hanja})일에 났구나.`)
+      expect(r.chapters![0].text, id).not.toContain((raw as { hourNote: { text: string } }).hourNote.text)
+      expect(r.chapters![1].text, id).toBe(copy.chapters[1].byArchetype[id].trim())
     }
   })
 
-  it("달의 여신 5장: {bridge}가 다리 기운 말(물)로 바뀐다", () => {
-    const r = buildUnmyeongFree(person(SAMPLES["moon-goddess"]), { freeCopy: raw })
-    const last = r.chapters![4].text
-    expect(last).toContain(`다리는 ${BRIDGE_WORD["수"]}의 기운`)
+  it("달의 여신 5장: 그해 줄이 없는 해(원형 원문 대체)에는 {bridge}가 다리 기운 말(물)로 바뀐다, 그해 줄이 있으면 날 토큰 없음", () => {
+    // this-year.json에 2028년이 아직 없다 → compose.json 5장 fallback(원형 원문 + {bridge} 처리)
+    const r = buildUnmyeongFree(person(SAMPLES["moon-goddess"]), { freeCopy: raw, now: new Date("2028-06-01T00:00:00Z") })
+    expect(r.thisYear.year).toBe(2028)
+    expect(r.chapters![4].text).toContain(`다리는 ${BRIDGE_WORD["수"]}의 기운`)
+    const y26 = buildUnmyeongFree(person(SAMPLES["moon-goddess"]), { freeCopy: raw, now: new Date("2026-06-01T00:00:00Z") })
+    expect(y26.chapters![4].text.startsWith("날씨 이야기다.")).toBe(true)
+    for (const c of y26.chapters!) expect(c.text).not.toMatch(/[{}]/)
   })
 
   it("시각 모름이면 1장 끝에 시각 안내가 붙는다", () => {

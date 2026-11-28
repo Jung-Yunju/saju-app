@@ -1,0 +1,1100 @@
+/*
+ * 운명비서 「펼친 비밀 고서」 부품 — 디자인 실장 (D-033, 2026-11-28)
+ * 짝 컴포넌트: src/components/ui/unmyeong/book/ (UmStudyBackdrop · UmBook · UmBookTitle · UmInkField · UmInkChoice · UmWaxSeal · UmBookPage · UmChapterHead)
+ * 문서: docs/DESIGN_SYSTEM.md 「9. 펼친 비밀 고서」. 그림: public/unmyeong/book/*.svg (design/unmyeong/tools/make-book-art.mjs 가 만든다)
+ *
+ * 쓰는 법(프론트엔드): src/app/unmyeong/layout.tsx 에서 unmyeong.css 다음 줄에
+ *   import "@/styles/unmyeong-book.css"
+ * 범위: .um-root 안쪽만(토큰은 .um-root 에 더한다 — 기존 unmyeong.css 값은 건드리지 않는다). 클래스 앞머리 ub-.
+ *
+ * 원칙: 신비는 어둠·등불·여백·종이와 가죽의 물성으로. 금박·반짝이·마법진·형광·광택 버튼·굵은 테두리 금지.
+ * 대비(WCAG 2.1 실측, 종이 #DCCFB1 / 글자 자리에서 가장 어두운 종이 #C4B18E):
+ *   먹 #2A2119 10.23 / 7.54 · 옅은 먹 #4A3B2D 7.06 / 5.20 · 흐린 먹(placeholder) #5E4D3B 5.23 / 3.86(가장자리만)
+ *   붉은 먹 글자 #5A221F 8.08 / 5.96 · 밑줄 #6B5843 4.39 / 3.23(3:1 비글자 기준) · 포커스 #554425 6.3 / 4.6
+ */
+
+/* ════════ 토큰 ════════ */
+.um-root {
+  /* 고급 종이(아이보리) — 가운데가 가장 밝고 가장자리로 그을린다 */
+  --ub-paper: #ded1b3;
+      --ub-paper-edge: 126 92 52;      /* 그을림(RGB 채널 — 투명도와 함께) */
+
+  /* 종이 면 = 등불 빛(왼쪽 위, 따뜻하게) + 오른쪽 아래 그늘 + 오래된 얼룩 두어 점 + 섬유 + 바탕색 */
+  --ub-paper-bg:
+    radial-gradient(ellipse 95% 55% at 6% 0%, rgb(255 222 160 / 0.3), rgb(255 222 160 / 0.08) 55%, transparent 75%),
+    radial-gradient(ellipse 85% 60% at 100% 100%, rgb(var(--ub-paper-edge) / 0.2), transparent 70%),
+    radial-gradient(ellipse 22% 14% at 80% 20%, rgb(var(--ub-paper-edge) / 0.07), transparent 70%),
+    radial-gradient(ellipse 16% 10% at 18% 78%, rgb(var(--ub-paper-edge) / 0.06), transparent 70%),
+    url("/unmyeong/book/paper-fiber.svg") 0 0 / 360px 360px,
+    var(--ub-paper);
+  /* 가장자리 그을림(안쪽 그림자 세 겹) */
+  --ub-paper-burn:
+    inset 0 0 0 1px rgb(var(--ub-paper-edge) / 0.4),
+    inset 0 0 6px rgb(var(--ub-paper-edge) / 0.4),
+    inset 0 0 26px rgb(var(--ub-paper-edge) / 0.34),
+    inset 0 0 80px rgb(var(--ub-paper-edge) / 0.16);
+  /* 종이 단면 층(바깥 아래로) + 종이 묶음이 가죽 위에 드리우는 그림자 */
+  --ub-stack-r: 1px 1px 0 #cdbd9b, 2px 2px 0 #a8946f, 3px 3px 0 #c4b28e, 4px 4px 0 #9b8664, 5px 5px 0 #b9a680, 6px 6px 0 #8c7756, 7px 8px 6px rgb(10 4 2 / 0.55);
+  --ub-stack-l: -1px 1px 0 #cdbd9b, -2px 2px 0 #a8946f, -3px 3px 0 #c4b28e, -4px 4px 0 #9b8664, -5px 5px 0 #b9a680, -6px 6px 0 #8c7756, -3px 8px 6px rgb(10 4 2 / 0.55);
+
+  /* 먹 — 종이 위 글자 */
+  --ub-ink: #2a2119;
+  --ub-ink-soft: #4a3b2d;          /* 라벨·보조 글 */
+  --ub-ink-faint: #5e4d3b;         /* placeholder·구분 점 */
+  --ub-line: #6b5843;              /* 붓 밑줄(쉴 때) — 3:1 이상 */
+  --ub-line-wet: #2a2119;          /* 붓 밑줄(포커스 — 먹이 번진 뒤) */
+  --ub-cinnabar: #7a2a24;          /* 주묵(朱墨) — 고른 글자 둘레 동그라미 */
+  --ub-error: #5a221f;             /* 붉은 먹 오류 글자 */
+  --ub-brass-line: rgb(128 99 56 / 0.75); /* 가는 황동 장식선(장식 — 글자에 쓰지 않음) */
+  --ub-focus: #554425;             /* 종이 위 키보드 포커스 */
+
+  /* 가죽 표지 — 짙은 갈색에 암적색이 비친다 */
+  --ub-leather: #3c1c15;
+  --ub-leather-lit: #54281d;       /* 등불 쪽(왼쪽 위) */
+  --ub-leather-deep: #230f0c;
+  --ub-leather-worn: 140 88 62;    /* 닳은 모서리·가장자리(RGB 채널) */
+  --ub-leather-side: #1b0b09;      /* 표지 두께(옆면) */
+
+  /* 밀랍 */
+  --ub-wax: #6c2823;
+  --ub-wax-deep: #45150f;
+
+  /* 크기 */
+  --ub-cover: 14px;                /* 표지가 종이 밖으로 나온 폭(모바일) */
+  --ub-book-single: 600px;
+  --ub-book-spread: 1060px;
+  --ub-page-pad-y: 44px;
+  --ub-page-pad-x: 26px;
+  --ub-gutter: 14px;               /* 접힘 쪽 여분 여백 */
+  --ub-ease: cubic-bezier(0.22, 0.61, 0.24, 1);
+}
+@media (min-width: 720px) {
+  .um-root {
+    --ub-cover: 22px;
+    --ub-page-pad-y: 48px;
+    --ub-page-pad-x: 56px;
+    --ub-gutter: 20px;
+  }
+}
+
+/* 어두운 서재 위에 같은 부품(제목·장 머리)을 놓을 때 — 먹 → 밝은 글 */
+.ub-dark {
+  --ub-ink: var(--um-text);
+  --ub-ink-soft: var(--um-text-muted);
+  --ub-ink-faint: var(--um-text-muted);
+  --ub-line: var(--um-line-strong);
+  --ub-line-wet: var(--um-brass);
+  --ub-error: var(--um-danger-dark);
+  --ub-cinnabar: #b5655a;
+  --ub-brass-line: rgb(185 161 122 / 0.6);
+  --ub-focus: var(--um-brass);
+}
+
+/* ════════ 1. UmStudyBackdrop — 어두운 서재 ════════ */
+.ub-backdrop {
+  --ub-dim: 0.35;
+  --ub-blur: 2.5px;
+  --ub-lamp-x: 5%;
+  --ub-lamp-y: 30%;
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--um-bg);
+  color: var(--um-text);
+}
+@media (orientation: portrait) {
+  .ub-backdrop { --ub-lamp-x: 2%; --ub-lamp-y: 7%; }
+}
+.ub-backdrop__img,
+.ub-backdrop__veil,
+.ub-backdrop__lamp {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+.ub-backdrop__img {
+  z-index: -3;
+  /* 영상 마지막 프레임과 같은 그림 · 같은 맞춤(cover 가운데) → 밝기 1·흐림 0 에서 시작하면 이음새가 없다 */
+  background: var(--um-bg) url("/unmyeong/final/book_topview_pc_16x9.webp") center / cover no-repeat;
+  filter: brightness(var(--ub-dim)) blur(var(--ub-blur)) saturate(0.88);
+  transform: scale(1.03); /* 흐림으로 생기는 가장자리 빈틈 가리기 */
+  transition: filter 0.8s ease-in-out, transform 0.8s ease-in-out;
+}
+@media (orientation: portrait) {
+  .ub-backdrop__img { background-image: url("/unmyeong/final/book_topview_mobile_9x16.webp"); }
+}
+.ub-backdrop__img[data-image="pc"] { background-image: url("/unmyeong/final/book_topview_pc_16x9.webp"); }
+.ub-backdrop__img[data-image="mobile"] { background-image: url("/unmyeong/final/book_topview_mobile_9x16.webp"); }
+
+/* 비네팅: 가운데(책 자리)는 그대로, 가장자리로 깊은 밤 */
+.ub-backdrop__veil {
+  z-index: -2;
+  background:
+    radial-gradient(ellipse 125% 100% at 50% 44%, transparent 38%, rgb(14 11 9 / 0.5) 72%, rgb(10 8 6 / 0.9) 100%),
+    linear-gradient(to bottom, rgb(10 8 6 / 0.25), transparent 18%, transparent 80%, rgb(10 8 6 / 0.45));
+}
+/* 등불 쪽 따뜻한 빛 번짐 — 아주 느리게 숨 쉬듯(움직임 줄이기면 멈춤) */
+.ub-backdrop__lamp {
+  z-index: -1;
+  background:
+    radial-gradient(circle at var(--ub-lamp-x) var(--ub-lamp-y), rgb(var(--um-lamp) / 0.26), rgb(var(--um-lamp) / 0.08) 22%, transparent 48%);
+  mix-blend-mode: screen;
+  animation: ub-lamp-breathe 7s ease-in-out infinite alternate;
+}
+@keyframes ub-lamp-breathe {
+  0% { opacity: 0.82; }
+  45% { opacity: 1; }
+  60% { opacity: 0.9; }
+  100% { opacity: 0.97; }
+}
+.ub-backdrop__content {
+  position: relative;
+  min-height: inherit;
+}
+/* 영상 마지막 프레임 → 이 상태로 0.8초 어두워짐 */
+.ub-backdrop--enter .ub-backdrop__img { animation: ub-dim-in 0.8s ease-in-out both; }
+.ub-backdrop--enter .ub-backdrop__veil,
+.ub-backdrop--enter .ub-backdrop__lamp { animation: ub-fade-in 0.8s ease-in-out both; }
+.ub-backdrop--enter .ub-backdrop__lamp { animation: ub-fade-in 0.8s ease-in-out both, ub-lamp-breathe 7s 0.8s ease-in-out infinite alternate; }
+@keyframes ub-dim-in {
+  from { filter: brightness(1) blur(0) saturate(1); transform: scale(1); }
+}
+@keyframes ub-fade-in {
+  from { opacity: 0; }
+}
+
+/* ════════ 2. UmBook — 입체 고서 ════════ */
+.ub-book {
+  position: relative;
+  width: 100%;
+  max-width: var(--ub-book-single);
+  margin-inline: auto;
+  perspective: 2600px;
+  perspective-origin: 50% 30%;
+  color: var(--ub-ink);
+}
+.ub-book--spread { max-width: var(--ub-book-spread); }
+@media (min-width: 960px) {
+  .ub-book--auto { max-width: var(--ub-book-spread); }
+}
+
+/* 바닥 그림자 — 등불이 왼쪽 위라 오른쪽 아래로 진다 */
+.ub-book__shadow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 6px;
+  box-shadow:
+    6px 14px 18px -4px rgb(0 0 0 / 0.62),
+    18px 40px 60px -10px rgb(0 0 0 / 0.55),
+    0 0 90px 10px rgb(0 0 0 / 0.35);
+  pointer-events: none;
+}
+
+/* 가죽 표지(앞·뒤 표지가 펼쳐져 책상에 놓인 면) */
+.ub-book__body {
+  position: relative;
+  z-index: 1;
+  padding: var(--ub-cover);
+  border-radius: 5px 6px 6px 5px;
+  background:
+    /* 닳은 모서리 넷 — 색이 빠져 밝은 갈색 */
+    radial-gradient(circle at 0 0, rgb(var(--ub-leather-worn) / 0.55), transparent 26px),
+    radial-gradient(circle at 100% 0, rgb(var(--ub-leather-worn) / 0.42), transparent 24px),
+    radial-gradient(circle at 0 100%, rgb(var(--ub-leather-worn) / 0.38), transparent 24px),
+    radial-gradient(circle at 100% 100%, rgb(var(--ub-leather-worn) / 0.5), transparent 28px),
+    url("/unmyeong/book/leather-grain.svg") 0 0 / 260px 260px,
+    linear-gradient(128deg, var(--ub-leather-lit), var(--ub-leather) 38%, var(--ub-leather-deep));
+  box-shadow:
+    /* 가장자리 닳음 + 위쪽 등불 받는 모서리 */
+    inset 0 0 0 1px rgb(var(--ub-leather-worn) / 0.3),
+    inset 0 1px 0 rgb(var(--ub-leather-worn) / 0.45),
+    inset 0 0 10px 1px rgb(var(--ub-leather-worn) / 0.18),
+    inset 0 0 30px rgb(0 0 0 / 0.35),
+    /* 표지 두께(아래·오른쪽 옆면) */
+    1px 1px 0 var(--ub-leather-side),
+    1px 3px 0 var(--ub-leather-side),
+    2px 4px 0 #120706;
+}
+/* 책등 — 펼친 책 가운데 가죽이 접힌 골 */
+.ub-book--spread .ub-book__body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 18px);
+  width: 36px;
+  background: linear-gradient(to right, transparent, rgb(0 0 0 / 0.42) 40%, rgb(255 210 170 / 0.06) 50%, rgb(0 0 0 / 0.42) 60%, transparent);
+  pointer-events: none;
+}
+@media (min-width: 960px) {
+  .ub-book--auto .ub-book__body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(50% - 18px);
+    width: 36px;
+    background: linear-gradient(to right, transparent, rgb(0 0 0 / 0.42) 40%, rgb(255 210 170 / 0.06) 50%, rgb(0 0 0 / 0.42) 60%, transparent);
+    pointer-events: none;
+  }
+}
+
+/* 종이 묶음 */
+.ub-book__block {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+.ub-book--spread .ub-book__block { display: grid; grid-template-columns: 1fr 1fr; }
+@media (min-width: 960px) {
+  .ub-book--auto .ub-book__block { display: grid; grid-template-columns: 1fr 1fr; }
+}
+
+/* 고급 종이 면(한 쪽 / 펼친 양쪽 각 쪽) */
+.ub-paper-surface,
+.ub-book__page {
+  position: relative;
+  min-width: 0;
+  color: var(--ub-ink);
+  background: var(--ub-paper-bg);
+  box-shadow: var(--ub-paper-burn);
+}
+.ub-book__page {
+  padding: var(--ub-page-pad-y) var(--ub-page-pad-x) calc(var(--ub-page-pad-y) + 8px);
+}
+
+/* 한 쪽(모바일): 왼쪽이 책 묶은 쪽 — 접힘 그늘 + 맞은편 장의 끝자락, 오른쪽·아래로 종이 단면 층 */
+.ub-book__leaf {
+  flex: 0 0 7px;
+  margin-right: -1px;
+  border-radius: 2px 0 0 2px;
+  background: linear-gradient(to right, #7d6a4b, #b8a580 55%, #8e7a58);
+  box-shadow: -1px 1px 0 #a8946f, -2px 2px 0 #8c7756;
+}
+.ub-book--single .ub-book__page,
+.ub-book--auto .ub-book__page {
+  flex: 1 1 auto;
+  padding-left: calc(var(--ub-page-pad-x) + var(--ub-gutter) * 0.6);
+  box-shadow:
+    var(--ub-paper-burn), var(--ub-stack-r);
+}
+/* 묶은 쪽 접힘 그늘 */
+.ub-book__page::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 16%;
+  max-width: 120px;
+  pointer-events: none;
+}
+.ub-book--single .ub-book__page::after,
+.ub-book--auto .ub-book__page::after {
+  left: 0;
+  background: linear-gradient(to right, rgb(58 36 16 / 0.42), rgb(58 36 16 / 0.16) 18%, rgb(255 240 210 / 0.1) 46%, transparent);
+}
+
+/* auto(좁은 화면): 왼쪽·오른쪽 내용을 한 쪽에 이어서 — 종이 면은 묶음이 그린다 */
+@media (max-width: 959.98px) {
+  .ub-book--auto .ub-book__pages {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .ub-book--auto .ub-book__page--left { padding-bottom: calc(var(--ub-page-pad-y) * 0.5); }
+  .ub-book--auto .ub-book__page--right { padding-top: calc(var(--ub-page-pad-y) * 0.5); }
+  .ub-book--auto .ub-book__pages {
+    position: relative;
+    background: var(--ub-paper-bg);
+    box-shadow: var(--ub-paper-burn), var(--ub-stack-r);
+  }
+  .ub-book--auto .ub-book__page { background: none; box-shadow: none; }
+  .ub-book--auto .ub-book__page--right::after { display: none; }
+  .ub-book--auto .ub-book__pages::after {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 16%;
+    max-width: 120px;
+    background: linear-gradient(to right, rgb(58 36 16 / 0.42), rgb(58 36 16 / 0.16) 18%, rgb(255 240 210 / 0.1) 46%, transparent);
+    pointer-events: none;
+  }
+  .ub-book--auto .ub-book__page::after { display: none; }
+}
+@media (min-width: 960px) {
+  .ub-book--auto .ub-book__leaf { display: none; }
+  .ub-book--auto .ub-book__pages { display: contents; }
+}
+
+/* 펼친 양면(PC) */
+.ub-book--spread .ub-book__page--left,
+.ub-book--spread .ub-book__page--right {
+  min-height: min(720px, calc(100dvh - 140px));
+}
+.ub-book--spread .ub-book__page--left { padding-right: calc(var(--ub-page-pad-x) + var(--ub-gutter)); border-radius: 3px 0 0 3px; }
+.ub-book--spread .ub-book__page--right { padding-left: calc(var(--ub-page-pad-x) + var(--ub-gutter)); border-radius: 0 3px 3px 0; }
+.ub-book--spread .ub-book__page--left {
+  box-shadow:
+    var(--ub-paper-burn), var(--ub-stack-l);
+}
+.ub-book--spread .ub-book__page--right {
+  box-shadow:
+    var(--ub-paper-burn), var(--ub-stack-r);
+}
+.ub-book--spread .ub-book__page--left::after {
+  right: 0;
+  background: linear-gradient(to left, rgb(52 32 14 / 0.5), rgb(52 32 14 / 0.2) 12%, rgb(255 240 210 / 0.1) 36%, transparent);
+}
+.ub-book--spread .ub-book__page--right::after {
+  left: 0;
+  background: linear-gradient(to right, rgb(52 32 14 / 0.5), rgb(52 32 14 / 0.2) 12%, rgb(255 240 210 / 0.08) 36%, transparent);
+}
+@media (min-width: 960px) {
+  .ub-book--auto .ub-book__page--left,
+  .ub-book--auto .ub-book__page--right {
+    min-height: min(720px, calc(100dvh - 140px));
+  }
+  .ub-book--auto .ub-book__page--left {
+    padding-left: var(--ub-page-pad-x);
+    padding-right: calc(var(--ub-page-pad-x) + var(--ub-gutter));
+    border-radius: 3px 0 0 3px;
+    box-shadow:
+      var(--ub-paper-burn), var(--ub-stack-l);
+  }
+  .ub-book--auto .ub-book__page--right {
+    padding-left: calc(var(--ub-page-pad-x) + var(--ub-gutter));
+    border-radius: 0 3px 3px 0;
+  }
+  .ub-book--auto .ub-book__page--left::after {
+    left: auto;
+    right: 0;
+    background: linear-gradient(to left, rgb(52 32 14 / 0.5), rgb(52 32 14 / 0.2) 12%, rgb(255 240 210 / 0.1) 36%, transparent);
+  }
+  .ub-book--auto .ub-book__page--right::after {
+    left: 0;
+    background: linear-gradient(to right, rgb(52 32 14 / 0.5), rgb(52 32 14 / 0.2) 12%, rgb(255 240 210 / 0.08) 36%, transparent);
+  }
+}
+.ub-book__page { display: flex; flex-direction: column; }
+.ub-book__content { position: relative; z-index: 1; flex: 1 1 auto; display: flex; flex-direction: column; }
+.ub-book__page[data-align="center"] .ub-book__content { justify-content: center; --ub-title-pad-top: 0px; --ub-title-pad-bottom: clamp(24px, 3vw, 36px); }
+
+/* ── 열림(opening): 표지가 책등을 축으로 넘어가며 펼쳐진다 0.9초 ── */
+.ub-book__flap {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  transform-origin: 0 50%;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.ub-book--spread .ub-book__flap { left: 50%; }
+@media (min-width: 960px) {
+  .ub-book--auto .ub-book__flap { left: 50%; }
+}
+.ub-book__flap-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 0 6px 6px 0;
+}
+.ub-book__flap-front {
+  background:
+    radial-gradient(circle at 100% 0, rgb(var(--ub-leather-worn) / 0.45), transparent 26px),
+    radial-gradient(circle at 100% 100%, rgb(var(--ub-leather-worn) / 0.45), transparent 28px),
+    url("/unmyeong/book/leather-grain.svg") 0 0 / 260px 260px,
+    linear-gradient(128deg, var(--ub-leather-lit), var(--ub-leather) 40%, var(--ub-leather-deep));
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--ub-leather-worn) / 0.3),
+    inset 6px 0 14px rgb(0 0 0 / 0.45),
+    inset 0 0 30px rgb(0 0 0 / 0.3),
+    2px 3px 0 var(--ub-leather-side);
+}
+/* 제첨(題簽) — 표지 위 세로 제목 종이 */
+.ub-book__flap-label {
+  position: absolute;
+  top: 9%;
+  right: 14%;
+  padding: 14px 7px;
+  writing-mode: vertical-rl;
+  font-family: var(--um-font-title);
+  font-weight: 800;
+  font-size: clamp(1rem, 0.8rem + 1vw, 1.375rem);
+  letter-spacing: 0.32em;
+  color: var(--ub-ink);
+  background: url("/unmyeong/book/paper-fiber.svg") 0 0 / 360px, #d2c3a2;
+  box-shadow: inset 0 0 0 1px rgb(var(--ub-paper-edge) / 0.35), inset 0 0 10px rgb(var(--ub-paper-edge) / 0.35), 0 1px 2px rgb(0 0 0 / 0.4);
+}
+/* 표지 안쪽 = 가죽 테두리 안에 붙은 면지(종이). 넘어가는 동안 그늘졌다가 내려앉으며 밝아지고, 그 아래 왼쪽 쪽 글이 스며 나온다 */
+.ub-book__flap-back {
+  transform: rotateY(180deg);
+  border-radius: 6px 0 0 6px;
+  background: var(--ub-paper-bg);
+  box-shadow: inset 0 0 0 var(--ub-cover) var(--ub-leather), var(--ub-paper-burn);
+}
+.ub-book__flap-back::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgb(30 18 8);
+  opacity: 0;
+}
+.ub-book--opening .ub-book__flap { animation: ub-flap-single 0.9s cubic-bezier(0.5, 0.05, 0.25, 1) both; }
+.ub-book--opening .ub-book__flap-front { animation: ub-flap-shade 0.9s var(--ub-ease) both; }
+.ub-book--opening .ub-book__content { animation: ub-ink-in 0.9s ease-out both; }
+@keyframes ub-flap-single {
+  0% { transform: rotateY(0); opacity: 1; }
+  55% { opacity: 1; }
+  100% { transform: rotateY(-96deg); opacity: 0; }
+}
+@keyframes ub-flap-shade {
+  from { filter: brightness(1); }
+  to { filter: brightness(0.5); }
+}
+@keyframes ub-ink-in {
+  0%, 45% { opacity: 0; }
+  100% { opacity: 1; }
+}
+/* 양면: 닫힌 책(오른쪽 반)에서 표지가 왼쪽으로 넘어가 펼쳐진다 */
+.ub-book--spread.ub-book--opening .ub-book__flap { animation: ub-flap-spread 0.9s linear both; }
+.ub-book--spread.ub-book--opening .ub-book__flap-front { animation: ub-flap-shade 0.45s ease-in both; }
+.ub-book--spread.ub-book--opening .ub-book__flap-back { animation: ub-flap-back 0.9s linear both; }
+.ub-book--spread.ub-book--opening .ub-book__flap-back::after { animation: ub-flap-back-shade 0.9s linear both; }
+.ub-book--spread.ub-book--opening .ub-book__body { animation: ub-reveal-spread 0.9s linear both; }
+.ub-book--spread.ub-book--opening .ub-book__shadow { animation: ub-shadow-spread 0.9s linear both; transform-origin: 100% 50%; }
+.ub-book--spread.ub-book--opening .ub-book__page--right .ub-book__content { animation: none; }
+.ub-book--spread.ub-book--opening .ub-book__page--left .ub-book__content { animation: ub-ink-in-late 0.9s ease-out both; }
+@media (min-width: 960px) {
+  .ub-book--auto.ub-book--opening .ub-book__flap { animation: ub-flap-spread 0.9s linear both; }
+  .ub-book--auto.ub-book--opening .ub-book__flap-front { animation: ub-flap-shade 0.45s ease-in both; }
+  .ub-book--auto.ub-book--opening .ub-book__flap-back { animation: ub-flap-back 0.9s linear both; }
+  .ub-book--auto.ub-book--opening .ub-book__flap-back::after { animation: ub-flap-back-shade 0.9s linear both; }
+  .ub-book--auto.ub-book--opening .ub-book__body { animation: ub-reveal-spread 0.9s linear both; }
+  .ub-book--auto.ub-book--opening .ub-book__shadow { animation: ub-shadow-spread 0.9s linear both; transform-origin: 100% 50%; }
+  .ub-book--auto.ub-book--opening .ub-book__page--right .ub-book__content { animation: none; }
+  .ub-book--auto.ub-book--opening .ub-book__page--left .ub-book__content { animation: ub-ink-in-late 0.9s ease-out both; }
+}
+/* 회전·드러남·그림자를 같은 시간표(천천히 들림 → 빠르게 넘어감 → 내려앉음)로 맞춘다 — 셋 다 linear + 같은 지점 */
+@keyframes ub-flap-spread {
+  0% { transform: rotateY(0); }
+  20% { transform: rotateY(-14deg); }
+  40% { transform: rotateY(-58deg); }
+  50% { transform: rotateY(-90deg); }
+  60% { transform: rotateY(-122deg); }
+  70% { transform: rotateY(-148deg); }
+  80% { transform: rotateY(-166deg); }
+  100% { transform: rotateY(-180deg); }
+}
+@keyframes ub-flap-back {
+  0%, 86% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes ub-flap-back-shade {
+  0%, 50% { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+@keyframes ub-reveal-spread {
+  0%, 50% { clip-path: inset(-60px -60px -60px 50%); }
+  60% { clip-path: inset(-60px -60px -60px 26%); }
+  70% { clip-path: inset(-60px -60px -60px 10%); }
+  80% { clip-path: inset(-60px -60px -60px 3%); }
+  100% { clip-path: inset(-60px -60px -60px 0%); }
+}
+@keyframes ub-shadow-spread {
+  0%, 50% { transform: scaleX(0.5); }
+  60% { transform: scaleX(0.74); }
+  70% { transform: scaleX(0.9); }
+  80% { transform: scaleX(0.97); }
+  100% { transform: scaleX(1); }
+}
+@keyframes ub-ink-in-late {
+  0%, 84% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* ════════ 3. UmBookTitle ════════ */
+.ub-title {
+  margin: 0;
+  padding-block: var(--ub-title-pad-top, clamp(20px, 5vw, 44px)) var(--ub-title-pad-bottom, clamp(28px, 6vw, 52px));
+  text-align: center;
+}
+.ub-title__head { margin: 0; font-weight: inherit; }
+.ub-title__han {
+  display: block;
+  font-family: var(--um-font-title);
+  font-weight: 800;
+  font-size: clamp(2.75rem, 2.1rem + 3.2vw, 4.25rem);
+  line-height: 1.12;
+  letter-spacing: 0.1em;
+  padding-left: 0.1em; /* 끝 자간만큼 오른쪽으로 쏠리지 않게 */
+  color: var(--ub-ink);
+  text-shadow: 0 0 0.5px rgb(42 33 25 / 0.55); /* 먹이 종이에 살짝 스민 가장자리 */
+}
+.ub-title__ko {
+  display: block;
+  margin-top: clamp(12px, 2.4vw, 18px);
+  font-family: var(--um-font-title);
+  font-weight: 700;
+  font-size: clamp(1.0625rem, 0.98rem + 0.4vw, 1.25rem);
+  letter-spacing: 0.62em;
+  padding-left: 0.62em;
+  color: var(--ub-ink-soft);
+}
+.ub-title__rule {
+  display: block;
+  width: 64px;
+  height: 1px;
+  margin: clamp(22px, 4.5vw, 32px) auto;
+  background: linear-gradient(90deg, transparent, var(--ub-brass-line) 22%, var(--ub-brass-line) 78%, transparent);
+}
+.ub-title__tagline {
+  margin: 0;
+  font-family: var(--um-font-title);
+  font-weight: 400;
+  font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  color: var(--ub-ink-soft);
+}
+
+/* ════════ 4. UmInkField — 고서에 직접 적는 칸 ════════ */
+.ub-ink {
+  position: relative;
+  min-width: 0;
+  padding-top: 6px;
+}
+.ub-ink + .ub-ink,
+.ub-ink + .ub-choice,
+.ub-choice + .ub-ink,
+.ub-choice + .ub-choice,
+.ub-fields-row + .ub-ink,
+.ub-fields-row + .ub-choice,
+.ub-ink + .ub-fields-row,
+.ub-choice + .ub-fields-row { margin-top: var(--ub-field-gap, clamp(14px, 3vw, 20px)); }
+/* 두 칸 나란히(넓은 쪽에서만) — 예: 달력 | 성별 */
+.ub-fields-row { display: grid; gap: 0 clamp(20px, 4vw, 40px); }
+.ub-fields-row > * + * { margin-top: var(--ub-field-gap, clamp(14px, 3vw, 20px)); }
+@media (min-width: 560px) {
+  .ub-fields-row { grid-template-columns: repeat(auto-fit, minmax(0, max-content)); align-items: start; }
+  .ub-fields-row > .ub-ink,
+  .ub-fields-row > .ub-choice { margin-top: 0; }
+}
+.ub-ink__label,
+.ub-choice__legend {
+  display: block;
+  padding: 0;
+  font-family: var(--um-font-title);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  color: var(--ub-ink-soft);
+}
+.ub-ink__req {
+  margin-left: 6px;
+  font-size: 0.8125rem;
+  letter-spacing: 0;
+  color: var(--ub-error);
+}
+.ub-ink__wrap {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.ub-ink__control {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  min-height: 48px;
+  margin: 0;
+  padding: 6px 0 9px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ub-ink);
+  font-family: var(--um-font-title);
+  font-weight: 700;
+  font-size: 1.25rem; /* 20 — 입력 값 18 이상(아이폰 자동 확대 방지 포함) */
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  caret-color: var(--ub-cinnabar);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+@media (min-width: 720px) {
+  .ub-ink__control { font-size: 1.375rem; }
+}
+/* 포커스 표시 = 먹이 번져 진해진 밑줄(2px 상당, #2A2119 — 종이 대비 10:1). 상자 테두리는 끈다 */
+.um-root .ub-ink__control:focus,
+.um-root .ub-ink__control:focus-visible { outline: none; }
+.ub-ink__control::placeholder {
+  color: var(--ub-ink-faint);
+  font-weight: 400;
+  opacity: 1;
+}
+.ub-ink__control:disabled { color: var(--ub-ink-faint); cursor: not-allowed; }
+select.ub-ink__control { padding-right: 30px; cursor: pointer; }
+select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family: var(--um-font-body); font-weight: 400; }
+.ub-ink__caret {
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  width: 14px;
+  height: 10px;
+  margin-top: -6px;
+  color: var(--ub-ink-soft);
+  pointer-events: none;
+}
+.ub-ink__suffix {
+  flex: 0 0 auto;
+  font-family: var(--um-font-title);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  color: var(--ub-ink-soft);
+}
+/* 붓 밑줄 — 쉴 때는 옅게, 포커스면 먹이 가운데서 양옆으로 번지며 진해진다 */
+.ub-ink__line,
+.ub-ink__wet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5px;
+  pointer-events: none;
+  -webkit-mask: url("/unmyeong/book/brush-line.svg") 0 0 / 100% 100% no-repeat;
+  mask: url("/unmyeong/book/brush-line.svg") 0 0 / 100% 100% no-repeat;
+}
+.ub-ink__line { background: var(--ub-line); opacity: 0.9; }
+.ub-ink__wet {
+  height: 6px;
+  bottom: -0.5px;
+  background: var(--ub-line-wet);
+  opacity: 0;
+  clip-path: inset(0 50% 0 50%);
+  filter: blur(1.6px);
+  transition: clip-path 0.5s var(--ub-ease), filter 0.6s ease-out, opacity 0.25s ease-out;
+}
+.ub-ink__wrap:focus-within .ub-ink__wet {
+  opacity: 1;
+  clip-path: inset(0 -2% 0 -2%);
+  filter: blur(0);
+}
+.ub-ink--error .ub-ink__line { background: var(--ub-error); }
+.ub-ink--error .ub-ink__wet { background: var(--ub-error); }
+.ub-ink__hint,
+.ub-ink__error {
+  margin: 8px 0 0;
+  font-family: var(--um-font-body);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+.ub-ink__hint { color: var(--ub-ink-soft); }
+.ub-ink__error { color: var(--ub-error); font-weight: 700; }
+.ub-ink__error:empty { margin: 0; }
+.ub-ink__group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 4px 14px;
+}
+/* 묶음 안 여러 칸(년·월·일 등) */
+.ub-ink__part {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex: 1 1 64px;
+  min-width: 0;
+}
+.ub-ink__part { flex: 0 1 auto; }
+.ub-ink__part .ub-ink__control { width: var(--ub-part-w, 4.2em); flex: 0 0 auto; text-align: center; padding-inline: 2px; }
+.ub-ink__part .ub-ink__suffix { padding-right: 6px; }
+/* select + 붓 꺾쇠 묶음(꺾쇠가 뒤 글자와 겹치지 않게) */
+.ub-ink__sel { position: relative; display: flex; flex: 1 1 auto; min-width: 0; }
+.ub-ink__part .ub-ink__sel { flex: 0 0 auto; }
+.ub-ink__part select.ub-ink__control { padding-right: 22px; text-align: left; text-align-last: center; }
+
+/* ════════ 5. UmInkChoice — 글자를 골라 주묵 동그라미 ════════ */
+.ub-choice {
+  min-width: 0;
+  margin: 0;
+  padding: 6px 0 0;
+  border: 0;
+}
+.ub-choice__legend { float: left; width: 100%; } /* legend 기본 배치(테두리 위 걸침) 끄기 */
+.ub-choice__row {
+  clear: both;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 2px;
+  margin-left: -10px; /* 첫 글자를 라벨 왼쪽 끝에 맞춘다(터치 여백은 유지) */
+}
+.ub-choice__sep {
+  font-family: var(--um-font-title);
+  font-size: 1.125rem;
+  color: var(--ub-ink-faint);
+  user-select: none;
+}
+.ub-choice__opt {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  min-width: 52px;
+  min-height: 52px;
+  padding: 4px 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ub-choice__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.ub-choice__input:disabled { cursor: not-allowed; }
+.ub-choice__text {
+  position: relative;
+  font-family: var(--um-font-title);
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  color: var(--ub-ink-soft);
+  transition: color 0.2s ease;
+}
+.ub-choice__sub {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--um-font-body);
+  font-weight: 400;
+  font-size: 0.8125rem;
+  letter-spacing: 0;
+  text-align: center;
+  color: var(--ub-ink-soft);
+}
+@media (min-width: 720px) {
+  .ub-choice__text { font-size: 1.375rem; }
+}
+.ub-choice__opt:hover .ub-choice__text { color: var(--ub-ink); }
+.ub-choice__input:checked ~ .ub-choice__text { color: var(--ub-ink); }
+.ub-choice__input:disabled ~ .ub-choice__text { color: var(--ub-ink-faint); text-decoration: line-through; text-decoration-thickness: 1px; }
+/* 키보드 포커스: 글자 아래 먹 밑줄(상자 테두리 대신) */
+.um-root .ub-choice__input:focus-visible { outline: none; }
+.ub-choice__input:focus-visible ~ .ub-choice__text {
+  text-decoration: underline 2px var(--ub-focus);
+  text-underline-offset: 9px;
+}
+/* 붓 동그라미 */
+.ub-choice__ring {
+  position: absolute;
+  inset: 3px 1px;
+  width: calc(100% - 2px);
+  height: calc(100% - 6px);
+  overflow: visible;
+  pointer-events: none;
+}
+.ub-choice__ring path {
+  fill: none;
+  stroke: var(--ub-cinnabar);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+}
+.ub-choice__ring path:first-child { stroke-width: 2.4px; }
+.ub-choice__ring path:last-child { stroke-width: 1px; opacity: 0.45; }
+.ub-choice__input:checked ~ .ub-choice__ring path {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.3s cubic-bezier(0.55, 0.06, 0.3, 1);
+}
+.ub-choice__input:checked ~ .ub-choice__ring path:last-child { transition-delay: 0.05s; }
+/* 먹점 표시 */
+.ub-choice__dot {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
+  border-radius: 48% 52% 45% 55%;
+  background: var(--ub-cinnabar);
+  transform: scale(0);
+  transition: transform 0.25s var(--ub-ease);
+  pointer-events: none;
+}
+.ub-choice__input:checked ~ .ub-choice__dot { transform: scale(1); }
+.ub-choice__hint { clear: both; }
+
+/* ════════ 6. UmWaxSeal — 붉은 밀랍 인장 ════════ */
+.ub-seal {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 6px 14px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ub-ink);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ub-seal:focus-visible { outline: 2px solid var(--ub-focus); outline-offset: 4px; }
+.ub-seal__wax {
+  display: block;
+  width: 96px;
+  height: 96px;
+  overflow: visible;
+  filter: drop-shadow(1.5px 2.5px 1.5px rgb(40 12 6 / 0.5)) drop-shadow(3px 9px 10px rgb(40 16 8 / 0.28));
+  transition: transform 0.25s var(--ub-ease), filter 0.25s ease;
+}
+.ub-seal--sm .ub-seal__wax { width: 76px; height: 76px; }
+.ub-seal--lg .ub-seal__wax { width: 116px; height: 116px; }
+.ub-seal:hover .ub-seal__wax { transform: translateY(-1px) rotate(-1.5deg); }
+.ub-seal:active .ub-seal__wax { transform: scale(0.965); filter: drop-shadow(1px 1.5px 1px rgb(40 12 6 / 0.55)) drop-shadow(2px 5px 6px rgb(40 16 8 / 0.25)); }
+.ub-seal__label {
+  font-family: var(--um-font-title);
+  font-weight: 800;
+  font-size: 1.125rem;
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  padding-left: 0.14em;
+  color: var(--ub-ink);
+}
+.ub-seal__sub {
+  margin-top: -6px;
+  font-family: var(--um-font-body);
+  font-size: 0.875rem;
+  color: var(--ub-ink-soft);
+}
+/* 쉬는 동안은 한 덩어리(두 쪽 이음선이 비치지 않게), 갈라질 때 두 쪽으로 바꿔 그린다 */
+.ub-seal__half { opacity: 0; }
+.ub-seal[data-state="breaking"] .ub-seal__half,
+.ub-seal[data-state="open"] .ub-seal__half { opacity: 1; }
+.ub-seal[data-state="breaking"] .ub-seal__whole,
+.ub-seal[data-state="open"] .ub-seal__whole { opacity: 0; }
+.ub-seal__half { transform-box: view-box; transition: transform 0.42s cubic-bezier(0.2, 0.7, 0.25, 1); }
+.ub-seal__half--l { transform-origin: 34px 112px; }
+.ub-seal__half--r { transform-origin: 86px 112px; }
+.ub-seal__crack {
+  fill: none;
+  stroke: #1e0705;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+}
+.ub-seal__branch { fill: none; stroke: #1e0705; stroke-width: 0.9; stroke-linecap: round; opacity: 0; }
+/* 0~0.16초 금이 위에서 아래로 → 0.16초부터 두 쪽이 벌어지며 금 선은 사라진다(벌어진 틈으로 종이가 보임) */
+.ub-seal[data-state="breaking"] .ub-seal__crack { animation: ub-crack 0.6s linear both; }
+.ub-seal[data-state="breaking"] .ub-seal__branch { animation: ub-crack-branch 0.6s linear both; }
+@keyframes ub-crack {
+  0% { stroke-dashoffset: 1; opacity: 0.9; }
+  27% { stroke-dashoffset: 0; opacity: 0.9; }
+  45% { opacity: 0.6; }
+  70%, 100% { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes ub-crack-branch {
+  0%, 18% { opacity: 0; }
+  30% { opacity: 0.7; }
+  60%, 100% { opacity: 0; }
+}
+.ub-seal[data-state="breaking"] .ub-seal__half,
+.ub-seal[data-state="open"] .ub-seal__half { transition-delay: 0.16s; }
+.ub-seal[data-state="open"] .ub-seal__half { transition-delay: 0s; }
+.ub-seal[data-state="breaking"] .ub-seal__half--l,
+.ub-seal[data-state="open"] .ub-seal__half--l { transform: translate(-5px, 2px) rotate(-8deg); }
+.ub-seal[data-state="breaking"] .ub-seal__half--r,
+.ub-seal[data-state="open"] .ub-seal__half--r { transform: translate(6px, 3px) rotate(7deg); }
+.ub-seal[data-state="breaking"] .ub-seal__wax,
+.ub-seal[data-state="open"] .ub-seal__wax { transform: none; }
+.ub-seal[data-state="open"] .ub-seal__label,
+.ub-seal[aria-busy="true"] .ub-seal__label { color: var(--ub-ink-soft); }
+.ub-seal:disabled,
+.ub-seal[aria-disabled="true"] { cursor: not-allowed; }
+.ub-seal:disabled .ub-seal__wax { filter: grayscale(0.55) brightness(0.92) drop-shadow(1px 2px 1px rgb(40 12 6 / 0.35)); opacity: 0.7; transform: none; }
+.ub-seal:disabled .ub-seal__label { color: var(--ub-ink-faint); }
+
+/* ════════ 7. UmChapterHead · UmBookPage ════════ */
+.ub-chapter {
+  margin: 0 0 clamp(24px, 5vw, 36px);
+  text-align: center;
+}
+.ub-chapter--start { text-align: left; }
+.ub-chapter__no {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  font-family: var(--um-font-title);
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.22em;
+  color: var(--ub-error); /* 붉은 먹 장 번호 */
+}
+.ub-chapter--start .ub-chapter__no { justify-content: flex-start; }
+.ub-chapter__han { font-weight: 800; letter-spacing: 0.16em; }
+.ub-chapter__dot { color: var(--ub-ink-faint); letter-spacing: 0; }
+.ub-chapter__title {
+  margin: 0;
+  font-family: var(--um-font-title);
+  font-weight: 800;
+  font-size: clamp(1.625rem, 1.3rem + 1.5vw, 2.25rem);
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  color: var(--ub-ink);
+  text-wrap: balance;
+}
+.ub-chapter__rule {
+  display: block;
+  width: 48px;
+  height: 1px;
+  margin: clamp(16px, 3.4vw, 22px) auto 0;
+  background: linear-gradient(90deg, transparent, var(--ub-brass-line) 22%, var(--ub-brass-line) 78%, transparent);
+}
+.ub-chapter--start .ub-chapter__rule { margin-left: 0; background: linear-gradient(90deg, var(--ub-brass-line), var(--ub-brass-line) 70%, transparent); }
+.ub-chapter__lead {
+  margin: clamp(14px, 3vw, 20px) auto 0;
+  max-width: 30rem;
+  font-family: var(--um-font-title);
+  font-weight: 400;
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  line-height: 1.75;
+  color: var(--ub-ink-soft);
+  text-wrap: balance;
+}
+.ub-chapter--start .ub-chapter__lead { margin-left: 0; }
+
+.ub-bookpage { position: relative; }
+.ub-bookpage + .ub-bookpage {
+  margin-top: clamp(48px, 10vw, 72px);
+  padding-top: clamp(44px, 9vw, 64px);
+}
+/* 한 쪽이 끝나고 다음 쪽 — 가운데 먹점 셋 */
+.ub-bookpage + .ub-bookpage::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 36px;
+  height: 4px;
+  margin-left: -18px;
+  background:
+    radial-gradient(circle, var(--ub-ink-faint) 1.6px, transparent 2px) 0 0 / 12px 4px repeat-x;
+  opacity: 0.7;
+}
+.ub-prose {
+  max-width: 34rem;
+  margin-inline: auto;
+  font-family: var(--um-font-body);
+  font-size: 1.0625rem;
+  line-height: 1.88;
+  letter-spacing: -0.003em;
+  color: var(--ub-ink);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.ub-prose > * { margin: 0; }
+.ub-prose > * + * { margin-top: 1.05em; }
+.ub-prose strong { font-weight: 700; }
+.ub-prose h3 {
+  margin-top: 1.8em;
+  font-family: var(--um-font-title);
+  font-weight: 800;
+  font-size: 1.25rem;
+  line-height: 1.45;
+}
+.ub-prose ul, .ub-prose ol { padding-left: 1.2em; }
+.ub-prose li + li { margin-top: 0.4em; }
+.ub-prose li::marker { color: var(--ub-ink-faint); }
+/* 할머니 말 — 붓 명조, 왼쪽에 옅은 먹 한 획 */
+.ub-voice,
+.ub-prose blockquote {
+  position: relative;
+  padding-left: 18px;
+  font-family: var(--um-font-title);
+  font-weight: 400;
+  font-size: 1.1875rem;
+  line-height: 1.8;
+  color: var(--ub-ink);
+}
+.ub-voice--center { padding-left: 0; text-align: center; }
+.ub-voice--center::before { display: none; }
+.ub-voice::before,
+.ub-prose blockquote::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.35em;
+  bottom: 0.35em;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, rgb(42 33 25 / 0.5), rgb(42 33 25 / 0.2));
+}
+.ub-note {
+  font-family: var(--um-font-body);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--ub-ink-soft);
+}
+.ub-bookpage__foot { margin-top: clamp(28px, 6vw, 40px); }
+.ub-folio {
+  display: block;
+  margin-top: clamp(32px, 7vw, 48px);
+  text-align: center;
+  font-family: var(--um-font-title);
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.3em;
+  padding-left: 0.3em;
+  color: var(--ub-ink-soft);
+}
+
+/* ════════ 접근성: 움직임 줄이기 · 고대비 ════════ */
+@media (prefers-reduced-motion: reduce) {
+  .ub-backdrop__lamp { animation: none; }
+  .ub-backdrop__img { transition: none; }
+  .ub-backdrop--enter .ub-backdrop__img,
+  .ub-backdrop--enter .ub-backdrop__veil,
+  .ub-backdrop--enter .ub-backdrop__lamp { animation: none; }
+  .ub-book__flap { display: none; }
+  .ub-book--opening .ub-book__body,
+  .ub-book--opening .ub-book__shadow,
+  .ub-book--opening .ub-book__content { animation: none !important; }
+  .ub-ink__wet { transition: none; filter: none; }
+  .ub-choice__input:checked ~ .ub-choice__ring path { transition: none; }
+  .ub-choice__dot { transition: none; }
+  .ub-seal__wax, .ub-seal__half { transition: none !important; }
+  .ub-seal__crack, .ub-seal__branch { animation: none !important; }
+}
+@media (forced-colors: active) {
+  .ub-ink__line, .ub-ink__wet { -webkit-mask: none; mask: none; height: 1px; background: CanvasText; forced-color-adjust: none; }
+  .ub-ink__wrap:focus-within .ub-ink__wet { height: 3px; background: Highlight; }
+  .ub-choice__ring path { stroke: Highlight; }
+  .ub-choice__input:checked ~ .ub-choice__text { text-decoration: underline; }
+  .ub-seal { border: 2px solid ButtonText; }
+  .ub-book__page, .ub-paper-surface { border: 1px solid CanvasText; }
+}

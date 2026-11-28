@@ -99,7 +99,13 @@ function normalize(raw: unknown): NormalizedCopy | null {
   return { chapters, hourNote, bridgeFallback }
 }
 
-/** 원형의 다리 기운 → "물"·"나무"·… 없으면 null. 우선 archetype.bridge, 없으면 variantTags "…·수로 이음"/"…·목으로 이음" */
+/** 시각 모름 안내 문장(hourNote.text). 형식이 다르거나 없으면 null — 조립기(compose.ts)가 1장 끝에 붙인다 */
+export function freeCopyHourNoteText(raw: unknown): string | null {
+  if (raw === null || raw === undefined) return null
+  return normalize(raw)?.hourNote?.text ?? null
+}
+
+/** 원형의 다리 기운 →"물"·"나무"·… 없으면 null. 우선 archetype.bridge, 없으면 variantTags "…·수로 이음"/"…·목으로 이음" */
 export function bridgeOf(archetype: UnmyeongArchetypeView | null): string | null {
   if (!archetype) return null
   if (archetype.bridge) return BRIDGE_WORD[archetype.bridge] ?? null

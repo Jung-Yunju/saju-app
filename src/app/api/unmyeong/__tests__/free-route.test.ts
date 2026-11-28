@@ -277,7 +277,7 @@ describe("무료 5장 문안 고르기(version 2)", () => {
     expect(selectFreeChapters(oldKeys, arch)).toBeNull()
     expect(selectFreeChapters({ ...copy, hourNote: { chapter: 7, text: "x" } }, arch)).toBeNull()
   })
-  it("응답 본체: 그 원형 문안이 없고 default도 null이면 chapters null, 기본 문안이 있으면 채워지고 시각 모름 안내가 붙는다", () => {
+  it("응답 본체: 그 원형 문안이 없고 default도 null이면 chapters null, 있으면 조립기(compose.ts)가 5장을 만들고 시각 모름 안내가 1장 끝에 붙는다", () => {
     const v = validateUnmyeongFreeRequest(valid)
     if (!v.ok) throw new Error(v.error)
     const empty = { ...copy, chapters: copy.chapters.map((c) => ({ ...c, byArchetype: {} })) }
@@ -289,7 +289,11 @@ describe("무료 5장 문안 고르기(version 2)", () => {
     const r = buildUnmyeongFree(v.value, { freeCopy: withDefault })
     expect(r.hourUnknown).toBe(true)
     expect(r.chapters?.map((c) => c.key)).toEqual(keys)
-    expect(r.chapters?.[0].text).toBe("기본 being 시각 안내.")
+    // 1장: 일주 글자로 시작(조립), 끝에 시각 안내. 2장은 원형 본문(여기선 default) 그대로
+    expect(r.chapters?.[0].text).toContain(`${r.dayPillar.ko}(${r.dayPillar.hanja})일에 났구나.`)
+    expect(r.chapters?.[0].text.endsWith("시각 안내.")).toBe(true)
+    expect(r.chapters?.[1].text).toBe("기본 symbol")
+    expect(r.chapters?.slice(1).every((c) => !c.text.includes("시각 안내"))).toBe(true)
     expect(r.pending).toEqual({ archetype: false, chapters: false })
   })
 })
