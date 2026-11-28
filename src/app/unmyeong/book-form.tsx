@@ -1,5 +1,5 @@
 "use client"
-
+import Link from "next/link"
 import { useState } from "react"
 import {
   buildRequest, MAX_BIRTH_YEAR, emptyForm, isDstYear, MIN_BIRTH_YEAR, PLACES, SIJIN_OPTIONS, ZI_CHOICES, ZI_HELP,
@@ -55,7 +55,7 @@ export function NameField({ form, compact }: { form: BirthFormState; compact?: b
   const { f, set } = form
   return (
     <UmField variant="ledger" label="이름" type="text" autoComplete="off" maxLength={20} placeholder="선택 · 예) 철수"
-      help={compact ? undefined : "이름은 이 화면에서 널 부를 때만 쓴단다. 서버로 보내지 않고 저장하지도 않아."}
+      help={compact ? undefined : "이름은 이 화면에서 널 부를 때만 쓴단다. 서버로 보내지 않고 저장하지도 않는단다."}
       value={f.name} onChange={e => set("name", e.target.value)} />
   )
 }
@@ -168,7 +168,7 @@ export function BookFormLegacy({ form, onReplay, showReplay, busy, serverError }
             <>
               {serverError && <p className="um-err-form" role="alert">{serverError}</p>}
               <UmSealButton type="submit" block disabled={busy}>{busy ? "펼치는 중…" : "나의 운명비서 열기"}</UmSealButton>
-              <p className="um-fine">입력한 생년월일은 풀이를 계산하는 데만 쓰고 서버에 저장하지 않는단다. 재미와 참고용이야.</p>
+              <p className="um-fine">적은 생년월일은 풀이를 셈하는 데만 쓰고 서버에 남기지 않는다. 재미 삼아, 참고로만 읽거라. <Link href="/unmyeong/privacy" className="um-fine-link">개인정보 처리 안내</Link></p>
               {showReplay && UNMYEONG_ASSETS.media && <button type="button" className="um-replay" onClick={onReplay}>인트로 다시 보기</button>}
             </>
           }

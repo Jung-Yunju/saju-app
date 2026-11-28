@@ -1,4 +1,5 @@
 "use client"
+import Link from "next/link"
 
 // 입력 장면: 펼친 고서 탑뷰 정지 이미지(PC cover / 세로 화면 contain 뒤 오른쪽 쪽으로 확대, D-032) + 같은 cover 변환으로 환산한 종이 영역 위의 실제 HTML 입력 UI.
 // 장면 08(이름 각인)도 여기서 그린다 — 폼이 0.6초 동안 사라지고 이름만 종이 중앙에 먹으로 스며든다.
@@ -94,7 +95,7 @@ export function BookScene({ kind, phase, vignette, name, form, busy, serverError
     <div className="um-ov-foot">
       {serverError && <p className="um-err-form" role="alert">{serverError}</p>}
       <UmSealButton type="submit" block disabled={busy}>{busy ? "펼치는 중…" : "나의 운명비서 열기"}</UmSealButton>
-      <p className="um-fine">생년월일은 풀이 계산에만 쓰고 저장하지 않는단다. 이름은 서버로 보내지 않아. 재미와 참고용이야.</p>
+      <p className="um-fine">적은 생년월일은 풀이를 셈하는 데만 쓰고 서버에 남기지 않는다. 이름은 서버로 보내지 않는단다. 재미 삼아, 참고로만 읽거라. <Link href="/unmyeong/privacy" className="um-fine-link">개인정보 처리 안내</Link></p>
       {showReplay && <button type="button" className="um-replay" onClick={onReplay}>인트로 다시 보기</button>}
     </div>
   )

@@ -134,6 +134,7 @@ function Shelf() {
           </li>
         ))}
       </ol>
+      <p className="um-fine"><Link href="/unmyeong/privacy" className="um-fine-link">개인정보 처리 안내</Link></p>
       <p className="umr-shelf-cta"><Link className={umButtonClass("brass")} href="/input">운명비서 전권 보기</Link></p>
     </section>
   )
