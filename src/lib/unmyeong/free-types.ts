@@ -113,7 +113,8 @@ export interface UnmyeongFreeResponse {
   /** 오행 개수(표시용, 목→수 순) */
   elements: { el: ElementKo; count: number }[]
   dayMaster: { hanja: string; ko: string; element: ElementKo }
-  dayPillar: PillarView
+  /** 일주 간지(일간 + 일지) */
+  dayPillar: GanzhiView
   daeun: { startAge: number; items: DaeunView[]; currentIndex: number }
   thisYear: { year: number; ganzhi: GanzhiView }
   /** 원형 엔진 연결 전 null (pending.archetype=true) */

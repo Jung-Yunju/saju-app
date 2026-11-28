@@ -105,9 +105,9 @@
 
 ### 7. 결정성·성능
 - 결정성: 앞 200건을 처음부터 두 번 다시 계산(시각 앎 + 표 민감도, 시각 모름 + 12시진·표 민감도) → 근거 포함 전체 결과 동일 200/200
-- 전체 10000건 실행 37.4초 (1건당 3.74ms = 원국 2회 + [시각 앎: 규칙 엔진·원형 점수 3회] + [시각 모름: 1+12회])
-- 단계별(앞 2000건 평균): 역법 computeChart 0.042ms · 규칙 analyzeRules 0.197ms · 특징+원형 점수 0.044ms
-- 서비스 1회 요청 추정(민감도 포함): 원국 1 + 규칙 3(표) + 12(시각 모름일 때) ≈ 0.8ms(시각 앎) / 3.2ms(시각 모름, 표 민감도 제외)
+- 전체 10000건 실행 40.4초 (1건당 4.04ms = 원국 2회 + [시각 앎: 규칙 엔진·원형 점수 3회] + [시각 모름: 1+12회])
+- 단계별(앞 2000건 평균): 역법 computeChart 0.044ms · 규칙 analyzeRules 0.221ms · 특징+원형 점수 0.044ms
+- 서비스 1회 요청 추정(민감도 포함): 원국 1 + 규칙 3(표) + 12(시각 모름일 때) ≈ 0.8ms(시각 앎) / 3.5ms(시각 모름, 표 민감도 제외)
 
 ### 8. 근거 기록 샘플 (시각 앎, 1·2순위)
 - #0 `癸卯 乙卯 乙亥 庚辰` → **은하** (관문 1) · 부 원형 은빛 늑대
@@ -118,7 +118,7 @@
   - 통과 관문 `arch.v1.08.white-deer`: st.weighted=신약, tg.maxOppose=jaeseong
   - 앞 관문 탈락: 은하((st.extreme ≠ null 또는 gk.hasSpecial = true)) · 현무(cl.tClass = 한강) · 황금빛 태양(cl.tClass = 열강) · 달의 여신(el.strictPairCount ≥ 1) · 봉황(tg.maxOppose = gwansal) · 백호(tg.maxOppose = gwansal) · 흑여우((fl.clarity has 상관견관 또는 (gk.name = 상관격 그리고 st.weighted ≠ 신강) 또는 (st.weighted = 신약 그리고 tg.maxOppose = siksang)))
   - 함께 통과(부 원형 순): (없음)
-- #2 `壬寅 乙巳 癸酉 丁巳` → **백록** (관문 8) · 부 원형 없음
-  - 통과 관문 `arch.v1.08.white-deer`: st.weighted=신약, tg.maxOppose=jaeseong
-  - 앞 관문 탈락: 은하((st.extreme ≠ null 또는 gk.hasSpecial = true)) · 현무(cl.tClass = 한강) · 황금빛 태양(cl.tClass = 열강) · 달의 여신(el.strictPairCount ≥ 1) · 봉황(tg.maxOppose = gwansal) · 백호(tg.maxOppose = gwansal) · 흑여우((fl.clarity has 상관견관 또는 (gk.name = 상관격 그리고 st.weighted ≠ 신강) 또는 (st.weighted = 신약 그리고 tg.maxOppose = siksang)))
-  - 함께 통과(부 원형 순): (없음)
+- #3 `乙卯 辛巳 戊辰 壬戌` → **봉황** (관문 5) · 부 원형 흑여우
+  - 통과 관문 `arch.v1.05.bonghwang`: st.weighted=중화, tg.maxOppose=gwansal, tg.shareT.gwansal=0.233333, tg.shareT.inseong=0.161905
+  - 앞 관문 탈락: 은하((st.extreme ≠ null 또는 gk.hasSpecial = true)) · 현무(cl.tClass = 한강) · 황금빛 태양(cl.tClass = 열강) · 달의 여신(el.strictPairCount ≥ 1)
+  - 함께 통과(부 원형 순): 흑여우, 불멸의 숲

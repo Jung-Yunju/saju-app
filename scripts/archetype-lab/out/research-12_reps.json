@@ -97,10 +97,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 1.3 / 손 39",
-    "T합 엔진 10.5 / 손 315"
-   ]
+   "mismatches": []
   },
   {
    "id": "은하-2",
@@ -201,9 +198,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 9.516667 / 손 285.5"
-   ]
+   "mismatches": []
   },
   {
    "id": "현무-1",
@@ -425,11 +420,7 @@
    },
    "archMatch": true,
    "secondaryMatch": false,
-   "mismatches": [
-    "S 엔진 3.683333 / 손 110.5",
-    "관살u 엔진 3.633333 / 손 109",
-    "인성u 엔진 2.333333 / 손 70"
-   ]
+   "mismatches": []
   },
   {
    "id": "태양-1",
@@ -543,10 +534,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 2.45 / 손 73.5",
-    "재성u 엔진 4.65 / 손 139.5"
-   ]
+   "mismatches": []
   },
   {
    "id": "태양-2",
@@ -663,11 +651,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 5.383333 / 손 161.5",
-    "관살u 엔진 3.583333 / 손 107.5",
-    "인성u 엔진 3.166667 / 손 95"
-   ]
+   "mismatches": []
   },
   {
    "id": "달-1",
@@ -1026,10 +1010,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "관살u 엔진 4.133333 / 손 124",
-    "인성u 엔진 1.933333 / 손 58"
-   ]
+   "mismatches": []
   },
   {
    "id": "봉황-2",
@@ -1158,12 +1139,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "관살u 엔진 2.75 / 손 82.5",
-    "인성u 엔진 3.2 / 손 96",
-    "재성u 엔진 1.3 / 손 39",
-    "식상u 엔진 1.1 / 손 33"
-   ]
+   "mismatches": []
   },
   {
    "id": "백호-1",
@@ -1303,14 +1279,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 3.933333 / 손 118",
-    "비겁u 엔진 2.083333 / 손 62.5",
-    "인성u 엔진 0.85 / 손 25.5",
-    "식상u 엔진 0.533333 / 손 16",
-    "재성u 엔진 2.433333 / 손 73",
-    "관살u 엔진 3.6 / 손 108"
-   ]
+   "mismatches": []
   },
   {
    "id": "백호-2",
@@ -1441,14 +1410,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 3 / 손 90",
-    "비겁u 엔진 1.1 / 손 33",
-    "인성u 엔진 0.9 / 손 27",
-    "식상u 엔진 0.833333 / 손 25",
-    "재성u 엔진 2.583333 / 손 77.5",
-    "관살u 엔진 4.083333 / 손 122.5"
-   ]
+   "mismatches": []
   },
   {
    "id": "흑여우-1",
@@ -1585,9 +1547,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 5.3 / 손 159"
-   ]
+   "mismatches": []
   },
   {
    "id": "흑여우-2",
@@ -1724,14 +1684,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 2.766667 / 손 83",
-    "비겁u 엔진 0.233333 / 손 7",
-    "인성u 엔진 1.533333 / 손 46",
-    "식상u 엔진 4.633333 / 손 139",
-    "재성u 엔진 0.933333 / 손 28",
-    "관살u 엔진 2.166667 / 손 65"
-   ]
+   "mismatches": []
   },
   {
    "id": "백록-1",
@@ -1868,14 +1821,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 3.65 / 손 109.5",
-    "비겁u 엔진 1.9 / 손 57",
-    "인성u 엔진 0.75 / 손 22.5",
-    "식상u 엔진 1.1 / 손 33",
-    "재성u 엔진 5.3 / 손 159",
-    "관살u 엔진 0.45 / 손 13.5"
-   ]
+   "mismatches": []
   },
   {
    "id": "백록-2",
@@ -2012,14 +1958,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 3.183333 / 손 95.5",
-    "비겁u 엔진 1 / 손 30",
-    "인성u 엔진 1.183333 / 손 35.5",
-    "식상u 엔진 0.1 / 손 3",
-    "재성u 엔진 5.633333 / 손 169",
-    "관살u 엔진 1.583333 / 손 47.5"
-   ]
+   "mismatches": []
   },
   {
    "id": "현자-1",
@@ -2161,13 +2100,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 6.75 / 손 202.5",
-    "비겁u 엔진 0.35 / 손 10.5",
-    "인성u 엔진 5.4 / 손 162",
-    "식상u 엔진 2.55 / 손 76.5",
-    "관살u 엔진 1.2 / 손 36"
-   ]
+   "mismatches": []
   },
   {
    "id": "현자-2",
@@ -2314,14 +2247,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 7.3 / 손 219",
-    "비겁u 엔진 0.4 / 손 12",
-    "인성u 엔진 5.9 / 손 177",
-    "식상u 엔진 0.6 / 손 18",
-    "재성u 엔진 2.05 / 손 61.5",
-    "관살u 엔진 0.55 / 손 16.5"
-   ]
+   "mismatches": []
   },
   {
    "id": "청룡-1",
@@ -2466,10 +2392,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "비겁u 엔진 4.816667 / 손 144.5",
-    "인성u 엔진 0.683333 / 손 20.5"
-   ]
+   "mismatches": []
   },
   {
    "id": "청룡-2",
@@ -2622,9 +2545,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 5.3 / 손 159"
-   ]
+   "mismatches": []
   },
   {
    "id": "늑대-1",
@@ -2777,12 +2698,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 6.666667 / 손 200",
-    "비겁u 엔진 3.533333 / 손 106",
-    "인성u 엔진 2.133333 / 손 64",
-    "식상u 엔진 0.383333 / 손 11.5"
-   ]
+   "mismatches": []
   },
   {
    "id": "늑대-2",
@@ -2936,12 +2852,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 6.533333 / 손 196",
-    "비겁u 엔진 4 / 손 120",
-    "인성u 엔진 1.533333 / 손 46",
-    "재성u 엔진 3.033333 / 손 91"
-   ]
+   "mismatches": []
   },
   {
    "id": "숲-1",
@@ -3102,9 +3013,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 5.233333 / 손 157"
-   ]
+   "mismatches": []
   },
   {
    "id": "숲-2",
@@ -3266,14 +3175,7 @@
    },
    "archMatch": true,
    "secondaryMatch": true,
-   "mismatches": [
-    "S 엔진 5.133333 / 손 154",
-    "비겁u 엔진 3.333333 / 손 100",
-    "인성u 엔진 0.8 / 손 24",
-    "식상u 엔진 0.233333 / 손 7",
-    "재성u 엔진 2.533333 / 손 76",
-    "관살u 엔진 2.6 / 손 78"
-   ]
+   "mismatches": []
   },
   {
    "id": "참고-사례6",

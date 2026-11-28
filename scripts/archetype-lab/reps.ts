@@ -141,8 +141,10 @@ for (const c of CASES) {
   const cmp = (label: string, eng: number, hand: number | undefined, u = false) => {
     if (hand !== undefined && !close(eng, hand, u)) mis.push(`${label} 엔진 ${eng} / 손 ${hand}`)
   }
-  cmp("S", A.support!, e.S, true)
-  cmp("T합", A.total!, e.total, true)
+  // 문서 u 단위 = 엔진 값 × 30 (천간 1.0 = 30u, 명세 §0.1)
+  const U = (x: number) => Math.round(x * 30 * 1e6) / 1e6
+  cmp("S", U(A.support!), e.S, true)
+  cmp("T합", U(A.total!), e.total, true)
   cmp("r", A.ratio!, e.r)
   if (e.verdict && A.verdict !== e.verdict) mis.push(`판정 엔진 ${A.verdict} / 손 ${e.verdict}`)
   if (e.extreme !== undefined && A.extreme !== e.extreme) mis.push(`extreme 엔진 ${A.extreme} / 손 ${e.extreme}`)
@@ -150,7 +152,7 @@ for (const c of CASES) {
   if (e.special && !special.some((s) => s.includes(e.special!))) mis.push(`특수격 엔진 [${special.join(",") || "없음"}] / 손 ${e.special}`)
   cmp("조후T", a.climate.T, e.T)
   cmp("조후M", a.climate.M, e.M)
-  for (const [g, v] of Object.entries(e.groupsU ?? {})) cmp(`${GROUP_KO[g as G]}u`, gt[g as G], v, true)
+  for (const [g, v] of Object.entries(e.groupsU ?? {})) cmp(`${GROUP_KO[g as G]}u`, U(gt[g as G]), v, true)
   for (const [g, v] of Object.entries(e.gs ?? {})) cmp(`${GROUP_KO[g as G]}비율`, f[`tg.shareT.${g}`] as number, v)
   for (const [el, v] of Object.entries(e.shares ?? {})) cmp(`${EL_KO[el as Element]}비율`, a.qiFlow.shares[el as Element], v)
   if (e.structure && primary !== e.structure) mis.push(`주 격 엔진 ${primary} / 손 ${e.structure}`)
@@ -192,12 +194,12 @@ md.push(`- 대표 사주 ${n24}개: 원형 불일치 **${archMis}개** · 부 �
 md.push("")
 md.push("#### 엔진 실제 값(대조용 요약)")
 md.push("")
-md.push("| 예 | S/T합 | r · 판정 | 조후 T/M | 묶음 비율 gs(비·인·식·재·관) | 주 격 · 특수격 | 표지 | 통과 관문 |")
+md.push("| 예 | S/T합(u) | r · 판정 | 조후 T/M | 묶음 비율 gs(비·인·식·재·관) | 주 격 · 특수격 | 표지 | 통과 관문 |")
 md.push("|---|---|---|---|---|---|---|---|")
 for (const r of rows) {
   const en = r.engine as Record<string, unknown> & { gs: Record<string, number> }
   md.push(
-    `| ${r.id} | ${en.S}/${en.total} | ${en.r} ${en.verdict}${en.extreme ? `(${en.extreme})` : ""}${en.nearBoundary ? " 경계" : ""} | ${en.T}/${en.M} ${en.tClass}·${en.mClass} | ${["bigyeop", "inseong", "siksang", "jaeseong", "gwansal"].map((g) => R3(en.gs[g])).join(" · ")} | ${en.structure ?? "-"}${(en.special as string[]).length ? ` · ${(en.special as string[]).join(",")}` : ""} | ${(en.flags as string[]).join(",") || "-"} | ${[en.archetype, ...((en.alsoMatched as string[]) ?? [])].map((x) => nm(x as string)).join(" > ")} |`,
+    `| ${r.id} | ${R3((en.S as number) * 30)}/${R3((en.total as number) * 30)} | ${en.r} ${en.verdict}${en.extreme ? `(${en.extreme})` : ""}${en.nearBoundary ? " 경계" : ""} | ${en.T}/${en.M} ${en.tClass}·${en.mClass} | ${["bigyeop", "inseong", "siksang", "jaeseong", "gwansal"].map((g) => R3(en.gs[g])).join(" · ")} | ${en.structure ?? "-"}${(en.special as string[]).length ? ` · ${(en.special as string[]).join(",")}` : ""} | ${(en.flags as string[]).join(",") || "-"} | ${[en.archetype, ...((en.alsoMatched as string[]) ?? [])].map((x) => nm(x as string)).join(" > ")} |`,
   )
 }
 const out = md.join("\n")
