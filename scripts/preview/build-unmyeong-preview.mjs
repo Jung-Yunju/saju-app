@@ -24,7 +24,7 @@ const res = await build({
   outdir: tmp + "/dist", write: true, jsx: "automatic", target: "es2020", loader: { ".svg": "file", ".png": "file", ".jpg": "file", ".webp": "file" },
   alias: { "@": path.join(root, "src"), "node:fs": fsStub, "node:path": pathStub, fs: fsStub, path: pathStub, "next/font/google": fontStub, "next/link": linkStub },
   define: { __FREE_COPY__: freeCopy, "process.env.NODE_ENV": '"production"', "process.env.NEXT_PUBLIC_SITE_URL": '""' },
-  logLevel: "error",
+  external: ["/unmyeong/*"], logLevel: "error",
 })
 let js = fs.readFileSync(path.join(tmp, "dist/unmyeong-entry.js"), "utf8")
 let css = fs.existsSync(path.join(tmp, "dist/unmyeong-entry.css")) ? fs.readFileSync(path.join(tmp, "dist/unmyeong-entry.css"), "utf8") : ""

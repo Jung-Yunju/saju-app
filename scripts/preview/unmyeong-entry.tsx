@@ -2,6 +2,7 @@
 // 서버·DB·AI·외부 전송 없음. 이름·생년월일은 이 브라우저 밖으로 나가지 않는다.
 import { createRoot } from "react-dom/client"
 import "@/styles/unmyeong.css"
+import "@/styles/unmyeong-book.css"
 import "@/app/unmyeong/unmyeong-flow.css"
 import "@/app/unmyeong/unmyeong-result.css"
 import "@/app/unmyeong/unmyeong-stage.css"
