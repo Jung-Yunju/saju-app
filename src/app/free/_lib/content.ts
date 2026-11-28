@@ -33,12 +33,12 @@ const FILES: Record<keyof RawContent, string> = {
 let cached: RawContent | null = null
 
 /** content/free/*.json 읽기. 없거나 깨진 파일은 건너뛴다(파일 이름만 기록). 개발 중에는 매번 다시 읽는다 */
-export function loadRawContent(dir = path.join(process.cwd(), "content", "free")): RawContent {
+export function loadRawContent(dir = path.join(/*turbopackIgnore: true*/ process.cwd(), "content", "free")): RawContent {
   if (cached && process.env.NODE_ENV === "production") return cached
   const out: RawContent = {}
   for (const [k, file] of Object.entries(FILES) as [keyof RawContent, string][]) {
     try {
-      out[k] = JSON.parse(fs.readFileSync(path.join(dir, file), "utf8")) as unknown
+      out[k] = JSON.parse(fs.readFileSync(path.join(/*turbopackIgnore: true*/ dir, file), "utf8")) as unknown
     } catch (err) {
       if ((err as NodeJS.ErrnoException)?.code !== "ENOENT") console.warn(`[free-content] ${file} 읽기 실패`)
     }

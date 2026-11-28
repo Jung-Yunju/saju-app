@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import {
-  buildRequest, currentMaxBirthYear, emptyForm, isDstYear, MIN_BIRTH_YEAR, PLACES, SIJIN_OPTIONS, ZI_CHOICES, ZI_HELP,
+  buildRequest, MAX_BIRTH_YEAR, emptyForm, isDstYear, MIN_BIRTH_YEAR, PLACES, SIJIN_OPTIONS, ZI_CHOICES, ZI_HELP,
   type BirthForm, type TimeMode,
 } from "../input/build-request"
 import { UmChoiceGroup, UmField, UmLedgerPage, UmSealButton } from "@/components/ui/unmyeong"
@@ -88,7 +88,7 @@ export function CalField({ form, compact }: { form: BirthFormState; compact?: bo
 
 export function DateField({ form }: { form: BirthFormState }) {
   const { f, set, errors } = form
-  const maxYear = currentMaxBirthYear()
+  const maxYear = MAX_BIRTH_YEAR
   return (
     <div className="um-field um-field--ledger um-datefield" role="group" aria-labelledby="um-date-label">
       <span className="um-field__label" id="um-date-label">생년월일</span>

@@ -1,6 +1,6 @@
 "use client"
 
-import { type BirthForm, MIN_BIRTH_YEAR, currentMaxBirthYear, PLACES, SIJIN_OPTIONS, ZI_CHOICES, ZI_HELP, isDstYear, type TimeMode } from "./build-request"
+import { type BirthForm, MIN_BIRTH_YEAR, MAX_BIRTH_YEAR, PLACES, SIJIN_OPTIONS, ZI_CHOICES, ZI_HELP, isDstYear, type TimeMode } from "./build-request"
 
 type SetField = <K extends keyof BirthForm>(key: K, val: BirthForm[K]) => void
 
@@ -48,7 +48,7 @@ export function BirthCard({
 
       <div>
         <Label>태어난 해</Label>
-        <input type="number" placeholder="예) 1990" min={MIN_BIRTH_YEAR} max={currentMaxBirthYear()}
+        <input type="number" placeholder="예) 1990" min={MIN_BIRTH_YEAR} max={MAX_BIRTH_YEAR}
           value={form.birthYear} onChange={e => setField("birthYear", e.target.value)}
           className={inputCls} />
       </div>

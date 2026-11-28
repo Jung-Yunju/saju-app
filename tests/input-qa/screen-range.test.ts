@@ -29,10 +29,11 @@ describe("화면 생년 상한", () => {
     if (lit) {
       expect(Number(lit[1])).toBeGreaterThanOrEqual(thisYear)
     } else {
-      expect(tag![0]).toMatch(/max=\{currentMaxBirthYear\(\)\}/)
+      // Next 16 프리렌더: 렌더 중 new Date() 금지 -> 렌더 max는 고정 상한, 올해 상한은 buildRequest가 제출 시 검증
+      expect(tag![0]).toMatch(/max=\{MAX_BIRTH_YEAR\}/)
       const { currentMaxBirthYear, MAX_BIRTH_YEAR } = await import("@/app/input/build-request")
+      expect(MAX_BIRTH_YEAR).toBeGreaterThanOrEqual(thisYear)
       expect(currentMaxBirthYear()).toBe(Math.min(MAX_BIRTH_YEAR, thisYear))
-      expect(currentMaxBirthYear()).toBeGreaterThanOrEqual(thisYear)
     }
   })
 })
