@@ -34,7 +34,7 @@ css = css.split("/unmyeong/").join("unmyeong/")
 fs.writeFileSync(path.join(out, "app.js"), js)
 fs.writeFileSync(path.join(out, "app.css"), css)
 // 자산 복사
-for (const sub of ["final", "placeholder"]) {
+for (const sub of ["final", "placeholder", "book"]) {
   const src = path.join(root, "public/unmyeong", sub), dst = path.join(out, "unmyeong", sub)
   fs.mkdirSync(dst, { recursive: true })
   for (const f of fs.readdirSync(src)) fs.copyFileSync(path.join(src, f), path.join(dst, f))

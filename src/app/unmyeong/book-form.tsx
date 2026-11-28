@@ -24,9 +24,9 @@ export function useBirthForm(onSubmit: (name: string, body: Record<string, unkno
   const [errors, setErrors] = useState<Errors>({})
   const set = <K extends keyof BirthForm>(k: K, v: BirthForm[K]) => setF(p => ({ ...p, [k]: v }))
 
-  function submit(e: React.FormEvent) {
-    e.preventDefault()
-    if (busy) return
+  /** 검증 — 오류를 칸 아래에 띄우고, 통과하면 {이름, 요청 본문}을 돌려준다(보내지는 않는다). 인장 버튼의 beforeActivate가 쓴다 */
+  function validate(): { name: string; body: Record<string, unknown> } | null {
+    if (busy) return null
     const errs: Errors = {}
     if (!f.gender) errs.gender = "성별을 골라 주렴."
     const y = parseInt(f.birthYear, 10), m = parseInt(f.birthMonth, 10), d = parseInt(f.birthDay, 10)
@@ -43,9 +43,14 @@ export function useBirthForm(onSubmit: (name: string, body: Record<string, unkno
       } else body = built.body
     }
     setErrors(errs)
-    if (body) onSubmit(f.name.trim(), body)
+    return body ? { name: f.name.trim(), body } : null
   }
-  return { f, setF, set, errors, submit }
+  function submit(e: React.FormEvent) {
+    e.preventDefault()
+    const r = validate()
+    if (r) onSubmit(r.name, r.body)
+  }
+  return { f, setF, set, errors, submit, validate, onSubmit }
 }
 
 const digits = (s: string, max: number) => s.replace(/\D/g, "").slice(0, max)

@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import "@/styles/unmyeong.css"
+import "@/styles/unmyeong-book.css"
 import "./unmyeong-flow.css"
 import "./unmyeong-result.css"
 import "./unmyeong-stage.css"

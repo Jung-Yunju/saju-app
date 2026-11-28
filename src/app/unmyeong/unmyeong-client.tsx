@@ -1,19 +1,19 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Intro, introHasPlayed } from "./intro"
-import { BookFormLegacy, useBirthForm } from "./book-form"
-import { BookScene } from "./book-scene"
+import { useBirthForm } from "./book-form"
+import { BookInput } from "./book-input"
+import { BookStill, StillBackdrop } from "./book-still"
 import { EntryVideo } from "./entry-video"
 import { LoadingBook } from "./loading-book"
 import { ResultBook } from "./result-book"
-import { canPlayMedia, containXf, kindOf, mediaOf, playSfx, relativeZoom, useViewport, zoomXf } from "./media-utils"
+import { canPlayMedia, kindOf, playSfx, useViewport } from "./media-utils"
 import type { UnmyeongFreeResponse } from "@/lib/unmyeong/free-types"
 
 const SEEN_KEY = "um-intro-seen"
 const MIN_LAST_STEP_MS = 250 // 인위적 대기 상한(300ms 이하)
-// 장면 08 이름 각인 타임라인(ms): 0~600 폼 사라짐 · 600~2200 이름 번짐 · 2200~ 비네팅 · 2700 결과 진입 영상 크로스페이드(300) → 3000
-const VIGNETTE_AT = 2200
+// 장면 08 이름 각인(책 쪽 위) 타임라인(ms): 0~600 기록 칸 걷힘 · 600~2200 이름 번짐 · 2700 결과 진입 영상 크로스페이드(300) → 3000
 const ENTRY_AT = 2700
 const DISSOLVE_MS = 800
 
@@ -31,17 +31,10 @@ export function UnmyeongClient() {
   const [error, setError] = useState("")
   const [data, setData] = useState<UnmyeongFreeResponse | null>(null)
   const [ready, setReady] = useState(false)
-  const [vignette, setVignette] = useState(false)
-  const [plainStill, setPlainStill] = useState(false) // 정지 이미지를 못 불러오면 예전 입력 장
+  const [fromIntro, setFromIntro] = useState(false) // 인트로 직후 — 영상 마지막 프레임에서 서재가 어두워진다
   const [entryFailed, setEntryFailed] = useState(false) // 영상 실패 → 기존 로딩 연출
   const [veil, setVeil] = useState(false) // 결과로 디졸브하는 동안 영상 마지막 프레임 유지
   const busy = useRef(false)
-  // 모바일: 입력 화면의 확대 상태(결과 진입 영상이 이 상태에서 확대를 풀며 시작)
-  const zoomFrom = useMemo(() => {
-    if (!vp || kind !== "mobile") return null
-    const m = mediaOf(kind)
-    return relativeZoom(containXf(vp, m.stillWidth, m.stillHeight), zoomXf(vp, m.stillWidth, m.stillHeight, m.pages.second))
-  }, [vp, kind])
   const timers = useRef<ReturnType<typeof setTimeout>[]>([])
 
   useEffect(() => { if (vp && stage === "boot") setStage(readSeen() ? "form" : "intro") }, [vp, stage]) // eslint-disable-line react-hooks/set-state-in-effect
@@ -54,12 +47,12 @@ export function UnmyeongClient() {
     if (busy.current) return
     busy.current = true
     clearTimers()
-    setName(n); setError(""); setData(null); setReady(false); setVignette(false); setEntryFailed(false); setVeil(false)
+    setFromIntro(false)
+    setName(n); setError(""); setData(null); setReady(false); setEntryFailed(false); setVeil(false)
     playSfx() // 클릭 직후 — 실패해도 진행
     // 움직임 줄이기·느린 연결이면 각인·영상 없이 곧바로 다음 단계(기존 로딩 연출)
     if (canPlayMedia()) {
       setStage("imprint")
-      later(() => setVignette(true), VIGNETTE_AT)
       later(() => setStage(s => (s === "imprint" ? "entry" : s)), ENTRY_AT)
     } else { setEntryFailed(true); setStage("entry") }
     try {
@@ -74,7 +67,7 @@ export function UnmyeongClient() {
     } finally { busy.current = false }
   }
   // API 오류 → 입력 화면으로(입력값은 form 상태에 그대로 남아 있다)
-  function fail(msg: string) { clearTimers(); setVignette(false); setError(msg); setStage("form") }
+  function fail(msg: string) { clearTimers(); setError(msg); setStage("form") }
 
   const form = useBirthForm(submit, stage === "imprint" || stage === "entry")
 
@@ -91,7 +84,7 @@ export function UnmyeongClient() {
 
   if (stage === "boot") return <div className="um-boot" aria-hidden="true" />
   if (stage === "intro") {
-    return <Intro key={introKey} kind={kind} onDone={() => { writeSeen(); setStage("form") }} />
+    return <Intro key={introKey} kind={kind} onDone={() => { writeSeen(); setFromIntro(true); setStage("form") }} />
   }
 
   const replay = () => { setIntroKey(k => k + 1); setStage("intro") }
@@ -99,11 +92,10 @@ export function UnmyeongClient() {
   const showResult = stage === "result" && !!data
   const showEntry = (stage === "entry" && !entryFailed) || (showResult && veil)
 
-  const scene = plainStill ? (
-    <BookFormLegacy form={form} busy={isBusy} serverError={error} showReplay={introHasPlayed} onReplay={replay} />
-  ) : (
-    <BookScene kind={kind} phase={stage === "form" ? "form" : "imprint"} vignette={vignette || stage === "entry"} name={name} form={form}
-      busy={isBusy} serverError={error} showReplay={introHasPlayed} onReplay={replay} onStillError={() => setPlainStill(true)} />
+  const spread = !!vp && vp.w >= 960
+  const scene = (
+    <BookInput form={form} spread={spread} enter={fromIntro} opening busy={isBusy} imprint={stage === "imprint" || stage === "entry"} name={name}
+      serverError={error} showReplay={introHasPlayed} onReplay={replay} />
   )
   return (
     <>
@@ -112,7 +104,13 @@ export function UnmyeongClient() {
       ) : (
         <div key="scene" hidden={stage === "entry" && entryFailed}>{scene}</div>
       )}
-      {showEntry && <EntryVideo key="entry" kind={kind} ready={ready} fading={showResult} zoomFrom={plainStill ? null : zoomFrom}
+      {/* 인트로 마지막 프레임(같은 정지 그림)을 0.8초에 걸쳐 걷어 내며 어두운 서재로 이어 준다 */}
+      {fromIntro && stage === "form" && (
+        <div className="um-ghost" aria-hidden="true" onAnimationEnd={() => setFromIntro(false)}>
+          <StillBackdrop kind={kind} /><BookStill kind={kind} />
+        </div>
+      )}
+      {showEntry && <EntryVideo key="entry" kind={kind} ready={ready} fading={showResult} zoomFrom={null}
         onEnd={() => { if (stage === "entry") toResult(true) }} onFail={() => { if (stage === "entry") setEntryFailed(true) }} />}
       {stage === "entry" && entryFailed && <div className="um-layer"><LoadingBook step={ready ? 2 : 0} /></div>}
     </>
