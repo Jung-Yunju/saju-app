@@ -107,6 +107,8 @@ export function validateRuleSet(rs: unknown): ArchetypeRuleSet {
   for (const k of ["id", "version", "source", "disclaimer", "featureVersion", "fallback"] as const)
     if (typeof r[k] !== "string" || !r[k]) fail("ruleSet", `${k} 필요`)
   if (!["example", "draft", "approved"].includes(r.status)) fail("ruleSet", "status는 example|draft|approved")
+  if (r.mode !== undefined && r.mode !== "score" && r.mode !== "cascade") fail("ruleSet", "mode는 score|cascade")
+  const cascade = r.mode === "cascade"
   if (!/^\d+\.\d+\.\d+$/.test(r.version)) fail("ruleSet", "version은 x.y.z")
   if (r.featureVersion !== FEATURE_VERSION) fail("ruleSet", `featureVersion ${r.featureVersion} ≠ 엔진 ${FEATURE_VERSION}`)
   if (!r.params || typeof r.params.boundaryMargin !== "number" || typeof r.params.minScore !== "number") fail("ruleSet", "params.boundaryMargin·minScore 숫자 필요")
@@ -125,7 +127,16 @@ export function validateRuleSet(rs: unknown): ArchetypeRuleSet {
     pris.add(a.priority)
     if (a.require !== undefined) validateCondition(a.require, `${w}.require`)
     if (a.exclude !== undefined) validateCondition(a.exclude, `${w}.exclude`)
-    if (!Array.isArray(a.terms) || a.terms.length === 0) fail(w, "terms 1개 이상")
+    if (cascade) {
+      if (a.require === undefined) fail(w, "cascade 모드는 관문 조건(require) 필수")
+      if (a.terms === undefined) a.terms = []
+      if (!Array.isArray(a.terms)) fail(w, "terms는 배열")
+    } else if (!Array.isArray(a.terms) || a.terms.length === 0) fail(w, "terms 1개 이상")
+    for (const k of ["ruleId", "gateLabel"] as const) if (a[k] !== undefined && (typeof a[k] !== "string" || !a[k])) fail(w, `${k}는 비지 않은 문자열`)
+    if (a.expectedShare !== undefined) {
+      const e = a.expectedShare
+      if (!Array.isArray(e) || e.length !== 2 || !e.every((x) => typeof x === "number" && x >= 0 && x <= 1) || e[0] > e[1]) fail(w, "expectedShare는 [하한, 상한] (0~1)")
+    }
     const tids = new Set<string>()
     a.terms.forEach((t, j) => {
       validateTerm(t, `${w}.terms[${j}]`)

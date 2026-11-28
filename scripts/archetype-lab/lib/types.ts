@@ -4,7 +4,7 @@
 import type { HiddenStemTableId, Pillar, RuleOptions } from "../../../src/engine"
 
 export const ARCHETYPE_ENGINE_VERSION = "archetype@0.1.0-lab"
-export const FEATURE_VERSION = "features@0.1.0"
+export const FEATURE_VERSION = "features@0.2.0"
 
 // ─────────────────────────────────────────── 특징 벡터
 
@@ -70,12 +70,24 @@ export interface ArchetypeRule {
   require?: Condition
   /** 제외 조건 — 참이면 후보에서 빠진다 */
   exclude?: Condition
+  /** score 모드: 1개 이상 필수. cascade 모드: 생략 가능(관문은 require 하나로 판정) */
   terms: ScoreTerm[]
+  /** cascade 모드: 연구소장 문서의 규칙 ID(예: "arch.v1.05.bonghwang") */
+  ruleId?: string
+  /** cascade 모드: 관문 조건을 사람 말로(근거 화면·보고서용) */
+  gateLabel?: string
+  /** 연구소장 추정 비율 [하한, 상한](0~1) — 보고서 비교용, 판정에 쓰지 않음 */
+  expectedShare?: [number, number]
 }
 
 export interface ArchetypeRuleSet {
   /** 예: "example-v0", "research-12" */
   id: string
+  /**
+   * score(기본) = 점수 합산 최고점 / cascade = priority 순서대로 관문(require·exclude)을 검사해 처음 통과한 원형.
+   * cascade에서는 terms·boundaryMargin·minScore를 쓰지 않는다. 어떤 관문도 통과하지 못하면 fallback + 경보(fallbackSafety)
+   */
+  mode?: "score" | "cascade"
   /** 규칙 파일 자체 버전(semver) */
   version: string
   /** example = 엔진 개발자 임시 예시(의미 없음) / draft = 연구소장 초안 / approved = 대표 승인 */
@@ -134,7 +146,23 @@ export interface ArchetypeScoring {
    * 1순위를 가른 기준: score(점수 차) / priority(동점 → 우선순위) / fallback(최소 점수 미달·후보 없음)
    * / hourModal(시각 모름 + 정책 hourModal에서 12시진 최빈값이 세 기둥 결과를 대신함)
    */
-  decidedBy: "score" | "priority" | "fallback" | "hourModal"
+  decidedBy: "score" | "priority" | "fallback" | "hourModal" | "cascade"
+  /** cascade 모드에서만 */
+  cascade?: CascadeInfo
+}
+
+/** 순서형 관문 판정의 근거 기록 (02-archetypes.md §7 matched·trace·alsoMatched) */
+export interface CascadeInfo {
+  /** 통과한 관문의 규칙 ID */
+  ruleId: string | null
+  /** 통과한 관문 판정에 쓴 특징 값 */
+  matched: Record<string, FeatureValue>
+  /** 앞 순서 원형부터 통과 원형까지(통과 원형 포함). failedOn = 처음 거짓이 된 최상위 조건 */
+  trace: { id: string; passed: boolean; failedOn?: string }[]
+  /** 순서와 무관하게 관문을 통과한 다른 원형(priority 순). 첫째 = 부 원형 */
+  alsoMatched: string[]
+  /** 어떤 관문도 통과하지 못해 fallback을 준 경우(정상이면 false — QA 경보) */
+  fallbackSafety: boolean
 }
 
 export interface HourVariant {
