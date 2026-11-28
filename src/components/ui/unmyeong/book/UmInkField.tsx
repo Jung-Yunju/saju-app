@@ -123,8 +123,10 @@ type PartCommon = {
   "aria-label": string
   suffix?: ReactNode
   invalid?: boolean
-  /** 칸 너비(글자 수, 기본 4) — 예: 해 4, 달·날 2 */
+  /** 칸 최소 너비(숫자 글자 수, 기본 4 — 한글 한 자 ≈ 숫자 1.6자) — 예: 해 4, 달·날 2, 「모름」 4. em 이라 글자가 커지면 같이 커진다 */
   chars?: number
+  /** 한 줄에 남는 폭을 나눠 갖는 비율(기본 = chars) — 예: 년:월:일 = 4:2:2 */
+  grow?: number
   className?: string
 }
 export type UmInkPartProps =
@@ -133,12 +135,12 @@ export type UmInkPartProps =
 
 /** UmInkField as="group" 안의 한 칸(년·월·일·시·분). 밑줄·포커스 번짐은 같다 */
 export function UmInkPart(props: UmInkPartProps) {
-  const { suffix, invalid, chars = 4, className } = props
+  const { suffix, invalid, chars = 4, grow, className } = props
   const common = { className: "ub-ink__control", "aria-invalid": invalid ? (true as const) : undefined, "aria-label": props["aria-label"] }
   let control: ReactNode
   if (props.as === "select") {
-    const { as, suffix: s, invalid: i, chars: n, className: c, children, ...sel } = props
-    void [as, s, i, n, c]
+    const { as, suffix: s, invalid: i, chars: n, grow: g, className: c, children, ...sel } = props
+    void [as, s, i, n, g, c]
     control = (
       <>
         <span className="ub-ink__sel">
@@ -150,14 +152,18 @@ export function UmInkPart(props: UmInkPartProps) {
       </>
     )
   } else {
-    const { as, suffix: s, invalid: i, chars: n, className: c, ...inp } = props
-    void [as, s, i, n, c]
+    const { as, suffix: s, invalid: i, chars: n, grow: g, className: c, ...inp } = props
+    void [as, s, i, n, g, c]
     control = <input {...inp} {...common} />
   }
   return (
     <span
       className={cx("ub-ink__part", "ub-ink__wrap", invalid && "ub-ink--error", className)}
-      style={{ "--ub-part-w": `${(chars * 0.62 + (props.as === "select" ? 1.6 : 0.5)).toFixed(2)}em` } as CSSProperties}
+      style={{
+        // 숫자 한 자 ≈ 0.6em + 자간 0.04em(명조 굵게 실측) → 0.66em. 좌우 여백 4px, select 는 꺾쇠 자리 24px 를 더한다
+        "--ub-part-w": `calc(${(chars * 0.66).toFixed(2)}em + ${props.as === "select" ? 26 : 4}px)`,
+        "--ub-part-grow": grow ?? chars,
+      } as CSSProperties}
     >
       {control}
       {suffix && (

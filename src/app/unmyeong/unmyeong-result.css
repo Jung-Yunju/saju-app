@@ -6,36 +6,36 @@
 .umb [data-el="금"]{--el:var(--umr-metal)}.umb [data-el="수"]{--el:var(--umr-water)}
 .umb-visually-hidden{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .umb-cover{text-align:center}
-.umb-cover-kicker{margin:0;font:700 1rem/1.4 var(--um-font-title);letter-spacing:.3em;padding-left:.3em;color:var(--um-brass)}
+.umb-cover-kicker{margin:0;font:700 var(--ub-fs-label)/1.4 var(--um-font-title);letter-spacing:.3em;padding-left:.3em;color:var(--um-brass)}
 .umb-cover-name{margin:8px 0 0;font:700 clamp(1.5rem,5vw,2.1rem)/1.4 var(--um-font-title);color:var(--um-text)}
 /* 펼침마다 화면 맞춤(UmBook fit="grow"): PC는 2:3 쪽 두 장이 한 화면에, 글이 길면 아래로 늘어난다. 좁은 화면은 한 쪽에 이어서 */
 .umb .ub-book{--ub-book-single:40rem}
 .umb .ub-bookpage{min-width:0}
 .umb .ub-prose{font-size:var(--ub-fs-body)}
 .umb .ub-prose p{margin:0}
-.umb-essence{font:800 calc(var(--ub-t)*1.1875)/1.6 var(--um-font-title)!important;color:var(--ub-ink);text-wrap:balance}
+.umb-essence{font:800 var(--ub-fs-voice)/1.6 var(--um-font-title)!important;color:var(--ub-ink);text-wrap:balance}
 .umr-pending{font-style:italic;color:var(--ub-ink-soft)}
 /* 영물 그림 */
 .umb-water{position:relative;margin:0 0 18px}
 .umb-water img{display:block;width:100%;height:auto;max-height:200px;object-fit:cover;border-radius:2px;box-shadow:0 1px 0 rgb(42 33 25/.25)}
 .umb-water-bottom{opacity:.78;transform:scaleY(-1);filter:blur(1.2px) saturate(.8)}
 .umb-ripple{display:block;height:6px;margin:2px 0;background:repeating-linear-gradient(90deg,rgb(42 33 25/.35) 0 14px,transparent 14px 22px);opacity:.6}
-.umb-water figcaption{margin-top:8px;text-align:center;font:700 1.25rem/1.4 var(--um-font-title);color:var(--ub-ink)}
-.umb-water-tag{position:absolute;right:8px;top:8px;padding:2px 8px;font-size:.875rem;background:rgb(222 209 179/.85);color:var(--ub-ink-soft)}
-.umb-seeking{padding:24px 12px;border:1px dashed var(--ub-line);font-weight:400!important;font-size:1rem!important;color:var(--ub-ink-soft)}
+.umb-water figcaption{margin-top:8px;text-align:center;font:700 var(--ub-fs-voice)/1.4 var(--um-font-title);color:var(--ub-ink)}
+.umb-water-tag{position:absolute;right:8px;top:8px;padding:2px 8px;font-size:var(--ub-fs-fine);background:rgb(222 209 179/.85);color:var(--ub-ink-soft)}
+.umb-seeking{padding:24px 12px;border:1px dashed var(--ub-line);font-weight:400!important;font-size:var(--ub-fs-body)!important;color:var(--ub-ink-soft)}
 .umb-notice{margin:0;padding-top:12px;border-top:1px solid rgb(42 33 25/.25)}
 /* 원국 판 */
 .umb-wongook .ub-prose{max-width:none}
-.umb-wongook h3,.umb-basis h3{margin:1.5em 0 .5em;font:800 calc(var(--ub-t)*1.0625)/1.45 var(--um-font-title);color:var(--ub-ink)}
+.umb-wongook h3,.umb-basis h3{margin:1.5em 0 .5em;font:800 var(--ub-fs-voice)/1.45 var(--um-font-title);color:var(--ub-ink)}
 .umr-pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .umr-pillars>div{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 2px 12px;border:1px solid var(--ub-line);text-align:center;min-width:0;background:rgb(255 250 235/.18)}
 .umr-pillars .is-me{background:rgb(122 42 36/.12);border-color:var(--ub-cinnabar)}
-.umr-p-label{font-size:var(--ub-fs-label);color:var(--ub-ink-soft);white-space:nowrap}
+.umr-p-label{font-size:var(--ub-fs-label);line-height:1.3;color:var(--ub-ink-soft);word-break:keep-all;text-align:center}
 .umr-gz{display:inline-flex;flex-direction:column;align-items:center;gap:.35em;font:700 var(--ub-fs-label)/1.15 var(--um-font-title)}
 .umr-wg-cell{display:flex;flex-direction:column;align-items:center;line-height:1.15}
 .umr-wg-cell b{font-size:clamp(30px,10.5cqi,50px);font-weight:700;color:var(--el)}
 .umr-wg-cell i{font-style:normal;font-size:var(--ub-fs-label);font-weight:700;color:var(--el)}
-.umr-wg-tag{font-size:var(--ub-fs-fine);color:var(--ub-error);font-weight:700;min-height:1.5em;white-space:nowrap}
+.umr-wg-tag{font-size:var(--ub-fs-fine);color:var(--ub-error);font-weight:700;min-height:1.5em;word-break:keep-all}
 .umr-wg-unknown{font-size:var(--ub-fs-body);color:var(--ub-ink-soft);padding:1.5rem 0}
 .umr-wg-note,.umr-wg-line{margin:.7em 0 0!important;font-size:var(--ub-fs-sub);line-height:1.7}
 .umr-els-bar{display:flex;height:18px;border-radius:2px;overflow:hidden;background:rgb(42 33 25/.14)}
@@ -50,14 +50,14 @@
 /* 근거 펼침 */
 .umb-bookfold .ub-book__page{min-height:0}
 .umb-fold{margin:0}
-.umb-fold__summary{display:flex;align-items:center;gap:12px;min-height:52px;padding:8px 0;font:800 1.125rem/1.4 var(--um-font-title);color:var(--ub-ink);cursor:pointer;list-style:none;-webkit-tap-highlight-color:transparent}
+.umb-fold__summary{display:flex;align-items:center;gap:12px;min-height:52px;padding:8px 0;font:800 var(--ub-fs-voice)/1.4 var(--um-font-title);color:var(--ub-ink);cursor:pointer;list-style:none;-webkit-tap-highlight-color:transparent}
 .umb-fold__summary::-webkit-details-marker{display:none}
 .umb-fold__summary:focus-visible{outline:2px solid var(--ub-focus);outline-offset:4px}
 .umb-fold__mark{position:relative;flex:none;width:20px;height:20px;border:1px solid var(--ub-cinnabar)}
 .umb-fold__mark::before,.umb-fold__mark::after{content:"";position:absolute;left:50%;top:50%;background:var(--ub-cinnabar);transform:translate(-50%,-50%);transition:transform .2s ease}
 .umb-fold__mark::before{width:9px;height:1.5px}.umb-fold__mark::after{width:1.5px;height:9px}
 .umb-fold[open] .umb-fold__mark::after{transform:translate(-50%,-50%) scaleY(0)}
-.umb-fold__hint{margin-left:auto;font:400 .9375rem/1.4 var(--um-font-body);color:var(--ub-ink-soft)}
+.umb-fold__hint{margin-left:auto;font:400 var(--ub-fs-label)/1.4 var(--um-font-body);color:var(--ub-ink-soft)}
 .umb-fold__body{padding-top:8px;font-family:var(--um-font-body);color:var(--ub-ink)}
 .umb-fold__body li,.umb-fold__body p{word-break:keep-all}
 /* 유료 5권 서가 — 책등이 꽂힌 서가 */
@@ -66,31 +66,33 @@
 .umb-shelf-lead{margin:8px 0 22px;color:var(--um-text)}
 .umb-spines{list-style:none;margin:0 auto;padding:0 8px;display:flex;justify-content:center;align-items:flex-end;gap:5px}
 .umb-spines li{display:block;flex:0 1 64px;min-width:0}
-.umb-spine{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;width:100%;height:210px;padding:12px 0 14px;cursor:pointer;
+.umb-spine{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;width:100%;height:13.2em;padding:12px 0 14px;cursor:pointer;
  border:0;border-radius:3px 3px 1px 1px;color:#e2d8c5;font:inherit;-webkit-tap-highlight-color:transparent;
  background:linear-gradient(90deg,rgb(255 220 180/.1),transparent 18%,transparent 70%,rgb(0 0 0/.4)),var(--spine,#3c1c15);
  box-shadow:inset 0 0 0 1px rgb(0 0 0/.35),inset 0 2px 0 rgb(255 220 180/.12),2px 0 3px rgb(0 0 0/.45);transition:transform .25s ease}
-.umb-spine[data-i="0"]{--spine:#3c1c15;height:206px}.umb-spine[data-i="1"]{--spine:#2b2a1d;height:218px}.umb-spine[data-i="2"]{--spine:#4a2319;height:200px}
-.umb-spine[data-i="3"]{--spine:#222a2b;height:212px}.umb-spine[data-i="4"]{--spine:#3a2a1a;height:204px}
+/* 책등 높이는 em — 글자가 커지면 책등도 길어져 제목이 옆으로 넘치지 않는다 */
+.umb-spine{font-size:var(--ub-fs-label)}
+.umb-spine[data-i="0"]{--spine:#3c1c15;height:12.9em}.umb-spine[data-i="1"]{--spine:#2b2a1d;height:13.7em}.umb-spine[data-i="2"]{--spine:#4a2319;height:12.6em}
+.umb-spine[data-i="3"]{--spine:#222a2b;height:13.3em}.umb-spine[data-i="4"]{--spine:#3a2a1a;height:12.8em}
 .umb-spine::before,.umb-spine::after{content:"";position:absolute;left:8px;right:8px;height:1px;background:rgb(185 161 122/.55)}
 .umb-spine::before{top:36px}.umb-spine::after{bottom:10px}
-.umb-spine__no{font:700 .9375rem/1 var(--um-font-title);color:var(--um-brass)}
-.umb-spine__title{writing-mode:vertical-rl;margin-top:14px;flex:1;display:flex;align-items:center;font:800 1rem/1.3 var(--um-font-title);letter-spacing:.12em;max-height:130px;overflow:hidden;word-break:keep-all}
+.umb-spine__no{font:700 1em/1 var(--um-font-title);color:var(--um-brass)}
+.umb-spine__title{writing-mode:vertical-rl;margin-top:14px;flex:1;display:flex;align-items:center;font:800 1em/1.3 var(--um-font-title);letter-spacing:.08em;word-break:keep-all}
 .umb-spine[aria-pressed="true"]{transform:translateY(-14px);box-shadow:inset 0 0 0 1px rgb(185 161 122/.6),2px 0 3px rgb(0 0 0/.45),0 10px 12px -4px rgb(0 0 0/.6)}
 .umb-spine:hover{transform:translateY(-6px)}.umb-spine[aria-pressed="true"]:hover{transform:translateY(-14px)}
 .umb-spine:focus-visible{outline:2px solid var(--um-brass);outline-offset:3px}
 .umb-plank{height:14px;margin:0 auto;max-width:36rem;border-radius:2px;background:linear-gradient(#4a3a28,#2a2016 60%,#17110b);box-shadow:0 8px 14px rgb(0 0 0/.55),inset 0 1px 0 rgb(255 220 180/.15)}
 .umb-shelf-card{display:grid;gap:4px;max-width:30rem;margin:22px auto 0;padding:14px 18px;text-align:left;border-left:3px solid var(--um-seal);background:rgb(20 19 16/.55)}
-.umb-shelf-card__no{font-size:.9375rem;color:var(--um-text-muted)}
-.umb-shelf-card__title{font:800 1.25rem/1.4 var(--um-font-title);color:var(--um-brass)}
-.umb-shelf-card__sub{font-size:1rem;color:var(--um-text)}
-.umb-shelf-card__intro{font-size:1rem;line-height:1.7;color:var(--um-text-muted)}
+.umb-shelf-card__no{font-size:var(--ub-fs-label);color:var(--um-text-muted)}
+.umb-shelf-card__title{font:800 var(--ub-fs-voice)/1.4 var(--um-font-title);color:var(--um-brass)}
+.umb-shelf-card__sub{font-size:var(--ub-fs-body);color:var(--um-text)}
+.umb-shelf-card__intro{font-size:var(--ub-fs-body);line-height:1.7;color:var(--um-text-muted)}
 .umb-shelf-cta{margin:22px 0 0}
 .umb-end{display:flex;flex-direction:column;align-items:center;text-align:center;max-width:34rem;margin:0 auto}
-.umb-fine{margin:10px 0 0;font-size:.9375rem;line-height:1.7;color:var(--um-text-muted)}
+.umb-fine{margin:10px 0 0;font-size:var(--ub-fs-fine);line-height:1.7;color:var(--um-text-muted)}
 .umb-fine .um-fine-link{color:inherit;text-decoration:underline;text-underline-offset:3px}
 .umb-foot{margin-top:18px}
-@media (max-width:400px){.umb-spines{gap:3px;padding:0}.umb-spines li{flex-basis:56px}.umb-spine__title{font-size:.9375rem;letter-spacing:.08em}}
+@media (max-width:400px){.umb-spines{gap:3px;padding:0}.umb-spines li{flex-basis:56px}}
 @media (prefers-reduced-motion:reduce){.umb-spine,.umb-fold__mark::before,.umb-fold__mark::after{transition:none}}
 
 /* 입력 화면(원장형) 보조 */

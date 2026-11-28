@@ -42,8 +42,8 @@ function Wongook({ data }: { data: UnmyeongFreeResponse }) {
           const p = data.pillars.find(x => x.key === k)
           return p ? (
             <div key={k} role="listitem" className={p.me ? "is-me" : ""}>
-              <span className="umr-p-label">{PILLAR_KO[k]}</span>
-              <span className="umr-wg-tag">{p.me ? "나(일간)" : "\u00a0"}</span>
+              <span className="umr-p-label">{PILLAR_KO[k].slice(0, 2)}<wbr />{PILLAR_KO[k].slice(2)}</span>
+              <span className="umr-wg-tag">{p.me ? <>나<wbr />(일간)</> : "\u00a0"}</span>
               <span className="umr-gz">
                 <span className="umr-wg-cell"><b data-el={p.element} lang="zh">{p.stemHanja}</b><i>{p.stemKo}</i></span>
                 <span className="umr-wg-cell"><b data-el={p.branchEl} lang="zh">{p.branchHanja}</b><i>{p.branchKo}</i></span>
@@ -51,7 +51,7 @@ function Wongook({ data }: { data: UnmyeongFreeResponse }) {
             </div>
           ) : (
             <div key={k} role="listitem" className="is-unknown">
-              <span className="umr-p-label">{PILLAR_KO[k]}</span>
+              <span className="umr-p-label">{PILLAR_KO[k].slice(0, 2)}<wbr />{PILLAR_KO[k].slice(2)}</span>
               <span className="umr-wg-tag">{"\u00a0"}</span>
               <span className="umr-gz umr-wg-unknown">모름</span>
             </div>

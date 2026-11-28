@@ -37,6 +37,8 @@ function Fields({ form, imprint, pc }: { form: BirthFormState; imprint: boolean;
     else if (v.startsWith("s")) setF(p => ({ ...p, timeMode: "sijin", birthHour: v.slice(1), birthMinute: "", ziChoice: "" }))
     else setF(p => ({ ...p, timeMode: "exact", birthHour: v, birthMinute: p.timeMode === "exact" && p.birthMinute !== "" ? p.birthMinute : "0", ziChoice: "" }))
   }
+  // 대략 시간대를 고르면 칸에는 짧은 이름만(「새벽 2시경 (축시)」), 정확한 시간 범위는 도움말 줄에 — 칸 폭을 넘지 않게
+  const sijin = f.timeMode === "sijin" ? SIJIN_OPTIONS.find(o => o.v === f.birthHour) : undefined
   return (
     <div className={`umf-record${pc ? "" : " ub-ledger"}${imprint ? " is-imprint" : ""}`} inert={imprint}>
       <UmInkField label="부를 이름" type="text" name="um-name" autoComplete="off" maxLength={20} placeholder="예: 서연"
@@ -51,28 +53,31 @@ function Fields({ form, imprint, pc }: { form: BirthFormState; imprint: boolean;
       </UmInkField>
       {pc ? <div className="ub-fields-row">{cal}{sex}</div> : cal}
       <UmInkField as="group" label="태어난 시각" error={errors.time}
-        hint={f.timeMode === "sijin" ? undefined : "모르면 '모름'으로 둬라. 시는 빼고 본다."}>
-        <UmInkPart as="select" aria-label="태어난 시" chars={3} suffix="시" invalid={!!errors.time} value={hourValue} onChange={e => onHour(e.target.value)}>
+        hint={f.timeMode === "sijin" ? (sijin ? `${sijin.l} · ${sijin.t}` : undefined) : "모르면 '모름'으로 둬라. 시는 빼고 본다."}>
+        <UmInkPart as="select" aria-label="태어난 시" chars={f.timeMode === "sijin" ? 14 : 4} grow={f.timeMode === "sijin" ? 8 : 4}
+          suffix={f.timeMode === "sijin" ? undefined : "시"} invalid={!!errors.time} value={hourValue} onChange={e => onHour(e.target.value)}>
           <option value="">모름</option>
           <optgroup label="정확한 시(24시간제)">
             {HOURS.map(h => <option key={h} value={String(h)}>{h}</option>)}
           </optgroup>
           <optgroup label="대략 시간대">
-            {SIJIN_OPTIONS.map(o => <option key={o.v} value={`s${o.v}`}>{o.e} · {o.l} ({o.t})</option>)}
+            {SIJIN_OPTIONS.map(o => <option key={o.v} value={`s${o.v}`}>{o.e} ({o.l.replace(/\(.+\)$/, "")})</option>)}
           </optgroup>
         </UmInkPart>
-        <UmInkPart as="select" aria-label="태어난 분" chars={2} suffix="분" disabled={f.timeMode !== "exact"} value={f.timeMode === "exact" ? f.birthMinute : ""}
-          onChange={e => set("birthMinute", e.target.value)}>
-          <option value="">—</option>
-          {MINUTES.map(m => <option key={m} value={String(m)}>{m}</option>)}
-        </UmInkPart>
+        {/* 대략 시간대를 고르면 분 칸은 쓰지 않으므로 감춘다(시간대 이름이 한 줄을 다 쓴다) */}
+        {f.timeMode !== "sijin" && (
+          <UmInkPart as="select" aria-label="태어난 분" chars={2} suffix="분" disabled={f.timeMode !== "exact"} value={f.timeMode === "exact" ? f.birthMinute : ""}
+            onChange={e => set("birthMinute", e.target.value)}>
+            <option value="">—</option>
+            {MINUTES.map(m => <option key={m} value={String(m)}>{m}</option>)}
+          </UmInkPart>
+        )}
       </UmInkField>
       {f.timeMode === "sijin" && f.birthHour === "0" && (
-        <UmInkField as="select" label="한밤중" hint={ZI_HELP} value={f.ziChoice}
-          onChange={e => set("ziChoice", e.target.value as BirthForm["ziChoice"])}>
-          <option value="">한밤중 안에서는 모르겠어요</option>
-          {ZI_CHOICES.map(z => <option key={z.v} value={z.v}>{z.l}</option>)}
-        </UmInkField>
+        // 긴 고르기 글이 칸 폭을 넘지 않게 select 대신 짧은 글자 고르기. 값·검증은 그대로(""·night·dawn). 시간 범위는 위 시 칸 도움말에
+        <UmInkChoice legend="한밤중" name="um-zi" value={f.ziChoice} hint={ZI_HELP}
+          options={[{ value: "", label: "모름" }, ...ZI_CHOICES.map(z => ({ value: z.v, label: z.v === "night" ? "자정 전" : "자정 후" }))]}
+          onChange={e => set("ziChoice", e.target.value as BirthForm["ziChoice"])} />
       )}
       {isDstYear(f.birthYear) && f.timeMode !== "unknown" && (
         <p className="ub-note umf-dst">그 무렵엔 서머타임이 있었단다. 출생증명서의 시각을 그대로 적으면 우리가 맞춰 보마.</p>
