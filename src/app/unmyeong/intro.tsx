@@ -3,7 +3,7 @@
 // 인트로 = 영상(장면 01~07) + 건너뛰기. 재생 거부·로딩 실패·느린 연결·움직임 줄이기면 곧바로 정지 이미지(입력 화면)로 간다.
 // 영상이 끝나면 마지막 프레임 위에 같은 구도의 정지 이미지를 0.36초 크로스페이드로 얹은 뒤 입력 단계로 넘긴다.
 import { useEffect, useRef, useState } from "react"
-import { BookStill } from "./book-still"
+import { BookStill, StillBackdrop } from "./book-still"
 import { canPlayMedia, mediaOf, type MediaKind } from "./media-utils"
 
 export type IntroResult = "ended" | "skipped" | "fallback"
@@ -46,7 +46,8 @@ export function Intro({ kind: kindProp, onDone }: { kind: MediaKind; onDone: (r:
   if (!go) return <div className="um-boot" aria-hidden="true" />
   return (
     <section className="um-stage um-intro" aria-label="인트로">
-      <video ref={ref} className="um-stage-media" autoPlay muted={muted} playsInline preload="auto" aria-hidden="true"
+      <StillBackdrop kind={kind} />
+      <video ref={ref} className={`um-stage-media${kind === "mobile" ? " um-contain" : ""}`} autoPlay muted={muted} playsInline preload="auto" aria-hidden="true"
         onPlaying={() => { playing.current = true; introHasPlayed = true }}
         onEnded={() => setEnded(true)} onError={e => { if (e.target === e.currentTarget) done.current("fallback") }}>
         {media.introVideo.map(s => (

@@ -4,10 +4,11 @@
 // 응답이 오면 멈춤 컷(stopStart~끝)으로 이어 재생한다. 끝나면 onEnd(마지막 프레임을 그대로 두고 결과로 디졸브).
 import { useEffect, useRef, useState } from "react"
 import { UNMYEONG_MEDIA } from "@/lib/unmyeong/assets"
-import { mediaOf, type MediaKind } from "./media-utils"
+import { StillBackdrop } from "./book-still"
+import { mediaOf, relCss, type MediaKind } from "./media-utils"
 
-export function EntryVideo({ kind: kindProp, ready, fading, onEnd, onFail }: {
-  kind: MediaKind; ready: boolean; fading: boolean; onEnd: () => void; onFail: () => void
+export function EntryVideo({ kind: kindProp, ready, fading, zoomFrom, onEnd, onFail }: {
+  kind: MediaKind; ready: boolean; fading: boolean; zoomFrom?: { k: number; x: number; y: number } | null; onEnd: () => void; onFail: () => void
 }) {
   const [kind] = useState(kindProp) // 재생 중 회전해도 끊기지 않게 고정
   const media = mediaOf(kind)
@@ -15,6 +16,13 @@ export function EntryVideo({ kind: kindProp, ready, fading, onEnd, onFail }: {
   const ref = useRef<HTMLVideoElement>(null)
   const readyRef = useRef(ready)
   const started = useRef(false)
+  // 모바일: 입력 화면의 확대 상태에서 시작해 확대를 풀며 영상으로 넘어간다(D-032)
+  const [zoomed, setZoomed] = useState(!!zoomFrom)
+  useEffect(() => {
+    if (!zoomFrom) return
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => setZoomed(false)))
+    return () => cancelAnimationFrame(id)
+  }, [zoomFrom])
   const failedSrc = useRef(0)
   const cb = useRef({ onEnd, onFail })
   useEffect(() => { cb.current = { onEnd, onFail } })
@@ -47,7 +55,9 @@ export function EntryVideo({ kind: kindProp, ready, fading, onEnd, onFail }: {
 
   return (
     <div className={`um-entry${fading ? " is-fading" : ""}`} aria-hidden="true">
-      <video ref={ref} className="um-stage-media" autoPlay muted playsInline preload="auto"
+      <StillBackdrop kind={kind} />
+      <div className="um-entry__cam" style={zoomFrom ? { transform: zoomed ? relCss(zoomFrom) : "none" } : undefined}>
+      <video ref={ref} className={`um-stage-media${kind === "mobile" ? " um-contain" : ""}`} autoPlay muted playsInline preload="auto"
         onPlaying={() => { started.current = true }}
         onEnded={() => cb.current.onEnd()}
         onError={e => { if (e.target === e.currentTarget) cb.current.onFail() }}>
@@ -56,6 +66,7 @@ export function EntryVideo({ kind: kindProp, ready, fading, onEnd, onFail }: {
             onError={() => { failedSrc.current += 1; if (failedSrc.current >= media.resultEntryVideo.length) cb.current.onFail() }} />
         ))}
       </video>
+      </div>
     </div>
   )
 }

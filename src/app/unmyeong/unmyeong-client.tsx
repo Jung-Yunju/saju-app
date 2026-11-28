@@ -1,13 +1,13 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Intro, introHasPlayed } from "./intro"
 import { BookFormLegacy, useBirthForm } from "./book-form"
 import { BookScene } from "./book-scene"
 import { EntryVideo } from "./entry-video"
 import { LoadingBook } from "./loading-book"
 import { ResultBook } from "./result-book"
-import { canPlayMedia, kindOf, playSfx, useViewport } from "./media-utils"
+import { canPlayMedia, containXf, kindOf, mediaOf, playSfx, relativeZoom, useViewport, zoomXf } from "./media-utils"
 import type { UnmyeongFreeResponse } from "@/lib/unmyeong/free-types"
 
 const SEEN_KEY = "um-intro-seen"
@@ -36,6 +36,12 @@ export function UnmyeongClient() {
   const [entryFailed, setEntryFailed] = useState(false) // 영상 실패 → 기존 로딩 연출
   const [veil, setVeil] = useState(false) // 결과로 디졸브하는 동안 영상 마지막 프레임 유지
   const busy = useRef(false)
+  // 모바일: 입력 화면의 확대 상태(결과 진입 영상이 이 상태에서 확대를 풀며 시작)
+  const zoomFrom = useMemo(() => {
+    if (!vp || kind !== "mobile") return null
+    const m = mediaOf(kind)
+    return relativeZoom(containXf(vp, m.stillWidth, m.stillHeight), zoomXf(vp, m.stillWidth, m.stillHeight, m.pages.second))
+  }, [vp, kind])
   const timers = useRef<ReturnType<typeof setTimeout>[]>([])
 
   useEffect(() => { if (vp && stage === "boot") setStage(readSeen() ? "form" : "intro") }, [vp, stage]) // eslint-disable-line react-hooks/set-state-in-effect
@@ -106,7 +112,7 @@ export function UnmyeongClient() {
       ) : (
         <div key="scene" hidden={stage === "entry" && entryFailed}>{scene}</div>
       )}
-      {showEntry && <EntryVideo key="entry" kind={kind} ready={ready} fading={showResult}
+      {showEntry && <EntryVideo key="entry" kind={kind} ready={ready} fading={showResult} zoomFrom={plainStill ? null : zoomFrom}
         onEnd={() => { if (stage === "entry") toResult(true) }} onFail={() => { if (stage === "entry") setEntryFailed(true) }} />}
       {stage === "entry" && entryFailed && <div className="um-layer"><LoadingBook step={ready ? 2 : 0} /></div>}
     </>

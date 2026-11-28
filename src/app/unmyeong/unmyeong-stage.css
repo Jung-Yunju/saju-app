@@ -1,6 +1,30 @@
 /* 영상 연동 장면(D-031): 정지 이미지 위 입력 오버레이·이름 각인·결과 진입 영상. 계약: docs/redesign/22-video-integration-spec.md */
-.um-stage{position:fixed;inset:0;overflow:hidden;background:#141310;isolation:isolate}
+.um-stage{position:fixed;inset:0;overflow:hidden;overflow:clip;background:#141310;isolation:isolate}
 .um-stage-media,.um-still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+/* D-032 세로 화면: 가로 판을 contain으로, 위아래 여백은 흐리고 어두운 같은 이미지 */
+.um-still--contain,.um-contain{object-fit:contain}
+.um-backdrop{position:absolute;left:-8%;top:-8%;width:116%;height:116%;object-fit:cover;filter:blur(26px) brightness(.26) saturate(.75);pointer-events:none}
+.um-cam{position:absolute;left:0;top:0;transform-origin:0 0}
+.um-cam picture{display:block;width:100%;height:100%}
+.um-still--plain{position:static;width:100%;height:100%;object-fit:fill}
+.um-entry__cam{position:absolute;inset:0;transform-origin:0 0;transition:transform 900ms cubic-bezier(.45,.05,.25,1)}
+/* 확대 전 왼쪽 쪽의 제목·도장(먹으로 스며듦) */
+.um-pretitle{position:absolute;container-type:inline-size;pointer-events:none;text-align:center;color:#141310;mix-blend-mode:multiply;opacity:0;animation:um-pre-in 420ms 80ms ease forwards;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3cqw;padding:0 4cqw;font-family:var(--um-font-title)}
+.um-pretitle.is-out{animation:um-pre-out 420ms ease forwards}
+.um-pretitle p{margin:0}
+.um-pretitle__kicker{font-size:8.5cqw;line-height:1.25;word-break:keep-all}
+.um-pretitle__han{font-size:25cqw;font-weight:800;line-height:1;letter-spacing:.04em}
+.um-pretitle__ko{font-size:14cqw;font-weight:800;line-height:1.1}
+.um-pretitle__seal{display:block;transform:scale(.5);transform-origin:50% 0;margin-bottom:-14cqw}
+@keyframes um-pre-in{from{opacity:0;filter:blur(5px)}to{opacity:.92;filter:blur(0)}}
+@keyframes um-pre-out{from{opacity:.92}to{opacity:0}}
+.um-ov-form.is-wait{opacity:0;visibility:hidden;transition:none}
+.um-ov-form{--um-in:1}
+.um-bookscene[data-zoom="done"][data-kind="mobile"] .um-ov-form{animation:um-fade-in 320ms ease backwards}
+.um-ov-page--solo{padding-top:calc(var(--ov-f)*.5px)}
+.um-ov-page--solo .um-ledger__mast{padding-right:calc(var(--ov-f)*4.2px)}
+.um-ov-page--solo .um-ledger__stamp{top:0;right:2px;transform:scale(.8);transform-origin:100% 0}
 .um-still--fade{animation:um-fade-in 360ms ease both}
 @keyframes um-fade-in{from{opacity:0}to{opacity:1}}
 
@@ -32,7 +56,6 @@
 .um-ov-page .um-ledger__han{font-size:calc(var(--ov-f)*1.7px);letter-spacing:.06em;line-height:1}
 .um-ov-page .um-ledger__ko{font-size:calc(var(--ov-f)*1px);margin-top:0}
 .um-ov-page .um-ledger__stamp{top:calc(var(--ov-f)*1.6px)}
-.um-bookscene[data-kind="mobile"] .um-ov-page--a{padding-top:0}
 .um-bookscene[data-kind="mobile"] .um-ov-page--a .um-ledger__kicker{margin-top:2px}
 .um-bookscene[data-kind="mobile"] .um-ov-page .um-field--ledger .um-field__control,.um-bookscene[data-kind="mobile"] .um-ov-page .um-choice__face{min-height:42px}
 .um-bookscene[data-kind="mobile"] .um-ov-page--a .um-field__label,.um-bookscene[data-kind="mobile"] .um-ov-page--a .um-choice__label{min-height:42px;padding-top:9px}
@@ -71,5 +94,5 @@
 
 @media (prefers-reduced-motion:reduce){
  .um-imprint{animation:none;opacity:.94}
- .um-vignette,.um-ov-form,.um-entry{transition:none}
+ .um-vignette,.um-ov-form,.um-entry,.um-entry__cam,.um-cam{transition:none!important}
 }
