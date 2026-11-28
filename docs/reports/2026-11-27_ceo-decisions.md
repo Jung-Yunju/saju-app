@@ -1,9 +1,9 @@
 # 대표님 결정 사항 한 장 정리 (2026-11-27 야근 기준)
 
-> ## ⚠️ 배포 전 필독 — 이 작업 브랜치를 그대로 main에 합쳐 배포하지 마세요
-> 브랜치 `claude/saju-platform-company-setup-3h47r3`에는 **DB 구조 변경(마이그레이션 `20261127090000_reading_v3_safety`)이 준비만** 되어 있습니다.
-> 운영 DB에 이 변경을 먼저 적용하지 않고 코드를 배포하면, 기능 스위치를 꺼 두어도 **풀이 화면 등이 "열 없음" 오류로 깨집니다.**
-> 순서: ① 운영 DB 백업 확인 → ② 개발용 DB 브랜치에서 리허설 → ③ 운영 DB에 마이그레이션 적용 → ④ 코드 배포(스위치 끈 채) → ⑤ `DB_SCHEMA_V3=true`.
+> ## ⚠️ 배포 전 필독 (2026-11-28 갱신)
+> 브랜치 `claude/saju-platform-company-setup-3h47r3`에는 DB 구조 변경(마이그레이션 `20261127090000_reading_v3_safety`)이 **준비만** 되어 있습니다.
+> 11-28에 옛 DB 호환 장치(`src/lib/db-legacy.ts`)를 넣어, **`DB_SCHEMA_V3` 스위치를 끈 채라면 마이그레이션 없이 코드를 배포해도 화면이 깨지지 않습니다**(실제 PostgreSQL로 확인).
+> 지켜야 할 것: 마이그레이션을 운영 DB에 적용하기 **전에는 `DB_SCHEMA_V3=true`를 켜지 마세요.** `READING_ENGINE`도 비워 둡니다.
 > 또한 운영에서 `ALLOW_FREE_READING`을 설정하지 않으면 지금 사이트의 풀이 생성이 멈춥니다(결제 화면 미연결). 상세: `docs/DATABASE.md` 4절, `docs/MAINTENANCE.md`.
 
 

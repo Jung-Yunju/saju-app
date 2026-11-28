@@ -51,7 +51,8 @@ fs.writeFileSync(path.join(out, "index.html"), `<meta charset="utf-8">
 html, body { background: var(--pv-bg); margin: 0; }
 .um-font-title { --um-ff-title: "Nanum Myeongjo"; } .um-font-hanja { --um-ff-hanja: "Noto Serif KR"; } .um-font-body { --um-ff-body: "Noto Sans KR"; }
 #um-app { --um-ff-title: "Nanum Myeongjo"; --um-ff-hanja: "Noto Serif KR"; --um-ff-body: "Noto Sans KR"; min-height: 100%; }
-.pv-tag { position: fixed; left: max(8px, env(safe-area-inset-left, 0px)); bottom: calc(8px + env(safe-area-inset-bottom, 0px)); z-index: 9999; font: 11px/1.3 system-ui, sans-serif; color: #b9a17a; background: rgba(20,19,16,.7); padding: 4px 8px; border-radius: 4px; pointer-events: none; }
+.pv-tag { position: fixed; left: max(8px, env(safe-area-inset-left, 0px)); bottom: calc(8px + env(safe-area-inset-bottom, 0px)); z-index: 9999; font: 11px/1.3 system-ui, sans-serif; color: #b9a17a; background: rgba(20,19,16,.7); padding: 4px 8px; border-radius: 4px; pointer-events: none; animation: pv-fade 1s ease 5s forwards; }
+@keyframes pv-fade { to { opacity: 0; visibility: hidden; } }
 </style>
 <div id="um-app"></div>
 <div class="pv-tag">대표 확인용 미리보기 · 임시 영상 · 계산은 이 기기 안에서만 · ${sha}</div>

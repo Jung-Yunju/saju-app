@@ -93,7 +93,8 @@ Hook 등록은 `.claude/settings.json`의 `hooks` 항목에서 한다(총괄실�
 현재 대기 중: `prisma/migrations/20261127090000_reading_v3_safety` (추가만 — 생성 시도 상한·잠금 시각·정확도 열·주문 birthInfo·AiUsage 표). 상세·확인 쿼리: `docs/DATABASE.md` 2·4절.
 
 1. **순서**: 백업 → Neon 개발 브랜치 리허설 → 운영 `npx prisma migrate deploy` → 새 코드 배포(스위치 끔) → `DB_SCHEMA_V3=true` 설정 후 재배포.
-   - 새 schema가 든 코드를 마이그레이션보다 **먼저 배포하면 안 된다**(스위치와 무관하게 새 열을 조회해 화면 오류). 이 변경을 main에 합칠 때는 운영 적용 일정과 맞춘다.
+   - (2026-11-28 갱신) 옛 스키마 호환 계층 `src/lib/db-legacy.ts` 덕분에 **`DB_SCHEMA_V3`를 켜지 않은 채라면** 새 코드를 마이그레이션보다 먼저 배포해도 된다(로컬 PostgreSQL 16 실측 — `docs/DATABASE.md` 4.0절). **마이그레이션 적용 전에 `DB_SCHEMA_V3=true`를 켜면 안 된다.**
+   - 마이그레이션 SQL 맨 위 주석("반드시 마이그레이션 먼저")은 호환 계층 이전 설명이다. 파일 체크섬 때문에 고치지 않고 여기서 바로잡는다.
 2. **백업 확인**: Neon 콘솔에서 복원 시점(PITR) 보관 기간 확인, 적용 직전 시각 기록, 가능하면 운영 브랜치 스냅숏 브랜치 생성.
 3. **적용 전후 확인**: `npx prisma migrate status`(보류 목록이 예상과 같은지), DATABASE.md 4절 확인 쿼리(상태별 개수가 적용 전후 같음).
 4. **문제 시**: 먼저 `DB_SCHEMA_V3`를 지우고 재배포(DB는 그대로). DB까지 되돌리려면 대표 승인 → 이전 코드 배포 → 백업 확인 → 같은 폴더 `down.sql` 실행 → `npx prisma migrate resolve --rolled-back <마이그레이션 이름>`. down은 새 열의 데이터를 지운다.
