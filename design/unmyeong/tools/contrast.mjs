@@ -3,9 +3,11 @@
 const T = {
   bg: '#141310', study: '#211C17', wood: '#382B21', paper: '#C9B898',
   text: '#E2D8C5', textMuted: '#A99B83', brass: '#B9A17A', brassDeep: '#554425',
-  line: '#504335', lineStrong: '#80705A', paperLine: '#6B5A45',
+  line: '#504335', lineStrong: '#80705A', paperLine: '#5B4C3A',
   seal: '#702F2B', sealHover: '#7B3530', sealText: '#EFE6D6', sealEdge: '#A65E50',
-  ink: '#2A2119', inkMuted: '#4D3F32', dangerDark: '#D49A8A', dangerPaper: '#702F2B',
+  ink: '#2A2119', inkMuted: '#403428', sealInk: '#5A221F',
+  // 종이 질감(.um-paper)의 가장 어두운 픽셀 — 390px 화면 실측(2026-11-28). 평균은 #C5B394
+  paperDark: '#B09F81', dangerDark: '#D49A8A', dangerPaper: '#702F2B',
 }
 const lin = (c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4 }
 const L = (h) => { const n = parseInt(h.slice(1), 16); return 0.2126 * lin(n >> 16) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255) }
@@ -22,9 +24,14 @@ const pairs = [
   ['brass', 'study', 4.5, '황동 제목 / 서재'],
   ['brass', 'wood', 4.5, '황동 제목 / 목재'],
   ['ink', 'paper', 4.5, '종이 위 본문'],
+  ['ink', 'paperDark', 4.5, '종이 위 본문 / 질감 가장 어두운 곳'],
   ['inkMuted', 'paper', 4.5, '종이 위 보조 글'],
-  ['seal', 'paper', 4.5, '종이 위 봉인색 글(장 번호·오류)'],
-  ['brassDeep', 'paper', 4.5, '종이 위 짙은 황동(작은 제목·포커스)'],
+  ['inkMuted', 'paperDark', 4.5, '종이 위 보조 글 / 질감 가장 어두운 곳'],
+  ['sealInk', 'paper', 4.5, '종이 위 붉은 글(장 번호·머리글·오류)'],
+  ['sealInk', 'paperDark', 4.5, '종이 위 붉은 글 / 질감 가장 어두운 곳'],
+  ['seal', 'paper', 3, '도장·봉인 버튼 면 / 종이(그림 요소 3:1)'],
+  ['brassDeep', 'paper', 3, '종이 위 짙은 황동 선(테두리 버튼·포커스)'],
+  ['brassDeep', 'paperDark', 3, '종이 위 포커스 / 질감 가장 어두운 곳'],
   ['sealText', 'seal', 4.5, '봉인 버튼 글자'],
   ['sealText', 'sealHover', 4.5, '봉인 버튼 글자(누름 전)'],
   ['dangerDark', 'bg', 4.5, '오류 글 / 어두운 바탕'],
@@ -32,8 +39,8 @@ const pairs = [
   ['lineStrong', 'bg', 3, '입력 밑줄 / 어두운 바탕(비텍스트 3:1)'],
   ['lineStrong', 'study', 3, '입력 밑줄 / 서재'],
   ['paperLine', 'paper', 3, '입력 밑줄 / 종이'],
+  ['paperLine', 'paperDark', 3, '입력 밑줄 / 질감 가장 어두운 곳'],
   ['brass', 'study', 3, '포커스 링 / 서재'],
-  ['brassDeep', 'paper', 3, '포커스 링 / 종이'],
   ['sealEdge', 'bg', 3, '봉인 버튼 테두리 / 바탕(버튼 경계 3:1)'], ['sealEdge', 'study', 3, '봉인 버튼 테두리 / 서재'],
   ['line', 'bg', 1, '장식 구분선 / 바탕(장식 — 기준 없음)'],
 ]

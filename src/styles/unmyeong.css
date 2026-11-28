@@ -25,11 +25,12 @@
 
   /* ── 색: 파생(대비 실측 — DESIGN_SYSTEM 8-1) ── */
   --um-text-ink: #2a2119;        /* 종이 위 본문 8.11:1 */
-  --um-text-ink-muted: #4d3f32;  /* 종이 위 보조 5.21:1 */
+  --um-text-ink-muted: #403428;  /* 종이 위 보조 — 질감 가장 어두운 곳에서도 4.5 이상(8-1) */
   --um-text-muted: #a99b83;      /* 어두운 바탕 보조 6.81(bg)·5.02(wood) */
-  --um-brass-deep: #554425;      /* 종이 위 황동(작은 제목·포커스) 4.82:1 */
+  --um-brass-deep: #554425;      /* 종이 위 황동(포커스·테두리 — 글자에는 쓰지 않는다) 4.82:1 */
+  --um-seal-ink: #5a221f;        /* 종이 위 붉은 글자(장 번호·머리글·오류) — 질감 위에서도 4.5 이상 */
   --um-line-strong: #80705a;     /* 어두운 바탕 입력 밑줄 3.88:1 */
-  --um-paper-line: #6b5a45;      /* 종이 위 입력 밑줄 3.40:1 */
+  --um-paper-line: #5b4c3a;      /* 종이 위 입력 밑줄·기록부 가로줄 4.3(평균)·3.0(질감 가장 어두운 곳) */
   --um-paper-shade: #b3a07d;     /* 종이 그을린 가장자리(장식) */
   --um-seal-hover: #7b3530;
   --um-seal-press: #5f2724;
@@ -39,10 +40,10 @@
   --um-lamp: 201 150 82;         /* 등불 빛(RGB 채널 — rgb(var(--um-lamp) / .1) 처럼 투명도와 함께만 쓴다) */
 
   /* 종이 질감(섬유 결·얼룩 입자·큰 얼룩 — feTurbulence 3겹, 260px 타일) */
-  --um-paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.018 .9' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .33 0 0 0 0 .25 0 0 0 0 .16 0 0 0 1.3 -.62'/%3E%3C/filter%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .22 0 0 0 0 .13 0 0 0 1.6 -.78'/%3E%3C/filter%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='2' seed='29' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .32 0 0 0 0 .19 0 0 0 1.1 -.52'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23b)' opacity='.75'/%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='.28'/%3E%3Crect width='100%25' height='100%25' filter='url(%23s)' opacity='.6'/%3E%3C/svg%3E");
+  --um-paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.018 .9' numOctaves='2' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .33 0 0 0 0 .25 0 0 0 0 .16 0 0 0 1.3 -.62'/%3E%3C/filter%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .22 0 0 0 0 .13 0 0 0 1.6 -.78'/%3E%3C/filter%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='2' seed='29' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .32 0 0 0 0 .19 0 0 0 1.1 -.52'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23b)' opacity='.5'/%3E%3Crect width='100%25' height='100%25' filter='url(%23f)' opacity='.28'/%3E%3Crect width='100%25' height='100%25' filter='url(%23s)' opacity='.6'/%3E%3C/svg%3E");
 
   /* ── 글꼴(next/font 변수 → 없으면 시스템 글꼴) ── */
-  --um-font-title: var(--um-ff-title, "Nanum Myeongjo"), "Noto Serif KR", "AppleMyungjo", "Batang", serif;
+  --um-font-title: var(--um-ff-title, "Nanum Myeongjo"), var(--um-ff-hanja, "Noto Serif KR"), "AppleMyungjo", "Batang", serif;
   --um-font-body: var(--um-ff-body, "Noto Sans KR"), "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
 
   /* ── 글자 크기: 모바일 본문 17px, 16px 미만은 xs(장 번호·주석 같은 보조 표식)만 ── */
@@ -93,7 +94,7 @@
   --um-gutter-shadow: linear-gradient(90deg, rgb(48 31 16 / 0.5) 0, rgb(48 31 16 / 0.22) 9px, rgb(48 31 16 / 0.07) 26px, transparent 46px);
   --um-gutter-shadow-l: linear-gradient(270deg, rgb(48 31 16 / 0.5) 0, rgb(48 31 16 / 0.22) 9px, rgb(48 31 16 / 0.07) 26px, transparent 46px);
   --um-page-stack: -1px 1px 0 #b7a581, -2px 2px 0 #a8956f, -3px 3px 0 #9c8865;
-  --um-ledger-line: var(--um-paper-line);   /* 기록부 가로줄 = 입력 경계(3.40:1) */
+  --um-ledger-line: var(--um-paper-line);   /* 기록부 가로줄 = 입력 경계(3:1 이상) */
   --um-ledger-rule: rgb(42 33 25 / 0.22);   /* 칸 나눔 세로줄(장식) */
   --um-ledger-col: 5.75em;                  /* 항목 이름 칸 폭 */
   --um-stamp-color: var(--um-seal);
@@ -151,7 +152,7 @@
   --um-accent: var(--um-brass-deep);
   --um-field-line: var(--um-paper-line);
   --um-focus: var(--um-brass-deep);
-  --um-danger: var(--um-seal);
+  --um-danger: var(--um-seal-ink);
   --um-rule: rgb(42 33 25 / 0.28);
   --um-btn-brass-line: var(--um-brass-deep);
   --um-btn-brass-fg: var(--um-text-ink);
@@ -262,7 +263,7 @@
   font-family: var(--um-font-title);
   font-size: var(--um-fs-xs);
   letter-spacing: 0.12em;
-  color: var(--um-seal);
+  color: var(--um-seal-ink);
 }
 .um-page--dark .um-page__no {
   color: var(--um-fg-muted);
@@ -774,7 +775,7 @@ select.um-field__control {
   font-size: var(--um-fs-sm);
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: var(--um-seal);
+  color: var(--um-seal-ink);
 }
 .um-ledger__title {
   margin: 0;
@@ -912,10 +913,10 @@ select.um-field__control {
   border-color: transparent;
 }
 .um-choice--ledger .um-choice__input:checked + .um-choice__face {
-  border-color: var(--um-seal);
-  color: var(--um-seal);
+  border-color: var(--um-seal-ink);
+  color: var(--um-seal-ink);
   background: transparent;
-  box-shadow: inset 0 0 0 1px var(--um-seal);
+  box-shadow: inset 0 0 0 1px var(--um-seal-ink);
 }
 .um-choice--ledger .um-choice__help {
   grid-column: 2;
