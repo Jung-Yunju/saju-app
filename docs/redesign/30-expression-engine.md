@@ -39,7 +39,7 @@
 
 ## 5. 데이터 구조 (요지 — 이름은 이대로 맞춘다)
 ```ts
-export const EXPRESSION_ENGINE_VERSION = "expression@0.1.0"
+export const EXPRESSION_ENGINE_VERSION = "expression@0.2.0"
 
 /** 기질 차원 — 사주에서 해석 가능한 잠재력 한 갈래. 표는 content/expression/dimensions.json */
 interface TraitDimension {
@@ -105,7 +105,7 @@ type ExpressionSectionId =
 - (2026-11-28 개정, 연구소장 @0.2.0 §6.2) MBTI **신호는 3줄뿐**: E→outward, J→grain 고른 쪽, P→grain 센 쪽(모두 확신일 때만). MBTI는 low 신호를 만들지 않는다. S/N·T/F와 나머지 극은 **문체 힌트**(talkFirst·writeFirst·concreteFirst·bigPictureFirst·reasonFirst·peopleFirst)로만 쓴다. 표에 적힌 신호 줄은 반드시 실제 판정에 쓰여야 한다(죽은 줄 금지 — 시험으로 고정).
 - 차원은 8개: steadiness·edge를 하나의 양극 축 `grain`(일을 풀어 가는 결)으로 합친다(정·편은 상대 개념, QA B4 변별력 문제 해결).
 - 시주 모름: 12시진 재계산에서 8/12 이상 같은 판정일 때만 `dormant`·`developed`, 아니면 `unknown` + `chart-uncertain`.
-- 차원 판정 규칙·근거: `docs/knowledge/personalization/expression-dimensions.md`(연구소장, 근거 등급 L0 — 고전 원문 대조 0건). MBTI만 있으면 `self.signal`을 약하게(한 단계 낮춤) 쓰고 `conflicts`에 "missing"을 남긴다.
+- 차원 판정 규칙·근거: `docs/knowledge/personalization/expression-dimensions.md`(연구소장, 근거 등급 L0 — 고전 원문 대조 0건). MBTI만 있으면(사실 없음 + 확신 + 신호 줄) 그 방향을 `self.mbtiOnly` 표시와 함께 확인 신호로만 쓰고 — `developed` 근거로는 쓰지 않는다 — `conflicts`에 "missing"을 남긴다.
 - MBTI를 모르거나 건너뛰어도 엔진은 돈다(그때는 설문 사실만, 둘 다 없으면 `unknown`).
 
 ## 7. 반드시 통과해야 할 시험
@@ -120,3 +120,8 @@ type ExpressionSectionId =
 ## 8. 하지 않는 것 (이번 범위 밖)
 - 화면(설문 UI·결과 화면)과 유료 상품 연결은 엔진·문안 검증 후 별도 지시. 가격·결제 변경 없음.
 - 외부 AI 호출 없음(엔진은 코드만). MBTI 원문 검사지(유료 저작물)를 가져다 쓰지 않는다 — 4축 자기선택만.
+
+## 9. 면책 문구와 금지어 검사 (2026-11-28 총괄실장 결정, QA 재검증 권고)
+- 면책·고지 문구("미래를 맞히는 방법이 아니다" 류)는 **AI가 쓰지 않는다.** 코드가 넣는 승인 문구 목록(정확히 같은 문자열)으로만 넣고, 금지어 검사기는 승인 문구를 뺀 뒤 나머지를 검사한다. AI가 쓴 부정문("입증된 것은 아니다" 등)도 금지어로 막는 현행 방식을 유지한다(정규식 부정문 판별은 이중 부정에 뚫림).
+- 십성 「상관(傷官)」과 통계 「상관관계」를 구분한다(명리 서술 오탐 금지).
+- 정규식 금지어는 1차 방어선일 뿐이다. 우회 표현을 전부 막지 못하므로, 실제 AI 문안에는 4단계 「2차 안전 검토」(대표 결정 대기)가 따로 필요하다.
