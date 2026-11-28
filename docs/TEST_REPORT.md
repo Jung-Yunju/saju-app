@@ -779,3 +779,33 @@
 
 ### 판정
 - **조건부 통과.** 주장한 보안 조건(로그인·DB·세션·AI 없음, 요청 제한·본문 크기 제한, 로그에 입력값 없음, 이름 미수신, no-store)은 실행으로 모두 확인했다. 근거 값은 규칙 엔진·자체 표와 일치한다. 조건: QA-UM-1·QA-UM-2·O2를 다음 판에서 고치고(낮음, 출시 차단 아님), O1은 공유 기능을 붙이기 전에 화면 담당이 확인한다.
+
+## 2026-11-28 · 사주 발현 분석 엔진 expression@0.1.0 독립 검증 (D-035, 커밋 0c6127a)
+- 상세: [docs/quality/2026-11-28_expression-engine-verify.md](quality/2026-11-28_expression-engine-verify.md)
+- 방법: 연구소장 `expression-dimensions.md` §2·§3·§5·§7만 보고 판정을 다시 구현해 엔진과 대조(엔진 판정 함수 재사용 없음). 시험 `tests/personalize/expression-independent.qa.test.ts`(22건), 측정 `scripts/qa/expression-distribution.ts`.
+
+| 명령 | 결과 |
+|---|---|
+| `npx vitest run src/engine/personalize/expression` | 32 통과 · 1 건너뜀 |
+| `npx vitest run tests/personalize/expression-independent.qa.test.ts` | 22 통과 / 22 |
+| `EXPRESSION_DISTRIBUTION=1 npx vitest run src/engine/personalize/expression/__tests__/distribution.test.ts` | 통과(측정 전용) |
+| `npx tsx scripts/qa/expression-distribution.ts 10000` | 측정 완료 |
+| `npx tsc --noEmit` · `npx eslint`(새 파일 2개) | 오류 0 |
+
+| 항목 | 결과 | 내용 |
+|---|---|---|
+| 원국 판정 독립 대조 | 통과 | 무작위 4,000건 9차원 단계·표지·보정·메모 불일치 0, §4 손계산 원국(시주 있음·없음) 일치 |
+| 시주 모름 hourStable | 통과 | 300건 × 9차원 직접 12시진 재계산과 불일치 0, 8/12 미만에서 dormant·developed 0 |
+| 경계 차단 | 통과 | 차단 578/1,200건에서 drive 보정·부담 메모·운 tone 모두 꺼짐, 비차단 tone 독립 계산과 일치 |
+| 운 touches | 통과 | 800건 불일치 0, outward 미접촉 |
+| 원칙 2·3·4·5(위반 시도) | 통과 | MBTI 625조합에서 RuleAnalysis·innate·운 값 불변, MBTI만·상황 사실만 developed 0, 입력 밖 사실·라벨 출력 0, T/F 무영향 |
+| 원칙 7(같은 원국 다른 결과) | 통과 | MBTI 16유형 readings 달라짐 40/40, 경험 다름 40/40 — 단 MBTI만으로 움직이는 차원은 2개(B3) |
+| 결정론 | 통과 | 1,000회 동일, 입력 변경 없음 |
+| 개인정보·외부 호출 | 통과 | 생년월일·성별 원문 없음, 네트워크 호출 0 |
+| 금지 표현 | 조건부 | 현재 데이터·출력 0건, 목록 밖 변형 18개 중 17개가 표 검증 통과(B2) |
+
+- 문제: 보통 5(B1 운 필드 이름 계약 불일치 · B2 금지어 목록 좁음 · B3 MBTI 대응 8줄 중 6줄 무효 · B4 결 차원 strong 59~65% · B5 경계 차단 때 극신약 −1 해석), 사소 6(S1~S6). 심각 0.
+- 미검증: 문안·AI 서술, 화면, 비기본 규칙 옵션, 개운 순서 규칙 독립 대조, innateEssence 선택 독립 대조.
+
+### 판정
+- **조건부 통과.** 대표 원칙 위반은 재현되지 않았고 계산은 문서와 정확히 같다. 조건: B1은 문안·화면 작업 전에 총괄실장이 계약서·코드 중 하나로 맞춘다. B2는 금지어 목록을 문안 검증기에 쓰기 전에 넓힌다. B3·B4·B5는 연구소장·총괄실장 판단 후 표(`dimensions.json`·`mbti-bridge.json`)로 조정하고 다시 잰다.
