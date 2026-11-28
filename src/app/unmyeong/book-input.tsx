@@ -38,7 +38,7 @@ function Fields({ form, imprint, pc }: { form: BirthFormState; imprint: boolean;
     else setF(p => ({ ...p, timeMode: "exact", birthHour: v, birthMinute: p.timeMode === "exact" && p.birthMinute !== "" ? p.birthMinute : "0", ziChoice: "" }))
   }
   return (
-    <div className={`umf-record${imprint ? " is-imprint" : ""}`} inert={imprint}>
+    <div className={`umf-record${pc ? "" : " ub-ledger"}${imprint ? " is-imprint" : ""}`} inert={imprint}>
       <UmInkField label="부를 이름" type="text" name="um-name" autoComplete="off" maxLength={20} placeholder="예: 서연"
         hint="이 책에서만 너를 부를 이름이다." value={f.name} onChange={e => set("name", e.target.value)} />
       <UmInkField as="group" label="태어난 날" requiredMark="꼭" error={errors.date}>
@@ -100,23 +100,28 @@ export function BookInput({ form, spread, enter, opening, busy, imprint, name, s
 }) {
   const pending = useRef<ReturnType<BirthFormState["validate"]>>(null)
   const wrap = useRef<HTMLDivElement>(null)
-  // 각인 때 이름이 보이는 자리(기록 칸 가운데)로 화면을 옮긴다
+  // 각인 때 이름이 보이는 자리(기록 칸 가운데)가 화면 밖이면 그만큼만 옮긴다(책이 화면에 맞으면 움직이지 않는다)
   useEffect(() => {
-    if (imprint) wrap.current?.scrollIntoView({ block: "center", behavior: "smooth" })
+    if (imprint) wrap.current?.scrollIntoView({ block: "nearest", behavior: "smooth" })
   }, [imprint])
   const voice = <p className="ub-voice ub-voice--center umf-voice">왔구나. 앉거라.<br />네 이름과 난 때만 적으면 된다.</p>
-  const seal = (
-    <div className="umf-seal">
-      {serverError && <p className="ub-ink__error umf-server-error" role="alert">{serverError}</p>}
-      <UmWaxSeal busy={busy} busyLabel="펼치는 중…"
-        beforeActivate={() => { pending.current = form.validate(); return !!pending.current }}
-        onActivate={() => { const r = pending.current; pending.current = null; if (r) form.onSubmit(r.name, r.body) }} />
+  // 고지·개인정보 안내: 양면(PC)은 왼쪽 쪽 인장 아래, 한 쪽(모바일)은 책 바로 아래 서재 위(책 전체가 첫 화면에 들어가도록)
+  const notes = (
+    <div className={`umf-notes${spread ? "" : " ub-dark"}`}>
       <p className="ub-note umf-note">사주 풀이는 전통 명리 해석에 따른 이야기이며, 미래를 과학적으로 예측한다는 뜻이 아닙니다.</p>
       <p className="ub-note umf-note umf-fine">
         적은 생년월일은 풀이를 셈하는 데만 쓰고 서버에 남기지 않는다. 이름은 서버로 보내지 않는단다.{" "}
         <Link href="/unmyeong/privacy" className="um-fine-link">개인정보 처리 안내</Link>
       </p>
       {showReplay && <button type="button" className="um-replay" onClick={onReplay}>인트로 다시 보기</button>}
+    </div>
+  )
+  const seal = (
+    <div className="umf-seal">
+      {serverError && <p className="ub-ink__error umf-server-error" role="alert">{serverError}</p>}
+      <UmWaxSeal busy={busy} busyLabel="펼치는 중…"
+        beforeActivate={() => { pending.current = form.validate(); return !!pending.current }}
+        onActivate={() => { const r = pending.current; pending.current = null; if (r) form.onSubmit(r.name, r.body) }} />
     </div>
   )
   const fields = <Fields form={form} imprint={imprint} pc={spread} />
@@ -126,16 +131,19 @@ export function BookInput({ form, spread, enter, opening, busy, imprint, name, s
       <main className="umf-stage">
         <form noValidate aria-busy={busy} onSubmit={e => e.preventDefault()}>
           {spread ? (
-            <UmBook layout="spread" opening={opening} label="운명비서 — 적는 쪽" leftAlign="center"
-              left={<><UmBookTitle />{voice}{seal}</>}
+            <UmBook layout="spread" fit="lock" opening={opening} label="운명비서 — 적는 쪽" leftAlign="center"
+              left={<><UmBookTitle />{voice}{seal}{notes}</>}
               right={<div className="umf-rightwrap" ref={wrap}>{fields}{stamp}</div>} />
           ) : (
-            <UmBook layout="single" opening={opening} label="운명비서 — 적는 쪽">
-              <UmBookTitle />
-              {voice}
-              <div className="umf-rightwrap" ref={wrap}>{fields}{stamp}</div>
-              {seal}
-            </UmBook>
+            <>
+              <UmBook layout="single" fit="lock" opening={opening} label="운명비서 — 적는 쪽">
+                <UmBookTitle />
+                {voice}
+                <div className="umf-rightwrap" ref={wrap}>{fields}{stamp}</div>
+                {seal}
+              </UmBook>
+              {notes}
+            </>
           )}
         </form>
       </main>

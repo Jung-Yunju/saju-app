@@ -18,6 +18,14 @@ export type UmBookProps = {
   leftAlign?: "start" | "center"
   /** 오른쪽 쪽(또는 single 쪽) 내용 세로 정렬(기본 start) */
   rightAlign?: "start" | "center"
+  /**
+   * 화면 맞춤(D-034 비율 체계). 한 쪽 = 실제 고서 비율 2:3, 펼침 = 4:3.
+   * lock = 책 전체(가죽 테 포함)가 첫 화면 높이에 꼭 들어간다. 넘치는 내용은 쪽 안에서 스크롤(아주 작은 화면만).
+   *        화면 자체가 2:3보다 좁은 휴대폰 세로에서는 한 쪽이 화면을 채운다(폭이 먼저 닿는다).
+   * grow = 폭은 lock과 같은 규칙, 쪽은 2:3을 최소로 하고 글이 길면 아래로 늘어난다(결과 장).
+   * 바깥 여백은 부모가 --ub-stage-pad 로 준다(기본 16px).
+   */
+  fit?: "lock" | "grow"
   /** 고서 전체 이름(화면낭독기). 예: "운명비서 입력" — 주면 role="region" */
   label?: string
   className?: string
@@ -27,7 +35,7 @@ export type UmBookProps = {
  * 화면 중앙의 입체 고서 — 가죽 표지(결·닳은 모서리·두께·책등) + 고급 종이(섬유·그을린 가장자리·등불 빛) + 종이 단면 층 + 바닥 그림자.
  * 내용은 각 쪽의 .ub-book__content 안에 그대로 그린다(폼·글은 부모가). 서버·클라이언트 어디서나(훅 없음).
  */
-export function UmBook({ layout, left, right, children, opening, leftAlign, rightAlign, label, className }: UmBookProps) {
+export function UmBook({ layout, left, right, children, opening, fit, leftAlign, rightAlign, label, className }: UmBookProps) {
   const page = (side: "left" | "right" | "single", body: ReactNode) => (
     <div className={`ub-book__page ub-book__page--${side}`} data-align={(side === "left" ? leftAlign : rightAlign) ?? undefined}>
       <div className="ub-book__content">{body}</div>
@@ -61,7 +69,7 @@ export function UmBook({ layout, left, right, children, opening, leftAlign, righ
   }
   return (
     <div
-      className={cx("ub-book", `ub-book--${layout}`, opening && "ub-book--opening", className)}
+      className={cx("ub-book", `ub-book--${layout}`, fit && `ub-book--fit ub-book--fit-${fit}`, opening && "ub-book--opening", className)}
       role={label ? "region" : undefined}
       aria-label={label}
     >

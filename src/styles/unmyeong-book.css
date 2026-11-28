@@ -67,6 +67,20 @@
   --ub-page-pad-x: 26px;
   --ub-gutter: 14px;               /* 접힘 쪽 여분 여백 */
   --ub-ease: cubic-bezier(0.22, 0.61, 0.24, 1);
+
+  /* 타이포 비율 체계(D-034 보정) — 기준 글자 t 하나에 비율을 곱한다. 책 밖(서재 위)은 이 고정값,
+     책 쪽 안(.ub-book__content)은 아래 「쪽 폭 비례」 절에서 t 를 쪽 폭(cqi)에 맞춰 다시 정한다. */
+  --ub-t: 1.0625rem;
+  --ub-fs-fine: calc(var(--ub-t) * 0.8125);   /* 도움말·고지·쪽 번호 */
+  --ub-fs-label: calc(var(--ub-t) * 0.875);   /* 칸 라벨·장 번호 */
+  --ub-fs-sub: calc(var(--ub-t) * 0.9375);    /* 부제(운명비서)·한 줄 문구·년월일 꼬리 */
+  --ub-fs-body: var(--ub-t);                  /* 본문·인장 글 */
+  --ub-fs-voice: calc(var(--ub-t) * 1.0625);  /* 할머니 말 */
+  --ub-fs-value: calc(var(--ub-t) * 1.125);   /* 입력 값·고르는 글자(16px 이상 → 아이폰 자동 확대 없음) */
+  --ub-fs-chapter: clamp(1.625rem, 1.3rem + 1.5vw, 2.25rem);
+  --ub-fs-han: clamp(2.75rem, 2.1rem + 3.2vw, 4.25rem);
+  --ub-seal-size: 96px;
+  --ub-stage-pad: 16px;            /* 화면 맞춤 책의 바깥 여백(위·아래·양옆) */
 }
 @media (min-width: 720px) {
   .um-root {
@@ -74,6 +88,7 @@
     --ub-page-pad-y: 48px;
     --ub-page-pad-x: 56px;
     --ub-gutter: 20px;
+    --ub-stage-pad: clamp(16px, 3vh, 36px);
   }
 }
 
@@ -378,7 +393,7 @@
     background: linear-gradient(to right, rgb(52 32 14 / 0.5), rgb(52 32 14 / 0.2) 12%, rgb(255 240 210 / 0.08) 36%, transparent);
   }
 }
-.ub-book__page { display: flex; flex-direction: column; }
+.ub-book__page { display: flex; flex-direction: column; container: ub-page / inline-size; }
 .ub-book__content { position: relative; z-index: 1; flex: 1 1 auto; display: flex; flex-direction: column; }
 .ub-book__page[data-align="center"] .ub-book__content { justify-content: center; --ub-title-pad-top: 0px; --ub-title-pad-bottom: clamp(24px, 3vw, 36px); }
 
@@ -531,7 +546,7 @@
   display: block;
   font-family: var(--um-font-title);
   font-weight: 800;
-  font-size: clamp(2.75rem, 2.1rem + 3.2vw, 4.25rem);
+  font-size: var(--ub-fs-han);
   line-height: 1.12;
   letter-spacing: 0.1em;
   padding-left: 0.1em; /* 끝 자간만큼 오른쪽으로 쏠리지 않게 */
@@ -540,30 +555,35 @@
 }
 .ub-title__ko {
   display: block;
-  margin-top: clamp(12px, 2.4vw, 18px);
+  margin-top: 0.7em;
   font-family: var(--um-font-title);
   font-weight: 700;
-  font-size: clamp(1.0625rem, 0.98rem + 0.4vw, 1.25rem);
-  letter-spacing: 0.62em;
-  padding-left: 0.62em;
+  font-size: var(--ub-fs-sub);
+  line-height: 1.4;
+  letter-spacing: 0.56em;
+  padding-left: 0.56em;
   color: var(--ub-ink-soft);
 }
 .ub-title__rule {
   display: block;
-  width: 64px;
+  width: calc(var(--ub-t) * 3.5);
   height: 1px;
-  margin: clamp(22px, 4.5vw, 32px) auto;
+  margin: calc(var(--ub-t) * 1.25) auto;
   background: linear-gradient(90deg, transparent, var(--ub-brass-line) 22%, var(--ub-brass-line) 78%, transparent);
 }
 .ub-title__tagline {
   margin: 0;
   font-family: var(--um-font-title);
   font-weight: 400;
-  font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
-  line-height: 1.7;
+  font-size: var(--ub-fs-sub);
+  line-height: 1.6;
   letter-spacing: 0.02em;
   color: var(--ub-ink-soft);
+  text-wrap: balance;
+  word-break: keep-all;
 }
+/* 의미 단위(쉼표 뒤)에서만 줄이 바뀐다 — "기록."만 떨어지는 일 없음 */
+.ub-title__phrase { display: inline-block; }
 
 /* ════════ 4. UmInkField — 고서에 직접 적는 칸 ════════ */
 .ub-ink {
@@ -593,14 +613,14 @@
   padding: 0;
   font-family: var(--um-font-title);
   font-weight: 700;
-  font-size: 0.9375rem;
+  font-size: var(--ub-fs-label);
   line-height: 1.5;
   letter-spacing: 0.08em;
   color: var(--ub-ink-soft);
 }
 .ub-ink__req {
-  margin-left: 6px;
-  font-size: 0.8125rem;
+  margin-left: 0.4em;
+  font-size: var(--ub-fs-fine);
   letter-spacing: 0;
   color: var(--ub-error);
 }
@@ -614,25 +634,22 @@
   flex: 1 1 auto;
   min-width: 0;
   width: 100%;
-  min-height: 48px;
+  min-height: 44px;
   margin: 0;
-  padding: 6px 0 9px;
+  padding: 0.25em 0 0.4em;
   border: 0;
   border-radius: 0;
   background: transparent;
   color: var(--ub-ink);
   font-family: var(--um-font-title);
   font-weight: 700;
-  font-size: 1.25rem; /* 20 — 입력 값 18 이상(아이폰 자동 확대 방지 포함) */
+  font-size: var(--ub-fs-value); /* 입력 값 — 쪽 안에서 18~21px(아이폰 자동 확대 방지 포함) */
   line-height: 1.4;
   letter-spacing: 0.04em;
   caret-color: var(--ub-cinnabar);
   outline: none;
   appearance: none;
   -webkit-appearance: none;
-}
-@media (min-width: 720px) {
-  .ub-ink__control { font-size: 1.375rem; }
 }
 /* 포커스 표시 = 먹이 번져 진해진 밑줄(2px 상당, #2A2119 — 종이 대비 10:1). 상자 테두리는 끈다 */
 .um-root .ub-ink__control:focus,
@@ -659,7 +676,7 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
   flex: 0 0 auto;
   font-family: var(--um-font-title);
   font-weight: 700;
-  font-size: 1.0625rem;
+  font-size: var(--ub-fs-sub);
   color: var(--ub-ink-soft);
 }
 /* 붓 밑줄 — 쉴 때는 옅게, 포커스면 먹이 가운데서 양옆으로 번지며 진해진다 */
@@ -693,12 +710,14 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
 .ub-ink--error .ub-ink__wet { background: var(--ub-error); }
 .ub-ink__hint,
 .ub-ink__error {
-  margin: 8px 0 0;
+  margin: 0.4em 0 0;
   font-family: var(--um-font-body);
-  font-size: 0.9375rem;
-  line-height: 1.6;
+  font-size: var(--ub-fs-fine);
+  line-height: 1.55;
 }
-.ub-ink__hint { color: var(--ub-ink-soft); }
+.ub-ink__hint { color: var(--ub-ink-soft); word-break: keep-all; }
+/* 도움말 문장 단위 줄바꿈(UmInkField 가 문자열 도움말을 문장마다 묶는다) */
+.ub-ink__sentence { display: inline-block; }
 .ub-ink__error { color: var(--ub-error); font-weight: 700; }
 .ub-ink__error:empty { margin: 0; }
 .ub-ink__group {
@@ -742,7 +761,7 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
 }
 .ub-choice__sep {
   font-family: var(--um-font-title);
-  font-size: 1.125rem;
+  font-size: var(--ub-fs-sub);
   color: var(--ub-ink-faint);
   user-select: none;
 }
@@ -750,9 +769,9 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
   position: relative;
   display: inline-grid;
   place-items: center;
-  min-width: 52px;
-  min-height: 52px;
-  padding: 4px 14px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 2px 0.62em;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -770,7 +789,7 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
   position: relative;
   font-family: var(--um-font-title);
   font-weight: 700;
-  font-size: 1.25rem;
+  font-size: var(--ub-fs-value);
   line-height: 1.3;
   letter-spacing: 0.04em;
   color: var(--ub-ink-soft);
@@ -785,9 +804,6 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
   letter-spacing: 0;
   text-align: center;
   color: var(--ub-ink-soft);
-}
-@media (min-width: 720px) {
-  .ub-choice__text { font-size: 1.375rem; }
 }
 .ub-choice__opt:hover .ub-choice__text { color: var(--ub-ink); }
 .ub-choice__input:checked ~ .ub-choice__text { color: var(--ub-ink); }
@@ -862,8 +878,8 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
 .ub-seal:focus-visible { outline: 2px solid var(--ub-focus); outline-offset: 4px; }
 .ub-seal__wax {
   display: block;
-  width: 96px;
-  height: 96px;
+  width: var(--ub-seal-size);
+  height: var(--ub-seal-size);
   overflow: visible;
   filter: drop-shadow(1.5px 2.5px 1.5px rgb(40 12 6 / 0.5)) drop-shadow(3px 9px 10px rgb(40 16 8 / 0.28));
   transition: transform 0.25s var(--ub-ease), filter 0.25s ease;
@@ -875,7 +891,7 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
 .ub-seal__label {
   font-family: var(--um-font-title);
   font-weight: 800;
-  font-size: 1.125rem;
+  font-size: var(--ub-fs-body);
   line-height: 1.4;
   letter-spacing: 0.14em;
   padding-left: 0.14em;
@@ -951,7 +967,7 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
   margin: 0 0 12px;
   font-family: var(--um-font-title);
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: var(--ub-fs-label);
   letter-spacing: 0.22em;
   color: var(--ub-error); /* 붉은 먹 장 번호 */
 }
@@ -962,7 +978,7 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
   margin: 0;
   font-family: var(--um-font-title);
   font-weight: 800;
-  font-size: clamp(1.625rem, 1.3rem + 1.5vw, 2.25rem);
+  font-size: var(--ub-fs-chapter);
   line-height: 1.3;
   letter-spacing: 0.02em;
   color: var(--ub-ink);
@@ -981,7 +997,7 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
   max-width: 30rem;
   font-family: var(--um-font-title);
   font-weight: 400;
-  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  font-size: var(--ub-fs-voice);
   line-height: 1.75;
   color: var(--ub-ink-soft);
   text-wrap: balance;
@@ -1010,8 +1026,8 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
   max-width: 34rem;
   margin-inline: auto;
   font-family: var(--um-font-body);
-  font-size: 1.0625rem;
-  line-height: 1.88;
+  font-size: var(--ub-fs-body);
+  line-height: 1.85;
   letter-spacing: -0.003em;
   color: var(--ub-ink);
   word-break: keep-all;
@@ -1024,7 +1040,7 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
   margin-top: 1.8em;
   font-family: var(--um-font-title);
   font-weight: 800;
-  font-size: 1.25rem;
+  font-size: calc(var(--ub-t) * 1.1875);
   line-height: 1.45;
 }
 .ub-prose ul, .ub-prose ol { padding-left: 1.2em; }
@@ -1037,8 +1053,8 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
   padding-left: 18px;
   font-family: var(--um-font-title);
   font-weight: 400;
-  font-size: 1.1875rem;
-  line-height: 1.8;
+  font-size: var(--ub-fs-voice);
+  line-height: 1.75;
   color: var(--ub-ink);
 }
 .ub-voice--center { padding-left: 0; text-align: center; }
@@ -1056,7 +1072,7 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
 }
 .ub-note {
   font-family: var(--um-font-body);
-  font-size: 0.9375rem;
+  font-size: var(--ub-fs-fine);
   line-height: 1.7;
   color: var(--ub-ink-soft);
 }
@@ -1067,11 +1083,139 @@ select.ub-ink__control option { color: #2a2119; background: #e8dcc2; font-family
   text-align: center;
   font-family: var(--um-font-title);
   font-weight: 700;
-  font-size: 0.875rem;
+  font-size: var(--ub-fs-fine);
   letter-spacing: 0.3em;
   padding-left: 0.3em;
   color: var(--ub-ink-soft);
 }
+
+/* ════════ 8. 비율·크기 체계 (D-034 보정, 2026-11-28) ════════
+ * ① 쪽 폭 비례 타이포: 쪽(.ub-book__page)이 컨테이너. 기준 글자 t = 쪽 글 폭에 따라 16~19px, 나머지는 t × 비율(토큰 절 참고).
+ *    제목 運命秘書·장 제목·인장만 쪽 폭에 더 가파르게 비례(cqi)한다 — 큰 글은 넓은 쪽에서 커지고 좁은 쪽에서 작아진다.
+ *    t 16(휴대폰)~20(큰 PC) — t 16 기준: 도움말 13 · 라벨 14 · 부제/문구 15 · 본문 16 · 할머니 말 17 · 입력 값 18 · 運命秘書 34~68 · 인장 60~104.
+ * ② 화면 맞춤(.ub-book--fit-*): 한 쪽 2:3, 펼침 4:3. 책 높이 = min(화면 높이 − 바깥 여백(--ub-stage-pad) × 2, 940px).
+ *    폭이 먼저 닿으면(휴대폰 세로) 폭에 맞추고 쪽은 화면 높이를 채운다(lock). 쪽 안 여백은 쪽 폭의 %.
+ */
+.ub-book__content {
+  --ub-t: clamp(16px, calc(8px + 2.3cqi), 20px);
+  /* 파생 토큰은 선언한 곳에서 t 가 풀리므로 여기서 다시 잇는다(값은 토큰 절과 같은 비율) */
+  --ub-fs-fine: calc(var(--ub-t) * 0.8125);
+  --ub-fs-label: calc(var(--ub-t) * 0.875);
+  --ub-fs-sub: calc(var(--ub-t) * 0.9375);
+  --ub-fs-body: var(--ub-t);
+  --ub-fs-voice: calc(var(--ub-t) * 1.0625);
+  --ub-fs-value: calc(var(--ub-t) * 1.125);
+  --ub-fs-chapter: clamp(24px, 7.2cqi, 36px);
+  --ub-fs-han: clamp(34px, 13cqi, 68px);
+  --ub-seal-size: clamp(60px, 20cqi, 104px);
+}
+
+.ub-book--fit {
+  /* 아주 큰 화면에서는 책이 끝없이 커지지 않게 940px에서 멈춘다(글자 최대치와 맞춘 크기) */
+  --ub-fit-h: min(calc(100dvh - 2 * var(--ub-stage-pad)), 940px);
+  --ub-page-h: calc(var(--ub-fit-h) - 2 * var(--ub-cover));
+  --ub-page-pad-y: clamp(16px, 6%, 52px);
+  --ub-page-pad-x: clamp(14px, 6.5%, 60px);
+  --ub-gutter: clamp(4px, 3%, 24px);
+}
+@media (max-width: 719.98px) {
+  .ub-book--fit { --ub-cover: 11px; }
+  .um-root { --ub-stage-pad: 10px; }
+}
+/* 한 쪽 — 폭 = min(부모 폭, 쪽 높이 × 2/3 + 표지 + 맞은편 장 끝자락) */
+.ub-book--fit.ub-book--single {
+  max-width: none;
+  width: min(100%, calc(var(--ub-page-h) * 2 / 3 + 2 * var(--ub-cover) + 7px));
+}
+.ub-book--fit-lock.ub-book--single { height: var(--ub-fit-h); }
+.ub-book--fit-lock.ub-book--single .ub-book__body,
+.ub-book--fit-lock.ub-book--single .ub-book__block { height: 100%; }
+/* 펼침 — 폭 = min(부모 폭, 쪽 높이 × 4/3 + 표지), 종이 묶음은 4:3 */
+.ub-book--fit.ub-book--spread {
+  max-width: none;
+  width: min(100%, calc(var(--ub-page-h) * 4 / 3 + 2 * var(--ub-cover)));
+}
+.ub-book--fit-lock.ub-book--spread .ub-book__block { aspect-ratio: 4 / 3; }
+.ub-book--fit-grow.ub-book--spread { container: ub-book / inline-size; }
+.ub-book--fit-grow.ub-book--spread .ub-book__page { min-height: calc((100cqi - 2 * var(--ub-cover)) * 0.75) !important; }
+@media (min-width: 960px) {
+  .ub-book--fit.ub-book--auto {
+    max-width: none;
+    width: min(100%, calc(var(--ub-page-h) * 4 / 3 + 2 * var(--ub-cover)));
+  }
+  .ub-book--fit-lock.ub-book--auto .ub-book__block { aspect-ratio: 4 / 3; }
+  .ub-book--fit.ub-book--auto .ub-book__page--left,
+  .ub-book--fit.ub-book--auto .ub-book__page--right { min-height: 0; }
+  /* grow 펼침: 쪽 높이 최소 = 쪽 폭 × 3/2 (책 폭 기준 컨테이너 단위), 글이 길면 두 쪽이 함께 늘어난다 */
+  .ub-book--fit-grow.ub-book--auto { container: ub-book / inline-size; }
+  .ub-book--fit-grow.ub-book--auto .ub-book__page--left,
+  .ub-book--fit-grow.ub-book--auto .ub-book__page--right { min-height: calc((100cqi - 2 * var(--ub-cover)) * 0.75); }
+}
+.ub-book--fit.ub-book--spread .ub-book__page--left,
+.ub-book--fit.ub-book--spread .ub-book__page--right { min-height: 0; }
+/* lock: 정확히 그 크기 — 넘치는 내용은 쪽 안에서만 스크롤(아주 작은 화면) */
+.ub-book--fit-lock .ub-book__block { min-height: 0; grid-template-rows: minmax(0, 1fr); }
+.ub-book--fit-lock .ub-book__page {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(42 33 25 / 0.35) transparent;
+}
+/* grow: 2:3이 최소, 글이 길면 늘어난다 — 쪽 안 글 덩어리는 쪽 번호 위 남는 높이의 가운데(위·아래 균형) */
+.ub-book--fit-grow .ub-book__content > .ub-bookpage { flex: 1 1 auto; display: flex; flex-direction: column; }
+.ub-book--fit-grow .ub-bookpage > :first-child { margin-top: auto; }
+.ub-book--fit-grow .ub-bookpage > .ub-folio { margin-top: auto; padding-top: calc(var(--ub-t) * 2); }
+
+/* ════════ 9. 장부형 기록 칸(.ub-ledger) — 좁은 한 쪽에서 라벨 왼쪽·값 오른쪽 ════════
+ * 라벨 칸 폭을 모든 줄에서 같게(값의 왼쪽 끝이 한 줄로 선다). 도움말·오류는 값 칸 아래. 칸 높이 = 터치 44px 이상.
+ */
+.ub-ledger {
+  --ub-ledger-col: calc(var(--ub-fs-label) * 5.7);
+  --ub-ledger-row: 48px;
+}
+.ub-ledger .ub-ink,
+.ub-ledger .ub-choice {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--ub-ledger-col) minmax(0, 1fr);
+  column-gap: calc(var(--ub-t) * 0.5);
+  align-items: baseline; /* 라벨과 값의 글자 밑선을 맞춘다 */
+  padding-top: 0;
+}
+.ub-ledger .ub-ink__label {
+  grid-column: 1;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+/* fieldset 의 legend 는 격자에 들어가지 않으므로(테두리 위 legend) 절대 위치로 첫 줄 왼쪽 칸에 둔다 — 화면낭독기 이름은 그대로 */
+.ub-ledger .ub-choice__legend {
+  position: absolute;
+  left: 0;
+  top: 0;
+  float: none;
+  width: var(--ub-ledger-col);
+  height: var(--ub-ledger-row);
+  display: flex;
+  align-items: center;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.ub-ledger .ub-ink__req { margin-left: 0.3em; }
+.ub-ledger .ub-ink__wrap,
+.ub-ledger .ub-ink__group,
+.ub-ledger .ub-choice__row { grid-column: 2; min-width: 0; }
+.ub-ledger .ub-ink__hint,
+.ub-ledger .ub-ink__error { grid-column: 2; margin-top: 0.1em; text-wrap: balance; word-break: keep-all; }
+.ub-ledger .ub-ink__error:empty { display: none; }
+.ub-ledger .ub-choice__row { margin-left: -0.5em; flex-wrap: nowrap; min-height: var(--ub-ledger-row); }
+.ub-ledger .ub-choice__opt { min-height: var(--ub-ledger-row); padding-inline: 0.5em; }
+.ub-ledger .ub-ink__group { flex-wrap: nowrap; gap: 0 calc(var(--ub-t) * 0.45); }
+.ub-ledger .ub-ink__part .ub-ink__control { width: calc(var(--ub-part-w) - 0.3em); }
+.ub-ledger .ub-ink__part .ub-ink__suffix { padding-right: 0; }
 
 /* ════════ 접근성: 움직임 줄이기 · 고대비 ════════ */
 @media (prefers-reduced-motion: reduce) {

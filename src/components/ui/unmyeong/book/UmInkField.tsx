@@ -1,4 +1,4 @@
-import { useId, type CSSProperties, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from "react"
+import { Fragment, useId, type CSSProperties, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from "react"
 import { cx } from "../cx"
 
 type Common = {
@@ -47,7 +47,7 @@ export function UmInkField(props: UmInkFieldProps) {
     <>
       {hint && (
         <p className="ub-ink__hint" id={hintId}>
-          {hint}
+          {sentences(hint)}
         </p>
       )}
       <p className="ub-ink__error" id={errId} aria-live="polite">
@@ -169,6 +169,19 @@ export function UmInkPart(props: UmInkPartProps) {
       <span className="ub-ink__wet" aria-hidden="true" />
     </span>
   )
+}
+
+/** 문자열 도움말은 문장(. ! ? 뒤)마다 묶어, 줄이 바뀌면 문장 사이에서 바뀌게 한다 */
+function sentences(t: ReactNode): ReactNode {
+  if (typeof t !== "string") return t
+  const parts = t.split(/(?<=[.!?。])\s+/)
+  if (parts.length < 2) return t
+  return parts.map((p, i) => (
+    <Fragment key={i}>
+      {i > 0 ? " " : null}
+      <span className="ub-ink__sentence">{p}</span>
+    </Fragment>
+  ))
 }
 
 function InkCaret() {

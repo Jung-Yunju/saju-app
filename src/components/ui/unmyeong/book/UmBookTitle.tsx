@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import { Fragment, type ReactNode } from "react"
 import { cx } from "../cx"
 
 export type UmBookTitleProps = {
@@ -14,6 +14,19 @@ export type UmBookTitleProps = {
   className?: string
 }
 
+/** 문자열 한 줄 문구는 쉼표 뒤에서만 줄이 바뀌게 의미 단위로 묶는다("세상에 단 한 권, / 오직 너를 위한 기록.") */
+function phrases(t: ReactNode): ReactNode {
+  if (typeof t !== "string") return t
+  const parts = t.split(/(?<=[,，])\s+/)
+  if (parts.length < 2) return t
+  return parts.map((p, i) => (
+    <Fragment key={i}>
+      {i > 0 ? " " : null}
+      <span className="ub-title__phrase">{p}</span>
+    </Fragment>
+  ))
+}
+
 /** 중앙 정렬 제목 묶음 — 運命秘書(큰 붓 명조) / 운명비서(넓은 자간) / 가는 황동선 / 한 줄 문구 */
 export function UmBookTitle({ hanja = "運命秘書", title = "운명비서", tagline = "세상에 단 한 권, 오직 너를 위한 기록.", as: H = "h1", id, className }: UmBookTitleProps) {
   return (
@@ -25,7 +38,7 @@ export function UmBookTitle({ hanja = "運命秘書", title = "운명비서", ta
         <span className="ub-title__ko">{title}</span>
       </H>
       <span className="ub-title__rule" aria-hidden="true" />
-      {tagline != null && <p className="ub-title__tagline">{tagline}</p>}
+      {tagline != null && <p className="ub-title__tagline">{phrases(tagline)}</p>}
     </header>
   )
 }

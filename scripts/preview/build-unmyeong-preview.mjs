@@ -47,7 +47,7 @@ fs.writeFileSync(path.join(out, "index.html"), `<meta charset="utf-8">
 <link rel="stylesheet" href="app.css">
 <style>
 :root { --pv-bg: #141310; color-scheme: dark; }
-html, body { background: var(--pv-bg); }
+html, body { background: var(--pv-bg); margin: 0; }
 .um-font-title { --um-ff-title: "Nanum Myeongjo"; } .um-font-hanja { --um-ff-hanja: "Noto Serif KR"; } .um-font-body { --um-ff-body: "Noto Sans KR"; }
 #um-app { --um-ff-title: "Nanum Myeongjo"; --um-ff-hanja: "Noto Serif KR"; --um-ff-body: "Noto Sans KR"; min-height: 100%; }
 .pv-tag { position: fixed; left: max(8px, env(safe-area-inset-left, 0px)); bottom: calc(8px + env(safe-area-inset-bottom, 0px)); z-index: 9999; font: 11px/1.3 system-ui, sans-serif; color: #b9a17a; background: rgba(20,19,16,.7); padding: 4px 8px; border-radius: 4px; pointer-events: none; }

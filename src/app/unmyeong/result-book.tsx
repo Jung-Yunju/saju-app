@@ -193,17 +193,17 @@ export function ResultBook({ data, name, onRetry }: { data: UnmyeongFreeResponse
         </header>
 
         {/* 읽는 순서: 원국 · 1 / 2 · 3 / 4 · 5 — PC는 펼친 양면, 모바일은 한 쪽에 이어서 */}
-        <UmBook layout="auto" label="운명비서 — 첫째 펼침"
+        <UmBook layout="auto" fit="grow" label="운명비서 — 첫째 펼침"
           left={
             <UmBookPage title="네 여덟 글자" kicker={<span lang="zh">四柱八字</span>} titleAs="h2" className="umb-wongook" id="umb-wongook" folio="序">
               <Wongook data={data} />
             </UmBookPage>
           }
           right={<Chapter c={ch(1)} no={1} name={name} folio="一" />} />
-        <UmBook layout="auto" label="운명비서 — 둘째 펼침"
+        <UmBook layout="auto" fit="grow" label="운명비서 — 둘째 펼침"
           left={<Chapter c={ch(2)} no={2} name={name} folio="二">{water}</Chapter>}
           right={<Chapter c={ch(3)} no={3} name={name} folio="三" />} />
-        <UmBook layout="auto" label="운명비서 — 셋째 펼침"
+        <UmBook layout="auto" fit="grow" label="운명비서 — 셋째 펼침"
           left={<Chapter c={ch(4)} no={4} name={name} folio="四" />}
           right={<Chapter c={ch(5)} no={5} name={name} folio="五" />} />
 
