@@ -1,4 +1,4 @@
-import { Fragment, useId, type ChangeEventHandler, type ReactNode } from "react"
+import { useId, type CSSProperties, type ChangeEventHandler, type ReactNode } from "react"
 import { cx } from "../cx"
 
 export type UmInkChoiceOption = {
@@ -42,26 +42,41 @@ const RINGS_DRY = [
 ]
 
 /**
+ * 한 줄에 고르기 글자를 다 놓는 데 드는 폭(기준 글자 t 단위)과 첫 글자 들여쓰기. 글자 수로 어림한다
+ * (굵은 명조 한 자 실측 ≈ 0.98t → 1t, 띄어쓰기 0.3t, 숫자·로마자 0.62t).
+ * 글자 칸 = max(48px ≈ 3t, 글자 + 좌우 여백 0.9t), 칸 사이(구분 점 자리) 0.5t, 여유 0.15t. 이 폭보다 좁으면 한 항목만 떨어지는 대신
+ * 모두 세로 목록으로 바뀐다(CSS 컨테이너 쿼리 — unmyeong-book.css 「5. UmInkChoice」).
+ * lead = 첫 칸이 48px 보다 짧은 글자(「남」)라 가운데로 들어간 만큼 — 줄을 그만큼 왼쪽으로 당겨 첫 글자를 다른 값의 왼쪽 끝에 맞춘다.
+ */
+function choiceMetrics(labels: ReactNode[]): { need: number; lead: number } {
+  const text = labels.map(l => {
+    const t = typeof l === "string" || typeof l === "number" ? String(l) : "가나"
+    return [...t].reduce((n, c) => n + (c === " " ? 0.3 : /[0-9a-zA-Z]/.test(c) ? 0.62 : 1), 0)
+  })
+  const w = text.map(x => Math.max(3, x + 0.9))
+  const r = (n: number) => Math.round(n * 100) / 100
+  return { need: r(w.reduce((a, b) => a + b, 0) + (w.length - 1) * 0.5 + 0.15), lead: r(Math.max(0, (3 - (text[0] + 0.9)) / 2)) }
+}
+
+/**
  * 하나 고르기(성별·양력/음력·시각 방식) — 상자 버튼 대신 글자를 나란히("남 · 여").
- * 실제 라디오(fieldset+legend)를 글자 위에 투명하게 겹친다 → 터치 52px · 화살표 키 · 화면낭독기 그대로. 훅은 useId뿐.
+ * 실제 라디오(fieldset+legend)를 글자 위에 투명하게 겹친다 → 터치 48px 이상 · 화살표 키 · 화면낭독기 그대로. 훅은 useId뿐.
+ * 줄바꿈: 한 줄에 다 들어가면 「남 · 여」, 모자라면 항목 단위 세로 목록(구분 점 없음) — 한 항목만 다음 줄로 떨어지거나
+ * 구분 점이 줄 끝·앞에 매달리지 않는다.
  */
 export function UmInkChoice({ legend, name, options, value, defaultValue, onChange, required, hint, error, mark = "ring", className }: UmInkChoiceProps) {
   const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "")
   const hintId = hint ? `ub-c${uid}-hint` : undefined
   const errId = `ub-c${uid}-err`
   const describedBy = cx(hintId, error ? errId : null) || undefined
+  const m = choiceMetrics(options.map(o => o.label))
   return (
     <fieldset className={cx("ub-choice", error ? "ub-ink--error" : null, className)} aria-describedby={describedBy} aria-invalid={error ? true : undefined}>
       <legend className="ub-choice__legend">{legend}</legend>
-      <div className="ub-choice__row">
-        {options.map((o, i) => (
-          <Fragment key={o.value}>
-            {i > 0 && (
-              <span className="ub-choice__sep" aria-hidden="true">
-                ·
-              </span>
-            )}
-            <label className="ub-choice__opt">
+      <div className="ub-choice__row" style={{ "--ub-choice-need": m.need, "--ub-choice-lead": m.lead } as CSSProperties}>
+        <div className="ub-choice__opts">
+          {options.map((o, i) => (
+            <label className="ub-choice__opt" key={o.value}>
               <input
                 className="ub-choice__input"
                 type="radio"
@@ -84,8 +99,8 @@ export function UmInkChoice({ legend, name, options, value, defaultValue, onChan
                 <span className="ub-choice__dot" aria-hidden="true" />
               )}
             </label>
-          </Fragment>
-        ))}
+          ))}
+        </div>
       </div>
       {hint && (
         <p className="ub-ink__hint ub-choice__hint" id={hintId}>

@@ -10,7 +10,44 @@ import type { UnmyeongFreeChapter, UnmyeongFreeResponse } from "@/lib/unmyeong/f
 import { visibleVolumes, type UnmyeongVolume } from "@/lib/unmyeong/volumes"
 
 const TITLES = ["너는 누구인가", "너의 신성과 영물", "하늘이 네게 준 것", "네가 넘어야 할 것", "지금 네게 필요한 말"]
-const PILLAR_KO = { year: "연주(年柱)", month: "월주(月柱)", day: "일주(日柱)", hour: "시주(時柱)" } as const
+const PILLAR_KO = { year: ["연주", "年柱"], month: ["월주", "月柱"], day: ["일주", "日柱"], hour: ["시주", "時柱"] } as const
+
+/** 기둥 이름 — 한글(라벨) 아래 한자(작은 옅은 글)를 일부러 두 단으로(좁은 칸에서 「시주 / (時柱)」처럼 괄호 앞에서 꺾이지 않게) */
+function PillarName({ k }: { k: keyof typeof PILLAR_KO }) {
+  const [ko, han] = PILLAR_KO[k]
+  return (
+    <span className="umr-p-name">
+      <span className="umr-p-label">{ko}</span>
+      <span className="umr-p-han" lang="zh">{han}</span>
+    </span>
+  )
+}
+
+/** 줄바꿈 단위 — 한자·읽기·꼬리(「丙午(병오)년」)나 짧은 말 덩어리가 중간에서 꺾이지 않게. 줄보다 길면 그 안에서 꺾인다 */
+function Keep({ children }: { children: React.ReactNode }) {
+  return <span className="umr-keep">{children}</span>
+}
+
+/** 낱말(띄어쓰기) 단위 덩어리 — 「득령·득지·득세로」처럼 가운뎃점이 든 말이 점 뒤에서 꺾이지 않게. 줄 나눔은 낱말 사이에서만 */
+function Words({ text }: { text: string }) {
+  const w = text.split(/\s+/).filter(Boolean)
+  return <>{w.map((x, i) => <span key={i}>{i > 0 ? " " : null}<span className="umr-keep">{x}</span></span>)}</>
+}
+
+/** 책등 제목 — 세로쓰기 두 단(띄어쓰기 기준으로 두 단 길이가 가장 비슷한 곳에서 나눈다). 숫자는 가로 짜기(「10」이 눕지 않게) */
+function spineCols(title: string): string[] {
+  const w = title.split(/\s+/).filter(Boolean)
+  if (w.length < 2) return [title]
+  let best = 1, score = Infinity
+  for (let i = 1; i < w.length; i++) {
+    const m = Math.max(w.slice(0, i).join(" ").length, w.slice(i).join(" ").length)
+    if (m < score) { score = m; best = i }
+  }
+  return [w.slice(0, best).join(" "), w.slice(best).join(" ")]
+}
+function Tcy({ text }: { text: string }) {
+  return <>{text.split(/(\d+)/).map((t, i) => (i % 2 ? <span key={i} className="umb-tcy">{t}</span> : t))}</>
+}
 
 /** {name} 토큰 치환. 이름이 없으면 토큰과 바로 붙은 호격·조사까지 자연스럽게 뺀다 */
 export function fillName(text: string, name: string): string {
@@ -42,8 +79,8 @@ function Wongook({ data }: { data: UnmyeongFreeResponse }) {
           const p = data.pillars.find(x => x.key === k)
           return p ? (
             <div key={k} role="listitem" className={p.me ? "is-me" : ""}>
-              <span className="umr-p-label">{PILLAR_KO[k].slice(0, 2)}<wbr />{PILLAR_KO[k].slice(2)}</span>
-              <span className="umr-wg-tag">{p.me ? <>나<wbr />(일간)</> : "\u00a0"}</span>
+              <PillarName k={k} />
+              <span className="umr-wg-tag">{p.me ? <>나<span className="umr-wg-tag__sub">(일간)</span></> : "\u00a0"}</span>
               <span className="umr-gz">
                 <span className="umr-wg-cell"><b data-el={p.element} lang="zh">{p.stemHanja}</b><i>{p.stemKo}</i></span>
                 <span className="umr-wg-cell"><b data-el={p.branchEl} lang="zh">{p.branchHanja}</b><i>{p.branchKo}</i></span>
@@ -51,7 +88,7 @@ function Wongook({ data }: { data: UnmyeongFreeResponse }) {
             </div>
           ) : (
             <div key={k} role="listitem" className="is-unknown">
-              <span className="umr-p-label">{PILLAR_KO[k].slice(0, 2)}<wbr />{PILLAR_KO[k].slice(2)}</span>
+              <PillarName k={k} />
               <span className="umr-wg-tag">{"\u00a0"}</span>
               <span className="umr-gz umr-wg-unknown">모름</span>
             </div>
@@ -59,19 +96,19 @@ function Wongook({ data }: { data: UnmyeongFreeResponse }) {
         })}
       </div>
       {data.hourUnknown && <p className="umr-wg-note">태어난 시각을 몰라 시주는 비워 두었단다.</p>}
-      <p className="umr-wg-line">나를 나타내는 글자(일간)는 <b lang="zh">{data.dayMaster.hanja}</b>({data.dayMaster.ko}), {data.dayMaster.element}의 기운이란다.</p>
+      <p className="umr-wg-line">나를 나타내는 글자(일간)는 <Keep><b lang="zh">{data.dayMaster.hanja}</b>({data.dayMaster.ko}),</Keep> <Keep>{data.dayMaster.element}의 기운이란다.</Keep></p>
 
       <h3>오행 다섯 기운</h3>
       <div className="umr-els-bar" role="img" aria-label={items.map(e => `${e.ko} ${Math.round(e.share * 100)}%`).join(", ")}>
         {items.filter(e => e.share > 0).map(e => <i key={e.el} data-el={e.el} style={{ flexGrow: e.share }} />)}
       </div>
       <ul className="umr-els-legend" aria-hidden="true">
-        {items.map(e => <li key={e.el} data-el={e.el}><b>{e.ko}</b><span lang="zh">{e.hanja}</span> {Math.round(e.share * 100)}%</li>)}
+        {items.map(e => <li key={e.el} data-el={e.el}><span className="umr-els-name"><b>{e.ko}</b><span lang="zh">{e.hanja}</span></span> <span className="umr-els-pct">{Math.round(e.share * 100)}%</span></li>)}
       </ul>
 
       <p className="umr-wg-line">
-        {cur ? <>지금은 <b lang="zh">{cur.hanja}</b>({cur.ko}) 대운, </> : null}
-        올해({data.thisYear.year}년)는 <b lang="zh">{data.thisYear.ganzhi.hanja}</b>({data.thisYear.ganzhi.ko})년이란다.
+        {cur ? <>지금은 <Keep><b lang="zh">{cur.hanja}</b>({cur.ko}) 대운,</Keep>{" "}</> : null}
+        <Keep>올해({data.thisYear.year}년)는</Keep> <Keep><b lang="zh">{data.thisYear.ganzhi.hanja}</b>({data.thisYear.ganzhi.ko})년이란다.</Keep>
       </p>
     </>
   )
@@ -80,27 +117,33 @@ function Wongook({ data }: { data: UnmyeongFreeResponse }) {
 function Basis({ data }: { data: UnmyeongFreeResponse }) {
   const b = data.basis
   return (
-    <div className="umr-basis">
+    <div className="umb-basis">
       <h3>십성 — 글자들이 맺은 관계</h3>
       <ul className="umr-list">
         {b.tenGods.groups.map(g => (
-          <li key={g.group}><b>{g.ko}</b> <span lang="zh">({g.hanja})</span> {Math.round(g.share * 100)}% — {g.plain}</li>
+          <li key={g.group}><Keep><b>{g.ko}</b> <span lang="zh">({g.hanja})</span> {Math.round(g.share * 100)}%</Keep> — {g.plain}</li>
         ))}
       </ul>
 
       <h3>신강·신약 — 내 힘의 세기</h3>
       <p><b>{b.strength.verdict}</b> — {b.strength.label.plain}</p>
-      {b.strength.sensitive && <p className="um-note">보는 방식에 따라 판정이 달라질 수 있는 사주란다. 세 가지 방식의 판정: {b.strength.models.map(m => `${m.name} ${m.verdict}`).join(" · ")}</p>}
+      {b.strength.sensitive && (
+        <div className="umb-callout">
+          <p>보는 방식에 따라 판정이 달라질 수 있는 사주란다. 세 가지 방식의 판정:</p>
+          {/* 방식 이름(「득령·득지·득세로 보면」)이 가운데서 꺾이지 않게 방식마다 한 줄 */}
+          <ul className="umr-models">{b.strength.models.map(m => <li key={m.name}><Words text={`${m.name} ${m.verdict}`} /></li>)}</ul>
+        </div>
+      )}
 
       <h3>격국 — 사주의 틀</h3>
       {b.structure
-        ? <p><b>{b.structure.label.ko}</b> <span lang="zh">({b.structure.label.hanja})</span> — {b.structure.label.plain}{b.structure.sensitive ? " (경계에 가까워 다르게 읽힐 수 있다)" : ""}</p>
+        ? <p><Keep><b>{b.structure.label.ko}</b> <span lang="zh">({b.structure.label.hanja})</span></Keep> — {b.structure.label.plain}{b.structure.sensitive ? <> <span className="umr-aside">(경계에 가까워 다르게 읽힐 수 있다)</span></> : ""}</p>
         : <p>뚜렷한 틀 하나로 정하기 어려운 사주란다.</p>}
 
       <h3>용신 — 도움이 되는 기운(관점별)</h3>
       <ul className="umr-list">
         {b.usefulGods.map(u => (
-          <li key={u.method} data-el={u.element.el}><b>{u.header}</b>: <span className="umr-eltxt">{u.element.ko} <span lang="zh">{u.element.hanja}</span></span> — {u.element.plain}</li>
+          <li key={u.method} data-el={u.element.el}><b>{u.header}</b>: <Keep><span className="umr-eltxt">{u.element.ko} <span lang="zh">{u.element.hanja}</span></span> — {u.element.plain}</Keep></li>
         ))}
       </ul>
       <p className="umr-fine">관점마다 답이 다를 수 있어 하나로 합치지 않고 나란히 놓았다.</p>
@@ -123,10 +166,11 @@ function Shelf() {
       <ol className="umb-spines" aria-label="이어지는 책">
         {vols.map((x, i) => (
           <li key={x.key}>
-            <button type="button" className="umb-spine" data-i={i % 5} aria-pressed={i === sel} onClick={() => setSel(i)}>
-              <span className="umb-spine__no">{x.no}</span>
-              <span className="umb-spine__title">{x.title}</span>
-              <span className="umb-visually-hidden">제{x.no}권 {x.title}</span>
+            <button type="button" className="umb-spine" data-i={i % 5} aria-pressed={i === sel} aria-label={`제${x.no}권 ${x.title}`} onClick={() => setSel(i)}>
+              <span className="umb-spine__no" aria-hidden="true">{x.no}</span>
+              <span className="umb-spine__title" aria-hidden="true">
+                {spineCols(x.title).map(c => <span key={c} className="umb-spine__col"><Tcy text={c} /></span>)}
+              </span>
             </button>
           </li>
         ))}
@@ -175,13 +219,14 @@ export function ResultBook({ data, name, onRetry }: { data: UnmyeongFreeResponse
             <span className="umb-ripple" aria-hidden="true" />
             <Pic a={art.beast} className="umb-water-bottom" />
             {art.human.src.includes("placeholder") && <span className="umb-water-tag">그림 준비 중</span>}
-            <figcaption><b>{a.name}</b>{a.secondaryName ? <> · 곁에 {a.secondaryName}</> : null}</figcaption>
+            {/* 이름과 「곁에 …」는 두 줄로 나눠 둔다 — 구분 점이 줄 끝·앞에 매달리거나 「현자」만 떨어지지 않게 */}
+            <figcaption><b className="umb-water-name">{a.name}</b>{a.secondaryName ? <span className="umb-water-sub">곁에 {a.secondaryName}</span> : null}</figcaption>
           </>
         ) : (
           <figcaption className="umb-seeking">영물을 찾는 중이란다. 물결이 가라앉으면 모습이 비칠 것이다.</figcaption>
         )}
       </figure>
-      {a && <p className="ub-note umb-notice">{a.disclaimerText}</p>}
+      {a && <p className="ub-note umb-notice" role="note">{a.disclaimerText}</p>}
     </>
   )
   return (
@@ -207,13 +252,15 @@ export function ResultBook({ data, name, onRetry }: { data: UnmyeongFreeResponse
           left={<Chapter c={ch(4)} no={4} name={name} folio="四" />}
           right={<Chapter c={ch(5)} no={5} name={name} folio="五" />} />
 
-        <UmBook layout="single" label="운명비서 — 근거" className="umb-bookfold">
+        {/* fit="grow" 한 쪽 = 펼침 한 쪽과 같은 폭 → 쪽 폭 비례 글자(t)도 펼침과 같다(PC에서 같은 역할 같은 크기) */}
+        <UmBook layout="single" fit="grow" label="운명비서 — 근거" className="umb-bookfold">
           <UmBookPage as="section" id="umb-how">
             <details className="umb-fold">
+              {/* 표시 · 제목 / (아래 줄) 접기 상태 글 — 좁은 화면에서도 네 조각으로 꺾이지 않는다. 펼치면 「근거 접기」 */}
               <summary className="umb-fold__summary">
                 <span className="umb-fold__mark" aria-hidden="true" />
-                <span>할미는 어떻게 알았을까?</span>
-                <span className="umb-fold__hint">근거 보기</span>
+                <span className="umb-fold__title">할미는 어떻게 알았을까?</span>
+                <span className="umb-fold__hint" aria-hidden="true"><span className="umb-fold__closed">근거 보기</span><span className="umb-fold__opened">근거 접기</span></span>
               </summary>
               <div className="umb-fold__body"><Basis data={data} /></div>
             </details>
@@ -224,7 +271,7 @@ export function ResultBook({ data, name, onRetry }: { data: UnmyeongFreeResponse
 
         <div className="umb-end ub-dark">
           <UmWaxSeal type="button" label="다시 입력하기" size="sm" beforeActivate={() => true} onActivate={onRetry} />
-          <p className="umb-fine"><Link href="/unmyeong/privacy" className="um-fine-link">개인정보 처리 안내</Link></p>
+          <p className="umb-fine umb-links"><Link href="/unmyeong/privacy" className="um-fine-link">개인정보 처리 안내</Link></p>
           <p className="umb-fine umb-foot">풀이는 옛 명리의 해석을 빌려 경향을 짚는 것이며 미래를 확정하지 않는다. 재미와 참고용으로 읽어 주렴.</p>
         </div>
       </main>

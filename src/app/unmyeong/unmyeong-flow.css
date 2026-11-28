@@ -80,30 +80,39 @@
    한 쪽(모바일)은 고지 글이 책 바로 아래 서재 위에 온다. */
 .umf-stage{display:flex;flex-direction:column;align-items:center;min-height:100dvh;padding:var(--ub-stage-pad)}
 .umf-stage>form{width:100%;display:flex;flex-direction:column;align-items:center}
-/* 쪽 안 세로 분배: 맨 위(제목)·맨 아래(인장/마지막 칸)를 쪽 여백에 맞추고 남는 높이는 덩어리 사이에 고르게 */
-.umf-stage .ub-book__content{justify-content:space-between;gap:calc(var(--ub-t)*.6);--ub-title-pad-top:0px;--ub-title-pad-bottom:0px}
-.umf-stage .ub-book__page[data-align="center"] .ub-book__content{justify-content:space-between}
+/* 쪽 안 세로 리듬(2026-11-28 품질검증 S9): 덩어리 사이 간격은 화면 높이(dvh)로만 정하고 상태(한밤중 칸이 열림 등)에 따라 바뀌지 않는다.
+   남는 높이는 덩어리 묶음의 위·아래로 똑같이(첫·마지막 덩어리 margin auto — 넘치면 위에서부터, 제목이 잘려 올라가지 않음) */
+.umf-stage{--umf-gap:clamp(calc(var(--ub-t)*.9),2.8dvh,calc(var(--ub-t)*2.4));--umf-row-gap:clamp(calc(var(--ub-t)*.5),1.4dvh,calc(var(--ub-t)*1.2))}
+.umf-stage .ub-book__content{justify-content:flex-start;gap:var(--umf-gap);--ub-title-pad-top:0px;--ub-title-pad-bottom:0px}
+.umf-stage .ub-book__page[data-align="center"] .ub-book__content{justify-content:flex-start}
+.umf-stage .ub-book__content>:first-child{margin-top:auto}
+.umf-stage .ub-book__content>:last-child{margin-bottom:auto}
 .umf-stage .ub-title{padding:0}
 .umf-voice{margin:0 auto;max-width:26em}
+.umf-voice__line{display:block;text-wrap:balance}
 .umf-seal{display:flex;flex-direction:column;align-items:center}
 .umf-seal .ub-seal{padding-bottom:0}
 .umf-notes{text-align:center}
-.umf-note{margin:0 auto;max-width:30em;text-align:center;text-wrap:pretty;word-break:keep-all}
-.umf-fine{margin-top:.5em}
-.umf-fine .um-fine-link{color:inherit;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
-.umf-notes .um-replay{margin-top:.25em;min-height:44px;padding:0 16px;font-size:var(--ub-fs-fine);color:var(--ub-ink-soft)}
+/* 고지 = 읽는 글 → T3(16px). 가운데 맞춘 짧은 글은 균형 있게 꺾어 마지막 줄이 한 낱말로 남지 않게 */
+.umf-note{margin:0 auto;max-width:30em;text-align:center;text-wrap:balance;word-break:keep-all}
+.umf-fine{margin-top:.6em}
+/* 개인정보 안내 링크 — 한 줄을 따로, 누르는 높이 44px */
+.umf-links{margin:.25em 0 0;font-size:var(--ub-fs-body)}
+.um-fine-link{display:inline-flex;align-items:center;min-height:44px;padding:0 8px;color:inherit;text-decoration:underline;text-underline-offset:3px;word-break:keep-all}
+.umf-notes .um-replay{margin-top:0;min-height:44px;padding:0 16px;font-size:var(--ub-fs-label);color:var(--ub-ink-soft)}
 /* 책 아래(한 쪽): 서재 위 밝은 글, 책 폭에 맞춘 좁은 단 */
-.umf-notes.ub-dark{width:100%;max-width:30rem;padding:calc(var(--ub-stage-pad) + 10px) 8px 4px;--ub-fs-fine:.8125rem}
+.umf-notes.ub-dark{width:100%;max-width:30rem;padding:calc(var(--ub-stage-pad) + 10px) 8px 4px}
 .umf-notes.ub-dark .ub-note{color:var(--um-text-muted)}
 .umf-server-error{margin:0 0 .5em;max-width:22em;text-align:center}
 .umf-dst{margin:0}
-/* 기록 칸: 쪽 높이에 맞춰 칸 사이를 고르게 벌린다(양면 오른쪽 · 한 쪽 모두) */
+/* 기록 칸: 칸 사이 간격은 화면 높이로만 정한다(상태가 바뀌어도 리듬이 같다 — 양면 오른쪽 · 한 쪽 모두) */
 .umf-rightwrap{position:relative;display:flex;flex-direction:column}
-.ub-book__page--right .umf-rightwrap{flex:1 1 auto}
-.umf-record{display:flex;flex-direction:column;justify-content:space-between;flex:1 1 auto;gap:calc(var(--ub-t)*.55);--ub-field-gap:0px}
-.umf-record>*{margin-top:0!important}
-.ub-book__page--right .umf-record{justify-content:space-between;gap:calc(var(--ub-t)*1.1)}
-.umf-record.ub-ledger{gap:calc(var(--ub-t)*.4)}
+.umf-record{display:flex;flex-direction:column;justify-content:flex-start;gap:var(--umf-row-gap);--ub-field-gap:0px}
+.ub-book__page--right .umf-record{gap:calc(var(--umf-row-gap)*1.15)}
+/* 위아래형(좁을 때)은 한 칸이 세 줄(라벨·값·도움말) — 칸과 칸 사이를 조금 더 벌려 어느 라벨이 어느 값인지 묶여 보이게 */
+@container ub-ledger (max-width:19.99em){.umf-record>*+*{--ub-field-gap:calc(var(--umf-row-gap)*.8)}}
+/* 한밤중 안내(여러 문장)는 장부형에서도 쪽 폭 전체로 — 값 칸에 끼워 넣으면 한 줄에 두세 어절씩 길게 늘어진다 */
+@container ub-ledger (min-width:20em){.umf-record .umf-zi .ub-choice__hint{grid-column:1 / -1;margin-top:.25em}}
 .umf-record.ub-ledger .ub-ink__control{min-height:44px;padding-block:.2em .3em}
 /* 장면 08 — 기록 칸이 걷히고 이름만 책 쪽 가운데에 먹으로 스며든다 */
 .umf-record{transition:opacity 600ms ease,filter 600ms ease}

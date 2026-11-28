@@ -3,7 +3,7 @@
 export { UmStudyBackdrop, type UmStudyBackdropProps } from "./UmStudyBackdrop"
 export { UmBook, type UmBookProps } from "./UmBook"
 export { UmBookTitle, type UmBookTitleProps } from "./UmBookTitle"
-export { UmInkField, UmInkPart, type UmInkFieldProps, type UmInkPartProps } from "./UmInkField"
+export { UmInkField, UmInkPart, UmInkPartSet, type UmInkFieldProps, type UmInkPartProps } from "./UmInkField"
 export { UmInkChoice, type UmInkChoiceProps, type UmInkChoiceOption } from "./UmInkChoice"
 export { UmWaxSeal, type UmWaxSealProps } from "./UmWaxSeal"
 export { UmChapterHead, type UmChapterHeadProps } from "./UmChapterHead"

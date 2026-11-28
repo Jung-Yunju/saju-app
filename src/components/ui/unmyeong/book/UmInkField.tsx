@@ -125,7 +125,7 @@ type PartCommon = {
   invalid?: boolean
   /** 칸 최소 너비(숫자 글자 수, 기본 4 — 한글 한 자 ≈ 숫자 1.6자) — 예: 해 4, 달·날 2, 「모름」 4. em 이라 글자가 커지면 같이 커진다 */
   chars?: number
-  /** 한 줄에 남는 폭을 나눠 갖는 비율(기본 = chars) — 예: 년:월:일 = 4:2:2 */
+  /** 한 줄에 남는 폭을 나눠 갖는 비율(기본 0 = 글자 폭만큼만, 왼쪽부터 붙여 놓는다). 1 이상이면 남는 폭을 채운다(예: 대략 시간대 select) */
   grow?: number
   className?: string
 }
@@ -133,9 +133,16 @@ export type UmInkPartProps =
   | (PartCommon & { as?: "input" } & Omit<InputHTMLAttributes<HTMLInputElement>, "size" | "aria-label">)
   | (PartCommon & { as: "select"; children: ReactNode } & Omit<SelectHTMLAttributes<HTMLSelectElement>, "aria-label">)
 
-/** UmInkField as="group" 안의 한 칸(년·월·일·시·분). 밑줄·포커스 번짐은 같다 */
+/**
+ * UmInkField as="group" 안의 한 칸(년·월·일·시·분). 밑줄·포커스 번짐은 같다.
+ * 칸 전체가 <label> — 꼬리 글자(「월」「일」)를 눌러도 칸에 포커스가 간다(터치 대상 = 칸 + 꼬리, 44px 이상).
+ * 입력 칸(input)의 꼬리 글자는 칸 안 오른쪽 여백에 놓는다 → 실제 입력 요소 폭 자체가 44px 이상(숫자 두 자 칸도).
+ * select 는 꺾쇠가 오른쪽에 있으므로 꼬리 글자를 칸 밖(꺾쇠 뒤)에 둔다.
+ */
 export function UmInkPart(props: UmInkPartProps) {
   const { suffix, invalid, chars = 4, grow, className } = props
+  const isSelect = props.as === "select"
+  const inSuffix = !isSelect && !!suffix
   const common = { className: "ub-ink__control", "aria-invalid": invalid ? (true as const) : undefined, "aria-label": props["aria-label"] }
   let control: ReactNode
   if (props.as === "select") {
@@ -156,13 +163,15 @@ export function UmInkPart(props: UmInkPartProps) {
     void [as, s, i, n, g, c]
     control = <input {...inp} {...common} />
   }
+  // 숫자 한 자 ≈ 0.6em + 자간 0.04em(명조 굵게 실측) → 0.66em. 좌우 여백 4px, select 는 꺾쇠 자리 26px,
+  // 칸 안 꼬리 글자는 한 자(라벨 글자 ≈ 0.94em → 1em) + 틈 3px + 좌우 여백 4px 를 더한다(최소 폭 2.75rem 은 CSS)
+  const extra = isSelect ? "26px" : inSuffix ? "1em + 7px" : "4px"
   return (
-    <span
-      className={cx("ub-ink__part", "ub-ink__wrap", invalid && "ub-ink--error", className)}
+    <label
+      className={cx("ub-ink__part", "ub-ink__wrap", inSuffix && "ub-ink__part--in", invalid && "ub-ink--error", className)}
       style={{
-        // 숫자 한 자 ≈ 0.6em + 자간 0.04em(명조 굵게 실측) → 0.66em. 좌우 여백 4px, select 는 꺾쇠 자리 24px 를 더한다
-        "--ub-part-w": `calc(${(chars * 0.66).toFixed(2)}em + ${props.as === "select" ? 26 : 4}px)`,
-        "--ub-part-grow": grow ?? chars,
+        "--ub-part-w": `calc(${(chars * 0.66).toFixed(2)}em + ${extra})`,
+        "--ub-part-grow": grow ?? 0,
       } as CSSProperties}
     >
       {control}
@@ -173,7 +182,7 @@ export function UmInkPart(props: UmInkPartProps) {
       )}
       <span className="ub-ink__line" aria-hidden="true" />
       <span className="ub-ink__wet" aria-hidden="true" />
-    </span>
+    </label>
   )
 }
 
@@ -207,4 +216,12 @@ function stripSelect(p: AsSelect) {
   const { label, hint, help, error, requiredMark, suffix, className, as, id, "aria-describedby": d, ...html } = p
   void [label, hint, help, error, requiredMark, suffix, className, as, id, d]
   return html
+}
+
+/**
+ * 묶음 안의 작은 묶음 — 줄이 모자라면 이 단위로 함께 다음 줄로 간다(예: 「8 월 14 일」을 한 덩어리로 → 「14 일」만 떨어지지 않는다).
+ * UmInkField as="group" 의 children 안에서 UmInkPart 여러 개를 감싼다.
+ */
+export function UmInkPartSet({ children }: { children: ReactNode }) {
+  return <span className="ub-ink__set">{children}</span>
 }

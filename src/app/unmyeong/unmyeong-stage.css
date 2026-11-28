@@ -35,7 +35,7 @@
 /* 입력 오버레이: 종이 영역 위 HTML. 위치·크기는 JS가 cover 변환으로 px 지정 */
 .um-ov-form{position:absolute;inset:0;max-width:none;margin:0;pointer-events:none;transition:opacity 600ms ease,visibility 0s linear 600ms}
 .um-bookscene[data-phase="imprint"] .um-ov-form{opacity:0;visibility:hidden}
-.um-ov-page{position:absolute;pointer-events:auto;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(42,33,25,.35) transparent;
+.um-ov-page{position:absolute;pointer-events:auto;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:rgba(42,33,25,.35) transparent;
  padding:calc(var(--ov-f)*.3px) calc(var(--ov-f)*.7px) calc(var(--ov-f)*.7px);
  --um-fg:#2d2218;--um-fg-muted:#40342a;--um-text-ink:#2d2218;--um-text-ink-muted:#40342a;--um-accent:var(--um-brass-deep);--um-field-line:var(--um-paper-line);
  --um-focus:var(--um-brass-deep);--um-danger:var(--um-seal-ink);--um-rule:rgb(42 33 25/.28);--um-btn-brass-line:var(--um-brass-deep);--um-btn-brass-fg:var(--um-text-ink);
