@@ -5,7 +5,7 @@ import {
   buildRequest, currentMaxBirthYear, emptyForm, isDstYear, MIN_BIRTH_YEAR, PLACES, SIJIN_OPTIONS, ZI_CHOICES, ZI_HELP,
   type BirthForm, type TimeMode,
 } from "../input/build-request"
-import { UmField, UmPage, UmSealButton } from "./_fallback"
+import { assets, UmField, UmPage, UmSealButton } from "./_fallback"
 
 type Errors = Partial<Record<"gender" | "date" | "time", string>>
 
@@ -55,11 +55,13 @@ export function BookForm({ onSubmit, onReplay, busy, serverError }: {
       <UmPage className="um-book-sheet">
         <form onSubmit={submit} noValidate aria-busy={busy}>
           <header className="um-form-head">
-            <p className="um-form-kicker" aria-hidden="true">運命秘書</p>
-            <h1>운명비서</h1>
+            <p className="um-stamp" aria-hidden="true">1급<br />비밀</p>
+            <p className="um-form-kicker">너의 운명을 바꿔 줄 1급 비밀</p>
+            <h1>운명비서 <span lang="zh">(運命秘書)</span></h1>
             <p className="um-form-sub">세상에 단 한 권, 오직 너를 위한 기록.</p>
-            <p className="um-form-guide">자, 네 이름과 태어난 날을 적어 보거라.</p>
           </header>
+          <h2 className="um-record-title">오늘의 대상자</h2>
+          <p className="um-form-guide">자, 네 이름과 태어난 날을 적어 보거라.</p>
 
           <UmField label="이름" optional id="um-name"
             help="이름은 이 화면에서 널 부를 때만 쓴단다. 서버로 보내지 않고 저장하지도 않아.">
@@ -152,7 +154,7 @@ export function BookForm({ onSubmit, onReplay, busy, serverError }: {
           {serverError && <p className="um-err um-err-form" role="alert">{serverError}</p>}
           <UmSealButton type="submit" disabled={busy}>{busy ? "펼치는 중…" : "나의 운명비서 열기"}</UmSealButton>
           <p className="um-fine">입력한 생년월일은 풀이를 계산하는 데만 쓰고 서버에 저장하지 않는단다. 재미와 참고용이야.</p>
-          <button type="button" className="um-replay" onClick={onReplay}>인트로 다시 보기</button>
+          {assets.intro.video && <button type="button" className="um-replay" onClick={onReplay}>인트로 다시 보기</button>}
         </form>
       </UmPage>
     </main>

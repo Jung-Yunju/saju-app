@@ -90,3 +90,12 @@ select.um-input{background-image:linear-gradient(45deg,transparent 50%,#5a4630 5
  .um-flow-root *,.um-flow-root *::before,.um-flow-root *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
  .um-loadline{opacity:.6}
 }
+
+/* 펼친 고서 한 쪽: 1급 비밀 도장 + 오늘의 대상자 기록부 */
+.um-form-head{position:relative}
+.um-stamp{position:absolute;top:-6px;right:-2px;margin:0;width:64px;height:64px;display:flex;align-items:center;justify-content:center;text-align:center;
+ border:3px solid #702F2B;border-radius:6px;color:#702F2B;font:900 .9375rem/1.15 var(--um-font-title,serif);transform:rotate(8deg);opacity:.88;letter-spacing:.05em}
+.um-form-kicker{padding:0 70px;font-size:1rem!important;letter-spacing:0!important;word-break:keep-all}
+.um-form-head h1{font-size:var(--um-fs-xl,1.75rem)!important}.um-form-head h1 span{font-size:1.125rem;font-weight:700}
+.um-record-title{margin:0 0 4px;padding:6px 0;text-align:center;font:900 var(--um-fs-lg,1.375rem)/1.3 var(--um-font-title,serif);color:#2a2018;border-top:2px solid #4a3a2a;border-bottom:1px solid #8a7656}
+.um-form-guide{text-align:center;margin:8px 0 20px!important}
