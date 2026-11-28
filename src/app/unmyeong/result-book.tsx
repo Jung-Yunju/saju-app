@@ -4,7 +4,7 @@
 import Link from "next/link"
 import { UmDivider, UmFold, UmPage, UmSealButton, umButtonClass } from "@/components/ui/unmyeong"
 import { archetypeAssets, type ImageAsset } from "@/lib/unmyeong/assets"
-import type { ElementKo, UnmyeongFreeChapter, UnmyeongFreeResponse } from "@/lib/unmyeong/free-types"
+import type { UnmyeongFreeChapter, UnmyeongFreeResponse } from "@/lib/unmyeong/free-types"
 import { visibleVolumes } from "@/lib/unmyeong/volumes"
 
 const TITLES = ["너는 누구인가", "너의 신성과 영물", "하늘이 네게 준 것", "네가 넘어야 할 것", "지금 네게 필요한 말"]
@@ -162,7 +162,6 @@ export function ResultBook({ data, name, onRetry }: { data: UnmyeongFreeResponse
 
       <div className="umr-spread">
         <UmPage no={1} title={`${name ? name + ", " : ""}${first?.title || TITLES[0]}`} className="umr-chapter" id="umr-ch-1">
-          <p className="umr-who">{name || "오늘의 대상자"}</p>
           {first ? (m ? <><p className="umr-essence">{m[1]}</p><Body text={m[2]} /></> : <p className="umr-essence">{firstText}</p>) : <Pending />}
         </UmPage>
 

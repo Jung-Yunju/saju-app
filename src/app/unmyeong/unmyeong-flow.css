@@ -30,34 +30,6 @@
 @keyframes um-grow{0%{transform:translate(-50%,-50%) scale(1);border-radius:4px}100%{transform:translate(-50%,-50%) scale(70);border-radius:0}}
 .is-opening .um-caption{z-index:3;color:var(--um-text-ink,#2a2018);text-shadow:none;transition:color 600ms ease 400ms}
 
-/* ---------- 입력 = 첫 장 ---------- */
-.um-formwrap{min-height:100dvh;padding:20px 14px 48px;display:flex;justify-content:center;align-items:flex-start;background:linear-gradient(var(--um-study,#211C17),var(--um-bg,#141310))}
-.um-book-sheet{width:100%;max-width:34rem;padding:28px 20px 24px;animation:um-sheet 500ms ease both}
-@keyframes um-sheet{from{opacity:.0}to{opacity:1}}
-.um-form-head{text-align:center;margin-bottom:28px}
-.um-form-kicker{margin:0;letter-spacing:.4em;color:#6b5236;font-size:1rem;font-family:var(--um-font-title,serif)}
-.um-form-head h1{margin:4px 0 6px;font:900 var(--um-fs-2xl,2.25rem)/1.2 var(--um-font-title,serif);color:var(--um-text-ink,#2a2018)}
-.um-form-sub{margin:0;font:var(--um-fs-md,1.125rem)/1.5 var(--um-font-title,serif);color:#4a3a2a;word-break:keep-all}
-.um-form-guide{margin:16px 0 0;font:var(--um-fs-sm,1rem)/1.6 var(--um-font-body,sans-serif);color:#5a4630;word-break:keep-all}
-.um-input{display:block;width:100%;min-height:48px;padding:10px 12px;font-size:1rem;color:var(--um-text-ink,#2a2018);background:rgba(255,255,255,.45);
- border:1px solid #8a7656;border-radius:var(--um-radius-s,4px);appearance:none;-webkit-appearance:none}
-select.um-input{background-image:linear-gradient(45deg,transparent 50%,#5a4630 50%),linear-gradient(135deg,#5a4630 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 15px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:36px}
-.um-input::placeholder{color:#7a6a55}
-.um-date{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:8px}.um-date label{display:block}
-.um-time{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.um-time-1{grid-template-columns:1fr}
-.um-choices{display:grid;gap:8px}.um-choices-2{grid-template-columns:1fr 1fr}.um-choices-3{grid-template-columns:repeat(3,1fr)}
-.um-choice{position:relative;display:block}
-.um-choice input{position:absolute;inset:0;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
-.um-choice span{display:flex;align-items:center;justify-content:center;text-align:center;min-height:48px;padding:6px 6px;border:1px solid #8a7656;border-radius:var(--um-radius-s,4px);
- background:rgba(255,255,255,.3);color:#3a2d20;font-size:1rem;line-height:1.3;word-break:keep-all}
-.um-choice input:checked+span{background:#382B21;color:#E2D8C5;border-color:#382B21;font-weight:700}
-.um-choice input:focus-visible+span{outline:3px solid #702F2B;outline-offset:2px}
-.um-check{display:flex;align-items:center;gap:10px;min-height:44px;margin-top:8px;font-size:1rem;color:#3a2d20}
-.um-check input{width:24px;height:24px;accent-color:#702F2B}
-.um-note{margin:10px 0 0;padding:8px 12px;font-size:.9375rem;color:#5a3a1a;background:rgba(112,47,43,.1);border-radius:var(--um-radius-s,4px)}
-.um-err-form{text-align:center;margin:0 0 12px}
-.um-fine{margin:16px 0 0;text-align:center;font-size:.875rem;line-height:1.6;color:#5a4630;word-break:keep-all}
-.um-replay{display:block;margin:8px auto 0;min-height:44px;padding:8px 16px;background:none;border:0;color:#5a4630;text-decoration:underline;font-size:.9375rem;cursor:pointer}
 .um-formwrap [hidden],div[hidden]{display:none}
 
 /* ---------- 로딩 ---------- */
@@ -78,12 +50,7 @@ select.um-input{background-image:linear-gradient(45deg,transparent 50%,#5a4630 5
 .um-steps li.is-past{color:#7d6c55}
 .um-steps li.is-now{color:var(--um-text,#E2D8C5);font-weight:700}
 
-/* ---------- 결과 자리 ---------- */
-.um-result-title{margin:0 0 16px;text-align:center;font:900 var(--um-fs-xl,1.75rem)/1.3 var(--um-font-title,serif);color:var(--um-text-ink,#2a2018)}
-.um-result-raw{max-height:60vh;overflow:auto;margin:0 0 20px;padding:12px;font-size:.875rem;line-height:1.5;white-space:pre-wrap;word-break:break-all;background:rgba(255,255,255,.3);border-radius:4px;color:#2a2018}
-
 @media (min-width:768px){
- .um-book-sheet{padding:44px 48px 36px}.um-formwrap{padding-top:48px}
  .um-caption{bottom:12%}
 }
 @media (prefers-reduced-motion:reduce){
@@ -91,11 +58,3 @@ select.um-input{background-image:linear-gradient(45deg,transparent 50%,#5a4630 5
  .um-loadline{opacity:.6}
 }
 
-/* 펼친 고서 한 쪽: 1급 비밀 도장 + 오늘의 대상자 기록부 */
-.um-form-head{position:relative}
-.um-stamp{position:absolute;top:-6px;right:-2px;margin:0;width:64px;height:64px;display:flex;align-items:center;justify-content:center;text-align:center;
- border:3px solid #702F2B;border-radius:6px;color:#702F2B;font:900 .9375rem/1.15 var(--um-font-title,serif);transform:rotate(8deg);opacity:.88;letter-spacing:.05em}
-.um-form-kicker{padding:0 70px;font-size:1rem!important;letter-spacing:0!important;word-break:keep-all}
-.um-form-head h1{font-size:var(--um-fs-xl,1.75rem)!important}.um-form-head h1 span{font-size:1.125rem;font-weight:700}
-.um-record-title{margin:0 0 4px;padding:6px 0;text-align:center;font:900 var(--um-fs-lg,1.375rem)/1.3 var(--um-font-title,serif);color:#2a2018;border-top:2px solid #4a3a2a;border-bottom:1px solid #8a7656}
-.um-form-guide{text-align:center;margin:8px 0 20px!important}

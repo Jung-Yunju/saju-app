@@ -1,6 +1,6 @@
 // POST /api/unmyeong/free 응답 형식(계약) — 화면(src/app/unmyeong/**)이 가져다 쓰는 타입. 순수 타입 파일(실행 코드 없음).
 // 계약 원본: docs/redesign/20-unmyeong-plan.md §2 "무료 결과 API". 바꾸려면 총괄실장에게 알린다.
-// 개인정보: 이름·생년월일·성별·출생지·양력/음력 구분은 응답에 없다. 이름은 서버로 보내지 않고 화면에서만 끼운다.
+// 개인정보: 이름·생년월일·성별·출생지·양력/음력 구분은 응답에 없다. 이름은 서버로 보내지 않는다(풀이 본문에는 호칭이 없다 — D-029).
 import type { DaeunView, ElementKo, GanzhiView, PillarView } from "@/app/free/_lib/types"
 import type { FreeChapterKey } from "./assets"
 
@@ -17,9 +17,14 @@ export interface UnmyeongArchetypeView {
   /** 부 원형 id(없으면 null) */
   secondary: string | null
   variantTags: string[]
+  /**
+   * 다리 기운(통관 오행) — 달의 여신(양강 대치)일 때 엔진 derived.strictPairs 대표 쌍의 bridge. 없으면 null·생략.
+   * 생략되면 문안 고르기가 variantTags의 "…·수로 이음" 표지에서 읽는다(free-copy.ts bridgeOf)
+   */
+  bridge?: ElementKo | null
   /** 통과한 조건과 실제 값(근거 화면용) */
   matched: { key: string; op: string; value: number | string | boolean; threshold?: number | string | string[] }[]
-  /** 보는 방식에 따라 원형이 바뀌는가 */
+  /** 보는 방식에 따라 원형이 바뀌는가. hourSensitive = 시각 모름일 때 12시진 중 원형이 바뀌는 시진이 있음(시각을 알면 null) */
   stability: { nearBoundary: boolean; tableSensitive: boolean; hourSensitive: boolean | null }
   /** 전통 명리 공식 분류가 아님(화면 고지 필수) */
   disclaimer: "creative-symbol"
@@ -29,12 +34,15 @@ export interface UnmyeongArchetypeView {
 // ─────────────────────────────────────────── 무료 5장 문안 — content/unmyeong/free-copy.json 납품 전에는 null
 
 export interface UnmyeongFreeChapter {
-  /** 1~5 */
+  /** 1~5 = FREE_CHAPTER_KEYS 순서(서버가 강제) */
   no: number
-  /** being · gift · reason · chart · unfolding (assets.ts FREE_CHAPTER_KEYS) */
+  /** 1 being 너는 누구인가 · 2 symbol 너의 신성과 영물 · 3 gift 하늘이 네게 준 것 · 4 shadow 네가 넘어야 할 것 · 5 counsel 지금 네게 필요한 말 */
   key: FreeChapterKey
   title: string
-  /** 본문(400~600자 목표). 호칭 치환 토큰이 있으면 화면이 이름으로 바꾼다 — 서버는 이름을 모른다 */
+  /**
+   * 본문(다섯 장 합 400~600자, D-029 ④). 완성된 문장이다 — 치환 토큰 없음, 호칭 없음(D-029 ②, 화면이 이름을 끼우지 않는다).
+   * {bridge}는 서버가 물·나무·불·흙·쇠로 바꿔 내보낸다. 시각 모름이면 1장 끝에 시각 안내 한 문장이 붙어 있다(D-030)
+   */
   text: string
 }
 

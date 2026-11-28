@@ -119,8 +119,11 @@ const archetype = (id: (typeof ARCHETYPE_IDS)[number]): ArchetypeAssets => {
   }
 }
 
-/** 무료 결과 5장의 키(순서 = 장 번호). /api/unmyeong/free 응답 chapters[].key와 같다 */
-export const FREE_CHAPTER_KEYS = ["being", "gift", "reason", "chart", "unfolding"] as const
+/**
+ * 무료 결과 5장의 키(순서 = 장 번호, 대표 「운명비서」 지시서 7절). /api/unmyeong/free 응답 chapters[].key와 같다
+ *   1 being 너는 누구인가 · 2 symbol 너의 신성과 영물 · 3 gift 하늘이 네게 준 것 · 4 shadow 네가 넘어야 할 것 · 5 counsel 지금 네게 필요한 말
+ */
+export const FREE_CHAPTER_KEYS = ["being", "symbol", "gift", "shadow", "counsel"] as const
 export type FreeChapterKey = (typeof FREE_CHAPTER_KEYS)[number]
 
 export const UNMYEONG_ASSETS: UnmyeongAssets = {
@@ -140,11 +143,12 @@ export const UNMYEONG_ASSETS: UnmyeongAssets = {
   paperTexture: img("placeholder/paper-placeholder.svg", ""),
   archetypes: Object.fromEntries(ARCHETYPE_IDS.map((id) => [id, archetype(id)])),
   illustrations: {
+    // 1장 너는 누구인가 · 2장 너의 신성과 영물 · 3장 하늘이 네게 준 것 · 4장 네가 넘어야 할 것 · 5장 지금 네게 필요한 말
     being: img("placeholder/reflection-placeholder.svg", "물에 비친 네 안의 존재(임시 그림)"),
-    gift: img("placeholder/study-placeholder.svg", "서재 책상 위에 놓인 것들(임시 그림)"),
-    reason: img("placeholder/grandma-placeholder.svg", "이야기를 들려주는 할머니(임시 그림)"),
-    chart: img("placeholder/book-cover-placeholder.svg", "할미가 읽어 낸 고서(임시 그림)"),
-    unfolding: img("placeholder/bokja-loaf-placeholder.svg", "다음 장을 기다리는 복자(임시 그림)"),
+    symbol: img("placeholder/reflection-placeholder.svg", "거울에 비친 너의 신성과 영물(임시 그림)"),
+    gift: img("placeholder/study-placeholder.svg", "서재 책상 위에 놓인, 하늘이 준 것들(임시 그림)"),
+    shadow: img("placeholder/grandma-placeholder.svg", "등불 너머 그림자를 짚어 주는 할머니(임시 그림)"),
+    counsel: img("placeholder/bokja-loaf-placeholder.svg", "할미의 한마디를 곁에서 듣는 복자(임시 그림)"),
     "volume-1": img("placeholder/book-cover-placeholder.svg", "제1권 표지(임시 그림)"),
     "volume-2": img("placeholder/book-cover-placeholder.svg", "제2권 표지(임시 그림)"),
     "volume-3": img("placeholder/book-cover-placeholder.svg", "제3권 표지(임시 그림)"),

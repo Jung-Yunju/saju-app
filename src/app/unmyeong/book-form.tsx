@@ -83,30 +83,27 @@ export function BookForm({ onSubmit, onReplay, busy, serverError }: {
               <span>윤달에 태어났어요</span></label>
           )}
 
-          <fieldset className="um-ledger-group">
-            <legend>태어난 날</legend>
-            <div className="um-date">
-              <UmField variant="ledger" label="해" inputMode="numeric" autoComplete="off" placeholder="1990" title={`${MIN_BIRTH_YEAR}~${maxYear}`}
+          <>
+              <UmField variant="ledger" label="태어난 해" inputMode="numeric" autoComplete="off" placeholder="1990" title={`${MIN_BIRTH_YEAR}~${maxYear}`}
                 value={f.birthYear} onChange={e => set("birthYear", digits(e.target.value, 4))} />
-              <UmField variant="ledger" label="달" inputMode="numeric" autoComplete="off" placeholder="5"
+              <UmField variant="ledger" label="태어난 달" inputMode="numeric" autoComplete="off" placeholder="5"
                 value={f.birthMonth} onChange={e => set("birthMonth", digits(e.target.value, 2))} />
-              <UmField variant="ledger" label="날" inputMode="numeric" autoComplete="off" placeholder="21"
+              <UmField variant="ledger" label="태어난 날" inputMode="numeric" autoComplete="off" placeholder="21"
                 value={f.birthDay} onChange={e => set("birthDay", digits(e.target.value, 2))} />
-            </div>
             {errors.date && <p className="um-err-line" role="alert">{errors.date}</p>}
-          </fieldset>
+          </>
 
           <UmChoiceGroup variant="ledger" legend="태어난 시각" name="tmode" value={f.timeMode}
             options={MODES.map(o => ({ value: o.v, label: o.l }))}
             onChange={e => { const v = e.target.value as TimeMode; setF(p => ({ ...p, timeMode: v, birthHour: "", birthMinute: "", ziChoice: "" })) }}
             help={errors.time ? <span role="alert">{errors.time}</span> : "시각을 모르면 ‘시각 모름’으로 두렴. 해·달·날만으로도 읽을 수 있단다. 정확한 시각은 24시간제로 적는다(오후 3시 20분은 15시 20분)."} />
           {f.timeMode === "exact" && (
-            <div className="um-date um-date-2">
-              <UmField variant="ledger" label="시" inputMode="numeric" placeholder="0~23" value={f.birthHour}
+            <>
+              <UmField variant="ledger" label="태어난 시" inputMode="numeric" placeholder="0~23" value={f.birthHour}
                 onChange={e => set("birthHour", digits(e.target.value, 2))} />
-              <UmField variant="ledger" label="분" inputMode="numeric" placeholder="0~59" value={f.birthMinute}
+              <UmField variant="ledger" label="태어난 분" inputMode="numeric" placeholder="0~59" value={f.birthMinute}
                 onChange={e => set("birthMinute", digits(e.target.value, 2))} />
-            </div>
+            </>
           )}
           {f.timeMode === "sijin" && (
             <>
