@@ -186,8 +186,8 @@ describe("공격 입력 — 본문 크기·스트림·JSON 형태", () => {
     expect(({} as Record<string, unknown>).isAdmin).toBeUndefined()
   })
 
-  // [결함 QA-UM-1, 낮음] 의도한 동작을 적은 시험이라 지금은 실패해야 통과한다(it.fails). 고쳐지면 it으로 바꾼다.
-  it.fails("[결함 QA-UM-1] __proto__ 안에 넣은 이름·풀이 종류·상대방 칸도 '무시'되어야 한다(평범한 요청과 같은 결과)", async () => {
+  // [결함 QA-UM-1, 낮음] 종결 2026-11-28 — 백엔드가 stripUnusedFields에서 위험 키를 건너뛰게 고침(총괄실장이 it.fails → it 전환, 품질검증 추후 확인)
+  it("[결함 QA-UM-1] __proto__ 안에 넣은 이름·풀이 종류·상대방 칸도 '무시'되어야 한다(평범한 요청과 같은 결과)", async () => {
     // 의도한 동작: 버려지는 칸을 어떤 모양으로 보내도 결과가 그 칸 없이 보낸 것과 같다.
     const plain = await json(await post(BASE, "10.11.0.1"))
     const baseRaw = JSON.stringify(BASE).slice(0, -1)
