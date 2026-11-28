@@ -288,7 +288,7 @@ export const SURVEY_QUESTIONS: readonly SurveyQuestion[] = [
     options: MBTI_TYPES.map((t) => ({ value: t, label: t })),
     maxSelect: 1,
     chapters: ["성격·기질"],
-    usage: "말씨·비유를 고를 때만 참고. 사주와 맞다/틀리다를 판정하지 않는다. 기질 판단 근거로 쓰지 않는다.",
+    usage: "원국·운 계산 근거로 쓰지 않는다. 사주와 맞다/틀리다를 판정하지 않는다. 발현 비교(expression 엔진, D-035)에서 '스스로 느끼는 모습' 신호로만 쓰고 결과는 항상 추론으로 표시한다. 말씨·비유 고를 때도 참고.",
     products: { free: "optional", basic: "optional", love: "optional", compat: "optional" },
     skippable: true,
   },

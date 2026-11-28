@@ -1,0 +1,201 @@
+{
+  "id": "expression-dimensions",
+  "version": "0.2.0",
+  "status": "designed",
+  "claim": "service-model",
+  "basedOn": "docs/knowledge/personalization/expression-dimensions.md (expression-dimensions@0.1.0)",
+  "source": "명리학 연구소장 판정 규칙(§3 차원 판정·§5 운 대응·§6.4 사실 대응·§7 상충 처리)을 개인화 분석 연구원이 표로 옮김(2026-11-28). 문턱값은 설계값이며 분포 측정 전이다.",
+  "note": "운명비서 자기이해 모델의 표다. 기질 차원은 전통 명리의 공식 분류가 아니고, 근거 등급은 전부 L0(통설 요지, 원문 미대조)다. 사주 판정 자체를 바꾸지 않는다.",
+  "evidenceLevel": "L0",
+  "hiddenStemTable": "kr-monthly-30",
+  "levels": {
+    "present": ["strong", "moderate"]
+  },
+  "sensitivity": {
+    "hourStableMin": 8,
+    "compareTable": "cn-lunarjs"
+  },
+  "self": {
+    "highAt": 0.5,
+    "lowAt": 0.5,
+    "unsureFactor": 0.5,
+    "mbtiOnlyFactor": 0.5,
+    "developedEvidence": ["trait"],
+    "situation": {
+      "from": "lived-link",
+      "questions": ["occupationStatus", "recentChanges", "lifeEvents"],
+      "direction": "high",
+      "weight": 1
+    }
+  },
+  "dimensions": [
+    {
+      "id": "drive",
+      "label": "내 힘으로 서는 힘",
+      "kind": "core",
+      "rule": "exp.lv.group.v1",
+      "params": { "group": "bigyeop", "hiddenOnlyModerate": 0.12, "stemOnlyModerate": 0.15, "rootedStrong": 0.24, "rootedStrongWithMonth": 0.18, "hiddenMonthCanBeStrong": false },
+      "mods": ["exp.mod.drive.v1"],
+      "notes": ["surplus"],
+      "facts": [
+        { "key": "selfStrength:persistence", "direction": "high", "weight": 1, "evidence": "trait" },
+        { "key": "selfStrength:decisiveness", "direction": "high", "weight": 1, "evidence": "trait" },
+        { "key": "workStyle:team", "direction": "high", "weight": 1, "evidence": "trait" }
+      ]
+    },
+    {
+      "id": "expression",
+      "label": "꺼내 보여 주는 힘",
+      "kind": "core",
+      "rule": "exp.lv.group.v1",
+      "params": { "group": "siksang", "hiddenOnlyModerate": 0.12, "stemOnlyModerate": 0.15, "rootedStrong": 0.24, "rootedStrongWithMonth": 0.18, "hiddenMonthCanBeStrong": false },
+      "mods": [],
+      "notes": ["load"],
+      "facts": [
+        { "key": "selfStrength:communication", "direction": "high", "weight": 1, "evidence": "trait" },
+        { "key": "selfStrength:creativity", "direction": "high", "weight": 1, "evidence": "trait" },
+        { "key": "workStyle:people_facing", "direction": "high", "weight": 1, "evidence": "trait" }
+      ]
+    },
+    {
+      "id": "realism",
+      "label": "현실로 옮겨 손에 쥐는 힘",
+      "kind": "core",
+      "rule": "exp.lv.group.v1",
+      "params": { "group": "jaeseong", "hiddenOnlyModerate": 0.12, "stemOnlyModerate": 0.15, "rootedStrong": 0.24, "rootedStrongWithMonth": 0.18, "hiddenMonthCanBeStrong": false },
+      "mods": [],
+      "notes": ["load"],
+      "facts": [
+        { "key": "selfWeakness:saving", "direction": "low", "weight": 1, "evidence": "trait" }
+      ]
+    },
+    {
+      "id": "duty",
+      "label": "책임지고 틀을 지키는 힘",
+      "kind": "core",
+      "rule": "exp.lv.group.v1",
+      "params": { "group": "gwansal", "hiddenOnlyModerate": 0.12, "stemOnlyModerate": 0.15, "rootedStrong": 0.24, "rootedStrongWithMonth": 0.18, "hiddenMonthCanBeStrong": false },
+      "mods": [],
+      "notes": ["load"],
+      "facts": [
+        { "key": "selfStrength:planning", "direction": "high", "weight": 1, "evidence": "trait" },
+        { "key": "workStyle:leading", "direction": "high", "weight": 1, "evidence": "trait" }
+      ]
+    },
+    {
+      "id": "learning",
+      "label": "받아들이고 익히는 힘",
+      "kind": "core",
+      "rule": "exp.lv.group.v1",
+      "params": { "group": "inseong", "hiddenOnlyModerate": 0.12, "stemOnlyModerate": 0.15, "rootedStrong": 0.24, "rootedStrongWithMonth": 0.18, "hiddenMonthCanBeStrong": false },
+      "mods": [],
+      "notes": ["surplus"],
+      "facts": [
+        { "key": "selfStrength:caring", "direction": "high", "weight": 1, "evidence": "trait" },
+        { "key": "selfStrength:learning", "direction": "high", "weight": 1, "evidence": "trait" },
+        { "key": "workStyle:solo_deep", "direction": "high", "weight": 1, "evidence": "trait" }
+      ]
+    },
+    {
+      "id": "steadiness",
+      "label": "차근차근 다지는 결",
+      "kind": "grain",
+      "rule": "exp.lv.tenGodSet.v1",
+      "params": { "tenGods": ["정재", "정관", "정인", "식신"], "strongShare": 0.3, "moderateShare": 0.12, "clarityFlags": [] },
+      "mods": [],
+      "notes": [],
+      "facts": [
+        { "key": "selfStrength:planning", "direction": "high", "weight": 1, "evidence": "trait" }
+      ]
+    },
+    {
+      "id": "edge",
+      "label": "틀 밖으로 밀고 나가는 결",
+      "kind": "grain",
+      "rule": "exp.lv.tenGodSet.v1",
+      "params": { "tenGods": ["편관", "상관", "편인", "겁재"], "strongShare": 0.3, "moderateShare": 0.12, "clarityFlags": ["상관견관", "효신탈식", "관살혼잡"] },
+      "mods": [],
+      "notes": [],
+      "facts": []
+    },
+    {
+      "id": "flux",
+      "label": "변화를 타는 힘",
+      "kind": "aux",
+      "rule": "exp.lv.flux.v1",
+      "params": { "keyPillars": ["month", "day"], "strongMinMoving": 2 },
+      "mods": [],
+      "notes": [],
+      "facts": []
+    },
+    {
+      "id": "outward",
+      "label": "밖으로 펼치는 기운",
+      "kind": "aux",
+      "rule": "exp.lv.outward.v1",
+      "params": { "strongYang": 0.75, "warmStrongYang": 0.625, "faintYang": 0.25, "coldFaintYang": 0.375 },
+      "mods": [],
+      "notes": [],
+      "facts": []
+    }
+  ],
+  "luck": {
+    "groupMap": {
+      "bigyeop": { "activate": "drive", "feed": "expression", "press": "realism" },
+      "siksang": { "activate": "expression", "feed": "realism", "press": "duty" },
+      "jaeseong": { "activate": "realism", "feed": "duty", "press": "learning" },
+      "gwansal": { "activate": "duty", "feed": "learning", "press": "drive" },
+      "inseong": { "activate": "learning", "feed": "drive", "press": "expression" }
+    },
+    "flux": { "dimensionId": "flux", "types": ["clash", "punishment"], "natalPillars": ["month", "day"] }
+  },
+  "strategies": {
+    "matrix": {
+      "expressed": { "activate": "exp.st.expand", "press": "exp.st.pace" },
+      "developed": { "activate": "exp.st.leverage", "press": "exp.st.pace" },
+      "dormant": { "activate": "exp.st.tryout", "press": "exp.st.guard" },
+      "quiet": { "activate": "exp.st.borrow", "press": "exp.st.guard" },
+      "unknown": { "activate": "exp.st.observe", "press": "exp.st.observe" }
+    },
+    "tone": { "support": "exp.st.commit", "load": "exp.st.smallsteps" },
+    "catalog": {
+      "exp.st.expand": "이미 쓰는 힘을 더 넓은 판에 써 보기",
+      "exp.st.leverage": "익혀 온 힘을 드러내 쓸 때",
+      "exp.st.tryout": "덜 쓴 힘을 작게 꺼내 볼 때",
+      "exp.st.borrow": "혼자 다 하려 말고 사람과 도구를 빌리기",
+      "exp.st.observe": "이 시기에 일이 몰리는 쪽을 살펴보기",
+      "exp.st.pace": "속도를 조절하고 지킬 것부터 정하기",
+      "exp.st.guard": "미리 대비하고 부담을 나누기",
+      "exp.st.commit": "정한 것을 밀고 가기",
+      "exp.st.smallsteps": "작게 나눠서 하기"
+    }
+  },
+  "gaeunPriority": {
+    "fill": { "dormant": 3, "quiet": 2, "unknown": 1, "expressed": 1, "developed": 0 },
+    "ease": { "expressed": 3, "developed": 2, "unknown": 1, "quiet": 1, "dormant": 0 },
+    "other": 1,
+    "changeWishBoost": 1
+  },
+  "changeWish": {
+    "money_stability": ["realism"],
+    "job_direction": ["duty", "expression"],
+    "people_relations": ["drive"],
+    "confidence": ["drive"],
+    "habits_routine": ["steadiness"],
+    "rest_balance": ["learning"]
+  },
+  "archetypeLinks": {
+    "galaxy": [],
+    "hyeonmu": [],
+    "golden-sun": [],
+    "moon-goddess": [],
+    "bonghwang": ["duty", "learning"],
+    "baekho": ["duty"],
+    "black-fox": ["expression"],
+    "white-deer": ["realism"],
+    "sage": ["learning"],
+    "cheongnyong": ["drive", "expression"],
+    "silver-wolf": ["drive"],
+    "eternal-forest": []
+  }
+}

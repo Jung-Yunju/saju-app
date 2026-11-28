@@ -1,0 +1,28 @@
+{
+  "id": "mbti-bridge",
+  "version": "0.2.0",
+  "status": "designed",
+  "claim": "service-model",
+  "note": "MBTI 4축 자기선택과 기질 차원을 잇는 운명비서 자기이해 모델의 가설 대응표다(연구소장 expression-dimensions.md §6.2 의견을 옮김). 비슷한 쪽을 가리키는 은유일 뿐 두 체계 사이의 상관관계를 주장하지 않는다. MBTI는 사주 원국과 운 계산에 들어가지 않고, 사용자가 지금 스스로 그렇게 느낀다는 자기보고로만 쓴다. T/F 축과 N 극은 차원 신호로 쓰지 않고 조언 문체 힌트로만 둔다. MBTI 검사지 문항은 쓰지 않는다(4축 자기선택만).",
+  "axes": [
+    { "axis": "EI", "poles": ["E", "I"] },
+    { "axis": "SN", "poles": ["S", "N"] },
+    { "axis": "TF", "poles": ["T", "F"] },
+    { "axis": "JP", "poles": ["J", "P"] }
+  ],
+  "links": [
+    { "dimensionId": "outward", "axis": "EI", "pole": "E", "direction": "high", "weight": 1, "grade": "A", "sureOnly": false, "claim": "service-model" },
+    { "dimensionId": "expression", "axis": "EI", "pole": "E", "direction": "high", "weight": 0.5, "grade": "B", "sureOnly": false, "claim": "service-model" },
+    { "dimensionId": "outward", "axis": "EI", "pole": "I", "direction": "low", "weight": 0.5, "grade": "B", "sureOnly": true, "claim": "service-model" },
+    { "dimensionId": "realism", "axis": "SN", "pole": "S", "direction": "high", "weight": 0.5, "grade": "B", "sureOnly": false, "claim": "service-model" },
+    { "dimensionId": "steadiness", "axis": "JP", "pole": "J", "direction": "high", "weight": 1, "grade": "A-", "sureOnly": false, "claim": "service-model" },
+    { "dimensionId": "duty", "axis": "JP", "pole": "J", "direction": "high", "weight": 0.5, "grade": "B", "sureOnly": false, "claim": "service-model" },
+    { "dimensionId": "flux", "axis": "JP", "pole": "P", "direction": "high", "weight": 0.5, "grade": "B", "sureOnly": false, "claim": "service-model" },
+    { "dimensionId": "steadiness", "axis": "JP", "pole": "P", "direction": "low", "weight": 0.5, "grade": "B-", "sureOnly": true, "claim": "service-model" }
+  ],
+  "styleHints": [
+    { "axis": "SN", "pole": "N", "hint": "style.bigPictureFirst" },
+    { "axis": "TF", "pole": "T", "hint": "style.reasonFirst" },
+    { "axis": "TF", "pole": "F", "hint": "style.peopleFirst" }
+  ]
+}

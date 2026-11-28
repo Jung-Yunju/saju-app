@@ -12,7 +12,7 @@
 | workStyle(신규) | 일하는 방식(혼자 깊게/함께/대면/이끌기/유동) | 식상·관성·비겁·인성 서술의 장면 선택, 글자와 다르면 "글자 밖에서 익힌 방식"으로 존중 |
 | relationshipStatus(기존) | 관계 상태 | 연애·가족 장의 말투 |
 | recentChanges(신규) | 최근 3년 큰 변화(이사·이직·이별·새 인연·출산·시작·접음) + 해 | 배경으로만 사용, 그 해는 맞히기 문장에서 제외 |
-| selfStrength(신규, 최대 2) | 스스로 느끼는 강점 | 사주 기질 서술 옆에 나란히 둠(일치/불일치 판정 금지) |
+| selfStrength(신규, 최대 2) | 스스로 느끼는 강점 | 사주 기질 서술 옆에 나란히 둠. 원국·운 계산 근거로 쓰지 않고 맞다/틀리다를 판정하지 않는다. 발현 비교(expression 엔진, D-035)에서 '스스로 느끼는 모습' 신호로만 쓰고 결과는 항상 추론으로 표시 |
 | selfWeakness(신규, 최대 2) | 스스로 아쉬운 점 | 조언의 눈높이 맞춤. 원인 단정 금지 |
 | changeWish(신규, 1개) | 바꾸고 싶은 것 1가지 | 개운(D-023 ②)의 출발점: 글자가 말하는 보완 방향 중 이 주제와 닿는 것을 먼저 풀이 |
 
@@ -50,6 +50,9 @@
 - `src/engine/personalize/user-facts.ts`: `answersToUserFacts`, `buildUserFacts`. 기존 UserFact 형태 그대로라 `src/engine/content/facts.ts`의 `{topic, value:label, period}` 변환과 호환.
 - `src/engine/personalize/lived-link.ts`: `linkFactToChart`(호출자가 십성 묶음별 개수를 집계해 넘김).
 - 사실 id: 기존 `life_event:*`는 유지, 최근 변화는 `recent_change:*`(같은 항목이 두 문항에 있어도 충돌하지 않음).
+
+## 3-1. 발현 비교(D-035)와의 관계
+`src/engine/personalize/expression/`(발현 엔진)은 selfStrength·workStyle 등 **기질 답**과 직업 상태·최근 변화·지난 일 같은 **상황 답**, 그리고 MBTI 4축 자기선택을 차원별 '스스로 느끼는 모습' 신호로 읽어 원국 잠재력과 비교한다. 원국·운 계산에는 들어가지 않으며, 결과(발현·발전·미활용 등)는 모두 `inferred: true`(추론)다. 상황 답만으로는 '살아오며 키운 힘(developed)'을 판정하지 않는다. 상황 답의 십성 묶음은 이 파일의 `lived-link.ts` 대응을 철자 변환표(`bigeop→bigyeop`, `gwanseong→gwansal`)로 그대로 읽는다. 유지관리: [expression-engine.md](expression-engine.md).
 
 ## 4. 열린 문제
 - 콘텐츠 계약(`src/engine/content/types.ts`) 변경은 하지 않았다. `linkFactToChart` 결과를 프롬프트에 넣으려면 총괄실장이 계약에 연결 필드(예: factId, kind, group)를 추가해야 한다(변경안, 승인 필요).
