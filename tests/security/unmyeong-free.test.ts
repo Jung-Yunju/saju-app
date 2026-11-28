@@ -161,7 +161,7 @@ describe("공격 입력 — 본문 크기·스트림·JSON 형태", () => {
   })
 
   it("깨진 UTF-8·JSON 아님·배열·null·문자열·숫자·빈 본문 → 400", async () => {
-    const bodies: (string | Uint8Array)[] = [new Uint8Array([0x7b, 0xc3, 0x28, 0x7d]), "{", "not json", "[]", "null", '"x"', "1", ""]
+    const bodies: (string | Uint8Array<ArrayBuffer>)[] = [new Uint8Array([0x7b, 0xc3, 0x28, 0x7d]), "{", "not json", "[]", "null", '"x"', "1", ""]
     for (const [i, b] of bodies.entries()) {
       const r = await POST(new NextRequest(URL_, { method: "POST", body: b, headers: { "x-forwarded-for": `10.9.0.${i}` } }))
       expect(r.status, String(i)).toBe(400)
