@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "_readme": "운명비서 유료 5권 설정(D-027 작업 7). 이름·부제·소개·장 구성·노출 여부만 여기서 바꾼다. 가격·결제는 여기서 정하지 않는다(price·amount 칸을 넣으면 검증 실패). chapters[].id = v3 장 id(src/engine/content/prompts/products.ts PRODUCT_CHAPTERS에 있는 값), 아직 없는 장은 id를 null로 두고 label을 적는다(화면에 '준비 중'). productCode의 상품이 만드는 장만 넣을 수 있다. 검증: src/lib/unmyeong/volumes.ts validateVolumesConfig, 테스트 src/lib/unmyeong/__tests__/volumes.test.ts",
+  "volumes": [
+    {
+      "no": 1,
+      "key": "volume-1",
+      "title": "너라는 사람",
+      "subtitle": "타고난 결과 재주, 곁의 사람",
+      "intro": "네가 어떤 결로 태어났는지, 무엇을 잘하고 사람 사이에서 어떻게 움직이는지 여덟 글자로 차근차근 짚어 본다.",
+      "productCode": "BASIC",
+      "chapters": [
+        { "id": "nature", "label": "타고난 옷감" },
+        { "id": "talent", "label": "네 손이 잘하는 일" },
+        { "id": "people", "label": "곁자리와 사람" }
+      ],
+      "visible": true
+    },
+    {
+      "no": 2,
+      "key": "volume-2",
+      "title": "네 앞에 놓인 10년",
+      "subtitle": "열 해의 날씨와 올해",
+      "intro": "지금 입은 대운과 앞으로 열 해의 흐름을 해마다 나눠 본다. 언제 움직이고 언제 다질지 가늠하는 데 쓴다.",
+      "productCode": "DECADE",
+      "chapters": [
+        { "id": "decade-weather", "label": "앞으로 열 해 날씨" },
+        { "id": "decade-pack", "label": "열 해 짐 꾸리기" },
+        { "id": "year-ahead", "label": "한 해 옷 고쳐 입기" }
+      ],
+      "visible": true
+    },
+    {
+      "no": 3,
+      "key": "volume-3",
+      "title": "너에게 찾아올 인연",
+      "subtitle": "곁자리 이야기",
+      "intro": "네가 앉은 자리의 글자로 마음을 주는 방식과 곁에 두기 좋은 사람의 결을 살핀다. 정해진 사람을 점치지는 않는다.",
+      "productCode": "LOVE",
+      "chapters": [
+        { "id": "love-deep", "label": "곁자리 이야기" }
+      ],
+      "visible": true
+    },
+    {
+      "no": 4,
+      "key": "volume-4",
+      "title": "돈이 너를 찾아오는 길",
+      "subtitle": "곳간 셈",
+      "intro": "돈이 들고 나는 네 버릇과 재물 글자의 자리, 지금 운에서의 흐름을 본다.",
+      "productCode": "MONEY",
+      "chapters": [
+        { "id": "money-deep", "label": "곳간 셈" }
+      ],
+      "visible": true
+    },
+    {
+      "no": 5,
+      "key": "volume-5",
+      "title": "네 삶을 바꾸는 법",
+      "subtitle": "갈림길과 바꿔 볼 것",
+      "intro": "갈림길 앞에서 기준을 세우고, 네 사주가 가리키는 쪽으로 생활을 조금씩 바꿔 볼 것들을 모았다.",
+      "productCode": "BASIC",
+      "chapters": [
+        { "id": "crossroads", "label": "갈림길 앞에서" },
+        { "id": "closing", "label": "할미의 당부" },
+        { "id": null, "label": "바꿔 볼 습관 — 개운 실천" }
+      ],
+      "visible": true
+    }
+  ]
+}

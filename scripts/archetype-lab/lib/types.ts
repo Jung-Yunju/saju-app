@@ -169,6 +169,8 @@ export interface HourVariant {
   hour: Pillar
   primary: string
   secondary: string | null
+  /** cascade 모드에서 관문 경보가 난 경우에만 true로 기록 */
+  fallbackSafety?: true
 }
 
 export interface ArchetypeResult extends ArchetypeScoring {
@@ -196,7 +198,7 @@ export interface ArchetypeResult extends ArchetypeScoring {
   }
   /** 지장간 표별 1순위. sensitive = {선택 표, kr, cn} 사이에서 다름 (rules@0.4.0 tableSensitive와 같은 정의) */
   tableSensitivity: null | {
-    byTable: { tableId: HiddenStemTableId; primary: string; secondary: string | null }[]
+    byTable: { tableId: HiddenStemTableId; primary: string; secondary: string | null; fallbackSafety?: true }[]
     sensitive: boolean
     sensitiveIncludingMainOnly: boolean
   }

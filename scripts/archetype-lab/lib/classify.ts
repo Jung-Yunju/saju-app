@@ -43,7 +43,7 @@ export function classifyArchetype(chart: CalendarResult, rs: ArchetypeRuleSet, o
   if (!hourKnown && doHour) {
     const byHour = hourPillarsOf(chart.pillars.day.stem).map((hp) => {
       const s = scoreRuleSet(rs, extractFeatures(analyzeRules(withHour(chart, hp), opts.ruleOptions)))
-      return { hour: hp, primary: s.primary.id, secondary: s.secondary?.id ?? null }
+      return { hour: hp, primary: s.primary.id, secondary: s.secondary?.id ?? null, ...(s.cascade?.fallbackSafety ? { fallbackSafety: true as const } : {}) }
     })
     const counts = new Map<string, number>()
     for (const h of byHour) counts.set(h.primary, (counts.get(h.primary) ?? 0) + 1)
@@ -68,7 +68,7 @@ export function classifyArchetype(chart: CalendarResult, rs: ArchetypeRuleSet, o
     const sel = a.options.hiddenStemTable
     const byTable = TABLES.map((t) => {
       const s = t === sel ? base : scoreRuleSet(rs, extractFeatures(analyzeRules(chart, { ...opts.ruleOptions, hiddenStemTable: t })))
-      return { tableId: t, primary: s.primary.id, secondary: s.secondary?.id ?? null }
+      return { tableId: t, primary: s.primary.id, secondary: s.secondary?.id ?? null, ...(s.cascade?.fallbackSafety ? { fallbackSafety: true as const } : {}) }
     })
     const pick = (t: HiddenStemTableId) => byTable.find((x) => x.tableId === t)!.primary
     const core = new Set([pick(sel), pick("kr-monthly-30"), pick("cn-lunarjs")])

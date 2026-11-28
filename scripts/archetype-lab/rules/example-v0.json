@@ -4,7 +4,7 @@
   "status": "example",
   "source": "엔진 개발자 임시 예시 — 도구 작동 확인용. 명리 근거·연구소장 검토 없음. 고객 화면·콘텐츠에 쓰지 말 것. 연구소장 안(docs/redesign/02-archetypes.md)이 오면 교체",
   "disclaimer": "신성 원형은 전통 명리학의 공식 분류가 아니라, 사주 구조를 바탕으로 한 서비스의 창작적 상징 해석입니다.",
-  "featureVersion": "features@0.1.0",
+  "featureVersion": "features@0.2.0",
   "params": { "boundaryMargin": 0.5, "minScore": 2 },
   "fallback": "ex-yellow-dragon",
   "archetypes": [

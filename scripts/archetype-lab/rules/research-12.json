@@ -1,0 +1,89 @@
+{
+  "id": "research-12",
+  "version": "0.1.0",
+  "status": "draft",
+  "mode": "cascade",
+  "source": "docs/redesign/02-archetypes.md §3.1 관문 순서표(연구소장 2026-11-28 제안) — 엔진 개발자가 JSON으로 옮김. 신강약은 모형 A(st.weighted) 고정, 비율 gs = 묶음 ÷ 모형 A total(tg.shareT.*), 모든 비율 6자리 반올림 뒤 ≥ 비교",
+  "disclaimer": "신성 원형은 전통 명리의 공식 분류가 아니라, 엔진이 계산한 사주 구조를 바탕으로 한 서비스의 창작적 상징 해석입니다.",
+  "featureVersion": "features@0.2.0",
+  "params": { "boundaryMargin": 0, "minScore": 0 },
+  "fallback": "eternal-forest",
+  "archetypes": [
+    {
+      "id": "galaxy", "name": "은하", "category": "celestial", "priority": 1,
+      "ruleId": "arch.v1.01.galaxy", "gateLabel": "모형 A 극단(extreme) 또는 특수격 후보", "expectedShare": [0.03, 0.07],
+      "require": { "any": [{ "f": "st.extreme", "ne": null }, { "f": "gk.hasSpecial", "eq": true }] }
+    },
+    {
+      "id": "hyeonmu", "name": "현무", "category": "divineBeast", "priority": 2,
+      "ruleId": "arch.v1.02.hyeonmu", "gateLabel": "조후 한강 + 습·습강", "expectedShare": [0.06, 0.10],
+      "require": { "all": [{ "f": "cl.tClass", "eq": "한강" }, { "f": "cl.mClass", "in": ["습강", "습"] }] }
+    },
+    {
+      "id": "golden-sun", "name": "황금빛 태양", "category": "nature", "priority": 3,
+      "ruleId": "arch.v1.03.golden-sun", "gateLabel": "조후 열강 + 조·조강", "expectedShare": [0.06, 0.10],
+      "require": { "all": [{ "f": "cl.tClass", "eq": "열강" }, { "f": "cl.mClass", "in": ["조강", "조"] }] }
+    },
+    {
+      "id": "moon-goddess", "name": "달의 여신", "category": "divineHuman", "priority": 4,
+      "ruleId": "arch.v1.04.moon-goddess", "gateLabel": "양강 대치(극 관계 두 오행 각 ≥0.30, 작은쪽/큰쪽 ≥0.5)", "expectedShare": [0.06, 0.08],
+      "require": { "f": "el.strictPairCount", "gte": 1 }
+    },
+    {
+      "id": "bonghwang", "name": "봉황", "category": "divineBeast", "priority": 5,
+      "ruleId": "arch.v1.05.bonghwang", "gateLabel": "신약·중화 + 최대 빼는 묶음 관살 + 관살 ≥0.20 + 인성 ≥0.12", "expectedShare": [0.08, 0.12],
+      "require": { "all": [
+        { "f": "st.weighted", "in": ["신약", "중화"] },
+        { "f": "tg.maxOppose", "eq": "gwansal" },
+        { "f": "tg.shareT.gwansal", "gte": 0.2 },
+        { "f": "tg.shareT.inseong", "gte": 0.12 }
+      ] }
+    },
+    {
+      "id": "baekho", "name": "백호", "category": "divineBeast", "priority": 6,
+      "ruleId": "arch.v1.06.baekho", "gateLabel": "신약 + 최대 빼는 묶음 관살 + 봉황 조건(관살 ≥0.20·인성 ≥0.12) 아님", "expectedShare": [0.06, 0.09],
+      "require": { "all": [
+        { "f": "st.weighted", "eq": "신약" },
+        { "f": "tg.maxOppose", "eq": "gwansal" },
+        { "not": { "all": [{ "f": "tg.shareT.gwansal", "gte": 0.2 }, { "f": "tg.shareT.inseong", "gte": 0.12 }] } }
+      ] }
+    },
+    {
+      "id": "black-fox", "name": "흑여우", "category": "spiritAnimal", "priority": 7,
+      "ruleId": "arch.v1.07.black-fox", "gateLabel": "상관견관 / 신강 아닌 상관격 / 신약 + 최대 빼는 묶음 식상", "expectedShare": [0.08, 0.12],
+      "require": { "any": [
+        { "f": "fl.clarity", "has": "상관견관" },
+        { "all": [{ "f": "gk.name", "eq": "상관격" }, { "f": "st.weighted", "ne": "신강" }] },
+        { "all": [{ "f": "st.weighted", "eq": "신약" }, { "f": "tg.maxOppose", "eq": "siksang" }] }
+      ] }
+    },
+    {
+      "id": "white-deer", "name": "백록", "category": "spiritAnimal", "priority": 8,
+      "ruleId": "arch.v1.08.white-deer", "gateLabel": "신약 + 최대 빼는 묶음 재성", "expectedShare": [0.08, 0.12],
+      "require": { "all": [{ "f": "st.weighted", "eq": "신약" }, { "f": "tg.maxOppose", "eq": "jaeseong" }] }
+    },
+    {
+      "id": "sage", "name": "지혜의 현자", "category": "divineHuman", "priority": 9,
+      "ruleId": "arch.v1.09.sage", "gateLabel": "신강 + 인성 > 비겁", "expectedShare": [0.06, 0.09],
+      "require": { "all": [{ "f": "st.weighted", "eq": "신강" }, { "f": "tg.supportType", "eq": "inseong" }] }
+    },
+    {
+      "id": "cheongnyong", "name": "청룡", "category": "divineBeast", "priority": 10,
+      "ruleId": "arch.v1.10.cheongnyong", "gateLabel": "(신강·비겁형·식상 출구) 또는 (중화·식상 출구·식상→재성·순환 아님)", "expectedShare": [0.07, 0.11],
+      "require": { "any": [
+        { "all": [{ "f": "st.weighted", "eq": "신강" }, { "f": "tg.supportType", "eq": "bigyeop" }, { "f": "fl.toOutput", "eq": true }] },
+        { "all": [{ "f": "st.weighted", "eq": "중화" }, { "f": "fl.toOutput", "eq": true }, { "f": "fl.toWealth", "eq": true }, { "f": "fl.circular", "eq": false }] }
+      ] }
+    },
+    {
+      "id": "silver-wolf", "name": "은빛 늑대", "category": "spiritAnimal", "priority": 11,
+      "ruleId": "arch.v1.11.silver-wolf", "gateLabel": "신강 + 비겁형 + 식상 출구 없음", "expectedShare": [0.04, 0.07],
+      "require": { "all": [{ "f": "st.weighted", "eq": "신강" }, { "f": "tg.supportType", "eq": "bigyeop" }, { "f": "fl.toOutput", "eq": false }] }
+    },
+    {
+      "id": "eternal-forest", "name": "불멸의 숲", "category": "nature", "priority": 12,
+      "ruleId": "arch.v1.12.eternal-forest", "gateLabel": "중화(앞 관문에 걸리지 않은 중화 전부)", "expectedShare": [0.08, 0.12],
+      "require": { "f": "st.weighted", "eq": "중화" }
+    }
+  ]
+}

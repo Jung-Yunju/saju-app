@@ -68,7 +68,7 @@ describe("결과 구조", () => {
   it("버전·옵션·규칙 해시·고지 문구를 기록하고, 근거 점수 합 = 점수", () => {
     const r = classifyArchetype(computeChart(INPUTS[0]), RS)
     expect(r.engineVersion).toMatch(/^archetype@/)
-    expect(r.featureVersion).toBe("features@0.1.0")
+    expect(r.featureVersion).toBe("features@0.2.0")
     expect(r.rulesEngineVersion).toMatch(/^rules@/)
     expect(r.ruleSet).toEqual({ id: "example-v0", version: "0.0.1", status: "example", hash: ruleSetHash(RS) })
     expect(r.ruleOptions.hiddenStemTable).toBe("kr-monthly-30")

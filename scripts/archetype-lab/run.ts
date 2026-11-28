@@ -6,14 +6,14 @@
 //   --samples 5         근거 기록 샘플 수
 //   --determinism 200   앞 몇 건을 다시 계산해 결정성 확인
 //   --no-table          지장간 표 민감도 끄기 · --no-hour  시주 민감도 끄기
-//   --md 파일           보고서(마크다운) 저장 · --json 파일  원자료 저장
+//   --md 파일           보고서(마크다운) 저장 · --json 파일  원자료 저장 · --csv 파일  원자료 1건 1줄(CSV)
 //   --catalog           특징 목록 표만 출력(연구소장용)
 //   --check             규칙 파일 검증만
 // 외부 호출·DB·AI 없음. 제품 코드(src/**)를 고치지 않고 공개 API(computeChart·analyzeRules)만 부른다.
 import { writeFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { featureCatalogMarkdown } from "./lib/features"
-import { runLab } from "./lib/lab"
+import { labCsv, runLab } from "./lib/lab"
 import { labMarkdown } from "./lib/report"
 import { loadRuleSet, ruleSetHash } from "./lib/ruleset"
 
@@ -40,6 +40,7 @@ function args(argv: string[]) {
     hour: !a.includes("--no-hour"),
     md: get("--md"),
     json: get("--json"),
+    csv: get("--csv"),
     catalog: a.includes("--catalog"),
     check: a.includes("--check"),
   }
@@ -60,4 +61,5 @@ const md = labMarkdown(rs, L)
 console.log(md)
 if (o.md) writeFileSync(o.md, md + "\n")
 if (o.json) writeFileSync(o.json, JSON.stringify(L, null, 1))
+if (o.csv) writeFileSync(o.csv, labCsv(L))
 if (L.meta.errors.length || L.determinism.identical !== L.determinism.checked) process.exitCode = 1

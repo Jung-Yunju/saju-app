@@ -1,4 +1,4 @@
-// RuleAnalysis → 특징 벡터 (features@0.1.0). 순수 함수 — 같은 RuleAnalysis면 같은 벡터(키 순서 포함).
+// RuleAnalysis → 특징 벡터 (features@0.2.0 — 0.1.0 + 연구소장 02-archetypes.md §2.2 파생값). 순수 함수 — 같은 RuleAnalysis면 같은 벡터(키 순서 포함).
 // 특징은 규칙 엔진이 이미 계산한 값만 옮기거나 단순 집계한다(새 명리 판단을 만들지 않는다).
 import type { Branch, Element, RuleAnalysis, TenGod, TenGodGroup } from "../../../src/engine"
 import type { FeatureSpec, FeatureValue, FeatureVector } from "./types"
@@ -43,6 +43,19 @@ const BRANCH_PHASE: Record<Branch, "start" | "peak" | "end"> = {
 
 const R6 = (x: number): number => Math.round(x * 1e6) / 1e6
 
+/** X가 Y를 극하는 다섯 쌍(목→토, 화→금, 토→수, 금→목, 수→화). 키 "X>Y" */
+const CONTROL_PAIRS: readonly { x: Element; y: Element; key: string }[] = ELEMENTS.map((x, i) => {
+  const y = ELEMENTS[(i + 2) % 5]
+  return { x, y, key: `${x}>${y}` }
+})
+const PAIR_KEYS = CONTROL_PAIRS.map((p) => p.key)
+/** X가 생하는 오행(통관) */
+const generated = (x: Element): Element => ELEMENTS[(ELEMENTS.indexOf(x) + 1) % 5]
+/** 02-archetypes.md §2.2 strictPairs 기본 기준(설계값 — 바꾸려면 규칙 파일에서 el.pairMin·el.pairRatio 사용) */
+export const STRICT_PAIR_MIN = 0.3
+export const STRICT_PAIR_RATIO = 0.5
+const OPPOSE_ORDER: readonly TenGodGroup[] = ["gwansal", "jaeseong", "siksang"]
+
 // ─────────────────────────────────────────── 특징 목록(규칙 파일이 쓸 수 있는 키 전부)
 
 const S = (key: string, domain: readonly string[], desc: string, from: string, nullable = false): FeatureSpec => ({ key, type: "string", domain, desc, from, nullable })
@@ -80,6 +93,17 @@ export const FEATURE_CATALOG: readonly FeatureSpec[] = [
   ...GROUPS.map((g) => N(`tg.stems.${g}`, `${g} 묶음 천간 수(일간 제외, 투출)`, "tenGods(천간)", [0, 3])),
   L("tg.stemTenGods", TEN_GODS, "천간(일간 제외)에 드러난 십성", "tenGods(천간)"),
   L("tg.present", TEN_GODS, "원국에 있는 십성(천간·지지·지장간)", "tenGods(원국)"),
+  // 연구소장 파생값(02-archetypes.md §2.2) — features@0.2.0
+  N("st.total", "모형 A 전체 가중 합 T(u)", "strength.models[weighted].total", [0, 400]),
+  ...GROUPS.map((g) => N(`tg.shareT.${g}`, `${g} 묶음 ÷ 모형 A 전체 합 T(gs, 일간 포함 분모)`, `strength.groupTotals.${g} / weighted.total`, [0, 1])),
+  S("tg.maxOppose", OPPOSE_ORDER, "빼는 묶음(관살·재성·식상) 중 최대. 동점 관살>재성>식상", "strength.groupTotals"),
+  S("tg.supportType", ["bigyeop", "inseong"], "비겁형(비겁 ≥ 인성, 동점 비겁) / 인성형", "strength.groupTotals"),
+  L("el.strictPairs", PAIR_KEYS, "양강 대치 쌍 X>Y(X가 Y를 극함, 둘 다 ≥0.30, 작은쪽/큰쪽 ≥0.5). 대표 쌍(X 비율 큰 쌍) 먼저", "qiFlow.shares"),
+  N("el.strictPairCount", "양강 대치 쌍 수(기본 기준 0.30/0.5)", "qiFlow.shares", [0, 2]),
+  S("el.pairBridge", ELEMENTS, "대표 양강 대치 쌍의 통관 오행(X가 생하는 오행)", "qiFlow.shares", true),
+  N("el.pairMin", "극 관계 다섯 쌍 중 min(sX,sY)가 가장 큰 쌍의 그 값(기준 조정 시뮬레이션용)", "qiFlow.shares", [0, 0.5]),
+  N("el.pairRatio", "그 쌍의 작은쪽/큰쪽", "qiFlow.shares", [0, 1]),
+  S("el.pairKey", PAIR_KEYS, "그 쌍 X>Y", "qiFlow.shares"),
   // 신강약
   S("st.weighted", VERDICTS, "모형 A(가중) 판정", "strength.models[weighted].verdict"),
   S("st.threeFactor", VERDICTS, "모형 B(득령·득지·득세) 판정", "strength.models[threeFactor].verdict"),
@@ -192,6 +216,31 @@ export function extractFeatures(a: RuleAnalysis): FeatureVector {
   v["tg.stemTenGods"] = TEN_GODS.filter((tg) => stemHits.some((t) => t.tenGod === tg))
   const natalHits = a.tenGods.filter((t) => natalKeys.has(t.position.pillar) && (t.position.part === "stem" || t.viaHiddenStem))
   v["tg.present"] = TEN_GODS.filter((tg) => natalHits.some((t) => t.tenGod === tg))
+
+  if (A.total === null || !(A.total > 0)) throw new Error("모형 A total 없음")
+  v["st.total"] = A.total
+  for (const g of GROUPS) v[`tg.shareT.${g}`] = R6(gt[g] / A.total)
+  let mo: TenGodGroup = OPPOSE_ORDER[0]
+  for (const g of OPPOSE_ORDER) if (gt[g] > gt[mo]) mo = g // 동점이면 앞 순서(관살>재성>식상) 유지
+  v["tg.maxOppose"] = mo
+  v["tg.supportType"] = gt.bigyeop >= gt.inseong ? "bigyeop" : "inseong"
+  const pairs = CONTROL_PAIRS.map((p) => {
+    const sx = shares[p.x]
+    const sy = shares[p.y]
+    const lo = Math.min(sx, sy)
+    const hi = Math.max(sx, sy)
+    return { ...p, sx, lo, ratio: hi > 0 ? R6(lo / hi) : 0 }
+  })
+  const strict = pairs
+    .filter((p) => p.sx >= STRICT_PAIR_MIN && shares[p.y] >= STRICT_PAIR_MIN && p.ratio >= STRICT_PAIR_RATIO)
+    .sort((a, b) => b.sx - a.sx || ELEMENTS.indexOf(a.x) - ELEMENTS.indexOf(b.x))
+  v["el.strictPairs"] = strict.map((p) => p.key)
+  v["el.strictPairCount"] = strict.length
+  v["el.pairBridge"] = strict.length ? generated(strict[0].x) : null
+  const best = [...pairs].sort((a, b) => b.lo - a.lo || b.ratio - a.ratio || ELEMENTS.indexOf(a.x) - ELEMENTS.indexOf(b.x))[0]
+  v["el.pairMin"] = R6(best.lo)
+  v["el.pairRatio"] = best.ratio
+  v["el.pairKey"] = best.key
 
   v["st.weighted"] = A.verdict
   v["st.threeFactor"] = byModel.threeFactor.verdict
