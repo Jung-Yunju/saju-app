@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
+import "@/styles/unmyeong.css"
 import "./unmyeong-flow.css"
-import { UmFallbackStyle } from "./_fallback"
+import "./unmyeong-result.css"
+import { umFontVariables } from "@/styles/unmyeong-fonts"
 
 export const metadata: Metadata = {
   title: "운명비서 · 할머니가 풀어 주는 사주",
@@ -8,10 +10,5 @@ export const metadata: Metadata = {
 }
 
 export default function UnmyeongLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="um-root um-flow-root">
-      <UmFallbackStyle />
-      {children}
-    </div>
-  )
+  return <div className={`um-root um-flow-root ${umFontVariables}`}>{children}</div>
 }
