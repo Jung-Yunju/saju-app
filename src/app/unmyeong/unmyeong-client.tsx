@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react"
 import { Intro } from "./intro"
 import { BookForm } from "./book-form"
 import { LoadingBook } from "./loading-book"
-import { UmPage, UmSealButton } from "./_fallback"
+import { ResultBook } from "./result-book"
+import type { UnmyeongFreeResponse } from "@/lib/unmyeong/free-types"
 
 const SEEN_KEY = "um-intro-seen"
 const MIN_LAST_STEP_MS = 250 // 인위적 대기 상한(300ms 이하)
@@ -20,7 +21,7 @@ export function UnmyeongClient() {
   const [name, setName] = useState("")
   const [step, setStep] = useState(0)
   const [error, setError] = useState("")
-  const [data, setData] = useState<Record<string, unknown> | null>(null)
+  const [data, setData] = useState<UnmyeongFreeResponse | null>(null)
   const busy = useRef(false)
 
   useEffect(() => { setStage(readSeen() ? "form" : "intro") }, []) // eslint-disable-line react-hooks/set-state-in-effect
@@ -41,7 +42,7 @@ export function UnmyeongClient() {
       }
       setStep(2)
       await new Promise(r => setTimeout(r, MIN_LAST_STEP_MS))
-      setData(json); setStage("result")
+      setData(json as unknown as UnmyeongFreeResponse); setStage("result")
       window.scrollTo(0, 0)
     } catch {
       setError("네트워크에 닿지 못했단다. 연결을 확인하고 다시 해 보렴.")
@@ -62,22 +63,7 @@ export function UnmyeongClient() {
   )
   if (stage === "loading") return <>{form}<LoadingBook step={step} /></>
   if (stage === "result" && data) {
-    return (
-      <>{form}<main className="um-formwrap">
-        <UmPage className="um-book-sheet">
-          <h1 className="um-result-title">{name ? `${name}의 운명비서` : "운명비서"}</h1>
-          <ResultPlain data={data} />
-          <UmSealButton type="button" onClick={() => setStage("form")}>다시 적어 보기</UmSealButton>
-        </UmPage>
-      </main></>
-    )
+    return <ResultBook data={data} name={name} onRetry={() => { setStage("form"); window.scrollTo(0, 0) }} />
   }
   return form
-}
-
-/** 임시 출력(다음 작업에서 5장 화면으로 교체): 응답의 문자열·배열을 그대로 보여 준다 */
-function ResultPlain({ data }: { data: Record<string, unknown> }) {
-  return (
-    <pre className="um-result-raw">{JSON.stringify(data, null, 2)}</pre>
-  )
 }
