@@ -809,3 +809,27 @@
 
 ### 판정
 - **조건부 통과.** 대표 원칙 위반은 재현되지 않았고 계산은 문서와 정확히 같다. 조건: B1은 문안·화면 작업 전에 총괄실장이 계약서·코드 중 하나로 맞춘다. B2는 금지어 목록을 문안 검증기에 쓰기 전에 넓힌다. B3·B4·B5는 연구소장·총괄실장 판단 후 표(`dimensions.json`·`mbti-bridge.json`)로 조정하고 다시 잰다.
+
+## 2026-11-28 · 사주 발현 분석 엔진 expression@0.2.0 재검증 (커밋 14e3a25)
+- 상세: [docs/quality/2026-11-28_expression-engine-verify.md](quality/2026-11-28_expression-engine-verify.md) 「재검증 0.2.0」 절
+- 방법: 옛 9차원 기준으로 깨진 독립 시험 6건을 연구소장 `expression-dimensions.md` @0.2.0만 보고 다시 구현(엔진 판정 함수 재사용·엔진 출력 복사 없음). 원칙 위반 재시도·grain 자기보고 독립 재구현·0.1.0 지적 확인을 더해 22 → 27건. 측정 스크립트 grain 기준으로 갱신.
+
+| 명령 | 결과 |
+|---|---|
+| `npx vitest run tests/personalize/expression-independent.qa.test.ts` | 갱신 전 6 실패 / 22 → 갱신 후 **27 통과 / 27** |
+| `npx vitest run src/engine/personalize/expression` (개발자 시험) | 43 통과 · 1 건너뜀 |
+| `npx tsx scripts/qa/expression-distribution.ts 10000 2000` | grain 시주 있음 strong 27.7%(고른 11.0 · 센 16.7) · moderate 40.3 · faint 32.0, 독립 재계산 불일치 0 / 10,000(시주 없음도 0) |
+| `npx tsc --noEmit` · `npx eslint`(QA 파일 2개) | 오류 0 |
+| `npx vitest run` (전체) | 118 파일 통과 · 5 건너뜀, 2,653 통과 · 9 건너뜀 · 1 todo, 실패 0(재실행 기준 — 첫 실행의 compose.test.ts 5초 제한 초과 1건은 부하성, 단독 4.1초 통과) |
+
+| 항목 | 결과 | 내용 |
+|---|---|---|
+| 원국 판정 독립 대조 | 통과 | 4,000건 8차원·grain 방향·q 불일치 0, grain 갈래 8개 모두 적중, §4 grain 두 판(q 0.394366 승격 strong · q 0.227545 strong) 일치 |
+| 시주 모름 | 통과 | 300건 × 8차원 12시진 재계산(grain 단계+방향) 불일치 0, hourUncertain·faint 기록·flux 대표 기질 제외 일치 |
+| 운 touches | 통과 | 1,000건 불일치 0, grain activate/press, 세 글자 형 세운 쪽 13건 |
+| 원칙 위반 7종 재시도 | 통과 | MBTI가 원국·운 변경 0, MBTI만·상황 사실만 developed 0, 입력 밖 사실 0, T/F·S/N 판정 불변, MBTI가 만든 low 0, 죽은 신호 줄 0 |
+| 0.1.0 지적 | B1·B3·B4·B5·S1~S6 해소, **B2 부분 해소** | 옛 변형 18/18 막힘. 새 우회 30개 중 28 통과, 정상 문구 21개 중 13 오탐(부정문 면책·십성 「상관」) |
+| 새 문제 | 보통 1 · 사소 2 · 관찰 1 | N1 grain balanced에 "잠재력이 약하다" 기록 문구(61/61), N2 B2 잔여, N3 문서 이름·버전 불일치, N4 신호 줄 삭제는 표 검증 통과 |
+
+### 판정
+- **조건부 통과.** 계산·원칙은 문서와 정확히 같다. 조건: B2 「상관」 오탐 수정 + 승인 면책 문구 방식(문안 검증기 연결 전), N1 grain 전용 상충 문구(문안 틀 작성 전), N3 문서 맞춤.
