@@ -122,7 +122,7 @@ export async function acquireGenerationLock(
       })
       if (locked.count !== 1) return false
       // status 라우트 호환용 이중 기록(그 라우트가 lockedAt을 보게 바뀌면 지운다)
-      await tx.order.update({ where: { id: orderId }, data: { updatedAt: now } })
+      await tx.order.update({ where: { id: orderId }, data: { updatedAt: now }, select: { id: true } })
       return true
     })
   }
@@ -133,7 +133,8 @@ export async function acquireGenerationLock(
       data: { status: READING_STATUS.GENERATING },
     })
     if (locked.count !== 1) return false
-    await tx.order.update({ where: { id: orderId }, data: { updatedAt: new Date() } })
+    // select: 옛 스키마(Order.birthInfo 없음)에서 RETURNING이 모든 열을 읽지 않게
+    await tx.order.update({ where: { id: orderId }, data: { updatedAt: new Date() }, select: { id: true } })
     return true
   })
 }

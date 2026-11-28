@@ -7,7 +7,7 @@ import { BRIDGE_WORD, bridgeOf, loadFreeCopy, selectFreeChapters } from "@/lib/u
 import type { UnmyeongArchetypeView } from "@/lib/unmyeong/free-types"
 
 const DIR = path.join(process.cwd(), "content", "unmyeong")
-const raw = loadFreeCopy(DIR) as {
+const raw = loadFreeCopy() as {
   version: number
   hourNote: { chapter: number; text: string }
   bridgeFallback: { replace: string; with: string }

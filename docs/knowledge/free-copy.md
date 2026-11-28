@@ -4,6 +4,7 @@
 > 대상 파일: `content/free/*.json` (프론트엔드가 그대로 읽는다. AI 호출 없음 = 무료 결과의 문장 비용 0)
 > 기준: [voice-guide.md](voice-guide.md) · [characters.md](characters.md) · [menu-names.md](menu-names.md) · [rules-spec.md](rules-spec.md)
 > 상태: **전부 제안이다.** 대표 승인 전에는 화면에 내보내지 않는다.
+> **운명비서 무료 5장 사람마다 다르게(2026-11-28, 대표 피드백 "사주 글자는 나와야 하지 않을까?")**: `content/free/*.json` 네 파일의 운명비서판 사본을 `content/unmyeong/{day-pillar,day-master,elements,this-year}.json`에 만들고, 5장 조립 규칙을 `content/unmyeong/compose.json`에 두었다. 설명은 아래 **§9**. 옛 화면용 `content/free/*.json`은 그대로 둔다.
 > **운명비서 정리(2026-11-28, D-027·D-029)**: 이 문서와 `content/free/*.json`은 옛 무료 화면(`/free`)용이며 「할미의 수선집」 때 쓴 문안이다(비유·어미가 옛 판). 운명비서 무료 결과(`/unmyeong`) 5장은 이 파일들이 아니라 `content/unmyeong/free-copy*.json`(원본 시안 `docs/redesign/04-archetype-copy.md` §2~13)이 맡는다. `content/free/*.json`을 운명비서 말투로 다시 쓸지는 옛 화면을 계속 쓸지에 달렸다(총괄실장 결정 — 작가 쓰기 범위·배정 필요). 아래 원칙 중 5번(비유 창고)은 운명비서판에서 바뀌었다.
 
 ## 0. 한눈에
@@ -134,9 +135,60 @@
 - **문장을 고칠 때**: 근거 글자(한자)를 지우지 않는다. 고친 뒤에는 품질검증에 `verifyReading` 재실행을 요청한다.
 - **새 칸을 더할 때**: 서술 칸 이름을 `body`·`text`로 하면 검사기의 바넘 비율 검사 대상이 된다. 지금 `day-master.body`와 `elements.*.text`가 그 대상이다.
 
+## 9. 운명비서 무료 5장 조립 [제안 — 대표 승인 대기, 백엔드 구현]
+
+> 규칙 원본: `content/unmyeong/compose.json`(기계가 읽는 칸). 이 절은 사람이 읽는 설명이다. 둘이 다르면 compose.json이 맞다.
+
+### 9-1. 왜 바꾸나
+지금 `content/unmyeong/free-copy.json`은 원형 12종 × 5장 고정 문안이다. 같은 원형이면 누구나 같은 글을 받고, 사주 글자가 한 자도 나오지 않는다(대표 피드백). 원형은 엔진이 정하지만 문장 안에 그 사람의 글자가 없으니 "사주풀이"로 읽히지 않는다.
+
+### 9-2. 재료 — 운명비서판 사본 네 파일
+| 파일 | 원본 | 바뀐 것 | 그대로인 것 |
+|---|---|---|---|
+| `content/unmyeong/day-pillar.json` | `content/free/day-pillar.json` | oneLiner 60·detail 60 문장(옛 말투 어미, 부엌·헛간 비유 → 서재·곳간) | 키·순서·pillar·label·**basis 전부(십성 포함)** |
+| `content/unmyeong/day-master.json` | `content/free/day-master.json` | title 2(丁·辛 수선 비유), hook·body·strength·blindSpot·bokja 문장 | 키·순서·stem·hangul·label·element·yinYang·disclaimer |
+| `content/unmyeong/elements.json` | `content/free/elements.json` | text·prescription 15쌍, 묶음 excess·lack 9줄 | numerals·thresholds·tenGodLineTemplate·**groupByDayMasterElement**·gloss·lack:null·lackNote |
+| `content/unmyeong/this-year.json` | `content/free/this-year.json` | line 20·일지 덧줄 4·disclaimer(말버릇 "날씨 이야기다. 우산은 네가 챙기거라.") | 키·순서·year·ganzhi·label·basis·**tenGods·interactions**·branch·interaction |
+
+- 십성 표기를 하나도 바꾸지 않았다. `tests/content-qa/free-tengods.test.ts`의 대조(basis.tenGod와 "(오행)"이 detail에 있고 다른 십성 이름이 없음, tenGods·interactions = 엔진)를 경로만 바꿔 그대로 돌릴 수 있다.
+- **문장 나누기 약속**: 조립기가 '. '(마침표+공백)으로 자른다. detail 2문장, body 3문장(첫 문장 = "너 자신을 뜻하는 글자가 …(갑 甲)다."), elements text 3문장(첫 문장 = 개수 사실), this-year line 2문장(첫 문장 = 그해 글자가 너한테 오는 모양), blindSpot 1~2문장(첫 문장 = 직언). 재료를 고칠 때 이 개수를 지킨다.
+
+### 9-3. 다섯 장 짜임
+| 장 | 조각(순서대로) | 사람마다 갈리는 것 |
+|---|---|---|
+| 1 너는 누구인가 | "어디 보자." · "**{label}에 났구나.**"(예: 병자(丙子)일) · 일주 oneLiner · 원형 한 문장("{letters}를 다 펴 보면 …, 할미 책엔 너를 현무로 적었다.") · (시각 모름) 시각 안내 | 일주 60 |
+| 2 너의 신성과 영물 | 원형 2장 그대로 | 원형 12 |
+| 3 하늘이 네게 준 것 | 일주 detail 첫 문장(앉은 자리의 오행·십성) · 일간 strength | 일주 60 |
+| 4 네가 넘어야 할 것 | 오행 문장 첫 두 문장(넘침 우선, 없으면 없음) + (없음이고 지장간에 있으면) "땅 글자 속에는 조금 숨어 있다." · 일간 blindSpot. 넘침·없음이 둘 다 없으면 오행 문장 대신 일주 detail 둘째 문장 | 오행 개수 × 일간 10 |
+| 5 지금 네게 필요한 말 | "날씨 이야기다. 우산은 네가 챙기거라." · 올해 줄(일간별) · (일지 충·합이 엔진에 있으면) 올해 줄 첫 문장 + 일지 덧줄 · 원형 한 문장(할 일) | 일간 10 × 해, 일지 |
+
+- 원형 문장은 1장·5장에서 **한 문장씩만** 쓴다(compose.json `archetypeLines` — free-copy.json 1장·5장의 판정 조건과 처방을 한 문장으로 줄인 것, 새 판정 없음). 원형 원문 전체는 그해 항목이 없을 때 5장 대체(fallback)로만 쓴다.
+- balanced(알맞음) 문장은 5장 조립에 쓰지 않는다. "넘어야 할 것"이 아니고, 원형 1장의 "물기가 많다"류와 엇갈릴 수 있다.
+
+### 9-4. 길이 400~600자
+- 센 값: 다섯 장 본문 글자 수 합(공백 포함, 제목 제외). 작가 손셈으로 보통 경우 560~600자, 시각 모름 + 일지 충 + 지장간 안내가 다 붙는 경우 680자 안팎이다.
+- 넘으면 줄이는 순서: ① "어디 보자." 빼기 → ② 5장 원형 문장 빼기 → ③ 1장 원형 문장을 짧은 꼴("할미 책엔 너를 현무로 적었다.")로 → ④ 4장 blindSpot을 첫 문장만. 그래도 넘으면 650자까지 그대로 내고 경고 로그(작가가 재료를 줄인다).
+- 줄이지 않는 것: 일주 첫 줄·oneLiner·시각 안내, 2장, 3장 전부, 4장 오행 첫 문장·지장간 안내·blindSpot 첫 문장, 5장 날씨 말버릇·올해 첫 문장·일지 덧줄. 사람마다 다른 근거와 안전 문장이다.
+- 모자라면 더하는 순서: ① 3장 앞에 일간 body 첫 문장 → ② 4장에 십성 묶음 한 줄(tenGodLine) → ③ 4장에 일주 detail 둘째 문장.
+
+### 9-5. 중복·충돌 처리 원칙
+1. **범위가 다르면 둘 다 둔다.** 일주 = 태어난 날의 두 글자, 원형 = 여덟 글자 전체, 오행 = 드러난 글자 개수, 올해 = 그해 글자. 범위가 문장에 적혀 있어(1장 원형 문장이 "{letters}를 다 펴 보면"으로 시작하는 까닭) 丙午일(불 위에 또 불)인 사람이 현무(차고 물기가 많다)여도 둘 다 참이다.
+2. **숫자가 이긴다.** 원형이 '많다'고 한 기운을 4장이 '없다'로 고르면 1장 원형 문장을 짧은 꼴로 바꾼다. 원형은 지장간 포함 가중 값, 4장은 겉 글자 개수라 생기는 일이고, 지장간 안내가 붙으면 두 말이 이어진다. 불멸의 숲(고루 나눠 앉음)인데 4장이 넘침을 고르면 역시 짧은 꼴.
+3. **구체적인 쪽이 이긴다.** 5장에서 올해 할 일과 원형 할 일이 반대 방향이거나 같은 말이면 원형 문장을 뺀다. 240쌍(2026·2027 일간 20 × 원형 12)을 대조해 9쌍을 compose.json `conflicts.counsel`에 적었다(예: 2026 戊 "미뤄 둔 배움 하나를 시작해 볼 만하다" ↔ 현자 "아는 것은 이미 충분하니").
+4. **할 일은 한 장에 둘까지.** 일지 덧줄이 붙으면 올해 줄의 할 일 문장을 뺀다.
+5. **같은 문장을 두 장에 쓰지 않는다.** detail 둘째 문장, body 첫 문장은 한 곳에서만.
+6. **같은 어미 세 번 금지**(voice-guide §3). 5장은 "챙기거라 / ~다 / ~거라 / ~거라"까지라 괜찮다. yearS1·일지 덧줄 첫 문장은 "~거라"로 끝내지 않는다.
+
+### 9-6. 남은 일·약점
+- 셸 실행 도구가 없어 JSON 파싱·키 비교·대조 테스트를 기계로 돌리지 못했다. 작성하며 원본 줄과 하나씩 맞춰 눈으로 확인했다. **품질검증이 compose.json `verifyRequests` 네 가지를 돌려 줘야 한다.**
+- 글자 수는 손셈이다. 조립기를 만든 뒤 전수 분포를 재서 줄이기 순서를 다시 본다.
+- 원형 한 문장(archetypeLines)은 작가가 원형 원문을 줄인 것이다. 원형 원문(`docs/redesign/04-archetype-copy.md`)을 고치면 함께 고친다.
+- 「할미는 어떻게 알았을까?」 근거 화면과 1장 첫 줄이 같은 일주 글자를 보여 준다. 화면에 여덟 글자 표를 1장 위에 둘지는 화면 담당·대표 결정.
+
 ## 8. 변경 이력
 | 날짜 | 내용 | 승인 |
 |---|---|---|
 | 2026-11-27 | 최초 작성(제안) — 무료 결과 JSON 6종, 작성 원칙, 점검 결과, 톤 대안 | 대표 승인 대기 |
 | 2026-11-27 | 명리 감수 반영: elements lack 5문장 "드러난 글자" 기준·어미 완화, 묶음 lack 4줄 완화(F1·F2), this-year disclaimer 문장 보강(F4)·丑未沖 "같이 사는"→"가까운 사람과 지내는"(F5)·戊 2026 단정 완화(F6), teaser P6 숨김(F10)·P8 월운 약속 삭제(F11)·"여덟 글자" 고정 삭제(F12)·P3 confirmNote 정정(F13). JSON 키·배열 구조는 그대로, notes·confirmNote 문장만 추가 | 대표 승인 대기 |
 | 2026-11-28 | D-023 풀이 3원칙 반영(쉬운 말 ③ 중심): day-pillar 60개 detail 전부 다시 씀(한자·일지·일간·간지 이름 삭제, "네가 앉은 자리는 ~" 꼴 — F7 해결), 癸亥 oneLiner의 '육십갑자' 삭제. day-master body 10개(천간·일간·관성 삭제, 오행 기운 말로 근거 유지). this-year line 20개(간지 이름·한자·일간 삭제, 그림 말 + 괄호 용어 하나, 戊 2026 "해 볼 만하다"로 완화). 일지 덧줄 4개(관계 이름을 그림 말 뒤 괄호로, "자오충" 유지). elements tenGodLine 꼴·gloss 5개, teaser preview 5개, share-card line 10개. JSON 키·배열 구조·basis·tenGods·interactions·needsConfirm 값은 그대로 | 대표 승인 대기 |
+| 2026-11-28 | 대표 피드백("사주 글자는 나와야") 반영: 운명비서판 사본 `content/unmyeong/{day-pillar,day-master,elements,this-year}.json`(문장만 옛 말투로, 키·basis·tenGods·interactions·묶음 표 그대로), 5장 조립 규칙 `content/unmyeong/compose.json`, 이 문서 §9. 원본 `content/free/*.json`·`free-copy.json`은 손대지 않음 | 대표 승인 대기 |

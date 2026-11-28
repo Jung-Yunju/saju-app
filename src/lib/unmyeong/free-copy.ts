@@ -1,5 +1,8 @@
-// 무료 5장 문안 읽기·고르기(서버 전용 — fs 사용). 원본: content/unmyeong/free-copy.json (콘텐츠 작가 소유, 이 파일은 읽기만 한다)
-// 초안은 같은 폴더 free-copy.draft.json(읽지 않는다). 파일이 없거나 고를 본문이 없으면 chapters = null → 응답 pending.chapters = true("준비 중").
+// 무료 5장 문안 읽기·고르기. 원본: content/unmyeong/free-copy.json (콘텐츠 작가 소유, 이 파일은 읽기만 한다)
+// 읽는 방법: JSON 정적 import(volumes.ts와 같은 방식) — 빌드 때 번들에 들어가므로 서버리스 배포에 파일 추적이 필요 없다.
+//   (예전 fs.readFileSync(process.cwd()…)는 빌드가 프로젝트 전체를 추적하는 경고의 원인이었다.)
+//   그래서 free-copy.json은 저장소에 반드시 있어야 한다(없으면 빌드 실패). 문안을 바꾸면 다시 빌드·배포해야 반영된다.
+// 초안은 같은 폴더 free-copy.draft.json(읽지 않는다). 고를 본문이 없거나 형식이 다르면 chapters = null → 응답 pending.chapters = true("준비 중").
 //
 // 형식(version 2, 작가 초안과 같다 — 응답 형식 UnmyeongFreeChapter는 그대로):
 //   { "version": 2,
@@ -16,8 +19,7 @@
 //   - hourNote: 시각 모름이면 hourNote.chapter장(기본 1장) 끝에 공백 하나 띄우고 붙인다.
 //     초안 조건(hourSensitive 또는 alwaysHourNote)보다 D-030 "시각 모름 안내는 늘 표시"가 우선 → 시각 모름이면 항상.
 // 파일이 깨졌거나 형식이 다르면 파일 이름만 경고로 남기고 null.
-import fs from "node:fs"
-import path from "node:path"
+import freeCopyJson from "../../../content/unmyeong/free-copy.json"
 import { FREE_CHAPTER_KEYS, type FreeChapterKey } from "./assets"
 import type { ElementKo, UnmyeongArchetypeView, UnmyeongFreeChapter } from "./free-types"
 
@@ -47,20 +49,9 @@ export interface SelectFreeChaptersOptions {
   hourUnknown?: boolean
 }
 
-let cached: { value: unknown } | null = null
-
-/** content/unmyeong/free-copy.json 원본. 없으면 null. 운영에서는 한 번만 읽는다 */
-export function loadFreeCopy(dir = path.join(process.cwd(), "content", "unmyeong")): unknown {
-  if (cached && process.env.NODE_ENV === "production") return cached.value
-  let value: unknown = null
-  try {
-    value = JSON.parse(fs.readFileSync(path.join(dir, FREE_COPY_FILE), "utf8")) as unknown
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException)?.code !== "ENOENT") console.warn(`[unmyeong-free-copy] ${FREE_COPY_FILE} 읽기 실패`)
-    value = null
-  }
-  if (process.env.NODE_ENV === "production") cached = { value }
-  return value
+/** content/unmyeong/free-copy.json 원본(빌드 때 번들에 포함). 형식 검사는 selectFreeChapters가 한다 */
+export function loadFreeCopy(): unknown {
+  return freeCopyJson as unknown
 }
 
 type Obj = Record<string, unknown>

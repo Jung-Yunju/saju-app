@@ -1,17 +1,13 @@
 // DB 구조 v3(마이그레이션 20261127090000_reading_v3_safety) 기능 스위치와 열 변환 도우미
 //
-// 배포 순서(대표 승인 후): ① 마이그레이션 적용 → ② 이 코드 배포(스위치 끔) → ③ DB_SCHEMA_V3=true
+// 배포 순서(대표 승인 후): 이 코드 배포(스위치 끔 — 마이그레이션 전 DB에서도 동작) → 마이그레이션 적용 → DB_SCHEMA_V3=true
 //   - 스위치가 꺼져 있으면 라우트는 예전과 똑같이 동작한다(새 열을 읽거나 쓰지 않음).
-//   - 주의: 새 schema로 만든 Prisma 클라이언트는 select 없는 조회에서 새 열도 읽으므로,
-//     스위치와 무관하게 ①이 ②보다 먼저여야 한다(docs/DATABASE.md 4절).
+//   - select 없는 조회·Reading.create의 기본값 열 문제는 src/lib/db-legacy.ts(옛 스키마 호환 계층)가 막는다
+//     (src/lib/prisma.ts가 감싼다 — docs/DATABASE.md 4절).
+//   - 반대로 스위치를 켜기 전에는 반드시 마이그레이션이 적용되어 있어야 한다.
 import { resolveTimeMode, type BirthPrecision, type CalTypeValue } from "@/lib/validate"
 
-type Env = Record<string, string | undefined>
-
-/** DB_SCHEMA_V3=true일 때만 새 열(attemptCount·lockedAt·정확도 입력 열·Order.birthInfo)을 쓴다 */
-export function isDbSchemaV3(env: Env = process.env): boolean {
-  return env.DB_SCHEMA_V3 === "true"
-}
+export { isDbSchemaV3 } from "@/lib/db-legacy"
 
 interface PrecisionPerson extends BirthPrecision {
   hour: number | null

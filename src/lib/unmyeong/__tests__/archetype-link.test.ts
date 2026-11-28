@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest"
-import path from "node:path"
 import { analyzeArchetype, analyzeRules, ARCHETYPE_ID_LIST, computeChart, type RuleAnalysis } from "@/engine"
 // 다리 기운 대조용(엔진 내부 특징 — 공개 API 아님, 테스트에서만 읽는다)
 import { extractFeatures } from "@/engine/archetype/features"
@@ -8,7 +7,6 @@ import { pairBridgeOf, resolveArchetype, toArchetypeView } from "@/lib/unmyeong/
 import { buildUnmyeongFree, chartFromSajuInput, validateUnmyeongFreeRequest } from "@/lib/unmyeong/free"
 import { BRIDGE_WORD, loadFreeCopy } from "@/lib/unmyeong/free-copy"
 
-const COPY_DIR = path.join(process.cwd(), "content", "unmyeong")
 const exact = (y: number, m: number, d: number, h: number, gender: "M" | "F") =>
   ({ birthYear: y, birthMonth: m, birthDay: d, birthHour: h, birthMinute: 30, timeMode: "exact", gender, calType: "SOLAR" })
 
@@ -105,7 +103,7 @@ describe("resolveArchetype — 엔진 결과 연결", () => {
 })
 
 describe("응답 — 원형과 5장 문안이 실제로 채워진다(content/unmyeong/free-copy.json)", () => {
-  const raw = loadFreeCopy(COPY_DIR)
+  const raw = loadFreeCopy()
 
   it("12 원형 모두 pending false, 다섯 장이 그 원형 문안으로 채워지고 날 토큰이 없다", () => {
     expect(raw).not.toBeNull()

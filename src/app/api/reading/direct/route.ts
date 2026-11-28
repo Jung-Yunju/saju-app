@@ -87,6 +87,7 @@ export async function POST(req: NextRequest) {
           amount: 0,
           status: "PAID",
         },
+        select: { id: true }, // 옛 스키마(Order.birthInfo 없음)에서도 RETURNING이 옛 열만 쓰게
       })
 
       const reading = await tx.reading.create({

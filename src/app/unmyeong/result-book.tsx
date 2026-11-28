@@ -39,43 +39,57 @@ function ChapterBlock({ c, no, name, children }: { c?: UnmyeongFreeChapter; no: 
   )
 }
 
-function Elements({ data }: { data: UnmyeongFreeResponse }) {
+function Wongook({ data }: { data: UnmyeongFreeResponse }) {
+  const cur = data.daeun.items[data.daeun.currentIndex]
+  const order = ["hour", "day", "month", "year"] as const
   const items = data.basis.elements.items
   return (
-    <ul className="umr-els" aria-label="오행 분포">
-      {items.map(e => (
-        <li key={e.el} data-el={e.el}>
-          <span className="umr-el-name"><b>{e.ko}</b> <span lang="zh">{e.hanja}</span></span>
-          <span className="umr-bar" aria-hidden="true"><i style={{ width: `${Math.round(e.share * 100)}%` }} /></span>
-          <span className="umr-el-val">{e.count}자 · {Math.round(e.share * 100)}%</span>
-        </li>
-      ))}
-    </ul>
+    <section className="umr-wongook um-page um-paper" aria-labelledby="umr-wg-h">
+      <h2 id="umr-wg-h">네 여덟 글자 <span lang="zh">四柱八字</span></h2>
+      <div className="umr-pillars" role="list">
+        {order.map(k => {
+          const p = data.pillars.find(x => x.key === k)
+          return p ? (
+            <div key={k} role="listitem" className={p.me ? "is-me" : ""}>
+              <span className="umr-p-label">{PILLAR_KO[k]}</span>
+              <span className="umr-wg-tag">{p.me ? "나(일간)" : "\u00a0"}</span>
+              <span className="umr-gz">
+                <span className="umr-wg-cell"><b data-el={p.element} lang="zh">{p.stemHanja}</b><i>{p.stemKo}</i></span>
+                <span className="umr-wg-cell"><b data-el={p.branchEl} lang="zh">{p.branchHanja}</b><i>{p.branchKo}</i></span>
+              </span>
+            </div>
+          ) : (
+            <div key={k} role="listitem" className="is-unknown">
+              <span className="umr-p-label">{PILLAR_KO[k]}</span>
+              <span className="umr-wg-tag">{"\u00a0"}</span>
+              <span className="umr-gz umr-wg-unknown">모름</span>
+            </div>
+          )
+        })}
+      </div>
+      {data.hourUnknown && <p className="umr-wg-note">태어난 시각을 몰라 시주는 비워 두었단다.</p>}
+      <p className="umr-wg-line">나를 나타내는 글자(일간)는 <b lang="zh">{data.dayMaster.hanja}</b>({data.dayMaster.ko}), {data.dayMaster.element}의 기운이란다.</p>
+
+      <h3>오행 다섯 기운</h3>
+      <div className="umr-els-bar" role="img" aria-label={items.map(e => `${e.ko} ${Math.round(e.share * 100)}%`).join(", ")}>
+        {items.filter(e => e.share > 0).map(e => <i key={e.el} data-el={e.el} style={{ flexGrow: e.share }} />)}
+      </div>
+      <ul className="umr-els-legend" aria-hidden="true">
+        {items.map(e => <li key={e.el} data-el={e.el}><b>{e.ko}</b><span lang="zh">{e.hanja}</span> {Math.round(e.share * 100)}%</li>)}
+      </ul>
+
+      <p className="umr-wg-line">
+        {cur ? <>지금은 <b lang="zh">{cur.hanja}</b>({cur.ko}) 대운, </> : null}
+        올해({data.thisYear.year}년)는 <b lang="zh">{data.thisYear.ganzhi.hanja}</b>({data.thisYear.ganzhi.ko})년이란다.
+      </p>
+    </section>
   )
 }
 
 function Basis({ data }: { data: UnmyeongFreeResponse }) {
   const b = data.basis
-  const cur = data.daeun.currentIndex
   return (
     <div className="umr-basis">
-      <h3>타고난 여덟 글자(원국)</h3>
-      <div className="umr-pillars" role="list">
-        {[...data.pillars].reverse().map(p => (
-          <div key={p.key} role="listitem" className={p.me ? "is-me" : ""}>
-            <span className="umr-p-label">{PILLAR_KO[p.key]}{p.me ? " · 나" : ""}</span>
-            <span className="umr-gz"><b data-el={p.element} lang="zh">{p.stemHanja}</b><b data-el={p.branchEl} lang="zh">{p.branchHanja}</b></span>
-            <span className="umr-p-ko">{p.ko}</span>
-          </div>
-        ))}
-      </div>
-      {data.hourUnknown && <p className="um-note">태어난 시각을 몰라 시주는 비워 두었단다.</p>}
-      <p>나를 나타내는 글자(일간)는 <b lang="zh">{b.dayMaster.char}</b>({b.dayMaster.charKo}) — {b.dayMaster.label.plain}</p>
-
-      <h3>오행 — 다섯 기운의 비율</h3>
-      <Elements data={data} />
-      <p>가장 많은 기운은 {b.elements.dominant}{b.elements.missing.length ? `, 원국에 없는 기운은 ${b.elements.missing.join("·")}` : ""}이란다.</p>
-
       <h3>십성 — 글자들이 맺은 관계</h3>
       <ul className="umr-list">
         {b.tenGods.groups.map(g => (
@@ -99,18 +113,6 @@ function Basis({ data }: { data: UnmyeongFreeResponse }) {
         ))}
       </ul>
       <p className="umr-fine">관점마다 답이 다를 수 있어 하나로 합치지 않고 나란히 놓았다.</p>
-
-      <h3>대운 — 십 년마다 바뀌는 큰 흐름</h3>
-      <ol className="umr-daeun">
-        {data.daeun.items.map((d, i) => (
-          <li key={d.startYear} data-el={d.element} className={i === cur ? "is-now" : ""} aria-current={i === cur ? "step" : undefined}>
-            <span className="umr-d-age">{d.startAge}세~</span>
-            <span className="umr-gz"><b data-el={d.element} lang="zh">{d.stemHanja}</b><b data-el={d.branchEl} lang="zh">{d.branchHanja}</b></span>
-            <span className="umr-p-ko">{d.ko}{i === cur ? " · 지금" : ""}</span>
-          </li>
-        ))}
-      </ol>
-      <p>올해({data.thisYear.year}년)는 <b lang="zh">{data.thisYear.ganzhi.hanja}</b>({data.thisYear.ganzhi.ko})년이란다.</p>
       {b.caveats.map(c => <p key={c} className="umr-fine">{c}</p>)}
       {data.warnings.map(w => <p key={w} className="umr-fine">{w}</p>)}
     </div>
@@ -153,6 +155,8 @@ export function ResultBook({ data, name, onRetry }: { data: UnmyeongFreeResponse
         <p className="umr-cover-kicker">운명비서 <span lang="zh">運命秘書</span></p>
         <p className="umr-cover-name">{name ? `${name}의 기록` : "오늘의 대상자의 기록"}</p>
       </header>
+
+      <Wongook data={data} />
 
       <div className="umr-spread">
         <UmPage no={1} title={`${name ? name + ", " : ""}${first?.title || TITLES[0]}`} className="umr-chapter" id="umr-ch-1">

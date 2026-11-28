@@ -196,7 +196,11 @@ export async function POST(req: Request) {
   if (!secret) return serverError(TAG, new Error("TOSS_SECRET_KEY 미설정"))
 
   try {
-    const order = await prisma.order.findUnique({ where: { orderId } })
+    // 고르는 열을 적는다: birthInfo(v3 열)는 스위치가 켜졌을 때만 읽는다(옛 스키마 DB에는 없음)
+    const order = await prisma.order.findUnique({
+      where: { orderId },
+      select: { id: true, userId: true, amount: true, status: true, birthInfo: v3 },
+    })
     // 0원(무료) 주문은 결제 확인 대상이 아니다 — 예전 무료 경로가 남긴 빈 주문에 풀이를 붙이는 우회 차단
     if (!order || order.userId !== userId || order.amount <= 0) {
       return jsonError("유효하지 않은 주문입니다.", 400)

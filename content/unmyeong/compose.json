@@ -1,0 +1,209 @@
+{
+  "version": 1,
+  "_status": "제안(콘텐츠 작가 2026-11-28) — 대표 승인 대기. 아직 읽는 코드가 없다. 백엔드가 src/lib/unmyeong/에 조립기를 만들면 free-copy.json 대신(또는 free-copy.json의 2장 문장과 함께) 이 규칙으로 5장을 만든다. 응답 형식 UnmyeongFreeChapter{no,key,title,text}는 그대로다. 설명 문서: docs/knowledge/free-copy.md §9.",
+  "_why": "대표 피드백(2026-11-28): '사주풀이는 전혀 없어. 사주 글자는 나와야 하지 않을까?' — 원형 12종 고정 문안은 같은 원형이면 모두 같은 글이었다. 이 규칙은 일주(60)·일간(10)·오행 개수·올해 글자(일간 10 × 해)·일지 충합을 섞어 사람마다 다른 글을 만든다. 원형은 1장 한 문장·2장·5장 한 문장만 맡는다.",
+
+  "sources": {
+    "dayPillar": "content/unmyeong/day-pillar.json — items[pillar = 일간+일지 한자]",
+    "dayMaster": "content/unmyeong/day-master.json — items[stem = 일간 한자]",
+    "elements": "content/unmyeong/elements.json — items[element], thresholds, numerals",
+    "thisYear": "content/unmyeong/this-year.json — years[year = 응답 thisYear.year 이고 ganzhi = 응답 thisYear 간지]",
+    "archetype": "content/unmyeong/free-copy.json — chapters[1].byArchetype(2장 본문 그대로) / 아래 archetypeLines(1장·5장 한 문장)",
+    "facts": "엔진 응답 값만 쓴다: dayPillar(일간·일지), dayMaster, elements(counts), basis.elements.items[].share(지장간 포함 가중), hourUnknown, thisYear, archetype.id, 규칙 엔진 interactions(pillar seun, 일지 충·육합). AI 호출 없음."
+  },
+
+  "tokens": {
+    "{letters}": "시각을 알면 '여덟 글자', 모르면 '여섯 글자'",
+    "{n}": "elements.numerals[개수]",
+    "{label}": "day-pillar.json items[].label 예: '병자(丙子)일' — 丙申·丁巳·丙子·戊子·壬申도 label 그대로(한자 병기)",
+    "{dayStem}": "day-master.json items[].label 예: '갑(甲)' (fill 단계 tenGodLine에서만)",
+    "{elementName}·{gloss}·{group}": "elements.json tenGodLineTemplate 치환과 같다(fill 단계에서만)",
+    "{year}": "this-year.json years[].year"
+  },
+
+  "split": {
+    "rule": "문장 나누기 = '. '(마침표 + 공백 한 칸)에서 자른다. 자른 앞쪽에 '.'를 다시 붙인다. 재료 파일은 이 규칙에 맞게 썼다: day-pillar detail 2문장, day-master body 3문장·blindSpot 1~2문장, elements text 3문장, this-year line 2문장.",
+    "S1": "첫 문장",
+    "S2": "둘째 문장",
+    "guard": "자른 결과 문장 수가 위 개수와 다르면 그 재료는 통째로 쓰고(자르지 않고) 경고 로그를 남긴다. 재료 문장을 고친 사람이 규칙을 깼다는 뜻이다."
+  },
+
+  "join": "한 장 안의 조각은 공백 한 칸으로 잇는다. 조각 끝에 마침표가 없으면 붙인다. 토큰이 남은 조각은 버린다(free-copy.ts와 같은 원칙 — 날 토큰을 화면에 내지 않는다).",
+
+  "fixed": {
+    "opening": "어디 보자.",
+    "dayPillarIntro": "{label}에 났구나.",
+    "hiddenNote": "땅 글자 속에는 조금 숨어 있다.",
+    "weatherLead": "날씨 이야기다. 우산은 네가 챙기거라.",
+    "dayBranchJoinFrom": "{year}년에 드는 ",
+    "dayBranchJoinTo": "그해의 ",
+    "_note": "opening·weatherLead는 characters §2-7 말버릇(풀이 첫머리 1회, 앞날을 말하는 장 첫머리 1회). hourNote 문장은 free-copy.json hourNote.text를 그대로 쓴다(D-030: 시각 모름이면 늘)."
+  },
+
+  "chapters": [
+    {
+      "no": 1, "key": "being", "title": "너는 누구인가",
+      "parts": [
+        { "id": "opening", "text": "fixed.opening", "trimmable": true },
+        { "id": "intro", "text": "fixed.dayPillarIntro", "required": true },
+        { "id": "oneLiner", "text": "dayPillar.oneLiner", "required": true },
+        { "id": "archetype", "text": "archetypeLines.being[archetype.id]", "short": "archetypeLines.beingShort[archetype.id]", "when": "늘(원형이 없으면 2장을 만들 수 없어 다섯 장 전체가 pending.chapters다 — 지금 free-copy.ts 규칙과 같음)" },
+        { "id": "hourNote", "text": "free-copy.json hourNote.text", "when": "hourUnknown", "required": true }
+      ],
+      "_why": "대표가 물은 '사주 글자'가 첫 줄에 나온다(태어난 날의 두 글자 = 60가지). 원형 문장은 '{letters}를 다 펴 보면'으로 범위를 밝혀, 일주(태어난 날)와 원형(여덟 글자 전체)이 서로 다른 말을 해도 둘 다 참이 되게 했다."
+    },
+    {
+      "no": 2, "key": "symbol", "title": "너의 신성과 영물",
+      "parts": [
+        { "id": "symbol", "text": "free-copy.json chapters[no=2].byArchetype[archetype.id] 그대로", "required": true }
+      ],
+      "_why": "그림(신성·영물)을 설명하는 장이라 원형 문장을 그대로 둔다. 원형이 없으면 이 장이 없으므로 다섯 장 전체를 내지 않는다(free-copy.ts의 지금 규칙과 같음 — pending.chapters)."
+    },
+    {
+      "no": 3, "key": "gift", "title": "하늘이 네게 준 것",
+      "parts": [
+        { "id": "pillarS1", "text": "dayPillar.detail S1", "required": true },
+        { "id": "strength", "text": "dayMaster.strength", "required": true }
+      ],
+      "_why": "앉은 자리 글자(오행·십성)가 이 사람에게 무엇인지 + 일간이 가진 힘. 일주 60 × 일간 강점이 이미 일간에 묶여 있으므로 60가지가 된다."
+    },
+    {
+      "no": 4, "key": "shadow", "title": "네가 넘어야 할 것",
+      "parts": [
+        { "id": "elementS1", "text": "elements.items[elementPick.element][elementPick.kind].text S1", "when": "elementPick이 고른 것이 있으면" },
+        { "id": "hiddenNote", "text": "fixed.hiddenNote", "when": "elementPick.kind = lack 이고 그 오행의 지장간 포함 가중 값(basis.elements.items[].share — 백엔드가 지장간 포함 값인지 확인, 아니면 규칙 엔진 elements.weighted) > 0" },
+        { "id": "elementS2", "text": "elements.items[elementPick.element][elementPick.kind].text S2", "when": "elementPick이 고른 것이 있으면" },
+        { "id": "pillarS2", "text": "dayPillar.detail S2", "when": "elementPick이 고른 것이 없을 때(넘침·없음이 하나도 없음)" },
+        { "id": "blindSpot", "text": "dayMaster.blindSpot", "short": "dayMaster.blindSpot S1", "required": true }
+      ],
+      "_why": "오행 넘침·없음은 개수가 사람마다 다르다. 일간 맹점이 끝을 맡아 장이 할 일로 끝난다."
+    },
+    {
+      "no": 5, "key": "counsel", "title": "지금 네게 필요한 말",
+      "parts": [
+        { "id": "weatherLead", "text": "fixed.weatherLead", "when": "yearLine이 있으면", "required": true },
+        { "id": "yearS1", "text": "thisYear.byDayMaster[stem].line S1", "when": "올해 항목이 있으면" },
+        { "id": "yearS2", "text": "thisYear.byDayMaster[stem].line S2", "when": "올해 항목이 있고 dayBranch 줄이 없을 때" },
+        { "id": "dayBranch", "text": "thisYear.dayBranch[branch = 일지].line 에서 머리 fixed.dayBranchJoinFrom → fixed.dayBranchJoinTo", "when": "그 일지 줄이 있고, 규칙 엔진 interactions에 같은 관계(일지 ↔ 세운, clash 또는 sixCombine)가 실제로 있을 때만" },
+        { "id": "archetype", "text": "archetypeLines.counsel[archetype.id]", "when": "archetype가 있고 conflicts.counsel에 걸리지 않으면", "trimmable": true },
+        { "id": "fallback", "text": "free-copy.json chapters[no=5].byArchetype[archetype.id] 전체({bridge} 처리 포함)", "when": "올해 항목이 없을 때(this-year.json에 그해가 아직 없음)만. 이때 weatherLead·year·dayBranch·archetype 조각은 쓰지 않는다" }
+      ],
+      "_why": "올해 글자(세운)가 일간에 무엇으로 오는지는 일간마다 다르고, 일지 충·합은 일지마다 다르다. 일지 줄이 있으면 올해 줄의 할 일(S2) 대신 일지 줄의 할 일을 쓴다 — 한 장에 할 일이 셋이 되지 않게."
+    }
+  ],
+
+  "elementPick": {
+    "excess": "개수 >= thresholds.excessFull(시각 모름이면 excessHourUnknown)인 오행",
+    "lack": "개수 = 0인 오행",
+    "order": [
+      "1. excess가 있으면 그중 개수가 가장 큰 것 하나(같으면 목→화→토→금→수 순서의 앞)",
+      "2. 없으면 lack 중 목→화→토→금→수 순서의 첫 하나",
+      "3. 둘 다 없으면 고르지 않는다(4장은 dayPillar.detail S2 + blindSpot). balanced 문장은 5장 조립에 쓰지 않는다 — '넘어야 할 것'이 아니고, '알맞다'가 원형 1장의 '물기가 많다'류 문장과 엇갈릴 수 있다"
+    ],
+    "onlyOne": "4장의 오행 문장은 하나만 쓴다(넘침과 없음이 같이 있어도). 나머지는 근거 화면의 오행 개수 표가 보여 준다."
+  },
+
+  "archetypeLines": {
+    "_note": "free-copy.json 1장·5장의 뜻을 한 문장으로 줄인 것(원형 판정 조건을 그대로 옮겼다 — 새 판정 없음). being은 '{letters}를 다 펴 보면 [판정 조건], 할미 책엔 너를 [이름]로 적었다.' 꼴로 범위를 밝힌다. counsel은 할 일로 끝난다.",
+    "being": {
+      "galaxy": "{letters}를 다 펴 보면 한 기운이 판을 거의 다 차지해, 할미 책엔 너를 은하로 적었다.",
+      "hyeonmu": "{letters}를 다 펴 보면 한겨울 깊은 호수처럼 차고 물기가 많아, 할미 책엔 너를 현무로 적었다.",
+      "golden-sun": "{letters}를 다 펴 보면 한여름 정오에 멈춘 듯 볕이 세서, 할미 책엔 너를 황금빛 태양으로 적었다.",
+      "moon-goddess": "{letters}를 다 펴 보면 서로를 누르는 두 기운이 거의 같은 크기로 마주 서 있어, 할미 책엔 너를 달의 여신으로 적었다.",
+      "bonghwang": "{letters}를 다 펴 보면 가장 센 바깥 힘이 너를 다스리고 시험하는 힘이라, 할미 책엔 너를 봉황으로 적었다.",
+      "baekho": "{letters}를 다 펴 보면 어깨에 얹힌 무게는 큰데 받아 줄 손은 적어, 할미 책엔 너를 백호로 적었다.",
+      "black-fox": "{letters}를 다 펴 보면 틀을 깨는 재주와 말의 기운이 세게 들어 있어, 할미 책엔 너를 흑여우로 적었다.",
+      "white-deer": "{letters}를 다 펴 보면 다룰 일은 많은데 들어 올릴 힘이 그만큼 크지 않아, 할미 책엔 너를 백록으로 적었다.",
+      "sage": "{letters}를 다 펴 보면 받아들이고 채우는 기운이 넘칠 만큼 차 있어, 할미 책엔 너를 지혜의 현자로 적었다.",
+      "cheongnyong": "{letters}를 다 펴 보면 힘이 재주로, 재주가 결실로 흘러가는 길이 나 있어, 할미 책엔 너를 청룡으로 적었다.",
+      "silver-wolf": "{letters}를 다 펴 보면 너와 같은 기운이 무리 지어 모여 있어, 할미 책엔 너를 은빛 늑대로 적었다.",
+      "eternal-forest": "{letters}를 다 펴 보면 어느 한 기운이 판을 쥐지 않아, 할미 책엔 너를 불멸의 숲으로 적었다."
+    },
+    "beingShort": {
+      "galaxy": "할미 책엔 너를 은하로 적었다.",
+      "hyeonmu": "할미 책엔 너를 현무로 적었다.",
+      "golden-sun": "할미 책엔 너를 황금빛 태양으로 적었다.",
+      "moon-goddess": "할미 책엔 너를 달의 여신으로 적었다.",
+      "bonghwang": "할미 책엔 너를 봉황으로 적었다.",
+      "baekho": "할미 책엔 너를 백호로 적었다.",
+      "black-fox": "할미 책엔 너를 흑여우로 적었다.",
+      "white-deer": "할미 책엔 너를 백록으로 적었다.",
+      "sage": "할미 책엔 너를 지혜의 현자로 적었다.",
+      "cheongnyong": "할미 책엔 너를 청룡으로 적었다.",
+      "silver-wolf": "할미 책엔 너를 은빛 늑대로 적었다.",
+      "eternal-forest": "할미 책엔 너를 불멸의 숲으로 적었다."
+    },
+    "counsel": {
+      "galaxy": "흔들릴 때 너를 탓하지 말고 바람의 방향부터 보거라.",
+      "hyeonmu": "네게 필요한 건 더 깊은 생각이 아니라 볕이니, 아침 햇빛 아래 걷거라.",
+      "golden-sun": "큰 결정은 해가 진 뒤에 한 번 더 들여다보거라.",
+      "moon-goddess": "둘 중 하나를 버리지 말고, 어느 쪽을 먼저 걸을지 순서만 정하거라.",
+      "bonghwang": "한 주에 한 가지는 아무도 평가하지 않는 일을 하거라.",
+      "baekho": "한 주에 한 번은 \"이건 네가 맡아 다오\" 하고 부탁해 보거라.",
+      "black-fox": "네 말이 맞는 것과 통하는 것은 다른 일이니, 말하기 전에 숨을 세 번 고르거라.",
+      "white-deer": "이번 주에 맡은 일 하나를 내려놓고, 같이 뛸 사람 하나를 찾거라.",
+      "sage": "아는 것은 이미 충분하니, 칠 할쯤 된 것을 하나 내놓아 보거라.",
+      "cheongnyong": "씨를 더 뿌리지 말고, 이미 난 싹 하나에 물을 몰아 주거라.",
+      "silver-wolf": "네 힘이 밖으로 흘러나갈 통로로, 하루 세 줄 적기부터 해 보거라.",
+      "eternal-forest": "남이 권한 것 말고 네가 골라 좋아하는 것 하나에 깊이를 더하거라."
+    }
+  },
+
+  "budget": {
+    "min": 400,
+    "max": 600,
+    "hardMax": 650,
+    "count": "다섯 장 text 길이의 합(공백·문장부호 포함, 장 제목 제외, JS string length). D-029 ④",
+    "trim": [
+      "1. 1장 opening('어디 보자.')을 뺀다",
+      "2. 5장 archetype 조각을 뺀다",
+      "3. 1장 archetype 조각을 short(beingShort)로 바꾼다",
+      "4. 4장 blindSpot을 short(첫 문장)로 바꾼다",
+      "그래도 max를 넘으면 그대로 내되(hardMax까지) 경고 로그 compose.overBudget{archetype, dayPillar, length}를 남긴다 — 작가가 재료 문장을 줄인다. hardMax를 넘으면 4장 elementS2를 뺀다(마지막 수단)"
+    ],
+    "neverTrim": "1장 intro·oneLiner·hourNote, 2장, 3장 pillarS1·strength, 4장 elementS1·hiddenNote·blindSpot S1, 5장 weatherLead·yearS1·dayBranch — 사람마다 다른 근거 문장과 안전 문장은 줄이지 않는다",
+    "fill": [
+      "min보다 짧으면 아래를 순서대로 하나씩 더하고 min을 넘으면 멈춘다(넘친 결과가 max를 넘으면 마지막 것을 되돌린다)",
+      "1. 3장 맨 앞에 dayMaster.body S1('너 자신을 뜻하는 글자가 …(갑 甲)다.')",
+      "2. 4장 elementS2 뒤에 tenGodLine — elements.tenGodLineTemplate을 [일간 오행][그 오행] 묶음으로 채운 것. elementPick이 없으면 건너뛴다",
+      "3. 4장 blindSpot 앞에 dayPillar.detail S2(아직 쓰지 않았을 때만)"
+    ]
+  },
+
+  "conflicts": {
+    "principles": [
+      "1. 범위가 다르면 둘 다 둔다. 일주 문장은 '태어난 날의 두 글자', 원형 문장은 '{letters} 전체', 오행 문장은 '드러난 글자 개수', 올해 문장은 '그해 글자'다. 범위가 문장에 적혀 있으므로 서로 다른 말을 해도 거짓이 아니다. 고르지 말고 범위 말을 지킨다.",
+      "2. 숫자가 이긴다. 원형 1장 문장이 어떤 기운을 '많다·세다'고 했는데 4장이 그 오행을 '없다'로 고르면, 1장을 beingShort로 바꾼다(이유 구절을 뺀다). 원형 판정은 지장간 포함 가중 값이고 4장은 겉 글자 개수라 생기는 일이다. 이때 hiddenNote 조건이 맞으면 4장에 '땅 글자 속에는 조금 숨어 있다'가 붙어 두 말이 이어진다.",
+      "3. 구체적인 쪽이 이긴다. 5장에서 올해 문장(그해 글자 + 일간)과 원형 문장(원국 전체의 일반 처방)의 할 일이 서로 반대 방향이거나 같은 말을 되풀이하면 원형 문장을 뺀다(conflicts.counsel 표). 올해 문장은 빼지 않는다.",
+      "4. 할 일은 한 장에 둘까지. 5장은 일지 줄이 있으면 올해 줄의 할 일(S2)을 빼서, 할 일이 일지 줄 + 원형 줄 둘을 넘지 않게 한다.",
+      "5. 같은 문장을 두 장에 쓰지 않는다. dayPillar.detail S2는 4장(pillarS2 또는 fill 3) 한 곳에만, dayMaster.body S1은 3장 fill 한 곳에만 쓴다. 원형 1장·5장의 원문 전체(free-copy.json)는 5장 fallback 말고는 쓰지 않는다.",
+      "6. 같은 어미를 세 번 잇지 않는다(voice-guide §3). 재료 조합상 5장이 '챙기거라 / ~다 / ~거라 / ~거라'가 되어 연속 '~거라'는 둘까지다. 재료를 고칠 때 yearS1·dayBranch S1을 '~거라'로 끝내지 않는다."
+    ],
+    "being": [
+      { "archetype": "eternal-forest", "when": "elementPick.kind = excess", "do": "beingShort", "why": "'어느 한 기운이 판을 쥐지 않아'와 '{letters} 중 ○이 넷이다'가 엇갈려 보인다" },
+      { "archetype": "galaxy", "when": "elementPick.kind = lack 이고 넘침이 하나도 없음", "do": "그대로", "why": "엇갈리지 않음(한 기운이 판을 차지해도 다른 오행이 비는 건 흔하다) — 기록용" },
+      { "archetype": "hyeonmu", "when": "elementPick = water·lack", "do": "beingShort", "why": "원칙 2" },
+      { "archetype": "golden-sun", "when": "elementPick = fire·lack", "do": "beingShort", "why": "원칙 2" },
+      { "archetype": "sage|black-fox|white-deer|bonghwang|baekho", "when": "elementPick.kind = lack 이고 그 오행의 묶음(groupByDayMasterElement[일간 오행][그 오행])이 원형 판정 묶음(sage 인성 · black-fox 식상 · white-deer 재성 · bonghwang·baekho 관성)과 같음", "do": "beingShort", "why": "원칙 2" }
+    ],
+    "counsel": [
+      { "year": 2026, "stem": "戊", "archetype": "sage", "do": "archetype 조각 뺌", "why": "올해 '미뤄 둔 배움 하나를 시작해 볼 만하다' ↔ 원형 '아는 것은 이미 충분하니' — 반대 방향" },
+      { "year": 2026, "stem": "戊", "archetype": "cheongnyong", "do": "archetype 조각 뺌", "why": "새 배움 시작 ↔ '씨를 더 뿌리지 말고' — 반대 방향" },
+      { "year": 2026, "stem": "庚", "archetype": "white-deer", "do": "archetype 조각 뺌", "why": "'맡을 일은 손이 닿는 만큼만' ↔ '맡은 일 하나를 내려놓고' — 같은 말 되풀이" },
+      { "year": 2026, "stem": "癸", "archetype": "white-deer", "do": "archetype 조각 뺌", "why": "'하나를 내려놓고 받거라' ↔ '하나를 내려놓고' — 같은 말 되풀이" },
+      { "year": 2027, "stem": "丁", "archetype": "baekho", "do": "archetype 조각 뺌", "why": "'혼자 붙든 일 하나를 나눠 맡겨' ↔ '맡아 다오 부탁' — 같은 말 되풀이" },
+      { "year": 2027, "stem": "丁", "archetype": "white-deer", "do": "archetype 조각 뺌", "why": "나눠 맡기기 ↔ 같이 뛸 사람 찾기 — 같은 말 되풀이" },
+      { "year": 2027, "stem": "己", "archetype": "eternal-forest", "do": "archetype 조각 뺌", "why": "'생각이 다른 사람 말을 들어 보거라' ↔ '남이 권한 것 말고 네가 고른 것' — 반대 방향" },
+      { "year": 2027, "stem": "辛", "archetype": "golden-sun", "do": "archetype 조각 뺌", "why": "'결론을 내리기 전에 하루 비켜 서' ↔ '큰 결정은 해가 진 뒤에 한 번 더' — 같은 말 되풀이" },
+      { "year": 2027, "stem": "癸", "archetype": "golden-sun", "do": "archetype 조각 뺌", "why": "'돈 걸린 결정은 하룻밤 식혀서' ↔ 같은 말 되풀이" }
+    ],
+    "counselCheckedNote": "2026·2027 일간 20줄 × 원형 12줄(240쌍)을 작가가 눈으로 대조해 위 9쌍만 걸렸다. 해가 더해지거나(2028) 재료 문장을 고치면 이 표를 다시 대조한다."
+  },
+
+  "verifyRequests": [
+    "품질검증: content/unmyeong/{day-pillar,this-year,elements}.json에 tests/content-qa/free-tengods.test.ts와 같은 대조를 돌려 불일치 0을 확인(경로만 바꾸면 된다)",
+    "품질검증: 원본 content/free/*.json과 키 집합·배열 길이·basis·tenGods·interactions·groupByDayMasterElement가 같은지 기계 비교",
+    "품질검증: split 규칙(문장 수) — detail 2, body 3, text 3, line 2, blindSpot 1~2",
+    "품질검증: 조립 결과 전수(일주 60 × 원형 12 × 시각 앎/모름 × 오행 경우)의 글자 수 분포와 verifyReading(금지어·바넘·말투 붕괴) 결과"
+  ]
+}
