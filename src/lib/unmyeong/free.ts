@@ -2,11 +2,13 @@
 // 금지: prisma·Anthropic·세션 접근. 입력(생년월일 등)은 로그·응답에 남기지 않는다. 이름은 받지 않는다(화면에서만 끼운다).
 // 흐름: 요청 정리(이름·풀이 종류·상대방 칸 버림) → validateReadingRequest(기존 검증 재사용) → buildSajuInputFromRequest
 //      → buildFreeResult(기존 /api/free 표시값 재사용) → computeChart·analyzeRules(근거) → 원형 연결(resolveArchetype) → 5장 문안
+//      → 경고는 쉬운 안내로(warnings.ts — 원문의 시각·날짜 숫자는 내보내지 않는다)
 import { analyzeRules, computeChart, yearPillarOf, type CalendarResult, type RuleAnalysis } from "@/engine"
 import { buildSajuInputFromRequest, type SajuInputData, type SajuRequestPerson } from "@/lib/saju-input"
 import { validateReadingRequest, type ReadingRequest, type Result } from "@/lib/validate"
 import { buildFreeResult } from "@/app/api/free/_lib/build-result"
 import { resolveArchetype } from "./archetype-link"
+import { friendlyWarnings } from "./warnings"
 import { buildBasis } from "./basis"
 import { loadFreeCopy, selectFreeChapters } from "./free-copy"
 import type { UnmyeongFreeResponse } from "./free-types"
@@ -25,10 +27,16 @@ export function stripUnusedFields(body: unknown): unknown {
   const out: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(body as Record<string, unknown>)) {
     if (k === "name" || k === "readingType" || /^other[A-Z]?/.test(k)) continue
+    // QA-UM-1: JSON.parse가 만든 자기 키 "__proto__"를 out[k]=v로 옮기면 out의 프로토타입이 바뀌어
+    // 그 안의 칸(readingType 등)이 검증기에 상속돼 보인다 → 객체 기본 속성 이름은 옮기지 않는다
+    if (UNSAFE_KEYS.has(k)) continue
     out[k] = v
   }
   return out
 }
+
+/** 요청 본문 최상위에서 옮기지 않는 키(프로토타입 오염 방지) */
+const UNSAFE_KEYS: ReadonlySet<string> = new Set(["__proto__", "constructor", "prototype"])
 
 /** 검증을 통과한 한 사람 정보(이름·상대방·풀이 종류 없음) */
 export type UnmyeongFreePerson = SajuRequestPerson & { gender: "M" | "F" }
@@ -117,7 +125,8 @@ export function buildUnmyeongFree(
     chapters,
     basis: buildBasis(rules),
     pending: { archetype: archetype === null, chapters: chapters === null },
-    warnings: base.warnings,
+    // 관찰 O1: 엔진 경고 원문(절입 시각·보정 시각 등 출생 시각에 가까운 값)은 싣지 않고 쉬운 안내로 바꾼다
+    warnings: friendlyWarnings(s.warnings, { lunarInput: person.calType === "LUNAR" }),
     engineVersion: base.engineVersion,
   }
 }

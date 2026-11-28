@@ -6,28 +6,54 @@ import type { FreeChapterKey } from "./assets"
 
 export type { DaeunView, ElementKo, GanzhiView, PillarView }
 
-// ─────────────────────────────────────────── 원형(archetype) — 엔진 연결 전에는 null
+// ─────────────────────────────────────────── 원형(archetype) — 엔진 결과(analyzeArchetype)에서 옮긴다
 
-/** 원형 엔진(src/engine/archetype, archetype@0.1.0) 결과 중 화면에 내보내는 부분. 명세 초안: docs/redesign/02-archetypes.md §7 */
+/** 원형 분류(엔진 ArchetypeCategory와 같은 값) */
+export type UnmyeongArchetypeCategory = "divineBeast" | "spiritAnimal" | "divineHuman" | "nature" | "celestial"
+
+/** 원형 엔진(src/engine/archetype, archetype@0.1.0) 결과 중 화면에 내보내는 부분. 변환: archetype-link.ts resolveArchetype */
 export interface UnmyeongArchetypeView {
   /** ArchetypeId 예: "bonghwang" — 그림은 assets.ts archetypeAssets(id) */
   id: string
+  /** 원형 이름(엔진 규칙 데이터) 예: "달의 여신" */
+  name: string
+  category: UnmyeongArchetypeCategory
   /** 관문 순서 1~12 */
   order: number
-  /** 부 원형 id(없으면 null) */
+  /** 부 원형 id(없으면 null) — 관문 1~12 중 주 원형 다음으로 통과한 원형(D-030) */
   secondary: string | null
+  /** 부 원형 이름(없으면 null) */
+  secondaryName: string | null
+  /** 변형 표지 — 엔진 archetype@0.1.0에 아직 없어 늘 []. 생기면 엔진 값을 옮긴다 */
   variantTags: string[]
   /**
-   * 다리 기운(통관 오행) — 달의 여신(양강 대치)일 때 엔진 derived.strictPairs 대표 쌍의 bridge. 없으면 null·생략.
-   * 생략되면 문안 고르기가 variantTags의 "…·수로 이음" 표지에서 읽는다(free-copy.ts bridgeOf)
+   * 다리 기운(통관 오행) — 달의 여신(양강 대치)일 때 대표 양강 대치 쌍 X>Y에서 X가 생하는 오행. 그 밖에는 null.
+   * null이면 문안 고르기가 variantTags 표지 → 없으면 bridgeFallback 문장(free-copy.ts bridgeOf)
    */
   bridge?: ElementKo | null
-  /** 통과한 조건과 실제 값(근거 화면용) */
-  matched: { key: string; op: string; value: number | string | boolean; threshold?: number | string | string[] }[]
-  /** 보는 방식에 따라 원형이 바뀌는가. hourSensitive = 시각 모름일 때 12시진 중 원형이 바뀌는 시진이 있음(시각을 알면 null) */
+  /** 주 원형 관문에서 참이 된 조건과 실제 값(근거 화면용). op: eq ne in gte gt lte lt between has hasAny hasNone */
+  matched: {
+    key: string
+    op: string
+    value: number | string | boolean | null | string[]
+    threshold?: number | string | boolean | null | (number | string | boolean | null)[]
+    /** not 안의 조건(값이 기준에 맞지 않아서 참) */
+    negated?: true
+  }[]
+  /**
+   * 보는 방식에 따라 원형이 바뀌는가.
+   * nearBoundary: 관문형(cascade) 판정이라 점수 경계가 없어 늘 false.
+   * tableSensitive: 지장간 표(kr-monthly-30 ↔ cn-lunarjs)에 따라 원형이 다름 — 기록용(D-030 표 고정, 화면에 내지 않는다).
+   * hourSensitive: 시각 모름일 때 12시진 중 원형이 바뀌는 시진이 있음(시각을 알면 null)
+   */
   stability: { nearBoundary: boolean; tableSensitive: boolean; hourSensitive: boolean | null }
+  /** 시각 모름이면 true — 화면은 "태어난 시각을 알면 다른 모습이 보일 수 있다"를 붙인다(D-030) */
+  hourUnknownNote: boolean
   /** 전통 명리 공식 분류가 아님(화면 고지 필수) */
   disclaimer: "creative-symbol"
+  /** 고지 문장(엔진 규칙 데이터의 disclaimer) */
+  disclaimerText: string
+  /** 예: "archetype@0.1.0" */
   version: string
 }
 
@@ -125,13 +151,16 @@ export interface UnmyeongFreeResponse {
   dayPillar: GanzhiView
   daeun: { startAge: number; items: DaeunView[]; currentIndex: number }
   thisYear: { year: number; ganzhi: GanzhiView }
-  /** 원형 엔진 연결 전 null (pending.archetype=true) */
+  /** 원형(엔진 연결됨 → 정상이면 늘 값이 있다. null이면 pending.archetype=true) */
   archetype: UnmyeongArchetypeView | null
   /** 5장 문안 납품 전 null (pending.chapters=true) */
   chapters: UnmyeongFreeChapter[] | null
   basis: UnmyeongBasis
   pending: { archetype: boolean; chapters: boolean }
-  /** 엔진 경고(절입·시지 경계·시진 대표 시각 등) — 기존 /api/free와 같은 값 */
+  /**
+   * 화면용 쉬운 안내(절기 경계·시 경계·서머타임 등). 엔진 경고 원문은 싣지 않는다 — 시각·날짜 숫자 없음.
+   * 꼭 필요한 것만 골라 바꾼다(warnings.ts friendlyWarnings). 기존 /api/free의 warnings와 다르다
+   */
   warnings: string[]
   /** "calendar@…+rules@…" */
   engineVersion: string

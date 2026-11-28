@@ -1,51 +1,66 @@
 "use client"
 
-// 인트로 = 영상 슬롯만. 영상은 대표가 콘티로 따로 만든다(D-027 변경). 장면 개발 코드는 intro-scene-unused.tsx(미사용)에 보존.
-// assets.intro.video 가 있고 재생 가능할 때만 보여 주고, 없거나 실패·느린 연결·움직임 줄이기면 곧바로 입력 화면으로 넘어간다.
+// 인트로 = 영상(장면 01~07) + 건너뛰기. 재생 거부·로딩 실패·느린 연결·움직임 줄이기면 곧바로 정지 이미지(입력 화면)로 간다.
+// 영상이 끝나면 마지막 프레임 위에 같은 구도의 정지 이미지를 0.36초 크로스페이드로 얹은 뒤 입력 단계로 넘긴다.
 import { useEffect, useRef, useState } from "react"
-import { UNMYEONG_ASSETS as assets } from "@/lib/unmyeong/assets"
+import { BookStill } from "./book-still"
+import { canPlayMedia, mediaOf, type MediaKind } from "./media-utils"
 
-type NetInfo = { saveData?: boolean; effectiveType?: string }
+export type IntroResult = "ended" | "skipped" | "fallback"
+/** 인트로 영상이 한 번이라도 실제로 재생됐는가(다시 보기 버튼 표시용) */
+export let introHasPlayed = false
 
-function canPlayVideo(): boolean {
-  if (!assets.intro.video) return false
-  if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return false
-  const c = (navigator as Navigator & { connection?: NetInfo }).connection
-  if (c?.saveData) return false
-  if (c?.effectiveType && /^(slow-2g|2g|3g)$/.test(c.effectiveType)) return false
-  return true
-}
-
-export function Intro({ onDone }: { onDone: (skipped: boolean) => void }) {
-  const video = assets.intro.video
+export function Intro({ kind: kindProp, onDone }: { kind: MediaKind; onDone: (r: IntroResult) => void }) {
+  const [kind] = useState(kindProp) // 재생 중 화면을 돌려도 영상이 끊기지 않게 처음 비율로 고정
+  const media = mediaOf(kind)
   const ref = useRef<HTMLVideoElement>(null)
   const [muted, setMuted] = useState(true)
-  const [ok, setOk] = useState<boolean | null>(null)
+  const [ended, setEnded] = useState(false)
+  const [go, setGo] = useState<boolean | null>(null)
+  const playing = useRef(false)
+  const failed = useRef(0)
   const done = useRef(onDone)
   useEffect(() => { done.current = onDone })
 
   useEffect(() => {
-    const play = canPlayVideo()
-    if (!play) done.current(false)
-    else setOk(true) // eslint-disable-line react-hooks/set-state-in-effect
-  }, [])
+    if (!canPlayMedia()) { done.current("fallback"); return }
+    setGo(true) // eslint-disable-line react-hooks/set-state-in-effect
+    // 입력 화면에 쓸 정지 이미지를 미리 받아 둔다(크로스페이드가 비지 않게)
+    const im = new Image(); im.src = media.stillWebp
+    // 4초 안에 재생이 시작되지 않으면(느린 연결·자동 재생 차단) 곧바로 정지 이미지
+    const t = setTimeout(() => { if (!playing.current) done.current("fallback") }, 4000)
+    return () => clearTimeout(t)
+  }, [media.stillWebp])
 
   useEffect(() => {
-    if (!ok) return
-    // 5초 안에 재생 준비가 안 되면(느린 연결 등) 입력 화면으로
-    const t = setTimeout(() => { if (!ref.current || ref.current.readyState < 3) done.current(false) }, 5000)
-    return () => clearTimeout(t)
-  }, [ok])
+    if (!go) return
+    ref.current?.play()?.catch(() => done.current("fallback"))
+  }, [go])
 
-  if (!ok || !video) return <div className="um-boot" aria-hidden="true" />
+  useEffect(() => {
+    if (!ended) return
+    const t = setTimeout(() => done.current("ended"), 380)
+    return () => clearTimeout(t)
+  }, [ended])
+
+  if (!go) return <div className="um-boot" aria-hidden="true" />
   return (
-    <section className="um-intro" aria-label="인트로">
-      <div className="um-video-wrap">
-        <video ref={ref} className="um-video" src={video.mp4} poster={video.poster} autoPlay muted={muted} playsInline preload="auto"
-          onEnded={() => done.current(false)} onError={() => done.current(false)} onStalled={() => done.current(false)} aria-hidden="true" />
-        <button type="button" className="um-sound" onClick={() => setMuted(m => !m)} aria-pressed={!muted}>{muted ? "소리 켜기" : "소리 끄기"}</button>
-      </div>
-      <button type="button" className="um-skip" onClick={() => done.current(true)}>건너뛰기</button>
+    <section className="um-stage um-intro" aria-label="인트로">
+      <video ref={ref} className="um-stage-media" autoPlay muted={muted} playsInline preload="auto" aria-hidden="true"
+        onPlaying={() => { playing.current = true; introHasPlayed = true }}
+        onEnded={() => setEnded(true)} onError={e => { if (e.target === e.currentTarget) done.current("fallback") }}>
+        {media.introVideo.map(s => (
+          <source key={s.src} src={s.src} type={s.type}
+            onError={() => { failed.current += 1; if (failed.current >= media.introVideo.length) done.current("fallback") }} />
+        ))}
+      </video>
+      {ended && <BookStill kind={kind} className="um-still--fade" />}
+      {!ended && (
+        <>
+          <button type="button" className="um-skip" onClick={() => done.current("skipped")}>건너뛰기</button>
+          <button type="button" className="um-sound" onClick={() => setMuted(m => !m)} aria-pressed={!muted}>{muted ? "소리 켜기" : "소리 끄기"}</button>
+        </>
+      )}
     </section>
   )
 }

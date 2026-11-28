@@ -59,7 +59,57 @@ export interface ArchetypeAssets {
   alt: string
 }
 
+
+/** 영상 한 줄 후보(앞에서부터 시도 — final 우선, 없으면 placeholder. <source> 순서로 그대로 쓴다) */
+export interface MediaSourceItem {
+  src: string
+  type: string
+}
+
+/** 이미지 대비 % 사각형(0~100). 종이 영역 */
+export interface PaperRect {
+  x0: number
+  x1: number
+  y0: number
+  y1: number
+}
+
+/** 화면 비율 한 벌(PC 16:9 또는 모바일 9:16)의 영상·정지 이미지·종이 영역. docs/redesign/22-video-integration-spec.md §3 */
+export interface MediaSet {
+  introVideo: MediaSourceItem[]
+  resultEntryVideo: MediaSourceItem[]
+  /** 펼친 고서 탑뷰 정지 이미지(영상 마지막 프레임과 같은 구도). webp 우선, jpg 대체 */
+  stillWebp: string
+  stillJpg: string
+  stillWidth: number
+  stillHeight: number
+  /** 입력 오버레이가 놓일 두 쪽. 모바일 = 위쪽 쪽 / 아래쪽 쪽, PC = 왼쪽 쪽 / 오른쪽 쪽 */
+  pages: { first: PaperRect; second: PaperRect }
+  /** 이름 각인 중심(이미지 대비 %) */
+  imprint: { x: number; y: number }
+}
+
+export interface MediaCues {
+  /** 책장 넘김 반복 구간(초) */
+  loopStart: number
+  loopEnd: number
+  /** 손으로 멈추는 컷 시작(초) */
+  stopStart: number
+  /** 영상 전체 길이(초) */
+  end: number
+}
+
+export interface UnmyeongMedia {
+  pc: MediaSet
+  mobile: MediaSet
+  /** 마른 붓 효과음 후보(앞에서부터) */
+  sfxBrush: string[]
+  resultEntryCues: MediaCues
+}
+
 export interface UnmyeongAssets {
+  /** 영상 연동(D-031) — 납품 시 숫자·파일명만 교체 */
+  media: UnmyeongMedia
   intro: {
     /** 납품 전에는 null → fallback 장면 */
     video: IntroVideo | null
@@ -126,7 +176,43 @@ const archetype = (id: (typeof ARCHETYPE_IDS)[number]): ArchetypeAssets => {
 export const FREE_CHAPTER_KEYS = ["being", "symbol", "gift", "shadow", "counsel"] as const
 export type FreeChapterKey = (typeof FREE_CHAPTER_KEYS)[number]
 
+const FIN = ASSET_BASE + "final/"
+const PH = ASSET_BASE + "placeholder/"
+/** final 파일을 먼저, 없으면 placeholder(브라우저가 <source> 순서대로 시도) */
+const videoCandidates = (name: string): MediaSourceItem[] => [
+  { src: `${FIN}${name}.webm`, type: "video/webm" },
+  { src: `${FIN}${name}.mp4`, type: "video/mp4" },
+  { src: `${PH}${name}.webm`, type: "video/webm" },
+  { src: `${PH}${name}.mp4`, type: "video/mp4" },
+]
+
+export const UNMYEONG_MEDIA: UnmyeongMedia = {
+  pc: {
+    introVideo: videoCandidates("intro_pc_16x9"),
+    resultEntryVideo: videoCandidates("result_entry_pc_16x9"),
+    stillWebp: `${FIN}book_topview_pc_16x9.webp`,
+    stillJpg: `${FIN}book_topview_pc_16x9.jpg`,
+    stillWidth: 1920,
+    stillHeight: 1072,
+    pages: { first: { x0: 26, x1: 48.5, y0: 22, y1: 81 }, second: { x0: 52, x1: 73.5, y0: 22, y1: 81 } },
+    imprint: { x: 62.75, y: 22 + (81 - 22) * 0.35 },
+  },
+  mobile: {
+    introVideo: videoCandidates("intro_mobile_9x16"),
+    resultEntryVideo: videoCandidates("result_entry_mobile_9x16"),
+    stillWebp: `${FIN}book_topview_mobile_9x16.webp`,
+    stillJpg: `${FIN}book_topview_mobile_9x16.jpg`,
+    stillWidth: 1080,
+    stillHeight: 1936,
+    pages: { first: { x0: 13, x1: 89, y0: 22, y1: 49.5 }, second: { x0: 13, x1: 89, y0: 52.5, y1: 80 } },
+    imprint: { x: 51, y: 35.75 },
+  },
+  sfxBrush: [`${FIN}sfx_brush_close.mp3`, `${PH}sfx_brush_close.mp3`],
+  resultEntryCues: { loopStart: 6, loopEnd: 9, stopStart: 9, end: 12 },
+}
+
 export const UNMYEONG_ASSETS: UnmyeongAssets = {
+  media: UNMYEONG_MEDIA,
   intro: {
     // 납품 예: { mp4: "/unmyeong/final/intro-16x9.mp4", webm: "/unmyeong/final/intro-16x9.webm", poster: "/unmyeong/final/intro-poster.webp",
     //          durationSec: 18, vertical: { mp4: "/unmyeong/final/intro-9x16.mp4", poster: "/unmyeong/final/intro-poster-9x16.webp" }, isPlaceholder: false }

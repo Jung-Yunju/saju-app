@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import "@/styles/unmyeong.css"
 import "./unmyeong-flow.css"
 import "./unmyeong-result.css"
+import "./unmyeong-stage.css"
 import { umFontVariables } from "@/styles/unmyeong-fonts"
 
 export const metadata: Metadata = {

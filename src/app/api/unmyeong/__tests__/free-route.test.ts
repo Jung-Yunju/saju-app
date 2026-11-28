@@ -28,7 +28,7 @@ import { analyzeRules, yearPillarOf } from "@/engine"
 import { buildSajuInputFromRequest } from "@/lib/saju-input"
 import { chartFromSajuInput, stripUnusedFields, validateUnmyeongFreeRequest, buildUnmyeongFree } from "@/lib/unmyeong/free"
 import { selectFreeChapters } from "@/lib/unmyeong/free-copy"
-import type { UnmyeongFreeResponse } from "@/lib/unmyeong/free-types"
+import type { UnmyeongArchetypeView, UnmyeongFreeResponse } from "@/lib/unmyeong/free-types"
 
 const req = (body: unknown, ip = "1.1.1.1", raw?: string) =>
   new NextRequest("http://localhost/api/unmyeong/free", {
@@ -128,7 +128,7 @@ describe("POST /api/unmyeong/free — 보안 조건", () => {
 })
 
 describe("POST /api/unmyeong/free — 응답 모양", () => {
-  it("원국·대운·올해·근거·대기 칸(archetype null + pending)", async () => {
+  it("원국·대운·올해·근거·원형(엔진 연결됨 → pending.archetype false)", async () => {
     const j = (await (await POST(req(valid))).json()) as UnmyeongFreeResponse
     expect(j.pillars.map((p) => p.key)).toEqual(["year", "month", "day"])
     expect(j.hourUnknown).toBe(true)
@@ -137,8 +137,8 @@ describe("POST /api/unmyeong/free — 응답 모양", () => {
     expect(Object.keys(j.dayMaster).sort()).toEqual(["element", "hanja", "ko"]) // 예전 nickname(문안 준비 중) 없음
     expect(j.daeun.items.length).toBeGreaterThan(0)
     expect(j.thisYear.ganzhi.hanja).toHaveLength(2)
-    expect(j.archetype).toBeNull()
-    expect(j.pending.archetype).toBe(true)
+    expect(j.archetype).not.toBeNull()
+    expect(j.pending.archetype).toBe(false)
     if (!FREE_COPY_EXISTS) {
       expect(j.chapters).toBeNull()
       expect(j.pending.chapters).toBe(true)
@@ -227,8 +227,12 @@ describe("무료 5장 문안 고르기(version 2)", () => {
     bridgeFallback: { replace: "다리는 {bridge}의 기운이다.", with: "다리가 될 기운 하나를 고르거라." },
     chapters: keys.map((key, i) => ({ no: i + 1, key, title: `제${i + 1}장`, default: null as string | null, byArchetype: { bonghwang: `봉황 ${key}`, "moon-goddess": i === 4 ? "달 앞. 다리는 {bridge}의 기운이다. 달 뒤." : `달 ${key}` } })),
   }
-  const arch = { id: "bonghwang", order: 5, secondary: null, variantTags: [], matched: [], stability: { nearBoundary: false, tableSensitive: false, hourSensitive: null }, disclaimer: "creative-symbol" as const, version: "archetype@0.1.0" }
-  const moon = { ...arch, id: "moon-goddess", order: 4 }
+  const arch: UnmyeongArchetypeView = {
+    id: "bonghwang", name: "봉황", category: "divineBeast", order: 5, secondary: null, secondaryName: null, variantTags: [], matched: [],
+    stability: { nearBoundary: false, tableSensitive: false, hourSensitive: null }, hourUnknownNote: false,
+    disclaimer: "creative-symbol", disclaimerText: "창작 상징", version: "archetype@0.1.0",
+  }
+  const moon: UnmyeongArchetypeView = { ...arch, id: "moon-goddess", name: "달의 여신", category: "divineHuman", order: 4 }
 
   it("파일이 없으면 null", () => {
     expect(selectFreeChapters(null, null)).toBeNull()
@@ -273,17 +277,19 @@ describe("무료 5장 문안 고르기(version 2)", () => {
     expect(selectFreeChapters(oldKeys, arch)).toBeNull()
     expect(selectFreeChapters({ ...copy, hourNote: { chapter: 7, text: "x" } }, arch)).toBeNull()
   })
-  it("응답 본체: 원형이 없으면(엔진 연결 전) default null 문안 → chapters null, 기본 문안이 있으면 채워지고 시각 모름 안내가 붙는다", () => {
+  it("응답 본체: 그 원형 문안이 없고 default도 null이면 chapters null, 기본 문안이 있으면 채워지고 시각 모름 안내가 붙는다", () => {
     const v = validateUnmyeongFreeRequest(valid)
     if (!v.ok) throw new Error(v.error)
-    const none = buildUnmyeongFree(v.value, { freeCopy: copy })
+    const empty = { ...copy, chapters: copy.chapters.map((c) => ({ ...c, byArchetype: {} })) }
+    const none = buildUnmyeongFree(v.value, { freeCopy: empty })
+    expect(none.archetype).not.toBeNull()
     expect(none.chapters).toBeNull()
-    expect(none.pending).toEqual({ archetype: true, chapters: true })
-    const withDefault = { ...copy, chapters: copy.chapters.map((c) => ({ ...c, default: `기본 ${c.key}` })) }
+    expect(none.pending).toEqual({ archetype: false, chapters: true })
+    const withDefault = { ...empty, chapters: empty.chapters.map((c) => ({ ...c, default: `기본 ${c.key}` })) }
     const r = buildUnmyeongFree(v.value, { freeCopy: withDefault })
     expect(r.hourUnknown).toBe(true)
     expect(r.chapters?.map((c) => c.key)).toEqual(keys)
     expect(r.chapters?.[0].text).toBe("기본 being 시각 안내.")
-    expect(r.pending).toEqual({ archetype: true, chapters: false })
+    expect(r.pending).toEqual({ archetype: false, chapters: false })
   })
 })

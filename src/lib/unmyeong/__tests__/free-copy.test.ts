@@ -15,8 +15,9 @@ const raw = loadFreeCopy(DIR) as {
 } | null
 
 const view = (id: string, over: Partial<UnmyeongArchetypeView> = {}): UnmyeongArchetypeView => ({
-  id, order: 1, secondary: null, variantTags: [], matched: [],
-  stability: { nearBoundary: false, tableSensitive: false, hourSensitive: null }, disclaimer: "creative-symbol", version: "archetype@0.1.0", ...over,
+  id, name: id, category: "nature", order: 1, secondary: null, secondaryName: null, variantTags: [], matched: [],
+  stability: { nearBoundary: false, tableSensitive: false, hourSensitive: null }, hourUnknownNote: false,
+  disclaimer: "creative-symbol", disclaimerText: "창작 상징", version: "archetype@0.1.0", ...over,
 })
 const len = (s: string) => [...s].length
 

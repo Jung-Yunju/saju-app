@@ -1,0 +1,75 @@
+/* 영상 연동 장면(D-031): 정지 이미지 위 입력 오버레이·이름 각인·결과 진입 영상. 계약: docs/redesign/22-video-integration-spec.md */
+.um-stage{position:fixed;inset:0;overflow:hidden;background:#141310;isolation:isolate}
+.um-stage-media,.um-still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.um-still--fade{animation:um-fade-in 360ms ease both}
+@keyframes um-fade-in{from{opacity:0}to{opacity:1}}
+
+/* 건너뛰기: 우측 상단(안전 영역 고려), 눈에 띄지 않게 */
+.um-intro .um-skip{top:calc(env(safe-area-inset-top) + 12px);right:calc(env(safe-area-inset-right) + 12px);background:rgba(20,19,16,.45);border-color:rgba(226,216,197,.28);color:rgba(226,216,197,.88);font-size:1rem}
+.um-intro .um-sound{bottom:calc(env(safe-area-inset-bottom) + 12px);right:calc(env(safe-area-inset-right) + 12px);background:rgba(20,19,16,.45);border-color:rgba(226,216,197,.28);color:rgba(226,216,197,.88)}
+
+/* 입력 오버레이: 종이 영역 위 HTML. 위치·크기는 JS가 cover 변환으로 px 지정 */
+.um-ov-form{position:absolute;inset:0;max-width:none;margin:0;pointer-events:none;transition:opacity 600ms ease,visibility 0s linear 600ms}
+.um-bookscene[data-phase="imprint"] .um-ov-form{opacity:0;visibility:hidden}
+.um-ov-page{position:absolute;pointer-events:auto;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(42,33,25,.35) transparent;
+ padding:calc(var(--ov-f)*.3px) calc(var(--ov-f)*.7px) calc(var(--ov-f)*.7px);
+ --um-fg:#2d2218;--um-fg-muted:#40342a;--um-text-ink:#2d2218;--um-text-ink-muted:#40342a;--um-accent:var(--um-brass-deep);--um-field-line:var(--um-paper-line);
+ --um-focus:var(--um-brass-deep);--um-danger:var(--um-seal-ink);--um-rule:rgb(42 33 25/.28);--um-btn-brass-line:var(--um-brass-deep);--um-btn-brass-fg:var(--um-text-ink);
+ --um-fs-xs:calc(var(--ov-f)*1px);--um-fs-sm:calc(var(--ov-f)*1px);--um-fs-md:calc(var(--ov-f)*1px);--um-fs-lg:calc(var(--ov-f)*1.15px);--um-fs-xl:calc(var(--ov-f)*1.6px);--um-fs-2xl:calc(var(--ov-f)*2px);
+ --um-ledger-col:4.4em;color:var(--um-fg);color-scheme:light;font-size:calc(var(--ov-f)*1px);line-height:1.45}
+/* 조명 맞춤: 왼쪽 위 따뜻, 오른쪽 아래 서늘한 먹색 + 아주 옅은 명암 */
+.um-ov-page--a{--um-fg:#34261a;--um-text-ink:#34261a;--um-text-ink-muted:#44362a}
+.um-ov-page--b{--um-fg:#23211f;--um-text-ink:#23211f;--um-text-ink-muted:#363431}
+.um-ov-page .um-field--ledger .um-field__control,.um-ov-page select{font-size:max(16px,calc(var(--ov-f)*1px));min-height:44px}
+.um-ov-page .um-field--ledger .um-field__label,.um-ov-page .um-choice--ledger .um-choice__label{min-height:44px;padding-top:10px;letter-spacing:.02em}
+.um-ov-page .um-choice--ledger .um-choice__row,.um-ov-page .um-formbook .um-choice--ledger .um-choice__row{padding-top:0;padding-bottom:0}
+.um-ov-page .um-choice--ledger .um-choice__face{min-height:44px}
+.um-ov-page .um-field--ledger,.um-ov-page .um-choice--ledger{border-bottom-color:rgba(60,46,32,.55)}
+.um-ov-page .um-ledger__mast{margin:0 0 calc(var(--ov-f)*.3px)}
+.um-ov-page .um-ledger__title{line-height:1.05}
+.um-ov-page .um-ledger__ko{line-height:1.2}
+.um-ov-page .um-ledger__kicker{margin-bottom:2px;font-size:max(16px,calc(var(--ov-f)*1px));line-height:1.2}
+.um-ov-page .um-ledger__han{font-size:calc(var(--ov-f)*1.7px);letter-spacing:.06em;line-height:1}
+.um-ov-page .um-ledger__ko{font-size:calc(var(--ov-f)*1px);margin-top:0}
+.um-ov-page .um-ledger__stamp{top:calc(var(--ov-f)*1.6px)}
+.um-bookscene[data-kind="mobile"] .um-ov-page--a{padding-top:0}
+.um-bookscene[data-kind="mobile"] .um-ov-page--a .um-ledger__kicker{margin-top:2px}
+.um-bookscene[data-kind="mobile"] .um-ov-page .um-field--ledger .um-field__control,.um-bookscene[data-kind="mobile"] .um-ov-page .um-choice__face{min-height:42px}
+.um-bookscene[data-kind="mobile"] .um-ov-page--a .um-field__label,.um-bookscene[data-kind="mobile"] .um-ov-page--a .um-choice__label{min-height:42px;padding-top:9px}
+.um-ov-page--a .um-ledger__stamp{right:2px}
+.um-bookscene[data-kind="pc"] .um-ov-page--a{display:flex;flex-direction:column;justify-content:flex-start;padding-top:calc(var(--ov-f)*2px)}
+.um-bookscene[data-kind="pc"] .um-ledger__han{font-size:calc(var(--ov-f)*2.6px)}
+.um-bookscene[data-kind="pc"] .um-ledger__stamp{position:static;display:inline-block;margin-top:calc(var(--ov-f)*1.4px)}
+.um-ov-sub{margin:calc(var(--ov-f)*1.2px) 0 0;font-family:var(--um-font-title);font-size:calc(var(--ov-f)*1px);color:var(--um-text-ink-muted)}
+.um-ov-rec{margin:0 0 calc(var(--ov-f)*.4px);padding-bottom:4px;border-bottom:3px double rgba(60,46,32,.6);font-family:var(--um-font-title);font-size:calc(var(--ov-f)*1.15px);font-weight:800;letter-spacing:.12em;color:var(--um-text-ink)}
+.um-ov-foot{margin-top:calc(var(--ov-f)*.8px)}
+.um-ov-foot .um-fine,.um-ov-foot .um-replay{font-size:calc(var(--ov-f)*1px);line-height:1.5}
+.um-ov-page .um-formbook,.um-ov-page .um-note,.um-ov-page .um-choice__help,.um-ov-page .um-field__help{font-size:calc(var(--ov-f)*1px)}
+.um-ov-page .um-check-ledger{display:flex;align-items:center;gap:8px;min-height:44px;padding-left:calc(var(--ov-f)*.3px)}
+.um-ov-page .um-formbook .um-choice--ledger .um-choice__row,.um-ov-page .um-choice--ledger .um-choice__row{grid-template-columns:repeat(auto-fit,minmax(3.2em,1fr))}
+.um-err-line{margin:0;padding:2px 0 6px calc(var(--ov-f,16)*.6px);grid-column:2;color:var(--um-seal-ink);font-size:calc(var(--ov-f,16)*1px)}
+/* 생년월일 한 줄: 년·월·일 */
+.um-datefield{align-items:center}
+.um-datefield__row{grid-column:2;display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:6px;padding:4px 0 4px 8px}
+.um-formbook .um-datefield .um-field__control[inputmode="numeric"]{margin:0;letter-spacing:0;min-height:44px;width:100%;}
+.um-datefield .um-field__control{width:100%;min-width:0;border:0;border-bottom:2px solid var(--um-paper-line);background:rgba(255,255,255,.2);text-align:center;font-variant-numeric:tabular-nums;padding:0 4px}
+.um-datefield .um-field__control:focus-visible{border-bottom-color:var(--um-focus);outline:none}
+
+/* 장면 08 이름 각인: 먹이 스며들듯 */
+.um-imprint{position:absolute;transform:translate(-50%,-50%);margin:0;text-align:center;font-family:var(--um-font-title);font-weight:800;letter-spacing:.14em;line-height:1.3;word-break:keep-all;
+ color:#141310;mix-blend-mode:multiply;pointer-events:none;opacity:0;animation:um-ink 1600ms 600ms cubic-bezier(.22,.7,.3,1) forwards}
+@keyframes um-ink{0%{opacity:0;filter:blur(9px);letter-spacing:.3em}55%{opacity:.7}100%{opacity:.94;filter:blur(0);letter-spacing:.14em}}
+.um-vignette{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 700ms ease;background:radial-gradient(ellipse at 50% 46%,rgba(10,8,6,0) 38%,rgba(10,8,6,.55) 72%,rgba(10,8,6,.92) 100%)}
+.um-vignette.is-on{opacity:1}
+
+/* 장면 09~10 결과 진입 영상: 0.3초 크로스페이드로 올라오고, 결과가 뜨면 0.8초 디졸브로 걷힌다 */
+.um-entry{position:fixed;inset:0;z-index:20;background:#141310;overflow:hidden;animation:um-fade-in 300ms ease both;transition:opacity 800ms ease}
+.um-entry.is-fading{opacity:0;pointer-events:none}
+.um-entry .um-stage-media{position:absolute}
+.um-layer{position:fixed;inset:0;z-index:20;overflow:auto;background:var(--um-bg,#141310)}
+.um-dissolve-in{animation:um-fade-in 800ms ease both}
+
+@media (prefers-reduced-motion:reduce){
+ .um-imprint{animation:none;opacity:.94}
+ .um-vignette,.um-ov-form,.um-entry{transition:none}
+}

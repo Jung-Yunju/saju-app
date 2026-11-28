@@ -8,13 +8,7 @@ import type { UnmyeongFreeChapter, UnmyeongFreeResponse } from "@/lib/unmyeong/f
 import { visibleVolumes } from "@/lib/unmyeong/volumes"
 
 const TITLES = ["너는 누구인가", "너의 신성과 영물", "하늘이 네게 준 것", "네가 넘어야 할 것", "지금 네게 필요한 말"]
-// 원형 id → 화면 이름(assets.ts의 이름표와 같다. 별칭 문안은 작가 납품 후)
-const ARCHETYPE_NAME: Record<string, string> = {
-  galaxy: "은하", hyeonmu: "현무", "golden-sun": "황금빛 태양", "moon-goddess": "달의 여신", bonghwang: "봉황", baekho: "백호",
-  "black-fox": "흑여우", "white-deer": "백록", sage: "지혜의 현자", cheongnyong: "청룡", "silver-wolf": "은빛 늑대", "eternal-forest": "불멸의 숲",
-}
 const PILLAR_KO = { year: "연주(年柱)", month: "월주(月柱)", day: "일주(日柱)", hour: "시주(時柱)" } as const
-const NOTICE = "신성과 영물은 네 사주 구조를 바탕으로 이 서비스가 지어 붙인 상징이다. 옛 명리의 공식 분류가 아니다."
 
 /** {name} 토큰 치환. 이름이 없으면 토큰과 바로 붙은 호격·조사까지 자연스럽게 뺀다 */
 export function fillName(text: string, name: string): string {
@@ -149,8 +143,7 @@ export function ResultBook({ data, name, onRetry }: { data: UnmyeongFreeResponse
   const ch = (n: number) => data.chapters?.find(c => c.no === n)
   const a = data.archetype
   const art = a ? archetypeAssets(a.id) : null
-  const aName = a ? ARCHETYPE_NAME[a.id] ?? "" : ""
-  const first = ch(1)
+    const first = ch(1)
   const firstText = first ? fillName(first.text, name) : ""
   const m = firstText.match(/^(.+?[.!?。])\s+([\s\S]*)$/)
   return (
@@ -173,13 +166,13 @@ export function ResultBook({ data, name, onRetry }: { data: UnmyeongFreeResponse
                 <span className="umr-ripple" aria-hidden="true" />
                 <Pic a={art.beast} className="umr-water-bottom" />
                 {art.human.src.includes("placeholder") && <span className="umr-water-tag">그림 준비 중</span>}
-                <figcaption><b>{aName}</b>{a.secondary && ARCHETYPE_NAME[a.secondary] ? <> · 곁에 {ARCHETYPE_NAME[a.secondary]}</> : null}</figcaption>
+                <figcaption><b>{a.name}</b>{a.secondaryName ? <> · 곁에 {a.secondaryName}</> : null}</figcaption>
               </>
             ) : (
               <figcaption className="umr-seeking">영물을 찾는 중이란다. 물결이 가라앉으면 모습이 비칠 것이다.</figcaption>
             )}
           </figure>
-          <p className="umr-notice">{NOTICE}</p>
+          {a && <p className="umr-notice">{a.disclaimerText}</p>}
         </ChapterBlock>
 
         <ChapterBlock c={ch(3)} no={3} name={name} />

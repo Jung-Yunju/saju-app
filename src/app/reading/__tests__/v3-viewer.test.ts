@@ -8,6 +8,7 @@ vi.mock("next/link", () => ({
   default: (p: { href: string; children?: unknown; className?: string }) => createElement("a", { href: p.href, className: p.className }, p.children as never),
 }))
 
+import { LAST_WORDS } from "@/engine/content/prompts/persona"
 import V3Reader from "../[id]/v3/V3Reader"
 import { easyPosition, planOf } from "../[id]/v3/model"
 import { isStoredReadingV3 } from "@/lib/generate-reading-v3"
@@ -57,7 +58,7 @@ describe("v3 리더", () => {
     const cl = render(s, at("closing"))
     expect(cl).toContain("가져갈 당부")
     expect(cl).toContain("일 년 뒤 가려 볼 말")
-    expect(cl).toContain("빈 몸이라야 멀리 타고 간다") // 마지막 말(고정 문구)은 complete 마지막 장에만
+    expect(cl).toContain(LAST_WORDS.halmi) // 마지막 말(고정 문구)은 complete 마지막 장에만
     expect(cl).toContain("목차로")
   })
 
@@ -71,7 +72,7 @@ describe("v3 리더", () => {
     expect(html.match(/v3-toc-no">\d/g)?.length).toBe(6)
     expect(html).toContain("만드는 중</span>")
     expect(render(s, 5)).toContain("6/6")
-    expect(render(s, 5)).not.toContain("빈 몸이라야")
+    expect(render(s, 5)).not.toContain(LAST_WORDS.halmi)
   })
 
   it("complete라고 적혀 있어도 통과 못 한 장이 있으면 partial로 본다", () => {
