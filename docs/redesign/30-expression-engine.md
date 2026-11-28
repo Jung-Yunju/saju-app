@@ -83,8 +83,8 @@ interface ExpressionReport {
   conflicts: { dimensionId?: string; kind: "chart-vs-self" | "self-vs-self" | "missing" | "chart-uncertain"; note: string }[]  // 상충·불확실 (chart-uncertain = 시주 모름·경계·표 민감)
   luck: {
     scope: "daeun" | "seun"; ganzhi: string
-    touches: { dimensionId: string; how: "activate" | "bridge" | "press"; positions: string[] }[]  // 운 글자가 차원을 켬·이어 줌·누름
-    tone?: "favorable" | "burden" | "neutral"   // 억부 희기 — 경계·표 민감이면 생략
+    touches: { dimensionId: string; mode: "activate" | "feed" | "press"; via: string[]; ruleId: string }[]  // 운 글자가 차원을 켬·이어 줌(feed)·누름, via = 근거 위치
+    tone: "support" | "load" | "neutral"   // 억부 희기. 경계 차단·운 두 글자가 갈리면 "neutral" (2026-11-28 구현에 맞춰 이름 확정)
     activates: string[]; strategy: string[]
   }[]          // 운이 건드리는 차원 × 현재 상태 → 행동 방향 id
   gaeun: string[]                      // pickGaeun 결과 id(상태에 따라 순서 조정)
