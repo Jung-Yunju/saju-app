@@ -1,5 +1,5 @@
-// 사주 발현 분석 엔진 본체 (expression@0.1.0, D-035). 계약: docs/redesign/30-expression-engine.md
-// 명리 규칙: docs/knowledge/personalization/expression-dimensions.md (연구소장) · 유지관리: docs/knowledge/personalization/expression-engine.md
+// 사주 발현 분석 엔진 본체 (expression@0.2.0, D-035). 계약: docs/redesign/30-expression-engine.md
+// 명리 규칙: docs/knowledge/personalization/expression-dimensions.md (연구소장 @0.2.0) · 유지관리: docs/knowledge/personalization/expression-engine.md
 // "하늘이 만들어 준 나(원국) → 세월이 만들어 낸 나(발현) → 앞으로 내가 만들어 갈 나(운·개운)"를 코드로 판정한다.
 // 불변식(시험으로 고정 — __tests__/expression.test.ts):
 //  1) RuleAnalysis·대운·세운은 읽기만 한다. 이 함수는 원국(chart)을 받지 않으므로 MBTI가 원국·운 계산에 들어갈 길이 없다.
@@ -8,12 +8,13 @@
 //  4) developed는 같은 방향의 기질 답(trait) 사실이 있어야 한다 — MBTI만·상황 답만으로는 내지 않는다.
 //  5) 시주 모름이면 dormant·developed는 hourStable ≥ hourStableMin(8/12)일 때만.
 //  6) 같은 입력 → 같은 출력(시각·난수·외부 호출 없음).
+//  7) MBTI는 low 신호를 만들지 않고, 확신 없는 답은 판정에 쓰이지 않는다(문체 힌트만).
 import { analyzeArchetype } from "../../archetype"
 import { buildGaeunBasis, luckGlyphsOf, pickGaeun, type GaeunInput, type GaeunOptions } from "../../content/gaeun"
 import type { GaeunPick, LuckGlyphFacts } from "../../content/types"
 import type { Position, RuleAnalysis } from "../../rules/types"
 import { EngineInputError, type Element } from "../../types"
-import { compareTableLevels, deriveChart, fixedTableAnalysis, hourLevelVariants, potentialOf } from "./chart-rules"
+import { compareTableJudgments, deriveChart, fixedTableAnalysis, hourJudgmentVariants, potentialOf, sameJudgment } from "./chart-rules"
 import { normalizeSelf, selfSignalOf, styleHintsOf } from "./self-report"
 import { expressionTables, type ExpressionTables } from "./tables"
 import {
@@ -26,17 +27,20 @@ import {
   type ExpressionReport,
   type ExpressionSectionId,
   type ExpressionStatus,
+  type GrainLean,
+  type GrainParams,
   type GroupRuleParams,
   type LuckTone,
   type LuckTouch,
+  type PotentialLevel,
   type SelfReport,
-  type TenGodSetParams,
+  type StrategyMode,
 } from "./types"
 
 export interface ExpressionInput {
   /** analyzeRules 결과. 대운을 보려면 extra.luck(대운 간지들), 세운을 보려면 extra.year를 넣어 분석한 것 */
   analysis: RuleAnalysis
-  /** 자기보고(없어도 된다 — 그때는 모든 차원이 unknown) */
+  /** 자기보고(없어도 된다 — 그때는 모든 차원이 unknown). 모양이 틀리면 EngineInputError */
   self?: SelfReport
   luck?: {
     /** 지금 대운: analysis.source.luck의 0부터 번호 + 대운 순번(1부터, chart.luck.daeun[].index) */
@@ -66,6 +70,8 @@ export interface ExpressionOptions {
 const LEVEL_RANK: Readonly<Record<ChartPotential["level"], number>> = { strong: 0, moderate: 1, faint: 2 }
 const KIND_RANK: Readonly<Record<string, number>> = { core: 0, grain: 1, aux: 2 }
 const EL_KO: Readonly<Record<Element, string>> = { wood: "목", fire: "화", earth: "토", metal: "금", water: "수" }
+const LEVEL_ORDER: readonly PotentialLevel[] = ["strong", "moderate", "faint"]
+const LEAN_ORDER: readonly GrainLean[] = ["steady", "edge", "balanced"]
 
 function uniq(xs: readonly string[]): string[] {
   const out: string[] = []
@@ -80,18 +86,23 @@ function statusOf(present: boolean, signal: "high" | "low" | "none", developedOk
   return developedOk ? { status: "developed", blocked: false } : { status: "unknown", blocked: true }
 }
 
+const isNatalPillar = (p: Position): boolean => p.pillar === "year" || p.pillar === "month" || p.pillar === "day" || p.pillar === "hour"
+
 /**
  * 발현 분석 보고서. 판단은 전부 코드·표로 하고, 문장은 만들지 않는다(note는 내부 기록용 짧은 설명).
- * @throws EngineInputError analysis가 analyzeRules 결과(rules@0.4.0) 모양이 아닐 때
+ * @throws EngineInputError analysis가 analyzeRules 결과(rules@0.4.0) 모양이 아니거나 self 모양이 틀릴 때
  */
 export function buildExpressionReport(input: ExpressionInput, opts: ExpressionOptions = {}): ExpressionReport {
   const a0 = input?.analysis
   if (!a0 || typeof a0 !== "object" || !a0.source?.natal || !Array.isArray(a0.tenGods) || !a0.options)
     throw new EngineInputError("analysis는 analyzeRules 결과여야 함")
+  // 자기보고 모양 검사를 먼저(원국 재분석 같은 무거운 일 전에 멈춘다)
+  const norm = normalizeSelf(input.self)
   const T = opts.tables ?? expressionTables()
   const { dims, bridge } = T
   const conflicts: ExpressionConflict[] = []
   const hourKnown = a0.source.natal.hour !== null
+  const hourMin = dims.sensitivity.hourStableMin
 
   // ── ① 원국 잠재력(표 kr-monthly-30·모형 A 고정)
   const a = fixedTableAnalysis(a0, dims)
@@ -101,41 +112,48 @@ export function buildExpressionReport(input: ExpressionInput, opts: ExpressionOp
     conflicts.push({ kind: "chart-uncertain", note: "힘의 세기가 경계 근처라 보는 방식에 따라 달라질 수 있음 — 일간 세력 보정·부담 메모·운의 결을 쓰지 않음" })
   if (!hourKnown) {
     conflicts.push({ kind: "missing", note: "태어난 시각을 몰라 시주 없이 세 기둥으로 잠재력을 읽음" })
-    const variants = opts.hourCheck !== false ? hourLevelVariants(a, dims, T.hash) : null
+    const variants = opts.hourCheck !== false ? hourJudgmentVariants(a, dims, T.hash) : null
     if (variants) {
       innate.forEach((p, i) => {
-        const stable = variants[i].filter((l) => l === p.level).length
-        const levels = (["strong", "moderate", "faint"] as const).filter((l) => variants[i].includes(l))
-        p.hourStable = { stable, of: 12, levels }
-        // 12시진 중 하나라도 세 기둥 판정과 다르면 기록(2가지 이상 나오거나, 12개 모두 다른 단계인 경우 포함)
+        const vs = variants[i]
+        const stable = vs.filter((v) => sameJudgment(v, p)).length
+        const levels = LEVEL_ORDER.filter((l) => vs.some((v) => v.level === l))
+        const leans = p.lean ? LEAN_ORDER.filter((l) => vs.some((v) => v.lean === l)) : undefined
+        p.hourStable = { stable, of: 12, levels, ...(leans ? { leans } : {}) }
+        if (stable < hourMin) p.flags.push("hourUncertain")
+        // 12시진 중 하나라도 세 기둥 판정과 다르면 기록. 8/12 미만 faint는 "옅다"로 읽지 않는다(연구소장 §7.1-1)
         if (stable < 12)
-          conflicts.push({ dimensionId: p.dimensionId, kind: "chart-uncertain", note: `태어난 시각에 따라 이 기질의 세기가 달라질 수 있음 (${stable}/12)` })
+          conflicts.push({
+            dimensionId: p.dimensionId,
+            kind: "chart-uncertain",
+            note: p.level === "faint" && stable < hourMin
+              ? `태어난 시각을 알면 달라질 수 있어 옅은 기질로 읽지 않음 (${stable}/12)`
+              : `태어난 시각에 따라 이 기질의 세기가 달라질 수 있음 (${stable}/12)`,
+          })
       })
     }
   }
-  const compare = opts.tableCheck !== false ? compareTableLevels(a, dims, T.hash) : null
-  const tableChanged = compare ? innate.filter((p, i) => compare[i] !== p.level).map((p) => p.dimensionId) : []
+  const compare = opts.tableCheck !== false ? compareTableJudgments(a, dims, T.hash) : null
+  const tableChanged = compare ? innate.filter((p, i) => !sameJudgment(compare[i], p)).map((p) => p.dimensionId) : []
 
   // ── ② 자기보고 정리
-  const norm = normalizeSelf(input.self)
   const hasFacts = norm.facts.length > 0
   const hasMbti = norm.mbti.length > 0
   if (!hasFacts && !hasMbti) conflicts.push({ kind: "missing", note: "자기보고(MBTI·설문)가 없어 발현 비교 없이 사주 쪽만 읽음" })
   else if (!hasMbti) conflicts.push({ kind: "missing", note: "MBTI 응답 없음 — 설문 사실만으로 비교" })
   else if (norm.mbti.length < 4) conflicts.push({ kind: "missing", note: `MBTI ${norm.mbti.length}개 축만 응답(나머지 축은 모름) — 응답한 축만 씀` })
-  if (hasMbti && !hasFacts) conflicts.push({ kind: "missing", note: "경험·직업 등 설문 사실이 없어 MBTI 자기보고를 한 단계 약하게 반영" })
+  if (hasMbti && !hasFacts) conflicts.push({ kind: "missing", note: "경험·직업 등 설문 사실이 없어 MBTI 자기보고는 확인 신호로만 씀(살아오며 키움 판정에는 쓰지 않음)" })
 
   // ── ③ 비교 판정
-  const hourMin = dims.sensitivity.hourStableMin
   const readings: DimensionReading[] = dims.dimensions.map((d, i) => {
     const chart = innate[i]
-    const sig = selfSignalOf(d, norm, dims, bridge)
+    const sig = selfSignalOf(d, norm, dims, bridge, chart.lean)
     const present = dims.levels.present.includes(chart.level)
     const judged = statusOf(present, sig.signal, sig.developedEvidence && !sig.mbtiOnly)
     let status = judged.status
     const blocked = judged.blocked
     if (sig.mbtiOnly && hasFacts)
-      conflicts.push({ dimensionId: d.id, kind: "missing", note: "이 차원에 닿는 설문 사실이 없어 MBTI 자기보고만 한 단계 약하게 반영" })
+      conflicts.push({ dimensionId: d.id, kind: "missing", note: "이 차원에 닿는 설문 사실이 없어 MBTI 자기보고만 확인 신호로 씀" })
     if (blocked) {
       conflicts.push({ dimensionId: d.id, kind: "chart-vs-self", note: "사주 잠재력은 약하게 보이는데 자기보고는 강함" })
       conflicts.push({
@@ -155,16 +173,18 @@ export function buildExpressionReport(input: ExpressionInput, opts: ExpressionOp
       conflicts.push({ dimensionId: d.id, kind: "chart-vs-self", note: "사주 잠재력은 약하게 보이는데 기질 자기보고는 강함 — 살아오며 키운 힘일 수 있음(추론)" })
     if (status === "dormant")
       conflicts.push({ dimensionId: d.id, kind: "chart-vs-self", note: "사주 잠재력은 보이는데 자기보고는 약함 — 아직 덜 쓴 잠재력일 가능성(추론)" })
+    if (sig.oppositeWithoutFacts)
+      conflicts.push({ dimensionId: d.id, kind: "chart-vs-self", note: "본인은 반대 결로 느낀다는 자기보고(MBTI만) — 판정에 쓰지 않음" })
     if (sig.selfConflict === "facts-disagree")
       conflicts.push({ dimensionId: d.id, kind: "self-vs-self", note: "설문 답끼리 방향이 엇갈림 — 합산해 판정" })
     if (sig.selfConflict === "mbti-vs-facts")
       conflicts.push({ dimensionId: d.id, kind: "self-vs-self", note: "MBTI 자기보고와 설문 경험이 반대 방향 — 경험 쪽을 따름" })
-    if (sig.signal === "none" && sig.from.length > 0)
+    if (sig.signal === "none" && sig.from.length > 0 && !sig.oppositeWithoutFacts)
       conflicts.push({ dimensionId: d.id, kind: "missing", note: "자기보고가 약하거나 서로 상쇄되어 판정 보류" })
     return {
       dimensionId: d.id,
       chart,
-      self: { signal: sig.signal, from: sig.from, mbtiOnly: sig.mbtiOnly },
+      self: { signal: sig.signal, from: sig.from, ...(sig.lean ? { lean: sig.lean } : {}), mbtiOnly: sig.mbtiOnly },
       status,
       inferred: true as const,
     }
@@ -194,8 +214,11 @@ export function buildExpressionReport(input: ExpressionInput, opts: ExpressionOp
     conflicts.push({ kind: "chart-uncertain", note: "운의 결(힘이 실림/부담)은 억부 관점만 씀 — 조후 관점 1순위와 엇갈림" })
 
   const dimIds = dims.dimensions.map((d) => d.id)
-  const tenGodSets = dims.dimensions.filter((d) => d.rule === "exp.lv.tenGodSet.v1").map((d) => ({ id: d.id, set: (d.params as TenGodSetParams).tenGods }))
+  // grain(§5.3): 운 글자 십성이 고른 쪽/센 쪽이면 원국 lean과 같은 쪽 → activate, 반대쪽 → press, 원국 balanced → activate
+  const grainDims = dims.dimensions.flatMap((d, i) => (d.rule === "exp.lv.grain.v1" ? [{ id: d.id, p: d.params as GrainParams, lean: innate[i].lean }] : []))
   const fluxCfg = dims.luck.flux
+  // 현재 대운 위치 문자열(대운 번호는 1부터, gaeun posStr과 같은 형식)
+  const isCurrentDaeun = (p: Position): boolean => p.pillar === "daeun" && !!dRef && p.luckIndex === dRef.luckIndex
   const luck: ExpressionLuck[] = slots.map((s) => {
     const touchList: LuckTouch[] = []
     for (const gl of s.glyphs) {
@@ -203,18 +226,26 @@ export function buildExpressionReport(input: ExpressionInput, opts: ExpressionOp
       touchList.push({ dimensionId: m.activate, mode: "activate", via: [gl.pos], ruleId: "exp.luck.activate" })
       touchList.push({ dimensionId: m.feed, mode: "feed", via: [gl.pos], ruleId: "exp.luck.feed" })
       touchList.push({ dimensionId: m.press, mode: "press", via: [gl.pos], ruleId: "exp.luck.press" })
-      for (const ts of tenGodSets) if (ts.set.includes(gl.tenGod)) touchList.push({ dimensionId: ts.id, mode: "activate", via: [gl.pos], ruleId: "exp.luck.activate" })
+      for (const gd of grainDims) {
+        const side = gd.p.steady.includes(gl.tenGod) ? "steady" : gd.p.edge.includes(gl.tenGod) ? "edge" : null
+        if (!side) continue
+        const mode = !gd.lean || gd.lean === "balanced" || gd.lean === side ? "activate" : "press"
+        touchList.push({ dimensionId: gd.id, mode, via: [gl.pos], ruleId: mode === "activate" ? "exp.luck.activate" : "exp.luck.press" })
+      }
     }
-    // 관계: 운 글자 ↔ 원국 월지·일지 충·형(부분 삼형 제외)
+    // 관계(§5.4): 운 글자 ↔ 원국 월지·일지 충·형(부분 삼형 제외).
+    // 세 글자 관계에 대운·세운이 함께 끼면 세운 쪽에만 붙인다(그해 세운이 들어올 때만 완성되므로). 그때 대운은 지금 대운이어야 한다.
     const slotPos = (p: Position): boolean => p.pillar === s.slot && (s.slot !== "daeun" || p.luckIndex === dRef?.luckIndex)
-    const luckPosStr = (p: Position): string => (slotPos(p) && s.slot === "daeun" ? `daeun[${s.daeunIndex}].${p.part}` : `${p.pillar}.${p.part}`)
+    const luckPosStr = (p: Position): string =>
+      p.pillar === "daeun" && (slotPos(p) || isCurrentDaeun(p)) ? `daeun[${dRef?.daeunIndex ?? s.daeunIndex}].${p.part}` : `${p.pillar}.${p.part}`
     for (const it of a0.interactions) {
       if (it.scope !== "luck" || !it.members.some(slotPos)) continue
       if (!(fluxCfg.types as string[]).includes(it.type) || (it.type === "punishment" && it.partial)) continue
       const others = it.members.filter((m) => !slotPos(m))
       if (!others.length) continue
-      const natalOnly = others.every((m) => m.pillar === "year" || m.pillar === "month" || m.pillar === "day" || m.pillar === "hour")
-      if (!natalOnly || !others.some((m) => m.part === "branch" && (fluxCfg.natalPillars as string[]).includes(m.pillar))) continue
+      const luckOthers = others.filter((m) => !isNatalPillar(m))
+      if (luckOthers.length && (s.slot !== "seun" || !luckOthers.every(isCurrentDaeun))) continue
+      if (!others.some((m) => isNatalPillar(m) && m.part === "branch" && (fluxCfg.natalPillars as string[]).includes(m.pillar))) continue
       touchList.push({ dimensionId: fluxCfg.dimensionId, mode: "activate", via: it.members.map(luckPosStr), ruleId: "exp.luck.flux" })
     }
     // 같은 차원·같은 방식은 하나로(근거 위치 합침), 표 순서 → activate·feed·press 순
@@ -227,7 +258,7 @@ export function buildExpressionReport(input: ExpressionInput, opts: ExpressionOp
     }
     merged.sort((x, y) => dimIds.indexOf(x.dimensionId) - dimIds.indexOf(y.dimensionId) || MODE_RANK[x.mode] - MODE_RANK[y.mode])
 
-    // 운의 결(§5.5): 억부 ok·희신 있음일 때만. 경계면 neutral
+    // 운의 결(§5.5): 억부 ok·희신 있음일 때만. 경계 차단이면 neutral(총괄실장 결정: 생략하지 않음). 두 글자가 support·load로 갈리면 neutral
     let tone: LuckTone = "neutral"
     if (toneReady && eok?.favorable && eokRank1) {
       const sup = new Set([EL_KO[eokRank1], EL_KO[eok.favorable.xi]])
@@ -241,8 +272,10 @@ export function buildExpressionReport(input: ExpressionInput, opts: ExpressionOp
     const strategy: string[] = []
     for (const t of merged) {
       if (t.mode === "feed") continue
-      const st = dims.strategies.matrix[statusById.get(t.dimensionId) ?? "unknown"][t.mode]
-      strategy.push(`${st}:${t.dimensionId}`)
+      const st = statusById.get(t.dimensionId) ?? "unknown"
+      const mode: StrategyMode = t.mode
+      const id = dims.strategies.overrides[t.dimensionId]?.[mode]?.[st] ?? dims.strategies.matrix[st][mode]
+      strategy.push(`${id}:${t.dimensionId}`)
     }
     if (tone !== "neutral") strategy.push(dims.strategies.tone[tone])
     return {
@@ -301,11 +334,13 @@ export function buildExpressionReport(input: ExpressionInput, opts: ExpressionOp
   const conflictIdsOf = (dimId: string): string[] => conflicts.flatMap((c, i) => (c.dimensionId === dimId ? [`conflict:${i}`] : []))
   const readingRefs = (st: ExpressionStatus): string[] =>
     readings.filter((r) => r.status === st).flatMap((r) => [`reading:${r.dimensionId}`, ...r.self.from])
-  // 대표 기질: present 중 strong 먼저, 갈래(핵심 → 결 → 보조), 표 순서. 같은 근거 위치를 공유하는 차원은 하나만(§7.8)
+  // 대표 기질: present 중 strong 먼저, 갈래(핵심 → 결 → 보조), 표 순서. 같은 근거 위치를 공유하는 차원은 하나만(§7.8).
+  // 시주 모름이면 flux는 고르지 않는다(가장 시주 의존이 큰 보조 차원, 연구소장 §7.1-2)
   const kindOf = (id: string): string => dims.dimensions.find((d) => d.id === id)?.kind ?? "aux"
   const order = innate
     .map((p, i) => ({ p, i }))
     .filter((x) => dims.levels.present.includes(x.p.level))
+    .filter((x) => hourKnown || x.p.dimensionId !== fluxCfg.dimensionId)
     .sort((x, y) => LEVEL_RANK[x.p.level] - LEVEL_RANK[y.p.level] || KIND_RANK[kindOf(x.p.dimensionId)] - KIND_RANK[kindOf(y.p.dimensionId)] || x.i - y.i)
   const chosen: ChartPotential[] = []
   const usedPos = new Set<string>()
@@ -322,9 +357,10 @@ export function buildExpressionReport(input: ExpressionInput, opts: ExpressionOp
     expressedNow: readingRefs("expressed"),
     developedAbility: readingRefs("developed"),
     untappedPotential: readingRefs("dormant"),
+    // 차이 장: 차원에 걸린 기록만(QA S6 — "MBTI 응답 없음"·"시각 모름" 같은 전체 기록은 넣지 않는다)
     gap: [
       ...readings.filter((r) => r.status === "developed" || r.status === "dormant").map((r) => `reading:${r.dimensionId}`),
-      ...conflicts.flatMap((c, i) => ((c.kind === "chart-vs-self" || c.kind === "self-vs-self") || !c.dimensionId ? [`conflict:${i}`] : [])),
+      ...conflicts.flatMap((c, i) => (c.dimensionId && (c.kind === "chart-vs-self" || c.kind === "self-vs-self") ? [`conflict:${i}`] : [])),
     ],
     archetype: [`archetype:${archetypeId}`, ...archLinks.map((d) => `potential:${d}`)],
     growable: readings

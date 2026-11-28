@@ -1,10 +1,10 @@
 {
   "id": "expression-dimensions",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "status": "designed",
   "claim": "service-model",
-  "basedOn": "docs/knowledge/personalization/expression-dimensions.md (expression-dimensions@0.1.0)",
-  "source": "명리학 연구소장 판정 규칙(§3 차원 판정·§5 운 대응·§6.4 사실 대응·§7 상충 처리)을 개인화 분석 연구원이 표로 옮김(2026-11-28). 문턱값은 설계값이며 분포 측정 전이다.",
+  "basedOn": "docs/knowledge/personalization/expression-dimensions.md (expression-dimensions@0.2.0)",
+  "source": "명리학 연구소장 판정 규칙(§3 차원 판정·§5 운 대응·§6.4 사실 대응·§7 상충 처리)을 개인화 분석 연구원이 표로 옮김(2026-11-28). 0.3.0: steadiness·edge 두 차원을 양극 축 grain 하나로 합침(§3.7), 8차원. 문턱값은 설계값이며 분포 재측정 전이다.",
   "note": "운명비서 자기이해 모델의 표다. 기질 차원은 전통 명리의 공식 분류가 아니고, 근거 등급은 전부 L0(통설 요지, 원문 미대조)다. 사주 판정 자체를 바꾸지 않는다.",
   "evidenceLevel": "L0",
   "hiddenStemTable": "kr-monthly-30",
@@ -18,8 +18,6 @@
   "self": {
     "highAt": 0.5,
     "lowAt": 0.5,
-    "unsureFactor": 0.5,
-    "mbtiOnlyFactor": 0.5,
     "developedEvidence": ["trait"],
     "situation": {
       "from": "lived-link",
@@ -97,26 +95,24 @@
       ]
     },
     {
-      "id": "steadiness",
-      "label": "차근차근 다지는 결",
+      "id": "grain",
+      "label": "일을 풀어 가는 결",
       "kind": "grain",
-      "rule": "exp.lv.tenGodSet.v1",
-      "params": { "tenGods": ["정재", "정관", "정인", "식신"], "strongShare": 0.3, "moderateShare": 0.12, "clarityFlags": [] },
+      "rule": "exp.lv.grain.v1",
+      "params": {
+        "steady": ["정재", "정관", "정인", "식신"],
+        "edge": ["편관", "상관", "편인", "겁재"],
+        "thinShare": 0.3,
+        "balancedGap": 0.07,
+        "strongGap": 0.2,
+        "clarityFlags": ["상관견관", "효신탈식", "관살혼잡"]
+      },
       "mods": [],
       "notes": [],
       "facts": [
-        { "key": "selfStrength:planning", "direction": "high", "weight": 1, "evidence": "trait" }
+        { "key": "selfStrength:planning", "direction": "steady", "weight": 1, "evidence": "trait" },
+        { "key": "selfStrength:creativity", "direction": "edge", "weight": 1, "evidence": "trait" }
       ]
-    },
-    {
-      "id": "edge",
-      "label": "틀 밖으로 밀고 나가는 결",
-      "kind": "grain",
-      "rule": "exp.lv.tenGodSet.v1",
-      "params": { "tenGods": ["편관", "상관", "편인", "겁재"], "strongShare": 0.3, "moderateShare": 0.12, "clarityFlags": ["상관견관", "효신탈식", "관살혼잡"] },
-      "mods": [],
-      "notes": [],
-      "facts": []
     },
     {
       "id": "flux",
@@ -157,6 +153,9 @@
       "quiet": { "activate": "exp.st.borrow", "press": "exp.st.guard" },
       "unknown": { "activate": "exp.st.observe", "press": "exp.st.observe" }
     },
+    "overrides": {
+      "grain": { "press": { "expressed": "exp.st.stretch", "developed": "exp.st.stretch" } }
+    },
     "tone": { "support": "exp.st.commit", "load": "exp.st.smallsteps" },
     "catalog": {
       "exp.st.expand": "이미 쓰는 힘을 더 넓은 판에 써 보기",
@@ -166,6 +165,7 @@
       "exp.st.observe": "이 시기에 일이 몰리는 쪽을 살펴보기",
       "exp.st.pace": "속도를 조절하고 지킬 것부터 정하기",
       "exp.st.guard": "미리 대비하고 부담을 나누기",
+      "exp.st.stretch": "평소와 다른 결을 작게 연습해 보기",
       "exp.st.commit": "정한 것을 밀고 가기",
       "exp.st.smallsteps": "작게 나눠서 하기"
     }
@@ -181,7 +181,7 @@
     "job_direction": ["duty", "expression"],
     "people_relations": ["drive"],
     "confidence": ["drive"],
-    "habits_routine": ["steadiness"],
+    "habits_routine": ["grain"],
     "rest_balance": ["learning"]
   },
   "archetypeLinks": {

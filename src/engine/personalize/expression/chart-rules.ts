@@ -1,8 +1,8 @@
 // ① 원국 잠재력 판정 — 규칙 id → 판정 함수(코드). 차원 목록·어떤 규칙을 쓰는지·문턱값은 표(content/expression/dimensions.json).
-// 명리 규칙 원문: docs/knowledge/personalization/expression-dimensions.md §2·§3·§7 (연구소장, expression-dimensions@0.1.0)
+// 명리 규칙 원문: docs/knowledge/personalization/expression-dimensions.md §2·§3·§7 (연구소장, expression-dimensions@0.2.0)
 // 규칙 엔진 결과(RuleAnalysis)를 읽기만 한다. 십성·지장간·신강약을 새로 판단하지 않고 이미 나온 값을 산수로만 다룬다(§2.2).
 //  - 모형 A(weighted) 고정, 지장간 표 kr-monthly-30 고정(다른 표면 같은 원국을 다시 분석 — 원형 엔진 D-030과 같은 방식)
-//  - 십성 단위 계산(steadiness·edge)은 지장간 항목/A.basis만 쓴다. 지지 자체 tenGods 항목은 branchYinYang 옵션 영향이 있어 쓰지 않는다(§2.2 ⚑)
+//  - 십성 단위 계산(grain)은 지장간 항목/A.basis만 쓴다. 지지 자체 tenGods 항목은 branchYinYang 옵션 영향이 있어 쓰지 않는다(§2.2 ⚑)
 //  - 위치 문자열은 gaeun.ts posStr 형식
 // 순수 함수(같은 입력 → 같은 출력). AI·DB·네트워크 없음.
 import { archetypeCanonicalJson } from "../../archetype"
@@ -11,11 +11,11 @@ import { analyzeRules, hourPillarsOf, tenGodOfStem } from "../../rules"
 import type { HiddenStemRole, HiddenStemTableId, Position, RuleAnalysis, RuleOptions, StrengthModelResult, TenGod } from "../../rules/types"
 import { EngineInputError, type CalendarResult } from "../../types"
 import type {
-  ChartPotential, DimensionRow, DimensionTable, FluxParams, GroupRuleParams, LevelRuleId, OutwardParams, PotentialLevel,
-  TenGodGroupCode, TenGodSetParams,
+  ChartPotential, DimensionRow, DimensionTable, FluxParams, GrainLean, GrainParams, GroupRuleParams, LevelRuleId, OutwardParams,
+  PotentialLevel, TenGodGroupCode,
 } from "./types"
 
-export const LEVEL_RULE_IDS: readonly LevelRuleId[] = ["exp.lv.group.v1", "exp.lv.tenGodSet.v1", "exp.lv.flux.v1", "exp.lv.outward.v1"]
+export const LEVEL_RULE_IDS: readonly LevelRuleId[] = ["exp.lv.group.v1", "exp.lv.grain.v1", "exp.lv.flux.v1", "exp.lv.outward.v1"]
 export const MOD_IDS: readonly string[] = ["exp.mod.drive.v1"]
 export const GROUP_CODES: readonly TenGodGroupCode[] = ["bigyeop", "siksang", "jaeseong", "gwansal", "inseong"]
 export const ALL_TEN_GODS: readonly TenGod[] = ["비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인"]
@@ -27,6 +27,8 @@ const LEVELS: readonly PotentialLevel[] = ["strong", "moderate", "faint"]
 
 export const round6 = (x: number): number => Math.round(x * 1e6) / 1e6
 const isNatal = (p: Position): boolean => p.pillar === "year" || p.pillar === "month" || p.pillar === "day" || p.pillar === "hour"
+/** 투출 자리(연·월·시 천간 — 일간 제외) */
+const isTouchulStem = (p: Position): boolean => (p.pillar === "year" || p.pillar === "month" || p.pillar === "hour") && p.part === "stem"
 /** gaeun.ts posStr과 같은 형식(원국 위치만 — 운 위치는 engine.ts에서 daeun[n] 형식으로 만든다) */
 export const posStr = (p: Position, role?: HiddenStemRole): string => (role ? `${p.pillar}.${p.part}.${role}` : `${p.pillar}.${p.part}`)
 
@@ -94,9 +96,7 @@ type Out = Omit<ChartPotential, "dimensionId" | "evidenceLevel" | "hourStable">
 
 function groupRule(a: RuleAnalysis, d: DimensionRow, p: GroupRuleParams, D: ChartDerived): Out {
   const g = p.group
-  const touchul = a.tenGods.filter(
-    (h) => (h.position.pillar === "year" || h.position.pillar === "month" || h.position.pillar === "hour") && h.position.part === "stem" && !h.viaHiddenStem && TEN_GOD_GROUP[h.tenGod] === g,
-  )
+  const touchul = a.tenGods.filter((h) => isTouchulStem(h.position) && !h.viaHiddenStem && TEN_GOD_GROUP[h.tenGod] === g)
   const hidden = a.tenGods.filter((h) => isNatal(h.position) && !!h.viaHiddenStem && TEN_GOD_GROUP[h.tenGod] === g)
   const positions = uniq([...touchul.map((h) => posStr(h.position)), ...hidden.map((h) => posStr(h.position, h.viaHiddenStem))])
   const s = round6(D.G[g] / D.T)
@@ -128,6 +128,7 @@ function groupRule(a: RuleAnalysis, d: DimensionRow, p: GroupRuleParams, D: Char
   if (m) flags.push("month")
   const basis: ChartPotential["basis"] = [{ ruleId, positions, note: `${what}, 비율 ${s}${m ? ", 월령(태어난 달의 주된 기운)" : ""}` }]
 
+  // §3.2·§7.2(0.2.0 확정): 경계 차단이면 +1·−1 모두 하지 않는다
   if (d.mods.includes("exp.mod.drive.v1")) {
     const r = D.A.ratio
     if (D.boundary.blocked) {
@@ -156,29 +157,61 @@ function groupRule(a: RuleAnalysis, d: DimensionRow, p: GroupRuleParams, D: Char
   return { level, basis, flags }
 }
 
-// ─────────────────────────────────────────── §3.7 steadiness / edge
+// ─────────────────────────────────────────── §3.7 grain(일을 풀어 가는 결, 양극 축) — 0.2.0
 
-function tenGodSetRule(a: RuleAnalysis, p: TenGodSetParams, D: ChartDerived): Out {
-  const set = p.tenGods
-  const items = D.A.basis.filter((b) => b.group !== "self" && set.includes(tenGodOfStem(a.dayMaster.stem, b.char)))
-  const sum = items.reduce((x, b) => x + b.points, 0)
-  const share = round6(sum / D.T)
-  const shown = a.tenGods.some(
-    (h) => (h.position.pillar === "year" || h.position.pillar === "month" || h.position.pillar === "hour") && h.position.part === "stem" && !h.viaHiddenStem && set.includes(h.tenGod),
-  )
-  let level: PotentialLevel = share >= p.strongShare && shown ? "strong" : share >= p.moderateShare ? "moderate" : "faint"
-  const positions = uniq(items.map((b) => posStr(b.position, b.viaHiddenStem)))
-  const basis: ChartPotential["basis"] = [
-    { ruleId: "exp.lv.tenGodSet.v1", positions, note: `${set.join("·")} 비율 ${share}${shown ? ", 천간 투출 있음" : ", 천간 투출 없음"}` },
-  ]
-  if (level === "moderate" && p.clarityFlags.length) {
+const LEAN_KO: Readonly<Record<GrainLean, string>> = { steady: "고른 쪽", edge: "센 쪽", balanced: "두 결이 고름" }
+
+/** grain 계산값(시험·분포 측정용으로도 내보낸다). S·E = 십성별 가중 합(tgT)의 집합 합 */
+export interface GrainMeasure {
+  S: number
+  E: number
+  /** (S + E) / T */
+  share: number
+  /** S / (S + E). share가 thinShare 미만이면 null */
+  q: number | null
+  /** |q − 0.5| */
+  d: number | null
+}
+
+export function grainMeasure(p: GrainParams, D: ChartDerived): GrainMeasure {
+  const sumOf = (set: readonly string[]): number => round6(set.reduce((x, t) => x + (D.tgT[t as TenGod] ?? 0), 0))
+  const S = sumOf(p.steady)
+  const E = sumOf(p.edge)
+  const share = round6((S + E) / D.T)
+  if (share < p.thinShare || !(S + E > 0)) return { S, E, share, q: null, d: null }
+  const q = round6(S / (S + E))
+  return { S, E, share, q, d: round6(Math.abs(q - 0.5)) }
+}
+
+function grainRule(a: RuleAnalysis, p: GrainParams, D: ChartDerived): Out {
+  const m = grainMeasure(p, D)
+  const posOfSet = (set: readonly string[]): string[] =>
+    uniq(D.A.basis.filter((b) => b.group !== "self" && set.includes(tenGodOfStem(a.dayMaster.stem, b.char))).map((b) => posStr(b.position, b.viaHiddenStem)))
+  if (m.q === null || m.d === null) {
+    return {
+      level: "faint",
+      lean: "balanced",
+      basis: [{ ruleId: "exp.lv.grain.thin", positions: posOfSet([...p.steady, ...p.edge]), note: `결을 가를 글자가 적음(고른 쪽 ${m.S} · 센 쪽 ${m.E}, 비율 ${m.share})` }],
+      flags: [],
+    }
+  }
+  const lean: GrainLean = m.d < p.balancedGap ? "balanced" : m.q > 0.5 ? "steady" : "edge"
+  const set = lean === "steady" ? p.steady : p.edge
+  const shown = lean !== "balanced" && a.tenGods.some((h) => isTouchulStem(h.position) && !h.viaHiddenStem && set.includes(h.tenGod))
+  let level: PotentialLevel = lean === "balanced" ? "faint" : m.d >= p.strongGap && shown ? "strong" : "moderate"
+  const basis: ChartPotential["basis"] = [{
+    ruleId: "exp.lv.grain.v1",
+    positions: lean === "balanced" ? posOfSet([...p.steady, ...p.edge]) : posOfSet(set),
+    note: `고른 쪽 ${m.S} · 센 쪽 ${m.E}, q=${m.q}, 기울기 ${m.d} → ${LEAN_KO[lean]}${lean === "balanced" ? "" : shown ? ", 기운 쪽 천간 투출 있음" : ", 기운 쪽 천간 투출 없음"}`,
+  }]
+  if (lean === "edge" && level === "moderate" && p.clarityFlags.length) {
     const hit = a.qiFlow?.clarityFlags?.filter((f) => p.clarityFlags.includes(f.flag)) ?? []
     if (hit.length) {
       level = "strong"
-      basis.push({ ruleId: "exp.mod.edge.clarity", positions: uniq(hit.flatMap((f) => f.members.map((m) => posStr(m)))), note: `청탁 표지 ${hit.map((f) => f.flag).join("·")}` })
+      basis.push({ ruleId: "exp.mod.grain.clarity", positions: uniq(hit.flatMap((f) => f.members.map((x) => posStr(x)))), note: `청탁 표지 ${hit.map((f) => f.flag).join("·")}` })
     }
   }
-  return { level, basis, flags: [] }
+  return { level, lean, basis, flags: [] }
 }
 
 // ─────────────────────────────────────────── §3.8 flux
@@ -215,15 +248,15 @@ function outwardRule(a: RuleAnalysis, p: OutwardParams): Out {
   }
 }
 
-/** 차원 하나의 원국 잠재력. 근거 한 줄 이상(faint도) */
+/** 차원 하나의 원국 잠재력. 근거 한 줄 이상(faint도). grain만 lean이 붙는다 */
 export function potentialOf(a: RuleAnalysis, d: DimensionRow, tables: DimensionTable, D: ChartDerived = deriveChart(a)): ChartPotential {
   let out: Out
   switch (d.rule) {
     case "exp.lv.group.v1":
       out = groupRule(a, d, d.params as GroupRuleParams, D)
       break
-    case "exp.lv.tenGodSet.v1":
-      out = tenGodSetRule(a, d.params as TenGodSetParams, D)
+    case "exp.lv.grain.v1":
+      out = grainRule(a, d.params as GrainParams, D)
       break
     case "exp.lv.flux.v1":
       out = fluxRule(a, d.params as FluxParams)
@@ -234,7 +267,14 @@ export function potentialOf(a: RuleAnalysis, d: DimensionRow, tables: DimensionT
     default:
       throw new EngineInputError(`없는 판정 규칙 ${String(d.rule)}`)
   }
-  return { dimensionId: d.id, level: out.level, basis: out.basis, evidenceLevel: tables.evidenceLevel, flags: out.flags }
+  return {
+    dimensionId: d.id,
+    level: out.level,
+    ...(out.lean ? { lean: out.lean } : {}),
+    basis: out.basis,
+    evidenceLevel: tables.evidenceLevel,
+    flags: out.flags,
+  }
 }
 
 export function potentialsOf(a: RuleAnalysis, tables: DimensionTable): ChartPotential[] {
@@ -243,6 +283,14 @@ export function potentialsOf(a: RuleAnalysis, tables: DimensionTable): ChartPote
 }
 
 // ─────────────────────────────────────────── 표 고정·다시 분석(원국만)
+
+/** 차원 하나의 판정(단계 + grain 방향). 12시진·비교 표에서 "같은 판정"인지 볼 때 둘 다 같아야 한다(§7.1 ④) */
+export interface Judgment {
+  level: PotentialLevel
+  lean?: GrainLean
+}
+export const sameJudgment = (x: Judgment, y: Judgment): boolean => x.level === y.level && (x.lean ?? null) === (y.lean ?? null)
+const judgmentOf = (p: ChartPotential): Judgment => (p.lean ? { level: p.level, lean: p.lean } : { level: p.level })
 
 const P = (p: { stem: string; branch: string } | null): string => (p ? p.stem + p.branch : "--")
 
@@ -256,9 +304,9 @@ function natalChart(a: RuleAnalysis, hour: RuleAnalysis["source"]["natal"]["hour
 }
 const optsWith = (a: RuleAnalysis, table: HiddenStemTableId): RuleOptions => ({ ...a.options, usefulGodMethods: [...a.options.usefulGodMethods], hiddenStemTable: table })
 
-const cache = new Map<string, PotentialLevel[][] | PotentialLevel[]>()
+const cache = new Map<string, Judgment[][] | Judgment[]>()
 const CACHE_MAX = 256
-function cached<T extends PotentialLevel[][] | PotentialLevel[]>(key: string, make: () => T): T {
+function cached<T extends Judgment[][] | Judgment[]>(key: string, make: () => T): T {
   const hit = cache.get(key) as T | undefined
   if (hit) return JSON.parse(JSON.stringify(hit)) as T
   const v = make()
@@ -275,26 +323,26 @@ export function fixedTableAnalysis(a: RuleAnalysis, tables: DimensionTable): Rul
   return analyzeRules(natalChart(a, a.source.natal.hour), optsWith(a, tables.hiddenStemTable))
 }
 
-/** 비교 표(cn-lunarjs)로 다시 분석한 차원별 단계(기록만, §7.3) */
-export function compareTableLevels(fixed: RuleAnalysis, tables: DimensionTable, hash: string): PotentialLevel[] {
+/** 비교 표(cn-lunarjs)로 다시 분석한 차원별 판정(기록만, §7.3) */
+export function compareTableJudgments(fixed: RuleAnalysis, tables: DimensionTable, hash: string): Judgment[] {
   return cached(keyOf(fixed, `table:${tables.sensitivity.compareTable}`, hash), () => {
     const b = analyzeRules(natalChart(fixed, fixed.source.natal.hour), optsWith(fixed, tables.sensitivity.compareTable))
-    return potentialsOf(b, tables).map((p) => p.level)
+    return potentialsOf(b, tables).map(judgmentOf)
   })
 }
 
 /**
- * 시주를 모르면 일간 기준 12시진 시주를 넣어 다시 분석하고 차원별 단계를 돌려준다(차원 순서 × 12, §7.1).
+ * 시주를 모르면 일간 기준 12시진 시주를 넣어 다시 분석하고 차원별 판정을 돌려준다(차원 순서 × 12, §7.1).
  * 시주를 알면 null. 판정값은 세 기둥 결과 그대로이며 이 값은 기록·판정 보류에만 쓴다. 캐시는 속도용(값에 영향 없음).
  */
-export function hourLevelVariants(fixed: RuleAnalysis, tables: DimensionTable, hash: string): PotentialLevel[][] | null {
+export function hourJudgmentVariants(fixed: RuleAnalysis, tables: DimensionTable, hash: string): Judgment[][] | null {
   const n = fixed.source.natal
   if (n.hour !== null) return null
   return cached(keyOf(fixed, "hour", hash), () => {
-    const byDim: PotentialLevel[][] = tables.dimensions.map(() => [])
+    const byDim: Judgment[][] = tables.dimensions.map(() => [])
     for (const hp of hourPillarsOf(n.day.stem)) {
       const ah = analyzeRules(natalChart(fixed, hp), optsWith(fixed, fixed.options.hiddenStemTable))
-      potentialsOf(ah, tables).forEach((p, i) => byDim[i].push(p.level))
+      potentialsOf(ah, tables).forEach((p, i) => byDim[i].push(judgmentOf(p)))
     }
     return byDim
   })
